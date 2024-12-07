@@ -4,7 +4,7 @@ project(guinea_mpeg VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt6 6.4 REQUIRED COMPONENTS Quick)
+find_package(Qt6 6.5 REQUIRED COMPONENTS Quick QuickControls2 Gui)
 
 qt_standard_project_setup()
 
@@ -31,6 +31,8 @@ set_target_properties(appguinea_mpeg PROPERTIES
 
 target_link_libraries(appguinea_mpeg
     PRIVATE Qt6::Quick
+    PRIVATE Qt6::QuickControls2
+    PRIVATE Qt6::Gui
 )
 
 include(GNUInstallDirs)

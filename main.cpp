@@ -1,11 +1,14 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QProcess>
+#include <QQuickStyle>
 #include <iostream>
 
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
+
+    QQuickStyle::setStyle("org.kde.desktop");
 
     QQmlApplicationEngine engine;
     const QUrl url(u"qrc:/guinea_mpeg/Main.qml"_qs);
