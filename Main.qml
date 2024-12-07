@@ -1,5 +1,8 @@
+import QtCore
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Dialogs
+import Qt.labs.platform
 
 ApplicationWindow {
     width: 640
@@ -29,10 +32,16 @@ ApplicationWindow {
         }
 
         Button {
-            text: "Ok"
+            text: "Choose file"
             onClicked: function() {
-                testLabel.text = "Test 2"
+                fileDialog.open()
             }
+        }
+
+        FileDialog {
+            id: fileDialog
+            folder: StandardPaths.standardLocations(StandardPaths.MoviesLocation)[0]
+            onAccepted: testLabel.text = file
         }
     }
 }
