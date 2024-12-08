@@ -12,7 +12,7 @@ int main(int argc, char *argv[])
     QQuickStyle::setStyle("org.kde.desktop");
 
     QQmlApplicationEngine engine;
-    const QUrl url(u"qrc:/guinea_mpeg/Main.qml"_qs);
+    const QUrl url(QStringLiteral(u"qrc:/guinea_mpeg/Main.qml"));
     QObject::connect(
         &engine,
         &QQmlApplicationEngine::objectCreationFailed,
