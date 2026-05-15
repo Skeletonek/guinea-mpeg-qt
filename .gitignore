@@ -72,6 +72,12 @@ CMakeLists.txt.user*
 # Python byte code
 *.pyc
 
+# Rust build artifacts
+rust/target/
+
+# Trash directory (old/moved files)
+.trash/
+
 # Binaries
 # --------
 *.dll

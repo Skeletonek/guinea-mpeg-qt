@@ -1,3 +1,7 @@
-cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -S . -B build/
-(cd build && make)
-build/appguinea_mpeg
+#!/usr/bin/env bash
+set -e
+mkdir -p build
+cd build
+cmake ..
+cmake --build .
+echo "Build complete! Run ./build/appguinea_mpeg"
