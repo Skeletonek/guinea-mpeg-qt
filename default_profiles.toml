@@ -1,0 +1,92 @@
+[[profiles]]
+name = "H.264 1080p"
+codec = "h264"
+crf = 18
+preset = "slow"
+tune = "film"
+resolution = "1080p"
+framerate = 30.0
+pixel_format = "yuv420p"
+audio_bitrate = "192k"
+audio_channels = 2
+audio_sample_rate = 48000
+
+[[profiles]]
+name = "H.264 720p"
+codec = "h264"
+crf = 23
+preset = "medium"
+tune = "film"
+resolution = "720p"
+framerate = 30.0
+pixel_format = "yuv420p"
+audio_bitrate = "128k"
+audio_channels = 2
+audio_sample_rate = 48000
+
+[[profiles]]
+name = "VP8 Web"
+codec = "vp8"
+bitrate = "2M"
+resolution = "720p"
+framerate = 30.0
+pixel_format = "yuv420p"
+audio_bitrate = "128k"
+audio_channels = 2
+audio_sample_rate = 48000
+
+[[profiles]]
+name = "VP9 1080p"
+codec = "vp9"
+crf = 30
+preset = "medium"
+resolution = "1080p"
+framerate = 30.0
+pixel_format = "yuv420p"
+audio_bitrate = "128k"
+audio_channels = 2
+audio_sample_rate = 48000
+
+[[profiles]]
+name = "VP9 720p"
+codec = "vp9"
+crf = 32
+preset = "medium"
+resolution = "720p"
+framerate = 30.0
+pixel_format = "yuv420p"
+audio_bitrate = "128k"
+audio_channels = 2
+audio_sample_rate = 48000
+
+[[profiles]]
+name = "AV1 1080p"
+codec = "svtav1"
+crf = 28
+preset = "8"
+tune = "vmaf"
+resolution = "1080p"
+framerate = 30.0
+pixel_format = "yuv420p"
+tile_rows = 2
+tile_columns = 3
+enable_qm = true
+audio_bitrate = "128k"
+audio_channels = 2
+audio_sample_rate = 48000
+
+[[profiles]]
+name = "AV1 720p Fast"
+codec = "svtav1"
+crf = 35
+preset = "4"
+tune = "psnr"
+resolution = "720p"
+framerate = 30.0
+pixel_format = "yuv420p"
+tile_rows = 1
+tile_columns = 2
+enable_qm = false
+audio_bitrate = "128k"
+audio_channels = 2
+audio_sample_rate = 48000

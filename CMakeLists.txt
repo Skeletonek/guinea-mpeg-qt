@@ -1,11 +1,13 @@
 cmake_minimum_required(VERSION 3.16)
-project(guinea_mpeg VERSION 0.1 LANGUAGES CXX)
+project(guinea_mpeg VERSION 0.2 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
 
 find_package(Qt6 6.5 REQUIRED COMPONENTS Quick QuickControls2 Widgets Multimedia)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(MPV REQUIRED IMPORTED_TARGET mpv)
 find_program(CARGO cargo REQUIRED)
 
 qt_standard_project_setup()
@@ -13,6 +15,8 @@ qt_standard_project_setup()
 # Main executable
 qt_add_executable(appguinea_mpeg
     main.cpp
+    mpvitem.h
+    mpvitem.cpp
 )
 
 # Embed QML files directly using resource file
@@ -33,6 +37,7 @@ target_link_libraries(appguinea_mpeg
     PRIVATE Qt6::Widgets
     PRIVATE Qt6::Multimedia
     PRIVATE ${CMAKE_DL_LIBS}
+    PRIVATE PkgConfig::MPV
 )
 
 # Build Rust library
@@ -54,6 +59,14 @@ add_custom_command(TARGET rust_lib POST_BUILD
         ${RUST_LIB_PATH}
         $<TARGET_FILE_DIR:appguinea_mpeg>/libguinea_mpeg_core.so
     COMMENT "Copying Rust library"
+)
+
+# Copy default profiles next to the binary
+add_custom_command(TARGET rust_lib POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${CMAKE_SOURCE_DIR}/default_profiles.toml
+        $<TARGET_FILE_DIR:appguinea_mpeg>/default_profiles.toml
+    COMMENT "Copying default profiles"
 )
 
 install(TARGETS appguinea_mpeg

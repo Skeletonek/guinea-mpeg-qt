@@ -1,6 +1,6 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
 static CONFIG: Mutex<Option<AppConfig>> = Mutex::new(None);
@@ -10,58 +10,103 @@ pub struct VideoProfile {
     pub name: String,
     pub codec: String,
     pub crf: Option<i32>,
-    pub preset: Option<String>,
     pub bitrate: Option<String>,
+    pub preset: Option<String>,
+    pub tune: Option<String>,
     pub pixel_format: Option<String>,
-    pub extra_args: Vec<String>,
-    pub av1_params: Option<Av1Params>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Av1Params {
-    pub preset: u8,
-    pub crf: Option<u8>,
-    pub tune: String,
+    pub resolution: Option<String>,
+    pub framerate: Option<f64>,
     pub tile_rows: Option<u32>,
     pub tile_columns: Option<u32>,
-    pub enable_qm: bool,
+    pub enable_qm: Option<bool>,
+    #[serde(default = "default_audio_bitrate")]
+    pub audio_bitrate: String,
+    pub audio_channels: Option<u32>,
+    pub audio_sample_rate: Option<u32>,
+    #[serde(default)]
+    pub extra_args: Vec<String>,
+}
+
+fn default_audio_bitrate() -> String {
+    "128k".into()
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct AppConfig {
-    profiles: HashMap<String, VideoProfile>,
+    profiles: Vec<VideoProfile>,
 }
 
-fn config_path() -> PathBuf {
+fn user_config_path() -> PathBuf {
     let mut path = dirs_or_fallback();
     path.push("guinea-mpeg");
     path.push("config.toml");
     path
 }
 
+fn defaults_path() -> PathBuf {
+    let exe = std::env::current_exe().unwrap_or_default();
+    let dir = exe.parent().unwrap_or(&std::path::Path::new("."));
+    dir.join("default_profiles.toml")
+}
+
 fn dirs_or_fallback() -> PathBuf {
-    if let Some(d) = dirs::config_dir() {
-        d
-    } else {
-        PathBuf::from(".")
+    dirs::config_dir().unwrap_or_else(|| PathBuf::from("."))
+}
+
+fn load_profiles_from_file(path: &Path) -> Vec<VideoProfile> {
+    let content = match std::fs::read_to_string(path) {
+        Ok(c) => c,
+        Err(_) => return Vec::new(),
+    };
+
+    // Try new format: [[profiles]] -> Vec<VideoProfile>
+    #[derive(Deserialize)]
+    struct VecConfig {
+        profiles: Vec<VideoProfile>,
+    }
+    if let Ok(cfg) = toml::from_str::<VecConfig>(&content) {
+        return cfg.profiles;
+    }
+
+    // Fall back to old format: [profiles."name"] -> HashMap<String, VideoProfile>
+    #[derive(Deserialize)]
+    struct MapConfig {
+        profiles: HashMap<String, VideoProfile>,
+    }
+    if let Ok(cfg) = toml::from_str::<MapConfig>(&content) {
+        return cfg.profiles.into_values().collect();
+    }
+
+    Vec::new()
+}
+
+fn load_defaults() -> Vec<VideoProfile> {
+    load_profiles_from_file(&defaults_path())
+}
+
+fn load_user_config() -> Vec<VideoProfile> {
+    load_profiles_from_file(&user_config_path())
+}
+
+fn merge_configs() -> AppConfig {
+    let mut map: HashMap<String, VideoProfile> = HashMap::new();
+    for p in load_defaults() {
+        map.insert(p.name.clone(), p);
+    }
+    for p in load_user_config() {
+        map.insert(p.name.clone(), p);
+    }
+    AppConfig {
+        profiles: map.into_values().collect(),
     }
 }
 
 fn load_config() -> AppConfig {
-    let path = config_path();
-    if let Ok(content) = std::fs::read_to_string(&path) {
-        toml::from_str(&content).unwrap_or_else(|_| AppConfig {
-            profiles: default_profiles(),
-        })
-    } else {
-        AppConfig {
-            profiles: default_profiles(),
-        }
-    }
+    merge_configs()
 }
 
-fn save_config(config: &AppConfig) -> anyhow::Result<()> {
-    let path = config_path();
+fn save_user_config(config: &AppConfig) -> anyhow::Result<()> {
+    let path = user_config_path();
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent)?;
     }
@@ -85,111 +130,40 @@ fn set_config(config: AppConfig) {
 
 pub fn available_profiles() -> Vec<String> {
     let config = get_config();
-    config.profiles.keys().cloned().collect()
+    let mut names: Vec<String> = config.profiles.iter().map(|p| p.name.clone()).collect();
+    names.sort();
+    names
 }
 
 pub fn load_profile(name: &str) -> Option<VideoProfile> {
     let config = get_config();
-    config.profiles.get(name).cloned()
+    config.profiles.iter().find(|p| p.name == name).cloned()
 }
 
 pub fn save_profile(name: &str, json: &str) -> anyhow::Result<()> {
-    let profile: VideoProfile = serde_json::from_str(json)?;
-    let mut config = get_config();
-    config.profiles.insert(name.to_string(), profile);
-    save_config(&config)?;
-    set_config(config);
+    let mut profile: VideoProfile = serde_json::from_str(json)?;
+    profile.name = name.to_string();
+    let mut user_profiles = load_user_config();
+    if let Some(pos) = user_profiles.iter().position(|p| p.name == name) {
+        user_profiles[pos] = profile;
+    } else {
+        user_profiles.push(profile);
+    }
+    let user_config = AppConfig {
+        profiles: user_profiles,
+    };
+    save_user_config(&user_config)?;
+    set_config(merge_configs());
     Ok(())
 }
 
 pub fn delete_profile(name: &str) -> anyhow::Result<()> {
-    let mut config = get_config();
-    config.profiles.remove(name);
-    save_config(&config)?;
-    set_config(config);
+    let mut user_profiles = load_user_config();
+    user_profiles.retain(|p| p.name != name);
+    let user_config = AppConfig {
+        profiles: user_profiles,
+    };
+    save_user_config(&user_config)?;
+    set_config(merge_configs());
     Ok(())
-}
-
-fn default_profiles() -> HashMap<String, VideoProfile> {
-    let mut profiles = HashMap::new();
-    profiles.insert(
-        "h264_high".into(),
-        VideoProfile {
-            name: "H.264 High Quality".into(),
-            codec: "libx264".into(),
-            crf: Some(18),
-            preset: Some("slow".into()),
-            bitrate: None,
-            pixel_format: None,
-            extra_args: vec![],
-            av1_params: None,
-        },
-    );
-    profiles.insert(
-        "h265_balanced".into(),
-        VideoProfile {
-            name: "H.265 Balanced".into(),
-            codec: "libx265".into(),
-            crf: Some(23),
-            preset: Some("medium".into()),
-            bitrate: None,
-            pixel_format: None,
-            extra_args: vec![],
-            av1_params: None,
-        },
-    );
-    profiles.insert(
-        "vp9_web".into(),
-        VideoProfile {
-            name: "VP9 Web".into(),
-            codec: "libvpx-vp9".into(),
-            crf: Some(30),
-            preset: None,
-            bitrate: None,
-            pixel_format: None,
-            extra_args: vec!["-row-mt".into(), "1".into()],
-            av1_params: None,
-        },
-    );
-    profiles.insert(
-        "av1_high".into(),
-        VideoProfile {
-            name: "AV1 (SVT-AV1) High Quality".into(),
-            codec: "libsvtav1".into(),
-            crf: None,
-            preset: None,
-            bitrate: None,
-            pixel_format: None,
-            extra_args: vec![],
-            av1_params: Some(Av1Params {
-                preset: 8,
-                crf: Some(28),
-                tune: "Vmaf".into(),
-                tile_rows: Some(2),
-                tile_columns: Some(3),
-                enable_qm: true,
-            }),
-        },
-    );
-    profiles.insert(
-        "av1_fast".into(),
-        VideoProfile {
-            name: "AV1 (SVT-AV1) Fast".into(),
-            codec: "libsvtav1".into(),
-            crf: None,
-            preset: None,
-            bitrate: Some("5M".into()),
-            pixel_format: None,
-            extra_args: vec![],
-            av1_params: Some(Av1Params {
-                preset: 4,
-                crf: Some(35),
-                tune: "Psnr".into(),
-                tile_rows: Some(1),
-                tile_columns: Some(2),
-                enable_qm: false,
-            }),
-        },
-    );
-    profiles
 }

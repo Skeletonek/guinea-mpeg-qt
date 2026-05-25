@@ -2,7 +2,11 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QQuickStyle>
+#include <QQuickWindow>
 #include <QDebug>
+#include <QSGRendererInterface>
+#include <clocale>
+#include "mpvitem.h"
 #include <QProcess>
 #include <QJsonDocument>
 #include <QJsonArray>
@@ -204,6 +208,19 @@ public:
         return "started";
     }
 
+    Q_INVOKABLE void cancelTranscode() {
+        if (!m_currentTranscode) return;
+        m_currentTranscode->disconnect();
+        m_currentTranscode->kill();
+        m_currentTranscode->waitForFinished(3000);
+        m_transcodeOutput += "\n--- Transcoding cancelled ---\n";
+        emit transcodeOutputUpdated();
+        m_transcoding = false;
+        emit transcodingChanged();
+        m_currentTranscode->deleteLater();
+        m_currentTranscode = nullptr;
+    }
+
 signals:
     void transcodeFinished(bool success);
     void transcodeOutputUpdated();
@@ -286,12 +303,17 @@ private:
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
+    std::setlocale(LC_NUMERIC, "C");
     QQuickStyle::setStyle("org.kde.desktop");
+
+    // Force OpenGL so QQuickFramebufferObject + mpv_render_context works
+    QQuickWindow::setGraphicsApi(QSGRendererInterface::OpenGL);
 
     QQmlApplicationEngine engine;
 
     // Register backend
     qmlRegisterType<GuineaMpegBackend>("GuineaMpeg", 1, 0, "GuineaMpegBackend");
+    qmlRegisterType<MpvItem>("GuineaMpeg", 1, 0, "MpvItem");
     auto backend = new GuineaMpegBackend(&app);
     engine.rootContext()->setContextProperty("backend", backend);
     engine.rootContext()->setContextProperty("ffmpegAvailable", QVariant(backend->ffmpegAvailable()));

@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Dialogs
-import QtMultimedia
+import GuineaMpeg 1.0
 
 ApplicationWindow {
     id: appWindow
@@ -13,13 +13,15 @@ ApplicationWindow {
 
     property string currentVideoPath: ""
     property var currentVideoInfo: ({})
-    property string currentProfile: "av1_high"
+    property string currentProfile: "H.264 1080p"
+    property string currentCodec: "h264"
     property int videoDuration: 0
     property int startTime: 0
     property int endTime: 0
     property string videoInfoText: "Load a video file to see information"
     property string outputFilePath: ""
     property bool scrubbing: false
+    property bool settingTimeline: false
     property url videoSource: ""
 
     menuBar: MenuBar {
@@ -31,16 +33,6 @@ ApplicationWindow {
         Menu {
             title: qsTr("Help")
             MenuItem { text: qsTr("About"); onTriggered: aboutDialog.open() }
-        }
-    }
-
-    MediaPlayer {
-        id: player
-        source: appWindow.videoSource
-
-        audioOutput: AudioOutput {
-            id: audioOutput
-            volume: 1.0
         }
     }
 
@@ -56,7 +48,10 @@ ApplicationWindow {
                 height: stackView.height
                 color: "#1e1e1e"
 
-                Component.onCompleted: player.videoOutput = videoOutput
+                StackView.onActivated: {
+                    var p = backend.availableProfiles()
+                    try { profileSelector.model = JSON.parse(p) } catch(e) {}
+                }
 
                 Row {
                     anchors.fill: parent
@@ -72,10 +67,11 @@ ApplicationWindow {
                         border.width: 1
                         clip: true
 
-                        VideoOutput {
-                            id: videoOutput
+                        MpvItem {
+                            id: player
                             anchors.fill: parent
                             visible: currentVideoPath !== ""
+                            source: appWindow.videoSource
                         }
 
                         Text {
@@ -100,11 +96,11 @@ ApplicationWindow {
                                 spacing: 4
 
                                 Button {
-                                    text: player.playbackState === MediaPlayer.PlayingState ? "⏸" : "▶"
+                                    text: player.playing ? "⏸" : "▶"
                                     width: 40
                                     height: parent.height
                                     onClicked: {
-                                        if (player.playbackState === MediaPlayer.PlayingState)
+                                        if (player.playing)
                                             player.pause()
                                         else
                                             player.play()
@@ -169,14 +165,31 @@ ApplicationWindow {
                                     var p = backend.availableProfiles()
                                     try { return JSON.parse(p) } catch(e) { return [] }
                                 }
-                                onCurrentTextChanged: currentProfile = currentText
+                                onCurrentTextChanged: {
+                                    currentProfile = currentText
+                                    updateCodec()
+                                }
                                 width: parent.width
                             }
 
-                            Button {
-                                text: "Edit Profile..."
-                                onClicked: stackView.push(profileEditorPage)
+                            Row {
+                                spacing: 5
                                 width: parent.width
+
+                                Button {
+                                    text: "Edit Profile..."
+                                    onClicked: stackView.push(profileEditorPage)
+                                    width: (parent.width - parent.spacing) / 2
+                                }
+
+                                Button {
+                                    text: "New Profile..."
+                                    onClicked: {
+                                        currentProfile = ""
+                                        stackView.push(profileEditorPage)
+                                    }
+                                    width: (parent.width - parent.spacing) / 2
+                                }
                             }
 
                             Label {
@@ -194,12 +207,14 @@ ApplicationWindow {
                                 startTime: appWindow.startTime
                                 endTime: appWindow.endTime
                                 onStartTimeChanged: {
+                                    if (appWindow.settingTimeline) return
                                     scrubbing = true
                                     appWindow.startTime = startTime
                                     player.position = startTime
                                     scrubbing = false
                                 }
                                 onEndTimeChanged: {
+                                    if (appWindow.settingTimeline) return
                                     scrubbing = true
                                     appWindow.endTime = endTime
                                     player.position = endTime
@@ -222,10 +237,10 @@ ApplicationWindow {
                                     id: volumeSlider
                                     from: 0
                                     to: 100
-                                    value: audioOutput.volume * 100
+                                    value: player.volume
                                     width: parent.width - 40
                                     height: 30
-                                    onMoved: audioOutput.volume = value / 100.0
+                                    onMoved: player.volume = value
                                 }
 
                                 Label {
@@ -270,6 +285,19 @@ ApplicationWindow {
                                 onClicked: startTranscoding()
                                 width: parent.width
                             }
+
+                            Label {
+                                text: "Transcoding in progress... (click to view)"
+                                color: "#4a9eff"
+                                visible: backend.transcoding
+                                width: parent.width
+                                wrapMode: Text.WordWrap
+                                MouseArea {
+                                    anchors.fill: parent
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: transcodeDialog.open()
+                                }
+                            }
                         }
                     }
                 }
@@ -303,7 +331,10 @@ ApplicationWindow {
         title: "Save Transcoded Video As"
         acceptLabel: "Save"
         fileMode: FileDialog.SaveFile
-        nameFilters: ["MP4 video (*.mp4)", "MKV video (*.mkv)", "WebM video (*.webm)", "All files (*)"]
+        nameFilters: {
+            var ext = getExtensionForCodec(currentCodec)
+            return [ext.toUpperCase() + " video (*." + ext + ")"]
+        }
         onAccepted: {
             var path = String(saveDialog.selectedFile)
             if (path.startsWith("file://"))
@@ -322,7 +353,7 @@ ApplicationWindow {
             padding: 20
             Label { text: "GuineaMPEG"; font.pixelSize: 20; font.bold: true; color: "white" }
             Label { text: "FFmpeg Frontend with Rust Core"; color: "white" }
-            Label { text: "Version 0.1"; color: "white" }
+            Label { text: "Version 0.2.0"; color: "white" }
         }
     }
 
@@ -330,7 +361,6 @@ ApplicationWindow {
         id: transcodeDialog
         title: backend.transcoding ? "Transcoding..." : "Transcoding Complete"
         modal: false
-        standardButtons: Dialog.Close
         closePolicy: Popup.CloseOnEscape
         width: 700
         height: 500
@@ -344,21 +374,48 @@ ApplicationWindow {
             anchors.fill: parent
             anchors.margins: 10
 
-            ScrollView {
+            Rectangle {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
+                color: "#1e1e1e"
 
-                TextArea {
-                    id: transcodeOutputDisplay
-                    text: backend.transcodeOutput
-                    readOnly: true
-                    font.family: "monospace"
-                    font.pixelSize: 12
-                    color: "white"
-                    background: Rectangle { color: "#1e1e1e" }
-                    onTextChanged: {
-                        if (transcodeOutputDisplay.contentHeight > transcodeOutputDisplay.height)
-                            transcodeOutputDisplay.cursorPosition = transcodeOutputDisplay.length - 1
+                Flickable {
+                    id: transcodeFlickable
+                    anchors.fill: parent
+                    anchors.margins: 4
+                    contentHeight: outputDisplay.contentHeight
+                    clip: true
+                    boundsBehavior: Flickable.StopAtBounds
+                    ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
+
+                    property bool wasAtBottom: true
+
+                    onContentYChanged: {
+                        if (height <= 0) return
+                        wasAtBottom = (contentY >= contentHeight - height - 1)
+                    }
+
+                    onContentHeightChanged: {
+                        if (height > 0 && wasAtBottom)
+                            contentY = contentHeight - height
+                    }
+
+                    onHeightChanged: {
+                        if (height > 0 && wasAtBottom && contentHeight > 0)
+                            contentY = contentHeight - height
+                    }
+
+                    TextEdit {
+                        id: outputDisplay
+                        width: parent.width
+                        text: backend.transcodeOutput
+                        readOnly: true
+                        font.family: "monospace"
+                        font.pixelSize: 12
+                        color: "white"
+                        wrapMode: TextEdit.Wrap
+                        selectByMouse: false
+                        textFormat: TextEdit.PlainText
                     }
                 }
             }
@@ -374,8 +431,9 @@ ApplicationWindow {
                 Item { Layout.fillWidth: true }
 
                 Button {
-                    text: "Close"
-                    onClicked: transcodeDialog.close()
+                    text: "Cancel"
+                    visible: backend.transcoding
+                    onClicked: backend.cancelTranscode()
                 }
             }
         }
@@ -387,7 +445,10 @@ ApplicationWindow {
         var info = backend.getVideoInfo(filePath)
         currentVideoInfo = info
         videoDuration = Math.round(info.duration * 1000)
+        settingTimeline = true
+        startTime = 0
         endTime = videoDuration
+        settingTimeline = false
 
         videoInfoText = "Duration: " + info.duration.toFixed(1) + "s\n" +
                       "Resolution: " + info.width + "x" + info.height + "\n" +
@@ -399,9 +460,26 @@ ApplicationWindow {
         var dot = name.lastIndexOf(".")
         var base = dot >= 0 ? name.substring(0, dot) : name
         var dir = idx >= 0 ? filePath.substring(0, idx + 1) : ""
-        appWindow.outputFilePath = dir + base + "_transcoded.mp4"
+        appWindow.outputFilePath = dir + base + "_transcoded." + getExtensionForCodec(currentCodec)
+    }
 
-        player.play()
+    function getExtensionForCodec(codec) {
+        if (codec === "h264") return "mp4"
+        return "webm"
+    }
+
+    function updateCodec() {
+        try {
+            var d = JSON.parse(backend.loadProfile(currentProfile))
+            currentCodec = d.codec || "h264"
+        } catch(e) {
+            currentCodec = "h264"
+        }
+        var ext = getExtensionForCodec(currentCodec)
+        var path = appWindow.outputFilePath
+        var dot = path.lastIndexOf(".")
+        if (dot >= 0) path = path.substring(0, dot)
+        appWindow.outputFilePath = path + "." + ext
     }
 
     function startTranscoding() {
