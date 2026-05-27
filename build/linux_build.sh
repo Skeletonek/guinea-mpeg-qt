@@ -74,7 +74,7 @@ DESCRIPTION="FFmpeg GUI Frontend with Rust Core"
 # ---- Clean ----
 if $DO_CLEAN; then
     echo "=== Cleaning build artifacts ==="
-    rm -rf "$OUT_DIR" "$PROJECT_DIR/rust/target"
+    rm -rf "$OUT_DIR" "$PROJECT_DIR/rust/target" "$PROJECT_DIR/.flatpak-builder"
 fi
 
 # ---- Build ----
@@ -111,6 +111,9 @@ DEB_DEPS=(
     --depends "libqt6gui6"
     --depends "libqt6qml6"
     --depends "libqt6opengl6"
+    --depends "qml6-module-qtquick-controls"
+    --depends "qml6-module-qtquick-layouts"
+    --depends "qml6-module-qtquick-dialogs"
 )
 RPM_DEPS=(
     --depends "mpv-libs"
@@ -145,7 +148,7 @@ build_deb() {
     echo "=== Building .deb ==="
     fpm "${FPM_BASE[@]}" -t deb "${DEB_DEPS[@]}" \
         -C "$staging" \
-        -p "$OUT_DIR/${PKGNAME}_${VERSION}_${ARCH}.deb" \
+        -p "$OUT_DIR/${PKGNAME}-${VERSION}-${ARCH}.deb" \
         usr/ || echo "WARNING: .deb build failed" >&2
 }
 
@@ -156,7 +159,7 @@ build_rpm() {
     echo "=== Building .rpm ==="
     fpm "${FPM_BASE[@]}" -t rpm "${RPM_DEPS[@]}" \
         -C "$staging" \
-        -p "$OUT_DIR/${PKGNAME}-${VERSION}.${ARCH}.rpm" \
+        -p "$OUT_DIR/${PKGNAME}-${VERSION}-${ARCH}.rpm" \
         usr/ || echo "WARNING: .rpm build failed" >&2
 }
 

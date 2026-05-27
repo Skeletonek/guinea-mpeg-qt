@@ -15,11 +15,37 @@ A modern FFmpeg transcoding GUI with a Rust core library loaded at runtime via C
 
 ## Build Requirements
 
-- Rust 1.83+ (pinned via `rust-toolchain.toml`)
-- Qt 6.5+ (tested on 6.11.0)
 - CMake 3.16+
+- Rust 1.83+ (pinned via `rust-toolchain.toml`, install via `rustup`)
+- Qt 6.5+ (tested on 6.11.0)
 - libmpv (development headers, `pkg-config` findable)
-- FFmpeg + ffprobe (with SVT-AV1, libx264, libvpx(-vp9), libopus for full profile support)
+- OpenGL / GLX development headers
+- FFmpeg + ffprobe (runtime, for transcoding — with SVT-AV1, libx264, libvpx(-vp9), libopus for full profile support)
+
+### Per-Distro Package Lists
+
+**Debian / Ubuntu**
+```bash
+sudo apt install cmake g++ pkg-config \
+                 qt6-base-dev qt6-declarative-dev \
+                 libmpv-dev libgl1-mesa-dev \
+                 cargo
+```
+
+**Fedora**
+```bash
+sudo dnf install cmake gcc-c++ pkgconf-pkg-config \
+                 qt6-qtbase-devel qt6-qtdeclarative-devel \
+                 mpv-libs-devel mesa-libGL-devel \
+                 cargo rust
+```
+
+**Arch Linux**
+```bash
+sudo pacman -S --needed base-devel cmake \
+                       qt6-base qt6-declarative \
+                       mpv rust cargo
+```
 
 ## Building
 
