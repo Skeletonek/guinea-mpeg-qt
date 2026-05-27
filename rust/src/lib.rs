@@ -79,10 +79,4 @@ pub extern "C" fn build_ffmpeg_command(
     string_to_cstr(serde_json::to_string(&args).unwrap_or_default())
 }
 
-/// Parse ffprobe output and return video info as JSON
-#[unsafe(no_mangle)]
-pub extern "C" fn parse_video_info(ffprobe_json: *const c_char) -> *mut c_char {
-    let json = cstr_to_string(ffprobe_json);
-    let info = ffmpeg::parse_ffprobe_output(&json);
-    string_to_cstr(serde_json::to_string(&info).unwrap_or_default())
-}
+

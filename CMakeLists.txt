@@ -38,7 +38,6 @@ qt_add_resources(guinea-mpeg "app_qml"
         qml/main.qml
         qml/TimelineControl.qml
         qml/ProfileEditor.qml
-        qml/VideoPreview.qml
 )
 
 # Link Qt libraries

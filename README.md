@@ -11,6 +11,7 @@ A modern FFmpeg transcoding GUI with a Rust core library loaded at runtime via C
 - **Live Transcode Output**: Non-modal dialog showing real-time ffmpeg stderr output with autoscroll
 - **Cancel Transcode**: Kill running ffmpeg process mid-transcode
 - **Output Options**: MP4 (H.264) and WebM (VP8/VP9/AV1); AAC for H.264, Opus for everything else
+- **MIME type integration**: Open video files directly from your file manager
 
 ## Build Requirements
 
@@ -23,15 +24,29 @@ A modern FFmpeg transcoding GUI with a Rust core library loaded at runtime via C
 ## Building
 
 ```bash
-cmake --build build     # also builds Rust via cargo
+cmake -S . -B out && cmake --build out   # also builds Rust via cargo
+```
+
+### Packaging
+
+```bash
+./build/linux_build.sh                           # build only
+./build/linux_build.sh --package deb             # build + .deb
+./build/linux_build.sh --package deb,flatpak     # build + .deb + flatpak
+./build/linux_build.sh --clean                   # clean + rebuild
+```
+
+Version is read from `rust/Cargo.toml` automatically. Use `update-version.sh` to bump:
+```bash
+./update-version.sh 0.2.1
 ```
 
 ## Project Structure
 
 - `rust/` — Rust core library: C FFI exports (`lib.rs`), TOML profile config (`config.rs`), ffmpeg command builder (`ffmpeg.rs`)
 - `qml/` — Qt Quick QML UI: main window (`main.qml`), timeline handles (`TimelineControl.qml`), profile editor (`ProfileEditor.qml`)
-- `main.cpp` — Qt C++ entry point, `GuineaMpegBackend` class with `Q_INVOKABLE` methods, dynamic `dlopen` of Rust `.so`
-- `mpvitem.h` / `mpvitem.cpp` — `MpvItem` (QQuickFramebufferObject) wrapping libmpv for video playback
+- `src/main.cpp` — Qt C++ entry point, `GuineaMpegBackend` class with `Q_INVOKABLE` methods, dynamic `dlopen` of Rust `.so`
+- `src/mpvitem.h` / `src/mpvitem.cpp` — `MpvItem` (QQuickFramebufferObject) wrapping libmpv for video playback
 - `CMakeLists.txt` — CMake build, finds Qt6 + mpv, builds Rust as custom target
 
 ## Configuration
@@ -39,7 +54,7 @@ cmake --build build     # also builds Rust via cargo
 Profiles are stored as human-editable TOML at `~/.config/guinea-mpeg/config.toml`.
 Format: `[[profiles]]` array-of-tables (auto-migrated from the legacy `[profiles."name"]` format).
 
-Built-in defaults are bundled at `build/default_profiles.toml` and loaded at startup.
+Built-in defaults are bundled at `default_profiles.toml` (next to the binary or at `/usr/share/guinea-mpeg/default_profiles.toml`) and loaded at startup.
 User profiles merge over defaults (same name = user override).
 
 ### Built-in Profiles

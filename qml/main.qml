@@ -21,7 +21,6 @@ ApplicationWindow {
     property int endTime: 0
     property string videoInfoText: "Load a video file to see information"
     property string outputFilePath: ""
-    property bool scrubbing: false
     property bool settingTimeline: false
     property url videoSource: ""
 
@@ -38,7 +37,6 @@ ApplicationWindow {
     }
 
     Component.onCompleted: {
-        console.log("initialFilePath:", initialFilePath)
         if (!ffmpegAvailable)
             ffmpegWarningDialog.open()
         else if (initialFilePath !== "")
@@ -217,17 +215,13 @@ ApplicationWindow {
                                 endTime: appWindow.endTime
                                 onStartTimeChanged: {
                                     if (appWindow.settingTimeline) return
-                                    scrubbing = true
                                     appWindow.startTime = startTime
                                     player.position = startTime
-                                    scrubbing = false
                                 }
                                 onEndTimeChanged: {
                                     if (appWindow.settingTimeline) return
-                                    scrubbing = true
                                     appWindow.endTime = endTime
                                     player.position = endTime
-                                    scrubbing = false
                                 }
                             }
 

@@ -1,17 +1,26 @@
 #!/bin/bash
 set -euo pipefail
 
-# Package build script for GuineaMPEG
-# Produces .deb, .rpm, .pkg.tar.zst (pacman) artifacts in out/
-#
-# Usage:
-#   ./build/linux_package.sh                          # build all (fpm)
-#   ./build/linux_package.sh --debian                 # build only .deb
-#   ./build/linux_package.sh --fedora                 # build only .rpm
-#   ./build/linux_package.sh --arch                   # build only .pkg.tar.zst
-#   ./build/linux_package.sh --flatpak                # build only Flatpak
-#   ./build/linux_package.sh --no-build               # skip cmake rebuild
-#   ./build/linux_package.sh -d -n 0.3.0              # single flag combo
+show_help() {
+    cat <<EOF
+Usage: $0 [options]
+
+Options:
+  --clean               Remove out/ and rust/target/ before building
+  --package <list>      Build packages (comma-separated: deb,rpm,pacman,flatpak)
+  --no-build            Skip the cmake build step
+  --version <ver>       Update project version via update-version.sh, then build
+  --help                Show this help message
+
+Examples:
+  $0                                        Build only
+  $0 --package deb                          Build + .deb package
+  $0 --package deb,flatpak                  Build + .deb + flatpak
+  $0 --clean --version 0.3.0 --package deb,rpm,pacman
+                                            Full clean, bump version, rebuild, package
+  $0 --version 0.3.0 --no-build             Bump version only (no build/packages)
+EOF
+}
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
@@ -19,46 +28,62 @@ OUT_DIR="$PROJECT_DIR/out"
 
 VERSION="$(grep '^version = ' "$PROJECT_DIR/rust/Cargo.toml" | head -1 | sed 's/version = "\(.*\)"/\1/')"
 NO_BUILD=false
-BUILD_DEB=false
-BUILD_RPM=false
-BUILD_PACMAN=false
-BUILD_FLATPAK=false
+DO_CLEAN=false
+DO_DEB=false
+DO_RPM=false
+DO_PACMAN=false
+DO_FLATPAK=false
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --no-build|-n)     NO_BUILD=true; shift ;;
-        --debian|-d)       BUILD_DEB=true; shift ;;
-        --fedora|-f)       BUILD_RPM=true; shift ;;
-        --arch|-a)         BUILD_PACMAN=true; shift ;;
-        --flatpak|-p)      BUILD_FLATPAK=true; shift ;;
+        --clean)
+            DO_CLEAN=true; shift ;;
+        --package)
+            shift
+            IFS=',' read -ra PKG_LIST <<< "$1"
+            for pkg in "${PKG_LIST[@]}"; do
+                case "$pkg" in
+                    deb)     DO_DEB=true ;;
+                    rpm)     DO_RPM=true ;;
+                    pacman)  DO_PACMAN=true ;;
+                    flatpak) DO_FLATPAK=true ;;
+                    *)       echo "ERROR: unknown package target '$pkg' (valid: deb, rpm, pacman, flatpak)"; exit 1 ;;
+                esac
+            done
+            shift ;;
+        --no-build|-n)
+            NO_BUILD=true; shift ;;
+        --version)
+            shift
+            "$PROJECT_DIR/update-version.sh" "$1"
+            VERSION="$1"
+            shift ;;
         --help|-h)
-            sed -n '4,15p' "$0"
-            exit 0
-            ;;
-        *)                 VERSION="$1"; shift ;;
+            show_help
+            exit 0 ;;
+        *)
+            echo "ERROR: unknown option '$1'. Use --help for usage."
+            exit 1 ;;
     esac
 done
-
-# If no target flag given, build all (fpm packages)
-if ! $BUILD_DEB && ! $BUILD_RPM && ! $BUILD_PACMAN && ! $BUILD_FLATPAK; then
-    BUILD_DEB=true
-    BUILD_RPM=true
-    BUILD_PACMAN=true
-fi
 
 ARCH="$(uname -m)"
 PKGNAME="guinea-mpeg"
 DESCRIPTION="FFmpeg GUI Frontend with Rust Core"
 
+# ---- Clean ----
+if $DO_CLEAN; then
+    echo "=== Cleaning build artifacts ==="
+    rm -rf "$OUT_DIR" "$PROJECT_DIR/rust/target"
+fi
+
 # ---- Build ----
 if ! $NO_BUILD; then
     echo "=== Building GuineaMPEG $VERSION ==="
-    cmake --build "$PROJECT_DIR/out" --target guinea-mpeg 2>/dev/null || {
-        echo "Run 'cmake -S . -B out && cmake --build out' first, or press Enter to build now..."
-        read -r
-        cmake -S "$PROJECT_DIR" -B "$PROJECT_DIR/out"
-        cmake --build "$PROJECT_DIR/out"
-    }
+    if [ ! -f "$OUT_DIR/CMakeCache.txt" ]; then
+        cmake -S "$PROJECT_DIR" -B "$OUT_DIR"
+    fi
+    cmake --build "$OUT_DIR"
 fi
 
 # ---- Stage files ----
@@ -115,7 +140,7 @@ FPM_BASE=(
 # ---- Package functions ----
 build_deb() {
     local staging; staging=$(mktemp -d)
-    trap "rm -rf '$staging'" RETURN
+    trap 'rm -rf "$staging"' RETURN
     stage_package "$staging"
     echo "=== Building .deb ==="
     fpm "${FPM_BASE[@]}" -t deb "${DEB_DEPS[@]}" \
@@ -126,7 +151,7 @@ build_deb() {
 
 build_rpm() {
     local staging; staging=$(mktemp -d)
-    trap "rm -rf '$staging'" RETURN
+    trap 'rm -rf "$staging"' RETURN
     stage_package "$staging"
     echo "=== Building .rpm ==="
     fpm "${FPM_BASE[@]}" -t rpm "${RPM_DEPS[@]}" \
@@ -137,7 +162,7 @@ build_rpm() {
 
 build_pacman() {
     local staging; staging=$(mktemp -d)
-    trap "rm -rf '$staging'" RETURN
+    trap 'rm -rf "$staging"' RETURN
     stage_package "$staging"
     echo "=== Building .pkg.tar.zst (pacman) ==="
     fpm "${FPM_BASE[@]}" -t pacman "${PACMAN_DEPS[@]}" \
@@ -171,18 +196,18 @@ build_flatpak() {
 # ---- Main ----
 mkdir -p "$OUT_DIR"
 
-if $BUILD_DEB || $BUILD_RPM || $BUILD_PACMAN; then
+if $DO_DEB || $DO_RPM || $DO_PACMAN; then
     if ! command -v fpm &>/dev/null; then
         echo "ERROR: fpm not found. Install it: gem install fpm"
         exit 1
     fi
-    $BUILD_DEB    && build_deb
-    $BUILD_RPM    && build_rpm
-    $BUILD_PACMAN && build_pacman
+    $DO_DEB    && build_deb
+    $DO_RPM    && build_rpm
+    $DO_PACMAN && build_pacman
 fi
 
-$BUILD_FLATPAK && build_flatpak
+$DO_FLATPAK && build_flatpak
 
 echo ""
-echo "=== Packages created in $OUT_DIR ==="
+echo "=== Output in $OUT_DIR ==="
 ls -lh "$OUT_DIR/"

@@ -2,9 +2,11 @@
 
 ## Architecture
 - Rust library (`libguinea_mpeg_core.so`, cdylib/staticlib) loaded at runtime via `dlopen` from C++ (`src/main.cpp`).
-- 8 C FFI exports: `init_core`, `free_rust_string`, `available_profiles`, `load_profile`, `save_profile`, `delete_profile`, `build_ffmpeg_command`, `parse_video_info`.
+- 7 C FFI exports: `init_core`, `free_rust_string`, `available_profiles`, `load_profile`, `save_profile`, `delete_profile`, `build_ffmpeg_command`.
 - C++ `GuineaMpegBackend` class exposed as QML context property `backend`.
 - CMake builds Rust via `cargo build --release` as custom target, copies `.so` into build dir.
+- CLI argument (for MIME type opening) parsed in `src/main.cpp`: skips flags and flatpak `@@` markers, normalizes via `QUrl::toLocalFile()`, passed as `initialFilePath` context property to QML.
+- QML `Component.onCompleted` calls `loadVideo(initialFilePath)` to auto-load the file.
 
 ## QML Patterns
 - IDs inside a `Component` are NOT accessible from outside it. The reverse works (parent scope IDs accessible from within Component).
@@ -12,6 +14,7 @@
 - `Column` from `QtQuick` 2.15+ has `padding` support.
 - `Q_PROPERTY` signals (`NOTIFY`) are the cleanest way to push streaming data (like ffmpeg output) from C++ to QML.
 - `StackView.onActivated` on a page fires every time it becomes the current item — useful for refreshing data after popping back.
+- Use `encodeURI()` on the file path when constructing `file://` URLs in QML (handles spaces/special chars).
 
 ## TimelineControl Patterns
 - Handle x positions MUST be clamped to `[0, track.width - handle.width]` with `Math.max(0, Math.min(x, track.width - width))` to keep handles within the clickable area.
@@ -37,12 +40,17 @@
 - CMake requires `pkg_check_modules(MPV REQUIRED mpv)` for libmpv.
 - Compile flag `-mdirect-extern-access` needed for GCC 14+/Qt 6.11 compat (prevents copy relocation errors).
 - `build/` is for source-controlled packaging scripts; `out/` is gitignored (cmake artifacts + packages).
+- Version canonical source: `rust/Cargo.toml` — `update-version.sh` propagates to `CMakeLists.txt` and `qml/main.qml`.
 
-## Packaging
-- `build/linux_package.sh` — builds fpm packages (deb/rpm/pacman) and flatpak.
-- Flags: `--debian|-d`, `--fedora|-f`, `--arch|-a`, `--flatpak|-p`, `--no-build|-n`.
-- Default (no target flag) builds all fpm packages. `--flatpak` is exclusive (manual only).
+## Build & Packaging
+- `build/linux_build.sh` — builds the project and optionally produces packages.
+- Flags: `--clean`, `--package deb,rpm,pacman,flatpak`, `--no-build`, `--version X.Y.Z`, `--help`.
+- Default (no flags) runs cmake configure + build only. No packaging.
+- `--clean` removes `out/` and `rust/target/` before building.
+- `--package` accepts comma-separated list of targets (deb, rpm, pacman, flatpak).
+- `--version` delegates to `update-version.sh`, then continues with the build.
 - Flatpak requires `flatpak-builder` and `org.kde.Platform//6.7` runtime.
+- Version read dynamically from `rust/Cargo.toml`.
 
 ## Runtime
 - Exit code 255 = QML load/parse failure.
@@ -53,10 +61,11 @@
 - `MpvItem` (QQuickFramebufferObject) wraps libmpv via `mpv_handle*` (GUI thread) + `mpv_render_context*` (render thread).
 - **Must** `setMirrorVertically(true)` on MpvItem AND `MPV_RENDER_PARAM_FLIP_Y = 1` — mpv renders upside-down into FBO, Qt flips on display.
 - `MPV_RENDER_PARAM_OPENGL_FBO` requires full `mpv_opengl_fbo` struct (`fbo`, `w`, `h`, `internal_format`), not just an `int`.
-- Options: `vo=libmpv`, `keep-open=yes`, `hwdec=auto-safe`, `cache=yes`.
+- Options: `vo=libmpv`, `keep-open=yes`, `cache=yes`.
 - `setlocale(LC_NUMERIC, "C")` after `QApplication` (QApplication overrides locale).
 - Dangling pointer trap: `path.toUtf8().constData()` temp dies. Always store `QByteArray` in local var.
-- `loadfile` then `play()` both called from C++ `setSource`, NOT from QML `onSourceChanged`.
-- `mpv_command_async` vs `mpv_command`: use `mpv_command` (synchronous) for `loadfile` to ensure ordering; `mpv_command_async` only if the calling thread must not block.
+- `loadfile` MUST be deferred until `mpv_render_context*` exists — `setSource()` stores URL in `m_pendingSource`, and `MpvRenderer` constructor calls `loadPendingSource()` via `QMetaObject::invokeMethod` after creating the render context. Without this, the `vo=libmpv` driver stalls at `width=0 height=0`.
+- `mpv_command` (synchronous) for `loadfile`; `mpv_command_async` only if the calling thread must not block.
 - `MPV_FORMAT_FLAG` data is `int*`, NOT `bool*` — cast accordingly.
 - `MPV_EVENT_PLAYBACK_RESTART` fires after seeking even in paused state — do NOT blindly set `m_playing = true`; check actual `pause` property via `mpv_get_property`.
+- `m_renderReady` flag on MpvItem, set by renderer constructor, guards whether `setSource` can load immediately or must defer.

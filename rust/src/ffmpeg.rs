@@ -1,16 +1,4 @@
-use serde::Serialize;
-
 use crate::config::VideoProfile;
-
-#[derive(Debug, Clone, Serialize)]
-pub struct VideoInfo {
-    pub duration: f64,
-    pub width: u32,
-    pub height: u32,
-    pub fps: f64,
-    pub codec: String,
-    pub bitrate: u64,
-}
 
 pub fn build_command(
     input: &str,
@@ -159,22 +147,4 @@ pub fn audio_codec(codec: &str) -> &str {
     }
 }
 
-#[allow(unused_variables)]
-pub fn parse_ffprobe_output(json: &str) -> VideoInfo {
-    VideoInfo {
-        duration: 0.0,
-        width: 0,
-        height: 0,
-        fps: 0.0,
-        codec: "unknown".to_string(),
-        bitrate: 0,
-    }
-}
 
-#[allow(dead_code)]
-pub fn container_extension(codec: &str) -> &str {
-    match codec {
-        "h264" => "mp4",
-        _ => "webm",
-    }
-}

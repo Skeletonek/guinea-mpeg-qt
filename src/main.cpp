@@ -22,7 +22,6 @@ using LoadProfileFn = char*(*)(const char*);
 using SaveProfileFn = bool(*)(const char*, const char*);
 using DeleteProfileFn = bool(*)(const char*);
 using BuildFfmpegCommandFn = char*(*)(const char*, const char*, double, double, const char*);
-using ParseVideoInfoFn = char*(*)(const char*);
 using FreeRustStringFn = void(*)(char*);
 
 class GuineaMpegBackend : public QObject {
@@ -258,7 +257,6 @@ private:
     SaveProfileFn m_saveProfile = nullptr;
     DeleteProfileFn m_deleteProfile = nullptr;
     BuildFfmpegCommandFn m_buildFfmpegCommand = nullptr;
-    ParseVideoInfoFn m_parseVideoInfo = nullptr;
     FreeRustStringFn m_freeRustString = nullptr;
 
     void loadRustLibrary() {
@@ -293,13 +291,10 @@ private:
         m_saveProfile = (SaveProfileFn)dlsym(m_lib, "save_profile");
         m_deleteProfile = (DeleteProfileFn)dlsym(m_lib, "delete_profile");
         m_buildFfmpegCommand = (BuildFfmpegCommandFn)dlsym(m_lib, "build_ffmpeg_command");
-        m_parseVideoInfo = (ParseVideoInfoFn)dlsym(m_lib, "parse_video_info");
         m_freeRustString = (FreeRustStringFn)dlsym(m_lib, "free_rust_string");
 
-        if (m_initCore) {
+        if (m_initCore)
             m_initCore();
-            qDebug() << "Rust core initialized successfully";
-        }
     }
 };
 
@@ -325,10 +320,8 @@ int main(int argc, char *argv[])
 
     QString initialFilePath;
     auto args = app.arguments();
-    qDebug() << "arguments:" << args;
     for (int i = 1; i < args.size(); ++i) {
         const auto& a = args[i];
-        // Skip flatpak file-forwarding markers (@@, @@u, etc.) and flags
         if (a == "@@" || a.startsWith("@@") || a.startsWith('-'))
             continue;
         QString path = QUrl(a).toLocalFile();
@@ -337,7 +330,6 @@ int main(int argc, char *argv[])
         initialFilePath = path;
         break;
     }
-    qDebug() << "initialFilePath:" << initialFilePath;
     engine.rootContext()->setContextProperty("initialFilePath", QVariant(initialFilePath));
 
     const QUrl url(QStringLiteral("qrc:/qml/main.qml"));

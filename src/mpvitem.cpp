@@ -7,8 +7,6 @@
 #include <QQuickWindow>
 #include <QDebug>
 
-// ---- MpvRenderer (render thread) ----
-
 MpvRenderer::MpvRenderer(MpvItem* item)
     : m_item(item)
 {
@@ -21,15 +19,12 @@ MpvRenderer::MpvRenderer(MpvItem* item)
         { MPV_RENDER_PARAM_INVALID, nullptr }
     };
 
-    int r = mpv_render_context_create(&m_renderCtx, item->getMpv(), params);
-    qDebug() << "mpv: render context created:" << (r >= 0 ? "ok" : mpv_error_string(r));
-    if (r < 0) {
+    if (mpv_render_context_create(&m_renderCtx, item->getMpv(), params) < 0) {
         qWarning() << "mpv: failed to create render context";
         return;
     }
     mpv_render_context_set_update_callback(m_renderCtx, MpvItem::onUpdate, item);
 
-    // Mark render context as ready and trigger deferred load
     item->m_renderReady = true;
     QMetaObject::invokeMethod(item, "loadPendingSource", Qt::QueuedConnection);
 }
@@ -67,25 +62,12 @@ void MpvRenderer::render()
         { MPV_RENDER_PARAM_FLIP_Y, &flip },
         { MPV_RENDER_PARAM_INVALID, nullptr }
     };
-    static bool firstRender = true;
-    if (firstRender) {
-        firstRender = false;
-        int64_t w = 0, h = 0;
-        int flag = 0;
-        mpv_get_property(m_item->getMpv(), "width", MPV_FORMAT_INT64, &w);
-        mpv_get_property(m_item->getMpv(), "height", MPV_FORMAT_INT64, &h);
-        mpv_get_property(m_item->getMpv(), "pause", MPV_FORMAT_FLAG, &flag);
-        qDebug() << "mpv: first frame video=" << w << "x" << h << "pause=" << flag;
-    }
-    int r = mpv_render_context_render(m_renderCtx, params);
-    if (r < 0)
-        qWarning() << "mpv: render failed:" << mpv_error_string(r);
+    if (mpv_render_context_render(m_renderCtx, params) < 0)
+        qWarning() << "mpv: render failed";
 }
 
 void MpvRenderer::synchronize(QQuickFramebufferObject*)
 {
-    // Called on GUI thread with render thread blocked.
-    // Nothing to sync for now — mpv handles its own state.
 }
 
 void* MpvRenderer::getProcAddr(void*, const char* name)
@@ -98,8 +80,6 @@ void MpvItem::onUpdate(void* ctx)
     auto* item = static_cast<MpvItem*>(ctx);
     QMetaObject::invokeMethod(item, "update", Qt::QueuedConnection);
 }
-
-// ---- MpvItem (GUI thread) ----
 
 MpvItem::MpvItem()
 {
@@ -131,7 +111,6 @@ MpvItem::MpvItem()
     mpv_observe_property(m_mpv, 0, "duration", MPV_FORMAT_DOUBLE);
     mpv_observe_property(m_mpv, 0, "pause", MPV_FORMAT_FLAG);
 
-    qDebug() << "mpv: initialized successfully";
 }
 
 MpvItem::~MpvItem()
@@ -172,16 +151,10 @@ void MpvItem::loadPendingSource()
     if (path.isEmpty())
         path = src.toString();
 
-    qDebug() << "mpv: loading file:" << path;
     QByteArray pathData = path.toUtf8();
     const char* cmd[] = { "loadfile", pathData.constData(), nullptr };
-    int r = mpv_command(m_mpv, cmd);
-    if (r < 0)
-        qWarning() << "mpv: loadfile failed:" << mpv_error_string(r);
-    else
-        qDebug() << "mpv: loadfile succeeded";
-
-    // Ensure playback starts
+    if (mpv_command(m_mpv, cmd) < 0)
+        qWarning() << "mpv: loadfile failed";
     mpv_set_property_string(m_mpv, "pause", "no");
 }
 
@@ -243,13 +216,8 @@ void MpvItem::handleMpvEvents()
             break;
 
         switch (event->event_id) {
-        case MPV_EVENT_FILE_LOADED: {
-            int64_t w = 0, h = 0;
-            mpv_get_property(m_mpv, "width", MPV_FORMAT_INT64, &w);
-            mpv_get_property(m_mpv, "height", MPV_FORMAT_INT64, &h);
-            qDebug() << "mpv: file loaded, video=" << w << "x" << h;
+        case MPV_EVENT_FILE_LOADED:
             break;
-        }
         case MPV_EVENT_PLAYBACK_RESTART: {
             int paused = 0;
             mpv_get_property(m_mpv, "pause", MPV_FORMAT_FLAG, &paused);
