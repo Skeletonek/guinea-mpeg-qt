@@ -49,15 +49,18 @@ signals:
 
 private slots:
     void handleMpvEvents();
+    void loadPendingSource();
 
 private:
     friend class MpvRenderer;
     QUrl m_source;
+    QUrl m_pendingSource;
     int m_position = 0;
     int m_duration = 0;
     bool m_playing = false;
     qreal m_volume = 100.0;
     mpv_handle* m_mpv = nullptr;
+    bool m_renderReady = false;
 
     mpv_handle* getMpv() const { return m_mpv; }
     static void wakeup(void* ctx);

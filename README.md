@@ -53,7 +53,3 @@ User profiles merge over defaults (same name = user override).
 | VP9 720p | libvpx-vp9 | CRF 32, medium preset |
 | AV1 1080p | libsvtav1 | CRF 28, preset 8, VMAF tune |
 | AV1 720p Fast | libsvtav1 | CRF 35, preset 4, PSNR tune |
-
-## License
-
-MIT License

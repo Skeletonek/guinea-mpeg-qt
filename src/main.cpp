@@ -1,7 +1,6 @@
 #include <QApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
-#include <QQuickStyle>
 #include <QQuickWindow>
 #include <QDebug>
 #include <QSGRendererInterface>
@@ -13,6 +12,7 @@
 #include <QJsonObject>
 #include <QDir>
 #include <QUrl>
+#include <QIcon>
 #include <dlfcn.h>
 
 // Function pointer types for Rust library
@@ -306,8 +306,9 @@ private:
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
+    app.setDesktopFileName("guinea-mpeg");
+    app.setWindowIcon(QIcon::fromTheme("guinea-mpeg"));
     std::setlocale(LC_NUMERIC, "C");
-    QQuickStyle::setStyle("org.kde.desktop");
 
     // Force OpenGL so QQuickFramebufferObject + mpv_render_context works
     QQuickWindow::setGraphicsApi(QSGRendererInterface::OpenGL);
@@ -321,6 +322,23 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("backend", backend);
     engine.rootContext()->setContextProperty("ffmpegAvailable", QVariant(backend->ffmpegAvailable()));
     engine.rootContext()->setContextProperty("ffmpegVersion", QVariant(backend->getFfmpegVersion()));
+
+    QString initialFilePath;
+    auto args = app.arguments();
+    qDebug() << "arguments:" << args;
+    for (int i = 1; i < args.size(); ++i) {
+        const auto& a = args[i];
+        // Skip flatpak file-forwarding markers (@@, @@u, etc.) and flags
+        if (a == "@@" || a.startsWith("@@") || a.startsWith('-'))
+            continue;
+        QString path = QUrl(a).toLocalFile();
+        if (path.isEmpty())
+            path = a;
+        initialFilePath = path;
+        break;
+    }
+    qDebug() << "initialFilePath:" << initialFilePath;
+    engine.rootContext()->setContextProperty("initialFilePath", QVariant(initialFilePath));
 
     const QUrl url(QStringLiteral("qrc:/qml/main.qml"));
 

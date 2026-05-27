@@ -1,7 +1,7 @@
 # Agent Knowledge Base
 
 ## Architecture
-- Rust library (`libguinea_mpeg_core.so`, cdylib/staticlib) loaded at runtime via `dlopen` from C++ (`main.cpp`).
+- Rust library (`libguinea_mpeg_core.so`, cdylib/staticlib) loaded at runtime via `dlopen` from C++ (`src/main.cpp`).
 - 8 C FFI exports: `init_core`, `free_rust_string`, `available_profiles`, `load_profile`, `save_profile`, `delete_profile`, `build_ffmpeg_command`, `parse_video_info`.
 - C++ `GuineaMpegBackend` class exposed as QML context property `backend`.
 - CMake builds Rust via `cargo build --release` as custom target, copies `.so` into build dir.
@@ -35,7 +35,14 @@
 - `cmake -S . -B out && cmake --build out` in project root. Rust builds automatically via cargo.
 - `#include "main.moc"` at end of `main.cpp` is required since the `Q_OBJECT` class is defined in the cpp file.
 - CMake requires `pkg_check_modules(MPV REQUIRED mpv)` for libmpv.
-- `build/` is for source-controlled packaging scripts; `out/` is gitignored (cmake artifacts + fpm packages).
+- Compile flag `-mdirect-extern-access` needed for GCC 14+/Qt 6.11 compat (prevents copy relocation errors).
+- `build/` is for source-controlled packaging scripts; `out/` is gitignored (cmake artifacts + packages).
+
+## Packaging
+- `build/linux_package.sh` — builds fpm packages (deb/rpm/pacman) and flatpak.
+- Flags: `--debian|-d`, `--fedora|-f`, `--arch|-a`, `--flatpak|-p`, `--no-build|-n`.
+- Default (no target flag) builds all fpm packages. `--flatpak` is exclusive (manual only).
+- Flatpak requires `flatpak-builder` and `org.kde.Platform//6.7` runtime.
 
 ## Runtime
 - Exit code 255 = QML load/parse failure.

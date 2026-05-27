@@ -10,6 +10,7 @@ ApplicationWindow {
     height: 768
     visible: true
     title: qsTr("GuineaMPEG - FFmpeg Frontend")
+    // icon set via QGuiApplication::setDesktopFileName and QT_WAYLAND_APP_ID
 
     property string currentVideoPath: ""
     property var currentVideoInfo: ({})
@@ -37,8 +38,11 @@ ApplicationWindow {
     }
 
     Component.onCompleted: {
+        console.log("initialFilePath:", initialFilePath)
         if (!ffmpegAvailable)
             ffmpegWarningDialog.open()
+        else if (initialFilePath !== "")
+            appWindow.loadVideo(initialFilePath)
     }
 
     StackView {
@@ -323,11 +327,10 @@ ApplicationWindow {
         title: "Select Video File"
         nameFilters: ["Video files (*.mp4 *.mkv *.avi *.mov *.webm)"]
         onAccepted: {
-            appWindow.videoSource = fileDialog.selectedFile
             var path = String(fileDialog.selectedFile)
             if (path.startsWith("file://"))
                 path = path.substring(7)
-            loadVideo(path)
+            loadVideo(path, fileDialog.selectedFile)
         }
     }
 
@@ -358,7 +361,7 @@ ApplicationWindow {
             padding: 20
             Label { text: "GuineaMPEG"; font.pixelSize: 20; font.bold: true; color: "white" }
             Label { text: "FFmpeg Frontend with Rust Core"; color: "white" }
-            Label { text: "Version 0.2.0"; color: "white" }
+            Label { text: "Version 0.2.1"; color: "white" }
         }
     }
 
@@ -474,8 +477,9 @@ ApplicationWindow {
         onAccepted: Qt.quit()
     }
 
-    function loadVideo(filePath) {
+    function loadVideo(filePath, fileUrl) {
         currentVideoPath = filePath
+        appWindow.videoSource = fileUrl || ("file://" + encodeURI(filePath))
 
         var info = backend.getVideoInfo(filePath)
         currentVideoInfo = info

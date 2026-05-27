@@ -51,6 +51,11 @@ fn defaults_path() -> PathBuf {
             if p.exists() {
                 return p;
             }
+            // ../share/guinea-mpeg/ relative to binary (flatpak & prefix installs)
+            let p = dir.join("../share/guinea-mpeg/default_profiles.toml");
+            if p.exists() {
+                return p.canonicalize().unwrap_or(p);
+            }
         }
     }
     // Fall back to system-wide install path

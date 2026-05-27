@@ -1,11 +1,14 @@
 id: com.skeletonek.guinea-mpeg
 runtime: org.kde.Platform
-runtime-version: '6.7'
+runtime-version: '6.10'
 sdk: org.kde.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.rust-stable
 command: guinea-mpeg
 finish-args:
   - --socket=wayland
   - --socket=x11
+  - --socket=pulseaudio
   - --share=ipc
   - --device=dri
   - --filesystem=host
@@ -14,6 +17,28 @@ finish-args:
   - --env=LC_NUMERIC=C
 
 modules:
+  - name: libplacebo
+    buildsystem: meson
+    config-opts:
+      - -Ddemos=false
+      - -Dtests=false
+      - -Dvulkan=disabled
+      - -Dshaderc=disabled
+      - -Dglslang=disabled
+      - -Dlcms=enabled
+      - -Dopengl=enabled
+    sources:
+      - type: git
+        url: https://github.com/haasn/libplacebo.git
+        tag: v7.349.0
+
+  - name: libass
+    buildsystem: meson
+    sources:
+      - type: git
+        url: https://github.com/libass/libass.git
+        tag: 0.17.3
+
   - name: mpv
     buildsystem: meson
     config-opts:
@@ -29,6 +54,12 @@ modules:
         tag: v0.38.0
 
   - name: guinea-mpeg
+    build-options:
+      append-path: /usr/lib/sdk/rust-stable/bin
+      build-args:
+        - --share=network
+      env:
+        CARGO_HOME: /run/build/guinea-mpeg/cargo
     buildsystem: cmake-ninja
     builddir: true
     config-opts:
@@ -38,5 +69,5 @@ modules:
       - type: dir
         path: ../../
     post-install:
-      - install -Dm644 build/flatpak/com.skeletonek.guinea-mpeg.desktop /app/share/applications/com.skeletonek.guinea-mpeg.desktop
-      - install -Dm644 build/linux/icons/hicolor/scalable/apps/guinea-mpeg.svg /app/share/icons/hicolor/scalable/apps/com.skeletonek.guinea-mpeg.svg
+      - install -Dm644 ../build/flatpak/com.skeletonek.guinea-mpeg.desktop /app/share/applications/com.skeletonek.guinea-mpeg.desktop
+      - for s in 16 24 32 48 64 128 256; do install -Dm644 ../build/linux/icons/hicolor/${s}x${s}/apps/guinea-mpeg.png /app/share/icons/hicolor/${s}x${s}/apps/com.skeletonek.guinea-mpeg.png; done

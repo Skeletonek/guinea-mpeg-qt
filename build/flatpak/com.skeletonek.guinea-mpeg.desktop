@@ -1,10 +1,12 @@
 [Desktop Entry]
 Name=GuineaMPEG
 Comment=FFmpeg GUI Frontend
-Exec=/app/bin/guinea-mpeg
+Exec=/app/bin/guinea-mpeg %F
 Icon=com.skeletonek.guinea-mpeg
 Terminal=false
 Type=Application
 Categories=AudioVideo;AudioVideoEditing;
 Keywords=ffmpeg;video;transcode;
+MimeType=video/mp4;video/x-matroska;video/webm;video/x-msvideo;video/quicktime;video/ogg;
 StartupNotify=true
+StartupWMClass=guinea-mpeg
