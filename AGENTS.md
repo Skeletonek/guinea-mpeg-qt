@@ -32,9 +32,10 @@
 - Merging: defaults loaded first, then user config overlays by `p.name`. Same name = user profile wins.
 
 ## Build
-- `cmake --build build` in project root. Rust is built automatically.
+- `cmake -S . -B out && cmake --build out` in project root. Rust builds automatically via cargo.
 - `#include "main.moc"` at end of `main.cpp` is required since the `Q_OBJECT` class is defined in the cpp file.
 - CMake requires `pkg_check_modules(MPV REQUIRED mpv)` for libmpv.
+- `build/` is for source-controlled packaging scripts; `out/` is gitignored (cmake artifacts + fpm packages).
 
 ## Runtime
 - Exit code 255 = QML load/parse failure.

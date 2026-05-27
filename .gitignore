@@ -34,7 +34,14 @@ Thumbs.db
 *.rc
 /.qmake.cache
 /.qmake.stash
-build/
+out/
+
+# Ignore cmake artifacts inside build/ but track packaging scripts
+build/*
+!build/linux/
+!build/flatpak/
+!build/linux_package.sh
+
 
 # kate editor files
 *.kate-swp

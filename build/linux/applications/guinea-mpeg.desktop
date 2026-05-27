@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=GuineaMPEG
+Comment=FFmpeg GUI Frontend
+Exec=guinea-mpeg
+Icon=guinea-mpeg
+Terminal=false
+Type=Application
+Categories=AudioVideo;AudioVideoEditing;
+Keywords=ffmpeg;video;transcode;
+StartupNotify=true

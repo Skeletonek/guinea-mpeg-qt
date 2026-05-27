@@ -44,9 +44,17 @@ fn user_config_path() -> PathBuf {
 }
 
 fn defaults_path() -> PathBuf {
-    let exe = std::env::current_exe().unwrap_or_default();
-    let dir = exe.parent().unwrap_or(&std::path::Path::new("."));
-    dir.join("default_profiles.toml")
+    // Try beside the executable first
+    if let Ok(exe) = std::env::current_exe() {
+        if let Some(dir) = exe.parent() {
+            let p = dir.join("default_profiles.toml");
+            if p.exists() {
+                return p;
+            }
+        }
+    }
+    // Fall back to system-wide install path
+    PathBuf::from("/usr/share/guinea-mpeg/default_profiles.toml")
 }
 
 fn dirs_or_fallback() -> PathBuf {

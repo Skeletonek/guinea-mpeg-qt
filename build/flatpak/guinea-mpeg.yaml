@@ -1,0 +1,42 @@
+id: com.skeletonek.guinea-mpeg
+runtime: org.kde.Platform
+runtime-version: '6.7'
+sdk: org.kde.Sdk
+command: guinea-mpeg
+finish-args:
+  - --socket=wayland
+  - --socket=x11
+  - --share=ipc
+  - --device=dri
+  - --filesystem=host
+  - --share=network
+  - --talk-name=org.freedesktop.Flatpak
+  - --env=LC_NUMERIC=C
+
+modules:
+  - name: mpv
+    buildsystem: meson
+    config-opts:
+      - -Dcplayer=false
+      - -Dlibmpv=true
+      - -Dlua=disabled
+      - -Djavascript=disabled
+      - -Ddvdnav=disabled
+      - -Dmanpage-build=disabled
+    sources:
+      - type: git
+        url: https://github.com/mpv-player/mpv.git
+        tag: v0.38.0
+
+  - name: guinea-mpeg
+    buildsystem: cmake-ninja
+    builddir: true
+    config-opts:
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DCMAKE_INSTALL_PREFIX=/app
+    sources:
+      - type: dir
+        path: ../../
+    post-install:
+      - install -Dm644 build/flatpak/com.skeletonek.guinea-mpeg.desktop /app/share/applications/com.skeletonek.guinea-mpeg.desktop
+      - install -Dm644 build/linux/icons/hicolor/scalable/apps/guinea-mpeg.svg /app/share/icons/hicolor/scalable/apps/com.skeletonek.guinea-mpeg.svg

@@ -266,6 +266,9 @@ private:
         QStringList searchPaths = {
             QCoreApplication::applicationDirPath() + "/libguinea_mpeg_core.so",
             QCoreApplication::applicationDirPath() + "/../rust/target/release/libguinea_mpeg_core.so",
+            QCoreApplication::applicationDirPath() + "/../lib/guinea-mpeg/libguinea_mpeg_core.so",
+            "/usr/local/lib/guinea-mpeg/libguinea_mpeg_core.so",
+            "/usr/lib/guinea-mpeg/libguinea_mpeg_core.so",
             "libguinea_mpeg_core.so",
         };
 
