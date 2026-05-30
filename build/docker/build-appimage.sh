@@ -50,8 +50,8 @@ chmod +x /tmp/linuxdeploy-plugin-qt.AppImage
 mv squashfs-root /tmp/linuxdeploy-plugin-qt-root
 rm /tmp/linuxdeploy-plugin-qt.AppImage
 
-# Make plugin discoverable by linuxdeploy
-ln -s /tmp/linuxdeploy-plugin-qt-root/AppRun /tmp/linuxdeploy-root/usr/bin/linuxdeploy-plugin-qt
+# Make plugin discoverable by linuxdeploy (symlink directly to binary, not AppRun)
+ln -s /tmp/linuxdeploy-plugin-qt-root/usr/bin/linuxdeploy-plugin-qt /tmp/linuxdeploy-root/usr/bin/linuxdeploy-plugin-qt
 
 # ---- Bundle dependencies with linuxdeploy ----
 echo "=== Bundling dependencies ==="
@@ -78,6 +78,22 @@ if [ -n "$INTERP" ]; then
 else
     echo "  WARNING: no bundled ld-linux found in AppDir!"
 fi
+
+# ---- Ensure AppRun exists ----
+echo "=== Creating AppRun ==="
+cat > "$APPDIR/AppRun" << 'APPRUN'
+#!/bin/bash
+HERE="$(dirname "$(readlink -f "$0")")"
+export PATH="$HERE/usr/bin:$PATH"
+export LD_LIBRARY_PATH="$HERE/usr/lib:$HERE/lib:$LD_LIBRARY_PATH"
+export QT_PLUGIN_PATH="$HERE/usr/plugins"
+exec "$HERE/usr/bin/guinea-mpeg" "$@"
+APPRUN
+chmod +x "$APPDIR/AppRun"
+
+# Debug: list AppDir contents
+echo "=== AppDir structure ==="
+find "$APPDIR" -type f | sort
 
 # ---- Create AppImage with appimagetool ----
 echo "=== Downloading appimagetool ==="

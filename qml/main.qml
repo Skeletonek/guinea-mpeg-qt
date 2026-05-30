@@ -361,11 +361,39 @@ ApplicationWindow {
 
     Dialog {
         id: transcodeDialog
-        title: backend.transcoding ? "Transcoding..." : "Transcoding Complete"
         modal: false
         closePolicy: Popup.CloseOnEscape
         width: 700
         height: 500
+
+        header: Rectangle {
+            height: 36
+            color: "#2d2d2d"
+
+            RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 10
+                anchors.rightMargin: 4
+                spacing: 4
+
+                Label {
+                    text: backend.transcoding ? "Transcoding..." : "Transcoding Complete"
+                    color: "#eee"
+                    font.bold: true
+                    elide: Text.ElideRight
+                }
+
+                Item { Layout.fillWidth: true }
+
+                Button {
+                    text: "✕"
+                    flat: true
+                    implicitWidth: 28
+                    implicitHeight: 28
+                    onClicked: transcodeDialog.close()
+                }
+            }
+        }
 
         onAboutToShow: {
             x = (appWindow.width - width) / 2

@@ -268,7 +268,7 @@ FPM_BASE=(
     -a "$ARCH"
     --description "$DESCRIPTION"
     --license "BSD-3-Clause"
-    --vendor "skeletonek"
+    --vendor "Skeletonek"
     --maintainer "Łukasz Plich <l.plich@skeletonek.com>"
     --url "https://gitlab.com/Skeletonek/guinea-mpeg-qt"
 )
@@ -313,7 +313,9 @@ build_generic_tar() {
     fi
 
     echo "=== Creating $archive_file ==="
-    tar -czf "$archive_file" -C "$generic_dir" .
+    rm -f "$archive_file"
+    tar -czf "$OUT_DIR/${archive_name}.tar.gz" -C "$generic_dir" .
+    mv "$OUT_DIR/${archive_name}.tar.gz" "$archive_file"
     echo "Created: $archive_file"
 }
 

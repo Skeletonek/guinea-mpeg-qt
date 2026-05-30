@@ -57,7 +57,8 @@
 - `--package flatpak` uses host `flatpak-builder` (not Docker), SDK `org.kde.Platform//6.10`.
 - Version canonical source: `rust/Cargo.toml`.
 - Flatpak post-install: installs SVG to `hicolor/scalable/apps/` + 256×256 PNG fallback.
-- AppImage build: `patchelf` must explicitly set the ELF interpreter to the bundled `ld-linux-x86-64.so.2` — linuxdeploy copies the lib but does NOT repoint `.interp`.
+- AppImage build: `AppRun` is created manually (not relying on linuxdeploy to generate it). `patchelf` explicitly sets the ELF interpreter to the bundled `ld-linux-x86-64.so.2` — linuxdeploy copies the lib but does NOT repoint `.interp`.
+- AppImage plugin symlink: points directly to the binary (`usr/bin/linuxdeploy-plugin-qt`), not through `AppRun` (which is a symlink itself).
 - CI pipeline: `.gitlab-ci.yml` — `package` stage with dind-based jobs + GitLab release on tags.
 
 ## Runtime
