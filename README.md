@@ -16,7 +16,7 @@ A modern FFmpeg transcoding GUI with a Rust core library loaded at runtime via C
 ## Build Requirements
 
 - CMake 3.16+
-- Rust 1.83+ (pinned via `rust-toolchain.toml`, install via `rustup`)
+- Rust 1.83+ (use your distro's `cargo`/`rustc` packages)
 - Qt 6.5+ (tested on 6.11.0)
 - libmpv (development headers, `pkg-config` findable)
 - OpenGL / GLX development headers
@@ -53,19 +53,39 @@ sudo pacman -S --needed base-devel cmake \
 cmake -S . -B out && cmake --build out   # also builds Rust via cargo
 ```
 
-### Packaging
+Or use the build script (recommended for packaging):
 
 ```bash
-./build/linux_build.sh                           # build only
-./build/linux_build.sh --package deb             # build + .deb
-./build/linux_build.sh --package deb,flatpak     # build + .deb + flatpak
-./build/linux_build.sh --clean                   # clean + rebuild
+./build/linux_build.sh                              # build to out/generic/
 ```
 
-Version is read from `rust/Cargo.toml` automatically. Use `update-version.sh` to bump:
+### Packaging
+
+The `build/linux_build.sh` script supports Docker-based cross-distro packaging:
+
+```bash
+./build/linux_build.sh --package generic            # build + .tar.gz
+./build/linux_build.sh --package deb                # Docker build + .deb
+./build/linux_build.sh --package rpm                # Docker build + .rpm
+./build/linux_build.sh --package pacman             # Docker build + .pkg.tar.zst
+./build/linux_build.sh --package flatpak            # flatpak-builder build
+./build/linux_build.sh --package appimage           # Docker build + .AppImage
+./build/linux_build.sh --package deb,rpm,pacman     # multiple targets
+./build/linux_build.sh --package all                # all targets
+./build/linux_build.sh --clean --package deb        # clean + rebuild + .deb
+```
+
+Output goes to `out/{target}/` — e.g. `out/deb/`, `out/appimage/`.
+
+Version is read from `rust/Cargo.toml` automatically. Bump with:
+
 ```bash
 ./update-version.sh 0.2.1
 ```
+
+### CI/CD
+
+A GitLab CI pipeline (`.gitlab-ci.yml`) builds and releases all packages on tag pushes using Docker-in-Docker.
 
 ## Project Structure
 

@@ -1,92 +1,24 @@
-# This file is used to ignore files which are generated
-# ----------------------------------------------------------------------------
+# Build output
+out/
+rust/target/
 
+# Editor / temporary files
 *~
 *.autosave
-*.a
-*.core
-*.moc
-*.o
-*.obj
 *.orig
 *.rej
-*.so
-*.so.*
-*_pch.h.cpp
-*_resource.rc
-*.qm
-.#*
-*.*#
+.*.swp
+*.kate-swp
 core
 !core/
-tags
-.DS_Store
-.directory
-*.debug
-Makefile*
-*.prl
-*.app
-moc_*.cpp
-ui_*.h
-qrc_*.cpp
-Thumbs.db
-*.res
-*.rc
-/.qmake.cache
-/.qmake.stash
-out/
 
-# Ignore cmake artifacts inside build/ but track packaging scripts
-build/*
-!build/linux/
-!build/flatpak/
-!build/linux_build.sh
-
-
-# kate editor files
-*.kate-swp
-
-# qtcreator generated files
+# Qt Creator
 *.pro.user*
 CMakeLists.txt.user*
 .qtcreator/
 
-# xemacs temporary files
-*.flc
-
-# Vim temporary files
-.*.swp
-
-# Visual Studio generated files
-*.ib_pdb_index
-*.idb
-*.ilk
-*.pdb
-*.sln
-*.suo
-*.vcproj
-*vcproj.*.*.user
-*.ncb
-*.sdf
-*.opensdf
-*.vcxproj
-*vcxproj.*
-
-# MinGW generated files
-*.Debug
-*.Release
-
-# Python byte code
+# Python (for build scripts)
 *.pyc
 
-# Rust build artifacts
-rust/target/
-
-# Trash directory (old/moved files)
+# Project trash
 .trash/
-
-# Binaries
-# --------
-*.dll
-*.exe
-

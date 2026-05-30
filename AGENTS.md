@@ -44,13 +44,21 @@
 
 ## Build & Packaging
 - `build/linux_build.sh` — builds the project and optionally produces packages.
-- Flags: `--clean`, `--package deb,rpm,pacman,flatpak`, `--no-build`, `--version X.Y.Z`, `--help`.
-- Default (no flags) runs cmake configure + build only. No packaging.
+- Flags: `--clean`, `--package <list>`, `--no-build`, `--version X.Y.Z`, `--help`.
+- Default (no flags): cmake configure + build to `out/generic/` (no archive).
 - `--clean` removes `out/` and `rust/target/` before building.
-- `--package` accepts comma-separated list of targets (deb, rpm, pacman, flatpak).
-- `--version` delegates to `update-version.sh`, then continues with the build.
-- Flatpak requires `flatpak-builder` and `org.kde.Platform//6.7` runtime.
-- Version read dynamically from `rust/Cargo.toml`.
+- `--package` accepts comma-separated: `deb`, `rpm`, `pacman`, `flatpak`, `appimage`, `generic`, `all`.
+- `--no-build` skips building; errors if combined with `--package appimage`.
+- `--version` delegates to `update-version.sh`, then continues.
+- Output dirs: `out/generic/`, `out/deb/`, `out/rpm/`, `out/pacman/`, `out/flatpak/`, `out/appimage/`.
+- Per-target cargo build dirs: `out/.build-{target}/` + `out/.cargo-{target}/` (auto-cleaned after pack).
+- Docker-based builds (deb, rpm, pacman, appimage) use `build/docker/*.Dockerfile` with `build_in_docker()`.
+- `--package generic` creates a flat `.tar.gz` (no `usr/` prefix, no version subdir).
+- `--package flatpak` uses host `flatpak-builder` (not Docker), SDK `org.kde.Platform//6.10`.
+- Version canonical source: `rust/Cargo.toml`.
+- Flatpak post-install: installs SVG to `hicolor/scalable/apps/` + 256×256 PNG fallback.
+- AppImage build: `patchelf` must explicitly set the ELF interpreter to the bundled `ld-linux-x86-64.so.2` — linuxdeploy copies the lib but does NOT repoint `.interp`.
+- CI pipeline: `.gitlab-ci.yml` — `package` stage with dind-based jobs + GitLab release on tags.
 
 ## Runtime
 - Exit code 255 = QML load/parse failure.
