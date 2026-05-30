@@ -18,7 +18,7 @@ workflow:
     DOCKER_HOST: tcp://docker:2376
     DOCKER_TLS_CERTDIR: "/certs"
   before_script:
-    - apk add --no-cache bash ruby ruby-json
+    - apk add --no-cache bash ruby ruby-json binutils libarchive-tools rpm tar zstd
     - gem install fpm
   needs: []
 
@@ -41,7 +41,7 @@ package-deb:
     - ./build/linux_build.sh --package deb
   artifacts:
     paths:
-      - out/debian/
+      - out/deb/
     expire_in: 1 week
 
 package-rpm:
@@ -116,8 +116,10 @@ release:
     printf "%s" "$NOTES" > changelog.md
     glab release create "$TAG" \
       --name "GuineaMPEG $TAG" \
-      --notes-file changelog.md \
-      release-assets/*
+      --notes-file changelog.md
+    if ls release-assets/* >/dev/null 2>&1; then
+      glab release upload "$TAG" release-assets/*
+    fi
   artifacts:
     paths:
       - changelog.md
