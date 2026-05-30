@@ -43,7 +43,7 @@
 - CMake requires `pkg_check_modules(MPV REQUIRED mpv)` for libmpv.
 - Compile flag `-mdirect-extern-access` needed for GCC 14+/Qt 6.11 compat (prevents copy relocation errors).
 - `build/` is for source-controlled packaging scripts; `out/` is gitignored (cmake artifacts + packages).
-- Version canonical source: `rust/Cargo.toml` — `update-version.sh` propagates to `CMakeLists.txt` and `qml/main.qml`.
+- Version canonical source: `rust/Cargo.toml` — `update-version.sh` propagates to `CMakeLists.txt` (About dialog reads `buildInfo.version` from CMake `PROJECT_VERSION` at runtime).
 
 ## Build & Packaging
 - `build/linux_build.sh` — builds the project and optionally produces packages.

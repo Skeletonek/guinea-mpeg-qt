@@ -6,11 +6,11 @@ A modern FFmpeg transcoding GUI with a Rust core library loaded at runtime via C
 
 - **Video Preview with Playback**: Load any video via embedded libmpv (no Qt Multimedia dependency)
 - **Timeline Selection**: Drag start/end handles to select a segment for transcoding
-- **Transcoding Profiles**: Built-in profiles for H.264, VP8, VP9, and SVT-AV1
+- **Transcoding Profiles**: Built-in profiles for H.264, VP9, and SVT-AV1
 - **Profile Editor**: Create, edit, and delete profiles in-app
 - **Live Transcode Output**: Non-modal dialog showing real-time ffmpeg stderr output with autoscroll
 - **Cancel Transcode**: Kill running ffmpeg process mid-transcode
-- **Output Options**: MP4 (H.264) and WebM (VP8/VP9/AV1); AAC for H.264, Opus for everything else
+- **Output Options**: MP4 (H.264) and WebM (VP9/AV1); AAC for H.264, Opus for everything else
 - **MIME type integration**: Open video files directly from your file manager
 
 ## Build Requirements
@@ -90,7 +90,7 @@ A GitLab CI pipeline (`.gitlab-ci.yml`) builds and releases all packages on tag 
 ## Project Structure
 
 - `rust/` — Rust core library: C FFI exports (`lib.rs`), TOML profile config (`config.rs`), ffmpeg command builder (`ffmpeg.rs`)
-- `qml/` — Qt Quick QML UI: main window (`main.qml`), timeline handles (`TimelineControl.qml`), profile editor (`ProfileEditor.qml`)
+- `qml/` — Qt Quick QML UI: main window (`main.qml`), video preview (`VideoPreview.qml`), control panel (`ControlsPanel.qml`), timeline handles (`TimelineControl.qml`), profile editor (`ProfileEditor.qml`), and `dialogs/` subdirectory for modal dialogs
 - `src/main.cpp` — Qt C++ entry point, `GuineaMpegBackend` class with `Q_INVOKABLE` methods, dynamic `dlopen` of Rust `.so`
 - `src/mpvitem.h` / `src/mpvitem.cpp` — `MpvItem` (QQuickFramebufferObject) wrapping libmpv for video playback
 - `CMakeLists.txt` — CMake build, finds Qt6 + mpv, builds Rust as custom target
@@ -107,10 +107,10 @@ User profiles merge over defaults (same name = user override).
 
 | Profile | Codec | Quality |
 |---------|-------|---------|
-| H.264 1080p | libx264 | CRF 18, slow preset, film tune |
-| H.264 720p | libx264 | CRF 23, medium preset |
-| VP8 Web | libvpx | 2M bitrate, 720p |
-| VP9 1080p | libvpx-vp9 | CRF 30, medium preset |
-| VP9 720p | libvpx-vp9 | CRF 32, medium preset |
-| AV1 1080p | libsvtav1 | CRF 28, preset 8, VMAF tune |
-| AV1 720p Fast | libsvtav1 | CRF 35, preset 4, PSNR tune |
+| H.264 1080p | libx264 | CRF 18, slow preset, film tune, 192k audio |
+| H.264 720p | libx264 | CRF 23, medium preset, film tune |
+| VP9 720p Web | libvpx-vp9 | CRF 35, medium preset, VMAF tune |
+| VP9 1080p | libvpx-vp9 | CRF 30, medium preset, VMAF tune, 192k audio |
+| VP9 720p | libvpx-vp9 | CRF 32, medium preset, VMAF tune |
+| AV1 1080p | libsvtav1 | CRF 28, preset 8, VMAF tune, 192k audio |
+| AV1 720p | libsvtav1 | CRF 35, preset 10, VMAF tune |

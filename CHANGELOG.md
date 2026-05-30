@@ -1,3 +1,21 @@
+### 0.3.0
+- AppImage support with Docker-based builds
+- GitLab CI pipeline for automated releases
+- Refactored QML layout code; cleaner separation of UI components
+- Dropped menubar; added "Open Video..." and "About GuineaMPEG" buttons to right panel
+- Volume controls moved from right panel into video preview overlay
+- Added version, author, license, distro, package target, build date and copyright to About dialog
+- Added PACKAGE_TARGET CMake define for per-distro package builds
+- Replaced VP8 Web profile with VP9 720p Web
+- Improved VP9 profiles with VMAF perceptual quality tuning
+- Fixed AV1 720p Fast preset speed and quality tuning; renamed to AV1 720p
+- Fixed timeline handle bounds and track width issues
+- Fixed titlebar missing close button on some styles
+- Fixed Flatpak and AppImage packaging
+- Added filename and audio codec to video info display
+- Bumped audio bitrate to 192k for 1080p profiles
+- Updated SVG icon, cleaned up dead code
+
 ### 0.2.1
 - Added option to load file from argument
 - Fixed flatpak having no audio on preview
