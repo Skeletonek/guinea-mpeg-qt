@@ -1,0 +1,160 @@
+stages:
+  - package
+  - release
+
+variables:
+  GIT_DEPTH: 0
+
+workflow:
+  rules:
+    - if: $CI_COMMIT_TAG
+
+.dind: &dind
+  image: docker:24.0
+  services:
+    - name: docker:24.0-dind
+      alias: docker
+  variables:
+    DOCKER_HOST: tcp://docker:2376
+    DOCKER_TLS_CERTDIR: "/certs"
+  before_script:
+    - apk add --no-cache bash ruby ruby-json
+    - gem install fpm
+  needs: []
+
+package-generic:
+  stage: package
+  image: debian:trixie-slim
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends
+      build-essential cmake pkg-config cargo rustc
+      libmpv-dev qt6-base-dev qt6-declarative-dev
+      libgl1-mesa-dev libegl1-mesa-dev libxkbcommon-dev
+  script:
+    - ./build/linux_build.sh
+  artifacts:
+    paths:
+      - out/generic/
+    expire_in: 1 week
+  needs: []
+
+package-deb:
+  <<: *dind
+  stage: package
+  script:
+    - ./build/linux_build.sh --package deb
+  artifacts:
+    paths:
+      - out/debian/
+    expire_in: 1 week
+
+package-rpm:
+  <<: *dind
+  stage: package
+  script:
+    - ./build/linux_build.sh --package rpm
+  artifacts:
+    paths:
+      - out/rpm/
+    expire_in: 1 week
+
+package-pacman:
+  <<: *dind
+  stage: package
+  script:
+    - ./build/linux_build.sh --package pacman
+  artifacts:
+    paths:
+      - out/pacman/
+    expire_in: 1 week
+
+package-flatpak:
+  stage: package
+  image: debian:trixie-slim
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends
+      flatpak flatpak-builder
+    - flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+  script:
+    - ./build/linux_build.sh --package flatpak
+  artifacts:
+    paths:
+      - out/flatpak/
+    expire_in: 1 week
+  allow_failure: true
+  needs: []
+
+package-appimage:
+  <<: *dind
+  stage: package
+  before_script:
+    - apk add --no-cache bash
+  script:
+    - ./build/linux_build.sh --package appimage
+  artifacts:
+    paths:
+      - out/appimage/
+    expire_in: 1 week
+
+release:
+  stage: release
+  image: alpine:latest
+  needs:
+    - job: package-generic
+      artifacts: true
+    - job: package-deb
+      artifacts: true
+    - job: package-rpm
+      artifacts: true
+    - job: package-pacman
+      artifacts: true
+    - job: package-flatpak
+      artifacts: true
+      optional: true
+    - job: package-appimage
+      artifacts: true
+  before_script:
+    - apk add --no-cache git
+  script: |
+    set -euo pipefail
+
+    VERSION=$(grep '^version = ' rust/Cargo.toml | head -1 | sed 's/version = "\(.*\)"/\1/')
+    TAG="$CI_COMMIT_TAG"
+
+    mkdir -p release-assets
+    find out/ -type f \( -name "*.tar.gz" -o -name "*.deb" -o -name "*.rpm" -o -name "*.pkg.tar.zst" -o -name "*.flatpak" -o -name "*.AppImage" \) -exec cp {} release-assets/ \;
+
+    PREV_TAG=$(git tag --sort=-version:refname | head -2 | tail -1)
+    if [ -z "$PREV_TAG" ] || [ "$PREV_TAG" = "$TAG" ]; then
+      cat > changelog.md <<EOF
+    # GuineaMPEG $VERSION
+
+    Initial release.
+    EOF
+    else
+      cat > changelog.md <<EOF
+    # GuineaMPEG $VERSION
+
+    ## Changes since $PREV_TAG
+
+    $(git log --oneline --no-decorate "$PREV_TAG..$TAG")
+
+    ---
+
+    ## Downloads
+
+    $(for f in release-assets/*; do echo "- \`$(basename "$f")\`"; done)
+    EOF
+    fi
+  artifacts:
+    paths:
+      - changelog.md
+    expire_in: 1 year
+  release:
+    name: "GuineaMPEG $CI_COMMIT_TAG"
+    description: |
+      GuineaMPEG $CI_COMMIT_TAG
+
+      See the full changelog and download assets in the job artifacts (changelog.md).
+    tag_name: $CI_COMMIT_TAG
+    ref: $CI_COMMIT_TAG
