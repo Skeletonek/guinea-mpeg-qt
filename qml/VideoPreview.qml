@@ -73,19 +73,19 @@ Rectangle {
                 Layout.fillHeight: true
             }
 
-            Label {
-                text: "🔊"
-                color: "white"
-                verticalAlignment: Text.AlignVCenter
-                Layout.fillHeight: true
-            }
-
             Slider {
                 from: 0
                 to: 100
                 value: player.volume
                 Layout.preferredWidth: 60
                 onMoved: player.volume = value
+                Layout.fillHeight: true
+            }
+
+            Label {
+                text: "🔊"
+                color: "white"
+                verticalAlignment: Text.AlignVCenter
                 Layout.fillHeight: true
             }
 

@@ -336,6 +336,7 @@ int main(int argc, char *argv[])
     buildInfo["buildDate"] = __DATE__ " " __TIME__;
     buildInfo["packageTarget"] = PACKAGE_TARGET;
     buildInfo["distroName"] = readDistroName();
+    buildInfo["copyright"] = QString(buildInfo["author"].toString() + " " + (__DATE__ + 7));
 
     QQmlApplicationEngine engine;
 

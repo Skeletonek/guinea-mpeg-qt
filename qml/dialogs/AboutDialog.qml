@@ -28,7 +28,8 @@ Dialog {
         Label { text: "Author: " + buildInfo.author; color: "white" }
         Label { text: "License: " + buildInfo.license; color: "white" }
         Label { text: "Distro: " + buildInfo.distroName; color: "white" }
-        Label { text: "Package: " + buildInfo.packageTarget; color: "white" }
+        Label { text: "Package: " + buildInfo.packageTarget; color: "#888"; font.pixelSize: 11 }
         Label { text: "Build: " + buildInfo.buildDate; color: "#888"; font.pixelSize: 11 }
+        Label { text: "Copyright © " + buildInfo.copyright; color: "#888"; font.pixelSize: 11 }
     }
 }
