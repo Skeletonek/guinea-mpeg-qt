@@ -14,6 +14,7 @@
 #include <QUrl>
 #include <QIcon>
 #include <dlfcn.h>
+#include <QFile>
 
 // Function pointer types for Rust library
 using InitCoreFn = bool(*)();
@@ -94,17 +95,19 @@ public:
         QJsonObject format = root["format"].toObject();
         info["duration"] = format["duration"].toString().toDouble();
 
-        // Video stream info
+        // Stream info
         QJsonArray streams = root["streams"].toArray();
         for (const auto& s : streams) {
             QJsonObject stream = s.toObject();
-            if (stream["codec_type"].toString() == "video") {
+            QString codecType = stream["codec_type"].toString();
+            if (codecType == "video") {
                 info["width"] = stream["width"].toInt();
                 info["height"] = stream["height"].toInt();
                 info["codec"] = stream["codec_name"].toString();
                 info["fps"] = stream["r_frame_rate"].toString();
                 info["bitrate"] = (qint64)stream["bit_rate"].toString().toULongLong();
-                break;
+            } else if (codecType == "audio" && !info.contains("audio_codec")) {
+                info["audio_codec"] = stream["codec_name"].toString();
             }
         }
 
@@ -308,6 +311,32 @@ int main(int argc, char *argv[])
     // Force OpenGL so QQuickFramebufferObject + mpv_render_context works
     QQuickWindow::setGraphicsApi(QSGRendererInterface::OpenGL);
 
+    // Read distro name from /etc/os-release
+    auto readDistroName = []() -> QString {
+        QFile f("/etc/os-release");
+        if (!f.open(QIODevice::ReadOnly))
+            return "Unknown";
+        while (!f.atEnd()) {
+            QString line = QString::fromUtf8(f.readLine()).trimmed();
+            if (line.startsWith("PRETTY_NAME=")) {
+                QString val = line.mid(12);
+                if (val.startsWith('"') && val.endsWith('"'))
+                    val = val.mid(1, val.length() - 2);
+                return val;
+            }
+        }
+        return "Unknown";
+    };
+
+    // Build info for the About dialog
+    QVariantMap buildInfo;
+    buildInfo["author"] = "Skeletonek";
+    buildInfo["license"] = "BSD 3-Clause";
+    buildInfo["version"] = PROJECT_VERSION;
+    buildInfo["buildDate"] = __DATE__ " " __TIME__;
+    buildInfo["packageTarget"] = PACKAGE_TARGET;
+    buildInfo["distroName"] = readDistroName();
+
     QQmlApplicationEngine engine;
 
     // Register backend
@@ -317,6 +346,7 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("backend", backend);
     engine.rootContext()->setContextProperty("ffmpegAvailable", QVariant(backend->ffmpegAvailable()));
     engine.rootContext()->setContextProperty("ffmpegVersion", QVariant(backend->getFfmpegVersion()));
+    engine.rootContext()->setContextProperty("buildInfo", QVariant(buildInfo));
 
     QString initialFilePath;
     auto args = app.arguments();

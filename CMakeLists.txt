@@ -24,6 +24,11 @@ find_program(CARGO cargo REQUIRED)
 
 qt_standard_project_setup()
 
+# Default package target; override via -DPACKAGE_TARGET=deb|rpm|pacman|flatpak|appimage|generic
+if(NOT PACKAGE_TARGET)
+    set(PACKAGE_TARGET "generic")
+endif()
+
 # Main executable
 qt_add_executable(guinea-mpeg
     src/main.cpp
@@ -38,6 +43,7 @@ qt_add_resources(guinea-mpeg "app_qml"
         qml/main.qml
         qml/TimelineControl.qml
         qml/ProfileEditor.qml
+        qml/VideoPreview.qml
 )
 
 # Link Qt libraries
@@ -49,6 +55,12 @@ target_link_libraries(guinea-mpeg
     PRIVATE ${CMAKE_DL_LIBS}
     PRIVATE PkgConfig::MPV
     PRIVATE PkgConfig::OPENGL
+)
+
+# Pass build info to C++
+target_compile_definitions(guinea-mpeg PRIVATE
+    PACKAGE_TARGET="${PACKAGE_TARGET}"
+    PROJECT_VERSION="${PROJECT_VERSION}"
 )
 
 # Set RPATH so the binary finds libguinea_mpeg_core.so at runtime

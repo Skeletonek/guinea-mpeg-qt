@@ -16,7 +16,7 @@ echo "=== Building AppImage (version $VERSION) ==="
 mkdir -p /tmp/home "$APPDIR/usr/bin" /source/out/appimage
 
 # ---- Build ----
-cmake -S /source -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE=Release
+cmake -S /source -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE=Release -DPACKAGE_TARGET=appimage
 cmake --build "$BUILD_DIR"
 
 # ---- Stage AppDir ----

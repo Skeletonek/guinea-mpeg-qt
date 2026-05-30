@@ -24,18 +24,6 @@ ApplicationWindow {
     property bool settingTimeline: false
     property url videoSource: ""
 
-    menuBar: MenuBar {
-        Menu {
-            title: qsTr("File")
-            MenuItem { text: qsTr("Open Video..."); onTriggered: fileDialog.open() }
-            MenuItem { text: qsTr("Exit"); onTriggered: Qt.quit() }
-        }
-        Menu {
-            title: qsTr("Help")
-            MenuItem { text: qsTr("About"); onTriggered: aboutDialog.open() }
-        }
-    }
-
     Component.onCompleted: {
         if (!ffmpegAvailable)
             ffmpegWarningDialog.open()
@@ -65,242 +53,175 @@ ApplicationWindow {
                     anchors.margins: 10
                     spacing: 10
 
-                    // Video preview area
-                    Rectangle {
+                    VideoPreview {
+                        id: player
                         width: Math.max(100, parent.width - 300 - parent.spacing)
                         height: parent.height
-                        color: "black"
-                        border.color: "#555"
-                        border.width: 1
-                        clip: true
-
-                        MpvItem {
-                            id: player
-                            anchors.fill: parent
-                            visible: currentVideoPath !== ""
-                            source: appWindow.videoSource
-                        }
-
-                        Text {
-                            anchors.centerIn: parent
-                            text: "No video loaded"
-                            color: "white"
-                            visible: currentVideoPath === ""
-                            font.pixelSize: 18
-                        }
-
-                        // Playback controls overlay
-                        Rectangle {
-                            anchors.bottom: parent.bottom
-                            width: parent.width
-                            height: 30
-                            color: "#80000000"
-                            visible: currentVideoPath !== ""
-
-                            Row {
-                                anchors.fill: parent
-                                anchors.margins: 4
-                                spacing: 4
-
-                                Button {
-                                    text: player.playing ? "⏸" : "▶"
-                                    width: 40
-                                    height: parent.height
-                                    onClicked: {
-                                        if (player.playing)
-                                            player.pause()
-                                        else
-                                            player.play()
-                                    }
-                                }
-
-                                Slider {
-                                    id: seekSlider
-                                    from: 0
-                                    to: player.duration
-                                    value: player.position
-                                    width: parent.width - 120
-                                    height: parent.height
-                                    onMoved: player.position = value
-                                }
-
-                                Label {
-                                    text: formatTime(player.position) + " / " + formatTime(player.duration)
-                                    color: "white"
-                                    height: parent.height
-                                    verticalAlignment: Text.AlignVCenter
-                                }
-                            }
-                        }
+                        source: appWindow.videoSource
+                        hasVideo: currentVideoPath !== ""
                     }
 
                     // Controls panel
-                    ScrollView {
+                    Item {
                         width: 300
                         height: parent.height
 
-                        Column {
-                            spacing: 12
+                        ScrollView {
+                            id: rightPanelScroll
+                            anchors.top: parent.top
+                            anchors.bottom: aboutButton.top
+                            anchors.bottomMargin: 4
                             width: parent.width
+                            clip: true
 
-                            Label {
-                                text: "Video Information"
-                                font.bold: true
-                                font.pixelSize: 16
-                                color: "white"
-                            }
-
-                            TextArea {
-                                id: videoInfoDisplay
-                                readOnly: true
-                                text: appWindow.videoInfoText
-                                wrapMode: TextArea.Wrap
-                                height: 100
-                                color: "white"
-                            }
-
-                            Label {
-                                text: "Transcoding Profile"
-                                font.bold: true
-                                font.pixelSize: 16
-                                color: "white"
-                            }
-
-                            ComboBox {
-                                id: profileSelector
-                                model: {
-                                    var p = backend.availableProfiles()
-                                    try { return JSON.parse(p) } catch(e) { return [] }
-                                }
-                                onCurrentTextChanged: {
-                                    currentProfile = currentText
-                                    updateCodec()
-                                }
-                                width: parent.width
-                            }
-
-                            Row {
-                                spacing: 5
+                            Column {
+                                spacing: 12
                                 width: parent.width
 
                                 Button {
-                                    text: "Edit Profile..."
-                                    onClicked: stackView.push(profileEditorPage)
-                                    width: (parent.width - parent.spacing) / 2
-                                }
-
-                                Button {
-                                    text: "New Profile..."
-                                    onClicked: {
-                                        currentProfile = ""
-                                        stackView.push(profileEditorPage)
-                                    }
-                                    width: (parent.width - parent.spacing) / 2
-                                }
-                            }
-
-                            Label {
-                                text: "Timeline Selection"
-                                font.bold: true
-                                font.pixelSize: 16
-                                color: "white"
-                            }
-
-                            TimelineControl {
-                                id: timeline
-                                width: parent.width
-                                height: 80
-                                videoDuration: appWindow.videoDuration
-                                startTime: appWindow.startTime
-                                endTime: appWindow.endTime
-                                onStartTimeChanged: {
-                                    if (appWindow.settingTimeline) return
-                                    appWindow.startTime = startTime
-                                    player.position = startTime
-                                }
-                                onEndTimeChanged: {
-                                    if (appWindow.settingTimeline) return
-                                    appWindow.endTime = endTime
-                                    player.position = endTime
-                                }
-                            }
-
-                            Label {
-                                text: "Volume"
-                                font.bold: true
-                                font.pixelSize: 14
-                                color: "white"
-                            }
-
-                            Row {
-                                spacing: 8
-                                width: parent.width
-
-                                Slider {
-                                    id: volumeSlider
-                                    from: 0
-                                    to: 100
-                                    value: player.volume
-                                    width: parent.width - 40
-                                    height: 30
-                                    onMoved: player.volume = value
+                                    text: "Open Video..."
+                                    onClicked: fileDialog.open()
+                                    width: parent.width
                                 }
 
                                 Label {
-                                    text: Math.round(volumeSlider.value) + "%"
+                                    text: "Video Information"
+                                    font.bold: true
+                                    font.pixelSize: 16
                                     color: "white"
-                                    width: 30
-                                    height: 30
-                                    verticalAlignment: Text.AlignVCenter
                                 }
-                            }
 
-                            Label {
-                                text: "Output File"
-                                font.bold: true
-                                font.pixelSize: 14
-                                color: "white"
-                            }
+                                TextArea {
+                                    id: videoInfoDisplay
+                                    readOnly: true
+                                    text: appWindow.videoInfoText
+                                    wrapMode: TextArea.Wrap
+                                    height: 100
+                                    width: parent.width
+                                    color: "white"
+                                }
 
-                            Row {
-                                spacing: 5
-                                width: parent.width
+                                Label {
+                                    text: "Transcoding Profile"
+                                    font.bold: true
+                                    font.pixelSize: 16
+                                    color: "white"
+                                }
 
-                                TextField {
-                                    id: outputPathField
-                                    text: appWindow.outputFilePath
-                                    placeholderText: "Output path..."
-                                    onTextChanged: appWindow.outputFilePath = text
-                                    width: parent.width - 40 - parent.spacing
+                                ComboBox {
+                                    id: profileSelector
+                                    model: {
+                                        var p = backend.availableProfiles()
+                                        try { return JSON.parse(p) } catch(e) { return [] }
+                                    }
+                                    onCurrentTextChanged: {
+                                        currentProfile = currentText
+                                        updateCodec()
+                                    }
+                                    width: parent.width
+                                }
+
+                                Row {
+                                    spacing: 5
+                                    width: parent.width
+
+                                    Button {
+                                        text: "Edit Profile..."
+                                        onClicked: stackView.push(profileEditorPage)
+                                        width: (parent.width - parent.spacing) / 2
+                                    }
+
+                                    Button {
+                                        text: "New Profile..."
+                                        onClicked: {
+                                            currentProfile = ""
+                                            stackView.push(profileEditorPage)
+                                        }
+                                        width: (parent.width - parent.spacing) / 2
+                                    }
+                                }
+
+                                Label {
+                                    text: "Timeline Selection"
+                                    font.bold: true
+                                    font.pixelSize: 16
+                                    color: "white"
+                                }
+
+                                TimelineControl {
+                                    id: timeline
+                                    width: parent.width
+                                    height: 80
+                                    videoDuration: appWindow.videoDuration
+                                    startTime: appWindow.startTime
+                                    endTime: appWindow.endTime
+                                    onStartTimeChanged: {
+                                        if (appWindow.settingTimeline) return
+                                        appWindow.startTime = startTime
+                                        player.position = startTime
+                                    }
+                                    onEndTimeChanged: {
+                                        if (appWindow.settingTimeline) return
+                                        appWindow.endTime = endTime
+                                        player.position = endTime
+                                    }
+                                }
+
+                                Label {
+                                    text: "Output File"
+                                    font.bold: true
+                                    font.pixelSize: 14
+                                    color: "white"
+                                }
+
+                                Row {
+                                    spacing: 5
+                                    width: parent.width
+
+                                    TextField {
+                                        id: outputPathField
+                                        text: appWindow.outputFilePath
+                                        placeholderText: "Output path..."
+                                        onTextChanged: appWindow.outputFilePath = text
+                                        width: parent.width - 40 - parent.spacing
+                                    }
+
+                                    Button {
+                                        id: browseButton
+                                        text: "..."
+                                        width: 40
+                                        onClicked: saveDialog.open()
+                                    }
                                 }
 
                                 Button {
-                                    id: browseButton
-                                    text: "..."
-                                    width: 40
-                                    onClicked: saveDialog.open()
+                                    text: "Start Transcoding"
+                                    enabled: currentVideoPath !== "" && endTime > startTime
+                                    onClicked: startTranscoding()
+                                    width: parent.width
+                                }
+
+                                Label {
+                                    text: "Transcoding in progress... (click to view)"
+                                    color: "#4a9eff"
+                                    visible: backend.transcoding
+                                    width: parent.width
+                                    wrapMode: Text.WordWrap
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: transcodeDialog.open()
+                                    }
                                 }
                             }
+                        }
 
-                            Button {
-                                text: "Start Transcoding"
-                                enabled: currentVideoPath !== "" && endTime > startTime
-                                onClicked: startTranscoding()
-                                width: parent.width
-                            }
-
-                            Label {
-                                text: "Transcoding in progress... (click to view)"
-                                color: "#4a9eff"
-                                visible: backend.transcoding
-                                width: parent.width
-                                wrapMode: Text.WordWrap
-                                MouseArea {
-                                    anchors.fill: parent
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: transcodeDialog.open()
-                                }
-                            }
+                        Button {
+                            id: aboutButton
+                            anchors.bottom: parent.bottom
+                            width: parent.width
+                            text: "About GuineaMPEG"
+                            onClicked: aboutDialog.open()
                         }
                     }
                 }
@@ -349,13 +270,30 @@ ApplicationWindow {
         id: aboutDialog
         title: "About GuineaMPEG"
         standardButtons: Dialog.Ok
+        width: 380
 
-        Column {
-            spacing: 10
-            padding: 20
+        ColumnLayout {
+            spacing: 6
+            anchors.fill: parent
+            anchors.margins: 20
+
             Label { text: "GuineaMPEG"; font.pixelSize: 20; font.bold: true; color: "white" }
-            Label { text: "FFmpeg Frontend with Rust Core"; color: "white" }
-            Label { text: "Version 0.2.1"; color: "white" }
+            Label { text: "FFmpeg Frontend with Rust Core"; color: "#aaa"; font.pixelSize: 12 }
+
+            Rectangle {
+                Layout.fillWidth: true
+                height: 1
+                color: "#555"
+                Layout.topMargin: 4
+                Layout.bottomMargin: 4
+            }
+
+            Label { text: "Version: " + buildInfo.version; color: "white" }
+            Label { text: "Author: " + buildInfo.author; color: "white" }
+            Label { text: "License: " + buildInfo.license; color: "white" }
+            Label { text: "Distro: " + buildInfo.distroName; color: "white" }
+            Label { text: "Package: " + buildInfo.packageTarget; color: "white" }
+            Label { text: "Build: " + buildInfo.buildDate; color: "#888"; font.pixelSize: 11 }
         }
     }
 
@@ -511,13 +449,16 @@ ApplicationWindow {
         endTime = videoDuration
         settingTimeline = false
 
-        videoInfoText = "Duration: " + info.duration.toFixed(1) + "s\n" +
-                      "Resolution: " + info.width + "x" + info.height + "\n" +
-                      "Codec: " + info.codec
-
-        // Default output path (same dir, suffixed with _transcoded)
         var idx = filePath.lastIndexOf("/")
         var name = idx >= 0 ? filePath.substring(idx + 1) : filePath
+        var audioCodecName = info.audio_codec ? info.audio_codec : "N/A"
+        videoInfoText = "File: " + name + "\n" +
+                      "Duration: " + info.duration.toFixed(1) + "s\n" +
+                      "Resolution: " + info.width + "x" + info.height + "\n" +
+                      "Video: " + info.codec + "\n" +
+                      "Audio: " + audioCodecName
+
+        // Default output path (same dir, suffixed with _transcoded)
         var dot = name.lastIndexOf(".")
         var base = dot >= 0 ? name.substring(0, dot) : name
         var dir = idx >= 0 ? filePath.substring(0, idx + 1) : ""
@@ -555,10 +496,4 @@ ApplicationWindow {
         transcodeDialog.open()
     }
 
-    function formatTime(ms) {
-        var s = Math.floor(ms / 1000)
-        var m = Math.floor(s / 60)
-        s = s % 60
-        return (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s
-    }
 }

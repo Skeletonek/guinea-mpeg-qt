@@ -117,7 +117,7 @@ build_generic() {
 
     export CARGO_TARGET_DIR="$cargo_dir"
     if [ ! -f "$build_dir/CMakeCache.txt" ]; then
-        cmake -S "$PROJECT_DIR" -B "$build_dir" -DCMAKE_BUILD_TYPE=Release
+        cmake -S "$PROJECT_DIR" -B "$build_dir" -DCMAKE_BUILD_TYPE=Release -DPACKAGE_TARGET=generic
     fi
     cmake --build "$build_dir"
 
@@ -166,7 +166,7 @@ build_in_docker() {
         bash -c "
             set -euo pipefail
             mkdir -p /tmp/home /source/out/$build_dir_name /source/out/$target
-            cmake -S /source -B /source/out/$build_dir_name -DCMAKE_BUILD_TYPE=Release
+            cmake -S /source -B /source/out/$build_dir_name -DCMAKE_BUILD_TYPE=Release -DPACKAGE_TARGET=${target}
             cmake --build /source/out/$build_dir_name
             cp /source/out/$build_dir_name/guinea-mpeg /source/out/$target/
             cp /source/out/$cargo_dir_name/release/libguinea_mpeg_core.so /source/out/$target/ 2>/dev/null || \

@@ -7,6 +7,8 @@ Rectangle {
     property int startTime: 0
     property int endTime: 0
 
+    onVideoDurationChanged: Qt.callLater(resetHandles)
+
     color: "#333"
     border.color: "#555"
     border.width: 1
@@ -22,9 +24,9 @@ Rectangle {
             Label { text: formatTime(endTime); width: 80; color: "white" }
         }
 
-        Rectangle {
-            id: track
-            width: parent.width
+            Rectangle {
+                id: track
+                width: parent.width - parent.leftPadding - parent.rightPadding
             height: 20
             color: "#555"
             radius: 4
@@ -33,8 +35,8 @@ Rectangle {
 
             // Selection range
             Rectangle {
-                x: startTime * track._ratio
-                width: (endTime - startTime) * track._ratio
+                x: Math.max(0, Math.min(startTime * track._ratio, track.width))
+                width: Math.max(0, Math.min((endTime - startTime) * track._ratio, track.width - x))
                 height: parent.height
                 color: "#4a9eff"
                 opacity: 0.4
@@ -55,8 +57,9 @@ Rectangle {
                     drag.target: parent
                     drag.axis: Drag.XAxis
                     drag.minimumX: 0
-                    drag.maximumX: track.width
+                    drag.maximumX: track.width - width
                     onPositionChanged: {
+                        startHandle.x = Math.max(0, Math.min(startHandle.x, track.width - width))
                         var t = Math.round((startHandle.x + startHandle.width / 2) / track._ratio)
                         t = Math.max(0, Math.min(t, videoDuration))
                         if (t < endTime) {
@@ -80,8 +83,9 @@ Rectangle {
                     drag.target: parent
                     drag.axis: Drag.XAxis
                     drag.minimumX: 0
-                    drag.maximumX: track.width
+                    drag.maximumX: track.width - width
                     onPositionChanged: {
+                        endHandle.x = Math.max(0, Math.min(endHandle.x, track.width - width))
                         var t = Math.round((endHandle.x + endHandle.width / 2) / track._ratio)
                         t = Math.max(0, Math.min(t, videoDuration))
                         if (t > startTime) {
@@ -91,6 +95,11 @@ Rectangle {
                 }
             }
         }
+    }
+
+    function resetHandles() {
+        startHandle.x = Math.max(0, Math.min(startTime * track._ratio - startHandle.width / 2, track.width - startHandle.width))
+        endHandle.x = Math.max(0, Math.min(endTime * track._ratio - endHandle.width / 2, track.width - endHandle.width))
     }
 
     function formatTime(ms) {
