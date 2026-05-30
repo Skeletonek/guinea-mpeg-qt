@@ -25,9 +25,11 @@ audio_channels = 2
 audio_sample_rate = 48000
 
 [[profiles]]
-name = "VP8 Web"
-codec = "vp8"
-bitrate = "2M"
+name = "VP9 720p Web"
+codec = "vp9"
+crf = 35
+preset = "medium"
+tune = "vmaf"
 resolution = "720p"
 framerate = 30.0
 pixel_format = "yuv420p"
@@ -40,10 +42,11 @@ name = "VP9 1080p"
 codec = "vp9"
 crf = 30
 preset = "medium"
+tune = "vmaf"
 resolution = "1080p"
 framerate = 30.0
 pixel_format = "yuv420p"
-audio_bitrate = "128k"
+audio_bitrate = "192k"
 audio_channels = 2
 audio_sample_rate = 48000
 
@@ -52,6 +55,7 @@ name = "VP9 720p"
 codec = "vp9"
 crf = 32
 preset = "medium"
+tune = "vmaf"
 resolution = "720p"
 framerate = 30.0
 pixel_format = "yuv420p"
@@ -71,16 +75,16 @@ pixel_format = "yuv420p"
 tile_rows = 2
 tile_columns = 3
 enable_qm = true
-audio_bitrate = "128k"
+audio_bitrate = "192k"
 audio_channels = 2
 audio_sample_rate = 48000
 
 [[profiles]]
-name = "AV1 720p Fast"
+name = "AV1 720p"
 codec = "svtav1"
 crf = 35
-preset = "4"
-tune = "psnr"
+preset = "10"
+tune = "vmaf"
 resolution = "720p"
 framerate = 30.0
 pixel_format = "yuv420p"
