@@ -392,9 +392,11 @@ int main(int argc, char *argv[])
     SetEnvironmentVariableA("PATH", (appDir + ";" + qgetenv("PATH")).constData());
 #endif
 
+#ifdef Q_OS_WIN
     // Fusion QML style — required for background/palette customization.
     // The native "Windows" QML style does not support overriding control backgrounds.
     QQuickStyle::setStyle("Fusion");
+#endif
 
     // Detect system dark/light mode
     bool darkTheme = false;

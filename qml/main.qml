@@ -66,7 +66,7 @@ ApplicationWindow {
                         playerItem: player
 
                         onOpenVideoClicked: fileDialog.open()
-                        onEditProfileClicked: {
+                        onEditProfileClicked: function(profileName) {
                             currentProfile = profileName
                             stackView.push(profileEditorPage)
                         }

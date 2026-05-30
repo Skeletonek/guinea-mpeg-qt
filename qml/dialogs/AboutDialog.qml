@@ -7,7 +7,7 @@ Dialog {
     title: "About GuineaMPEG"
     standardButtons: Dialog.Ok
     width: 380
-    implicitHeight: 350
+    implicitHeight: 400
 
     Component.onCompleted: centerInParent()
     onOpened: centerInParent()
