@@ -56,7 +56,12 @@ set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}/guinea-mpeg")
 
 # Build Rust library
 set(RUST_PROJECT_DIR ${CMAKE_SOURCE_DIR}/rust)
-set(RUST_LIB_PATH ${RUST_PROJECT_DIR}/target/release/libguinea_mpeg_core.so)
+if(DEFINED ENV{CARGO_TARGET_DIR})
+    set(RUST_TARGET_DIR "$ENV{CARGO_TARGET_DIR}")
+else()
+    set(RUST_TARGET_DIR "${RUST_PROJECT_DIR}/target")
+endif()
+set(RUST_LIB_PATH ${RUST_TARGET_DIR}/release/libguinea_mpeg_core.so)
 
 add_custom_target(rust_lib ALL
     COMMAND ${CARGO} build --release
