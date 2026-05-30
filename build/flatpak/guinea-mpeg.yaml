@@ -70,5 +70,5 @@ modules:
         path: ../../
     post-install:
       - install -Dm644 ../build/flatpak/com.skeletonek.guinea-mpeg.desktop /app/share/applications/com.skeletonek.guinea-mpeg.desktop
+      - install -Dm644 ../build/linux/icons/hicolor/scalable/apps/guinea-mpeg.svg /app/share/icons/hicolor/scalable/apps/com.skeletonek.guinea-mpeg.svg
       - install -Dm644 ../build/linux/icons/hicolor/256x256/apps/guinea-mpeg.png /app/share/icons/hicolor/256x256/apps/com.skeletonek.guinea-mpeg.png
-      - for s in 16 24 32 48 64 128; do convert /app/share/icons/hicolor/256x256/apps/com.skeletonek.guinea-mpeg.png -resize ${s}x${s} /tmp/icon_${s}.png && install -Dm644 /tmp/icon_${s}.png /app/share/icons/hicolor/${s}x${s}/apps/com.skeletonek.guinea-mpeg.png; done
