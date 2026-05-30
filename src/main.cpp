@@ -13,8 +13,14 @@
 #include <QDir>
 #include <QUrl>
 #include <QIcon>
-#include <dlfcn.h>
+#include <QStandardPaths>
 #include <QFile>
+
+#ifdef Q_OS_WIN
+#include <windows.h>
+#else
+#include <dlfcn.h>
+#endif
 
 // Function pointer types for Rust library
 using InitCoreFn = bool(*)();
@@ -39,7 +45,13 @@ public:
             m_currentTranscode->kill();
             m_currentTranscode->waitForFinished(3000);
         }
-        if (m_lib) dlclose(m_lib);
+        if (m_lib) {
+#ifdef Q_OS_WIN
+            FreeLibrary((HMODULE)m_lib);
+#else
+            dlclose(m_lib);
+#endif
+        }
     }
 
     QString transcodeOutput() const { return m_transcodeOutput; }
@@ -115,10 +127,7 @@ public:
     }
 
     Q_INVOKABLE bool ffmpegAvailable() {
-        QProcess which;
-        which.start("which", {"ffmpeg"});
-        which.waitForFinished();
-        return which.exitCode() == 0;
+        return !QStandardPaths::findExecutable("ffmpeg").isEmpty();
     }
 
     Q_INVOKABLE QString getFfmpegVersion() {
@@ -263,7 +272,31 @@ private:
     FreeRustStringFn m_freeRustString = nullptr;
 
     void loadRustLibrary() {
-        // Try loading from various paths
+#ifdef Q_OS_WIN
+        QStringList searchPaths = {
+            QCoreApplication::applicationDirPath() + "/guinea_mpeg_core.dll",
+            QCoreApplication::applicationDirPath() + "/../rust/target/release/guinea_mpeg_core.dll",
+            "guinea_mpeg_core.dll",
+        };
+
+        for (const auto& path : searchPaths) {
+            m_lib = (void*)LoadLibraryA(path.toUtf8().constData());
+            if (m_lib) {
+                qDebug() << "Loaded Rust library from:" << path;
+                break;
+            }
+        }
+
+        if (!m_lib) {
+            qWarning() << "Could not load Rust library. Some features will be unavailable.";
+            qWarning() << "LoadLibrary error:" << GetLastError();
+            return;
+        }
+
+        auto resolve = [&](const char* name) -> void* {
+            return (void*)GetProcAddress((HMODULE)m_lib, name);
+        };
+#else
         QStringList searchPaths = {
             QCoreApplication::applicationDirPath() + "/libguinea_mpeg_core.so",
             QCoreApplication::applicationDirPath() + "/../rust/target/release/libguinea_mpeg_core.so",
@@ -287,14 +320,19 @@ private:
             return;
         }
 
+        auto resolve = [&](const char* name) -> void* {
+            return dlsym(m_lib, name);
+        };
+#endif
+
         // Load function pointers
-        m_initCore = (InitCoreFn)dlsym(m_lib, "init_core");
-        m_availableProfiles = (AvailableProfilesFn)dlsym(m_lib, "available_profiles");
-        m_loadProfile = (LoadProfileFn)dlsym(m_lib, "load_profile");
-        m_saveProfile = (SaveProfileFn)dlsym(m_lib, "save_profile");
-        m_deleteProfile = (DeleteProfileFn)dlsym(m_lib, "delete_profile");
-        m_buildFfmpegCommand = (BuildFfmpegCommandFn)dlsym(m_lib, "build_ffmpeg_command");
-        m_freeRustString = (FreeRustStringFn)dlsym(m_lib, "free_rust_string");
+        m_initCore = (InitCoreFn)resolve("init_core");
+        m_availableProfiles = (AvailableProfilesFn)resolve("available_profiles");
+        m_loadProfile = (LoadProfileFn)resolve("load_profile");
+        m_saveProfile = (SaveProfileFn)resolve("save_profile");
+        m_deleteProfile = (DeleteProfileFn)resolve("delete_profile");
+        m_buildFfmpegCommand = (BuildFfmpegCommandFn)resolve("build_ffmpeg_command");
+        m_freeRustString = (FreeRustStringFn)resolve("free_rust_string");
 
         if (m_initCore)
             m_initCore();
@@ -304,15 +342,24 @@ private:
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
+#ifdef Q_OS_LINUX
     app.setDesktopFileName("guinea-mpeg");
     app.setWindowIcon(QIcon::fromTheme("guinea-mpeg"));
+#endif
     std::setlocale(LC_NUMERIC, "C");
 
     // Force OpenGL so QQuickFramebufferObject + mpv_render_context works
     QQuickWindow::setGraphicsApi(QSGRendererInterface::OpenGL);
 
-    // Read distro name from /etc/os-release
-    auto readDistroName = []() -> QString {
+    // Build info for the About dialog
+    QVariantMap buildInfo;
+    buildInfo["author"] = "Skeletonek";
+    buildInfo["license"] = "BSD 3-Clause";
+    buildInfo["version"] = PROJECT_VERSION;
+    buildInfo["buildDate"] = __DATE__ " " __TIME__;
+    buildInfo["packageTarget"] = PACKAGE_TARGET;
+#ifdef Q_OS_LINUX
+    buildInfo["distroName"] = []() -> QString {
         QFile f("/etc/os-release");
         if (!f.open(QIODevice::ReadOnly))
             return "Unknown";
@@ -326,16 +373,10 @@ int main(int argc, char *argv[])
             }
         }
         return "Unknown";
-    };
-
-    // Build info for the About dialog
-    QVariantMap buildInfo;
-    buildInfo["author"] = "Skeletonek";
-    buildInfo["license"] = "BSD 3-Clause";
-    buildInfo["version"] = PROJECT_VERSION;
-    buildInfo["buildDate"] = __DATE__ " " __TIME__;
-    buildInfo["packageTarget"] = PACKAGE_TARGET;
-    buildInfo["distroName"] = readDistroName();
+    }();
+#else
+    buildInfo["distroName"] = "Windows";
+#endif
     buildInfo["copyright"] = QString(buildInfo["author"].toString() + " " + (__DATE__ + 7));
 
     QQmlApplicationEngine engine;

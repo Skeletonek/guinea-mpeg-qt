@@ -22,3 +22,15 @@ CMakeLists.txt.user*
 
 # Project trash
 .trash/
+
+# Windows build artifacts
+*.dll
+*.exe
+*.pdb
+*.lib
+*.exp
+*.obj
+
+# vcpkg / Windows dependency cache
+build/windows/.mpv-dev/
+vcpkg_installed/
