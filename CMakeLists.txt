@@ -44,6 +44,12 @@ qt_add_resources(guinea-mpeg "app_qml"
         qml/TimelineControl.qml
         qml/ProfileEditor.qml
         qml/VideoPreview.qml
+        qml/dialogs/AboutDialog.qml
+        qml/dialogs/FfmpegWarningDialog.qml
+        qml/dialogs/TranscodeDialog.qml
+        qml/dialogs/FileOpenDialog.qml
+        qml/dialogs/FileSaveDialog.qml
+        qml/ControlsPanel.qml
 )
 
 # Link Qt libraries

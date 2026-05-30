@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Dialogs
+import "dialogs"
 import GuineaMpeg 1.0
 
 ApplicationWindow {
@@ -10,7 +11,6 @@ ApplicationWindow {
     height: 768
     visible: true
     title: qsTr("GuineaMPEG - FFmpeg Frontend")
-    // icon set via QGuiApplication::setDesktopFileName and QT_WAYLAND_APP_ID
 
     property string currentVideoPath: ""
     property var currentVideoInfo: ({})
@@ -43,10 +43,7 @@ ApplicationWindow {
                 height: stackView.height
                 color: "#1e1e1e"
 
-                StackView.onActivated: {
-                    var p = backend.availableProfiles()
-                    try { profileSelector.model = JSON.parse(p) } catch(e) {}
-                }
+                StackView.onActivated: controlsPanel.refreshProfiles()
 
                 Row {
                     anchors.fill: parent
@@ -61,168 +58,25 @@ ApplicationWindow {
                         hasVideo: currentVideoPath !== ""
                     }
 
-                    // Controls panel
-                    Item {
+                    ControlsPanel {
+                        id: controlsPanel
                         width: 300
                         height: parent.height
+                        hostWindow: appWindow
+                        playerItem: player
 
-                        ScrollView {
-                            id: rightPanelScroll
-                            anchors.top: parent.top
-                            anchors.bottom: aboutButton.top
-                            anchors.bottomMargin: 4
-                            width: parent.width
-                            clip: true
-
-                            Column {
-                                spacing: 12
-                                width: parent.width
-
-                                Button {
-                                    text: "Open Video..."
-                                    onClicked: fileDialog.open()
-                                    width: parent.width
-                                }
-
-                                Label {
-                                    text: "Video Information"
-                                    font.bold: true
-                                    font.pixelSize: 16
-                                    color: "white"
-                                }
-
-                                TextArea {
-                                    id: videoInfoDisplay
-                                    readOnly: true
-                                    text: appWindow.videoInfoText
-                                    wrapMode: TextArea.Wrap
-                                    height: 100
-                                    width: parent.width
-                                    color: "white"
-                                }
-
-                                Label {
-                                    text: "Transcoding Profile"
-                                    font.bold: true
-                                    font.pixelSize: 16
-                                    color: "white"
-                                }
-
-                                ComboBox {
-                                    id: profileSelector
-                                    model: {
-                                        var p = backend.availableProfiles()
-                                        try { return JSON.parse(p) } catch(e) { return [] }
-                                    }
-                                    onCurrentTextChanged: {
-                                        currentProfile = currentText
-                                        updateCodec()
-                                    }
-                                    width: parent.width
-                                }
-
-                                Row {
-                                    spacing: 5
-                                    width: parent.width
-
-                                    Button {
-                                        text: "Edit Profile..."
-                                        onClicked: stackView.push(profileEditorPage)
-                                        width: (parent.width - parent.spacing) / 2
-                                    }
-
-                                    Button {
-                                        text: "New Profile..."
-                                        onClicked: {
-                                            currentProfile = ""
-                                            stackView.push(profileEditorPage)
-                                        }
-                                        width: (parent.width - parent.spacing) / 2
-                                    }
-                                }
-
-                                Label {
-                                    text: "Timeline Selection"
-                                    font.bold: true
-                                    font.pixelSize: 16
-                                    color: "white"
-                                }
-
-                                TimelineControl {
-                                    id: timeline
-                                    width: parent.width
-                                    height: 80
-                                    videoDuration: appWindow.videoDuration
-                                    startTime: appWindow.startTime
-                                    endTime: appWindow.endTime
-                                    onStartTimeChanged: {
-                                        if (appWindow.settingTimeline) return
-                                        appWindow.startTime = startTime
-                                        player.position = startTime
-                                    }
-                                    onEndTimeChanged: {
-                                        if (appWindow.settingTimeline) return
-                                        appWindow.endTime = endTime
-                                        player.position = endTime
-                                    }
-                                }
-
-                                Label {
-                                    text: "Output File"
-                                    font.bold: true
-                                    font.pixelSize: 14
-                                    color: "white"
-                                }
-
-                                Row {
-                                    spacing: 5
-                                    width: parent.width
-
-                                    TextField {
-                                        id: outputPathField
-                                        text: appWindow.outputFilePath
-                                        placeholderText: "Output path..."
-                                        onTextChanged: appWindow.outputFilePath = text
-                                        width: parent.width - 40 - parent.spacing
-                                    }
-
-                                    Button {
-                                        id: browseButton
-                                        text: "..."
-                                        width: 40
-                                        onClicked: saveDialog.open()
-                                    }
-                                }
-
-                                Button {
-                                    text: "Start Transcoding"
-                                    enabled: currentVideoPath !== "" && endTime > startTime
-                                    onClicked: startTranscoding()
-                                    width: parent.width
-                                }
-
-                                Label {
-                                    text: "Transcoding in progress... (click to view)"
-                                    color: "#4a9eff"
-                                    visible: backend.transcoding
-                                    width: parent.width
-                                    wrapMode: Text.WordWrap
-                                    MouseArea {
-                                        anchors.fill: parent
-                                        cursorShape: Qt.PointingHandCursor
-                                        onClicked: transcodeDialog.open()
-                                    }
-                                }
-                            }
+                        onOpenVideoClicked: fileDialog.open()
+                        onEditProfileClicked: {
+                            currentProfile = profileName
+                            stackView.push(profileEditorPage)
                         }
-
-                        Button {
-                            id: aboutButton
-                            anchors.bottom: parent.bottom
-                            width: parent.width
-                            text: "About GuineaMPEG"
-                            onClicked: aboutDialog.open()
+                        onNewProfileClicked: {
+                            currentProfile = ""
+                            stackView.push(profileEditorPage)
                         }
+                        onBrowseOutputClicked: saveDialog.open()
+                        onViewTranscodeClicked: transcodeDialog.open()
+                        onAboutClicked: aboutDialog.open()
                     }
                 }
             }
@@ -237,204 +91,27 @@ ApplicationWindow {
         }
     }
 
-    FileDialog {
+    FileOpenDialog {
         id: fileDialog
-        title: "Select Video File"
-        nameFilters: ["Video files (*.mp4 *.mkv *.avi *.mov *.webm)"]
-        onAccepted: {
-            var path = String(fileDialog.selectedFile)
-            if (path.startsWith("file://"))
-                path = path.substring(7)
-            loadVideo(path, fileDialog.selectedFile)
-        }
+        appWindow: appWindow
     }
 
-    FileDialog {
+    FileSaveDialog {
         id: saveDialog
-        title: "Save Transcoded Video As"
-        acceptLabel: "Save"
-        fileMode: FileDialog.SaveFile
-        nameFilters: {
-            var ext = getExtensionForCodec(currentCodec)
-            return [ext.toUpperCase() + " video (*." + ext + ")"]
-        }
-        onAccepted: {
-            var path = String(saveDialog.selectedFile)
-            if (path.startsWith("file://"))
-                path = path.substring(7)
-            appWindow.outputFilePath = path
-        }
+        appWindow: appWindow
     }
 
-    Dialog {
+    AboutDialog {
         id: aboutDialog
-        title: "About GuineaMPEG"
-        standardButtons: Dialog.Ok
-        width: 380
-
-        ColumnLayout {
-            spacing: 6
-            anchors.fill: parent
-            anchors.margins: 20
-
-            Label { text: "GuineaMPEG"; font.pixelSize: 20; font.bold: true; color: "white" }
-            Label { text: "FFmpeg Frontend with Rust Core"; color: "#aaa"; font.pixelSize: 12 }
-
-            Rectangle {
-                Layout.fillWidth: true
-                height: 1
-                color: "#555"
-                Layout.topMargin: 4
-                Layout.bottomMargin: 4
-            }
-
-            Label { text: "Version: " + buildInfo.version; color: "white" }
-            Label { text: "Author: " + buildInfo.author; color: "white" }
-            Label { text: "License: " + buildInfo.license; color: "white" }
-            Label { text: "Distro: " + buildInfo.distroName; color: "white" }
-            Label { text: "Package: " + buildInfo.packageTarget; color: "white" }
-            Label { text: "Build: " + buildInfo.buildDate; color: "#888"; font.pixelSize: 11 }
-        }
     }
 
-    Dialog {
+    TranscodeDialog {
         id: transcodeDialog
-        modal: false
-        closePolicy: Popup.CloseOnEscape
-        width: 700
-        height: 500
-
-        header: Rectangle {
-            height: 36
-            color: "#2d2d2d"
-
-            RowLayout {
-                anchors.fill: parent
-                anchors.leftMargin: 10
-                anchors.rightMargin: 4
-                spacing: 4
-
-                Label {
-                    text: backend.transcoding ? "Transcoding..." : "Transcoding Complete"
-                    color: "#eee"
-                    font.bold: true
-                    elide: Text.ElideRight
-                }
-
-                Item { Layout.fillWidth: true }
-
-                Button {
-                    text: "✕"
-                    flat: true
-                    implicitWidth: 28
-                    implicitHeight: 28
-                    onClicked: transcodeDialog.close()
-                }
-            }
-        }
-
-        onAboutToShow: {
-            x = (appWindow.width - width) / 2
-            y = (appWindow.height - height) / 2
-        }
-
-        ColumnLayout {
-            anchors.fill: parent
-            anchors.margins: 10
-
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                color: "#1e1e1e"
-
-                Flickable {
-                    id: transcodeFlickable
-                    anchors.fill: parent
-                    anchors.margins: 4
-                    contentHeight: outputDisplay.contentHeight
-                    clip: true
-                    boundsBehavior: Flickable.StopAtBounds
-                    ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
-
-                    property bool wasAtBottom: true
-
-                    onContentYChanged: {
-                        if (height <= 0) return
-                        wasAtBottom = (contentY >= contentHeight - height - 1)
-                    }
-
-                    onContentHeightChanged: {
-                        if (height > 0 && wasAtBottom)
-                            contentY = contentHeight - height
-                    }
-
-                    onHeightChanged: {
-                        if (height > 0 && wasAtBottom && contentHeight > 0)
-                            contentY = contentHeight - height
-                    }
-
-                    TextEdit {
-                        id: outputDisplay
-                        width: parent.width
-                        text: backend.transcodeOutput
-                        readOnly: true
-                        font.family: "monospace"
-                        font.pixelSize: 12
-                        color: "white"
-                        wrapMode: TextEdit.Wrap
-                        selectByMouse: false
-                        textFormat: TextEdit.PlainText
-                    }
-                }
-            }
-
-            RowLayout {
-                Layout.fillWidth: true
-
-                Label {
-                    text: backend.transcoding ? "ffmpeg is running..." : "Done. You can close this window."
-                    color: backend.transcoding ? "#aaa" : "#4a9eff"
-                }
-
-                Item { Layout.fillWidth: true }
-
-                Button {
-                    text: "Cancel"
-                    visible: backend.transcoding
-                    onClicked: backend.cancelTranscode()
-                }
-            }
-        }
+        appWindow: appWindow
     }
 
-    Dialog {
+    FfmpegWarningDialog {
         id: ffmpegWarningDialog
-        title: "FFmpeg Not Found"
-        standardButtons: Dialog.Ok
-        modal: true
-
-        Column {
-            spacing: 10
-            padding: 20
-
-            Label {
-                text: "ffmpeg was not found on your system."
-                color: "white"
-                font.bold: true
-            }
-            Label {
-                text: "GuineaMPEG requires ffmpeg to transcode videos.\n\n"
-                    + "Install it with your package manager, e.g.:\n"
-                    + "  sudo pacman -S ffmpeg    (Arch Linux)\n"
-                    + "  sudo apt install ffmpeg  (Debian/Ubuntu)\n"
-                    + "  sudo dnf install ffmpeg  (Fedora)"
-                color: "white"
-                wrapMode: Text.Wrap
-                width: 400
-            }
-        }
-
-        onAccepted: Qt.quit()
     }
 
     function loadVideo(filePath, fileUrl) {
@@ -458,7 +135,6 @@ ApplicationWindow {
                       "Video: " + info.codec + "\n" +
                       "Audio: " + audioCodecName
 
-        // Default output path (same dir, suffixed with _transcoded)
         var dot = name.lastIndexOf(".")
         var base = dot >= 0 ? name.substring(0, dot) : name
         var dir = idx >= 0 ? filePath.substring(0, idx + 1) : ""
@@ -495,5 +171,4 @@ ApplicationWindow {
                                     profileJson)
         transcodeDialog.open()
     }
-
 }

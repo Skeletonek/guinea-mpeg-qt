@@ -15,6 +15,9 @@
 - `Q_PROPERTY` signals (`NOTIFY`) are the cleanest way to push streaming data (like ffmpeg output) from C++ to QML.
 - `StackView.onActivated` on a page fires every time it becomes the current item — useful for refreshing data after popping back.
 - Use `encodeURI()` on the file path when constructing `file://` URLs in QML (handles spaces/special chars).
+- Directory imports (`import "dialogs"`, `import "../"`) are required to make QML types in subdirectories or parent directories discoverable. Types in the same directory are auto-discovered, but types in different directories need explicit `import`.
+- Avoid property names that collide with parent scope IDs — `appWindow: appWindow` creates a binding loop because the property name and the id are the same. Use a different name like `hostWindow: appWindow`.
+- Dialog components (AboutDialog, TranscodeDialog, etc.) use `property QtObject appWindow: null` to receive a reference to the ApplicationWindow, giving them access to its methods and state. Set via `appWindow: appWindow` in main.qml (no binding loop here since the property is on a different object).
 
 ## TimelineControl Patterns
 - Handle x positions MUST be clamped to `[0, track.width - handle.width]` with `Math.max(0, Math.min(x, track.width - width))` to keep handles within the clickable area.
@@ -65,6 +68,7 @@
 - Exit code 255 = QML load/parse failure.
 - Exit code 143 = SIGTERM (normal kill).
 - Qt version: 6.11.0 on Arch Linux x86_64, KDE Plasma 6, Wayland, AMD GPU.
+- When QML fails with exit 255 but no error message on stderr, use `QT_FORCE_STDERR_LOGGING=1` (or deprecated `QT_LOGGING_TO_CONSOLE=1`) to force QML engine errors to the terminal. Without it, error output may be suppressed.
 
 ## MPV Integration Notes
 - `MpvItem` (QQuickFramebufferObject) wraps libmpv via `mpv_handle*` (GUI thread) + `mpv_render_context*` (render thread).
