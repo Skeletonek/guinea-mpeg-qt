@@ -3,7 +3,7 @@ import QtQuick.Controls 2.15
 
 Rectangle {
     id: root
-    color: "#1e1e1e"
+    color: theme.bg
     property string profileName: ""
     signal back
 
@@ -39,7 +39,7 @@ Rectangle {
                     text: profileName ? "Edit Profile: " + profileName : "New Profile"
                     font.pixelSize: 18
                     font.bold: true
-                    color: "white"
+                    color: theme.text
                     verticalAlignment: Text.AlignVCenter
                 }
                 Item { width: 20 }
@@ -62,7 +62,7 @@ Rectangle {
                 placeholderText: "Enter profile name..."
             }
 
-            Label { text: "Codec"; color: "#888"; font.bold: true; font.pixelSize: 14; topPadding: 8 }
+            Label { text: "Codec"; color: theme.textMuted; font.bold: true; font.pixelSize: 14; topPadding: 8 }
             ComboBox {
                 id: codecCombo
                 model: codecLabels
@@ -70,56 +70,56 @@ Rectangle {
                 onCurrentIndexChanged: rebuildTuneModel()
             }
 
-            Label { text: "Video Quality"; color: "#888"; font.bold: true; font.pixelSize: 14; topPadding: 8 }
+            Label { text: "Video Quality"; color: theme.textMuted; font.bold: true; font.pixelSize: 14; topPadding: 8 }
             Grid {
                 columns: 2
                 columnSpacing: 8
                 rowSpacing: 6
                 width: parent.width
 
-                Label { text: "CRF"; color: "#aaa" }
+                Label { text: "CRF"; color: theme.textSecondary }
                 TextField {
                     id: crfField
                     width: 120; placeholderText: "e.g. 18"
                     validator: IntValidator { bottom: 0; top: 63 }
                 }
-                Label { text: "Bitrate (video)"; color: "#aaa" }
+                Label { text: "Bitrate (video)"; color: theme.textSecondary }
                 TextField {
                     id: bitrateField
                     width: 160; placeholderText: "e.g. 2M"
                 }
-                Label { text: "Preset"; color: "#aaa" }
+                Label { text: "Preset"; color: theme.textSecondary }
                 TextField {
                     id: presetField
                     width: 200; placeholderText: "x264: slow/medium…  svtav1: 0-13"
                 }
-                Label { text: "Tune"; color: "#aaa" }
+                Label { text: "Tune"; color: theme.textSecondary }
                 ComboBox {
                     id: tuneCombo
                     width: 200; editable: true
                     model: ["film", "grain", "animation", "psnr", "ssim", "fastdecode", "zerolatency"]
                 }
-                Label { text: "Pixel format"; color: "#aaa" }
+                Label { text: "Pixel format"; color: theme.textSecondary }
                 TextField {
                     id: pixfmtField
                     width: 120; placeholderText: "yuv420p"
                 }
             }
 
-            Label { text: "Scaling"; color: "#888"; font.bold: true; font.pixelSize: 14; topPadding: 8 }
+            Label { text: "Scaling"; color: theme.textMuted; font.bold: true; font.pixelSize: 14; topPadding: 8 }
             Grid {
                 columns: 2
                 columnSpacing: 8
                 rowSpacing: 6
                 width: parent.width
 
-                Label { text: "Resolution"; color: "#aaa" }
+                Label { text: "Resolution"; color: theme.textSecondary }
                 ComboBox {
                     id: resCombo
                     model: resOptions
                     width: 200
                 }
-                Label { text: "Framerate"; color: "#aaa" }
+                Label { text: "Framerate"; color: theme.textSecondary }
                 ComboBox {
                     id: fpsCombo
                     model: fpsOptions
@@ -132,40 +132,40 @@ Rectangle {
                 width: parent.width
                 visible: codecKeys[codecCombo.currentIndex] === "svtav1"
                 spacing: 6
-                Label { text: "AV1 (SVT-AV1)"; color: "#888"; font.bold: true; font.pixelSize: 14; topPadding: 8 }
+                Label { text: "AV1 (SVT-AV1)"; color: theme.textMuted; font.bold: true; font.pixelSize: 14; topPadding: 8 }
                 Grid {
                     columns: 4
                     columnSpacing: 8
                     rowSpacing: 6
                     width: parent.width
-                    Label { text: "Tile rows"; color: "#aaa" }
+                    Label { text: "Tile rows"; color: theme.textSecondary }
                     TextField { id: tileRowsField; width: 60; placeholderText: "2"; validator: IntValidator { bottom: 0; top: 8 } }
-                    Label { text: "Tile cols"; color: "#aaa" }
+                    Label { text: "Tile cols"; color: theme.textSecondary }
                     TextField { id: tileColsField; width: 60; placeholderText: "3"; validator: IntValidator { bottom: 0; top: 8 } }
                 }
                 CheckBox { id: enableQmCheck; text: "Enable Quantization Matrix" }
             }
 
-            Label { text: "Audio"; color: "#888"; font.bold: true; font.pixelSize: 14; topPadding: 8 }
-            Label { text: "Codec auto-selected: " + (codecKeys[codecCombo.currentIndex] === "h264" ? "AAC" : "Opus"); color: "#666"; font.pixelSize: 12 }
+            Label { text: "Audio"; color: theme.textMuted; font.bold: true; font.pixelSize: 14; topPadding: 8 }
+            Label { text: "Codec auto-selected: " + (codecKeys[codecCombo.currentIndex] === "h264" ? "AAC" : "Opus"); color: theme.textDim; font.pixelSize: 12 }
             Grid {
                 columns: 2
                 columnSpacing: 8
                 rowSpacing: 6
                 width: parent.width
 
-                Label { text: "Bitrate"; color: "#aaa" }
+                Label { text: "Bitrate"; color: theme.textSecondary }
                 TextField {
                     id: audioBitrateField
                     width: 120; placeholderText: "128k"
                 }
-                Label { text: "Channels"; color: "#aaa" }
+                Label { text: "Channels"; color: theme.textSecondary }
                 TextField {
                     id: audioChannelsField
                     width: 80; placeholderText: "2"
                     validator: IntValidator { bottom: 0; top: 8 }
                 }
-                Label { text: "Sample rate"; color: "#aaa" }
+                Label { text: "Sample rate"; color: theme.textSecondary }
                 TextField {
                     id: audioSrField
                     width: 100; placeholderText: "48000"
@@ -173,8 +173,8 @@ Rectangle {
                 }
             }
 
-            Label { text: "Advanced"; color: "#888"; font.bold: true; font.pixelSize: 14; topPadding: 8 }
-            Label { text: "Extra FFmpeg arguments"; color: "#aaa"; font.pixelSize: 12 }
+            Label { text: "Advanced"; color: theme.textMuted; font.bold: true; font.pixelSize: 14; topPadding: 8 }
+            Label { text: "Extra FFmpeg arguments"; color: theme.textSecondary; font.pixelSize: 12 }
             TextField {
                 id: extraArgsField
                 width: parent.width

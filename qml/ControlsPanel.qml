@@ -43,7 +43,7 @@ Item {
                 text: "Video Information"
                 font.bold: true
                 font.pixelSize: 16
-                color: "white"
+                color: theme.text
             }
 
             TextArea {
@@ -53,14 +53,15 @@ Item {
                 wrapMode: TextArea.Wrap
                 height: 100
                 width: parent.width
-                color: "white"
+                color: theme.text
+                background: Rectangle { color: theme.bg }
             }
 
             Label {
                 text: "Transcoding Profile"
                 font.bold: true
                 font.pixelSize: 16
-                color: "white"
+                color: theme.text
             }
 
             ComboBox {
@@ -102,7 +103,7 @@ Item {
                 text: "Timeline Selection"
                 font.bold: true
                 font.pixelSize: 16
-                color: "white"
+                color: theme.text
             }
 
             TimelineControl {
@@ -128,7 +129,7 @@ Item {
                 text: "Output File"
                 font.bold: true
                 font.pixelSize: 14
-                color: "white"
+                color: theme.text
             }
 
             Row {
@@ -164,7 +165,7 @@ Item {
 
             Label {
                 text: "Transcoding in progress... (click to view)"
-                color: "#4a9eff"
+                color: theme.accent
                 visible: backend.transcoding
                 width: parent.width
                 wrapMode: Text.WordWrap

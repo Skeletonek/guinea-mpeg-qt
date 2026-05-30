@@ -12,15 +12,26 @@ A modern FFmpeg transcoding GUI with a Rust core library loaded at runtime via C
 - **Cancel Transcode**: Kill running ffmpeg process mid-transcode
 - **Output Options**: MP4 (H.264) and WebM (VP9/AV1); AAC for H.264, Opus for everything else
 - **MIME type integration**: Open video files directly from your file manager
+- **Dark / Light theme**: Automatic detection based on system preference (Windows + Linux)
 
 ## Build Requirements
 
+### Linux
 - CMake 3.16+
 - Rust 1.83+ (use your distro's `cargo`/`rustc` packages)
 - Qt 6.5+ (tested on 6.11.0)
 - libmpv (development headers, `pkg-config` findable)
 - OpenGL / GLX development headers
 - FFmpeg + ffprobe (runtime, for transcoding — with SVT-AV1, libx264, libvpx(-vp9), libopus for full profile support)
+
+### Windows
+- CMake 3.16+
+- Visual Studio 2022 (Build Tools or full IDE) with C++ workload
+- Rust 1.83+
+- Qt 6.5+ for MSVC 2022 (tested on 6.11.1)
+- [mpv-dev bundle](https://mpv.srsfckn.biz/) (shinchiro's builds) — auto-downloaded by the build script to `build/windows/.mpv-dev/`
+- FFmpeg & ffprobe — auto-downloaded by the build script (gyan.dev essential build)
+- Ninja (optional, auto-detected if available)
 
 ### Per-Distro Package Lists
 
@@ -49,6 +60,7 @@ sudo pacman -S --needed base-devel cmake \
 
 ## Building
 
+### Linux
 ```bash
 cmake -S . -B out && cmake --build out   # also builds Rust via cargo
 ```
@@ -59,7 +71,7 @@ Or use the build script (recommended for packaging):
 ./build/linux_build.sh                              # build to out/generic/
 ```
 
-### Packaging
+#### Packaging (Linux)
 
 The `build/linux_build.sh` script supports Docker-based cross-distro packaging:
 
@@ -77,13 +89,30 @@ The `build/linux_build.sh` script supports Docker-based cross-distro packaging:
 
 Output goes to `out/{target}/` — e.g. `out/deb/`, `out/appimage/`.
 
+### Windows
+```powershell
+.\build\windows_build.ps1                           # build to out/windows/
+.\build\windows_build.ps1 -Package                  # build + ZIP + InnoSetup installer
+.\build\windows_build.ps1 -Clean                    # full rebuild (removes out/ and rust/target/)
+.\build\windows_build.ps1 -Console                  # build with visible console (for debugging)
+.\build\windows_build.ps1 -Config RelWithDebInfo    # debug symbols enabled
+.\build\windows_build.ps1 -SkipMpv                  # reuse existing mpv-dev bundle
+.\build\windows_build.ps1 -SkipFfmpeg               # reuse existing ffmpeg download
+```
+
+The script auto-detects Visual Studio 2022 (via vswhere), downloads the mpv-dev bundle and ffmpeg/ffprobe, builds Rust via cargo, deploys Qt DLLs with windeployqt, and copies all runtime dependencies into the output directory.
+
+Output: `out/windows/guinea-mpeg.exe` (no console window by default).
+
+### Version
+
 Version is read from `rust/Cargo.toml` automatically. Bump with:
 
 ```bash
 ./update-version.sh 0.2.1
 ```
 
-### CI/CD
+## CI/CD
 
 A GitLab CI pipeline (`.gitlab-ci.yml`) builds and releases all packages on tag pushes using Docker-in-Docker.
 

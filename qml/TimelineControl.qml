@@ -9,8 +9,8 @@ Rectangle {
 
     onVideoDurationChanged: Qt.callLater(resetHandles)
 
-    color: "#333"
-    border.color: "#555"
+    color: theme.widget
+    border.color: theme.widgetBorder
     border.width: 1
 
     Column {
@@ -20,15 +20,15 @@ Rectangle {
 
         Row {
             spacing: 10
-            Label { text: formatTime(startTime); width: 80; color: "white" }
-            Label { text: formatTime(endTime); width: 80; color: "white" }
+            Label { text: formatTime(startTime); width: 80; color: theme.text }
+            Label { text: formatTime(endTime); width: 80; color: theme.text }
         }
 
             Rectangle {
                 id: track
                 width: parent.width - parent.leftPadding - parent.rightPadding
             height: 20
-            color: "#555"
+            color: theme.widgetBorder
             radius: 4
 
             property double _ratio: videoDuration > 0 ? width / videoDuration : 1
@@ -38,7 +38,7 @@ Rectangle {
                 x: Math.max(0, Math.min(startTime * track._ratio, track.width))
                 width: Math.max(0, Math.min((endTime - startTime) * track._ratio, track.width - x))
                 height: parent.height
-                color: "#4a9eff"
+                color: theme.accent
                 opacity: 0.4
                 radius: 4
             }
@@ -50,7 +50,7 @@ Rectangle {
                 y: 0
                 width: 12
                 height: parent.height
-                color: "#4a9eff"
+                color: theme.accent
                 radius: 3
                 MouseArea {
                     anchors.fill: parent
@@ -76,7 +76,7 @@ Rectangle {
                 y: 0
                 width: 12
                 height: parent.height
-                color: "#ff6b4a"
+                color: theme.accentEnd
                 radius: 3
                 MouseArea {
                     anchors.fill: parent

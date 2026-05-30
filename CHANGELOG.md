@@ -1,3 +1,16 @@
+### 0.3.1
+- Windows: proper MSVC detection, ffmpeg/ffprobe bundling, and InnoSetup installer
+- Windows: optional `-Clean` flag for full rebuild, `-Console` flag for debug logging
+- Dark mode: automatic detection and full theme support on all platforms
+- Fixed volume slider showing duplicate speaker icon instead of percentage
+- Fixed video info extraction (duration, resolution, codec) — ffprobe path resolution
+- Fixed timeline selection broken by missing duration
+- Fixed About dialog layout — copyright line no longer hidden behind OK button
+- Fixed About dialog centering on open
+- Fixed console window appearing on launch (Windows GUI subsystem)
+- Refactored all hardcoded QML colors to theme-aware properties
+- Switched to Fusion QML style for consistent background customization
+
 ### 0.3.0
 - AppImage support with Docker-based builds
 - GitLab CI pipeline for automated releases

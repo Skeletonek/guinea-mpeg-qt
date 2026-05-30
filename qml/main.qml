@@ -41,7 +41,7 @@ ApplicationWindow {
             Rectangle {
                 width: stackView.width
                 height: stackView.height
-                color: "#1e1e1e"
+                color: theme.bg
 
                 StackView.onActivated: controlsPanel.refreshProfiles()
 

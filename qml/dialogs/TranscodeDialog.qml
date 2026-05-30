@@ -9,12 +9,13 @@ Dialog {
     closePolicy: Popup.CloseOnEscape
     width: 700
     height: 500
+    background: Rectangle { color: theme.bg }
 
     property QtObject appWindow: null
 
     header: Rectangle {
         height: 36
-        color: "#2d2d2d"
+        color: theme.surface
 
         RowLayout {
             anchors.fill: parent
@@ -24,7 +25,7 @@ Dialog {
 
             Label {
                 text: backend.transcoding ? "Transcoding..." : "Transcoding Complete"
-                color: "#eee"
+                color: theme.textHeader
                 font.bold: true
                 elide: Text.ElideRight
             }
@@ -53,7 +54,7 @@ Dialog {
         Rectangle {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            color: "#1e1e1e"
+            color: theme.bg
 
             Flickable {
                 id: transcodeFlickable
@@ -88,7 +89,7 @@ Dialog {
                     readOnly: true
                     font.family: "monospace"
                     font.pixelSize: 12
-                    color: "white"
+                    color: theme.text
                     wrapMode: TextEdit.Wrap
                     selectByMouse: false
                     textFormat: TextEdit.PlainText
@@ -101,7 +102,7 @@ Dialog {
 
             Label {
                 text: backend.transcoding ? "ffmpeg is running..." : "Done. You can close this window."
-                color: backend.transcoding ? "#aaa" : "#4a9eff"
+                color: backend.transcoding ? theme.textSecondary : theme.accent
             }
 
             Item { Layout.fillWidth: true }

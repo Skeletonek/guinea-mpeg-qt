@@ -1,9 +1,13 @@
 #include <QApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <QQuickStyle>
 #include <QQuickWindow>
 #include <QDebug>
 #include <QSGRendererInterface>
+#include <QPalette>
+#include <QStyleHints>
+
 #include <clocale>
 #include "mpvitem.h"
 #include <QProcess>
@@ -87,9 +91,19 @@ public:
         return m_deleteProfile(nameBytes.constData());
     }
 
-    Q_INVOKABLE QVariantMap getVideoInfo(const QString& path) {
+    Q_INVOKABLE QVariantMap getVideoInfo(const QString& rawPath) {
+        QString path = normalizePath(rawPath);
         QProcess ffprobe;
-        ffprobe.start("ffprobe", {
+        QString ffprobePath = QStandardPaths::findExecutable("ffprobe");
+        if (ffprobePath.isEmpty())
+            ffprobePath = QCoreApplication::applicationDirPath() + "/ffprobe.exe";
+        if (!QFile::exists(ffprobePath)) {
+            QVariantMap empty;
+            empty["duration"] = 0.0;
+            return empty;
+        }
+
+        ffprobe.start(ffprobePath, {
             "-v", "quiet",
             "-print_format", "json",
             "-show_format",
@@ -99,9 +113,14 @@ public:
         ffprobe.waitForFinished(30000);
         QByteArray output = ffprobe.readAllStandardOutput();
 
+        QVariantMap info;
+        if (output.isEmpty()) {
+            info["duration"] = 0.0;
+            return info;
+        }
+
         QJsonDocument doc = QJsonDocument::fromJson(output);
         QJsonObject root = doc.object();
-        QVariantMap info;
 
         // Duration
         QJsonObject format = root["format"].toObject();
@@ -127,17 +146,34 @@ public:
     }
 
     Q_INVOKABLE bool ffmpegAvailable() {
-        return !QStandardPaths::findExecutable("ffmpeg").isEmpty();
+        if (!QStandardPaths::findExecutable("ffmpeg").isEmpty())
+            return true;
+        return QFile::exists(QCoreApplication::applicationDirPath() + "/ffmpeg.exe");
+    }
+
+    QString findFfmpeg() const {
+        QString p = QStandardPaths::findExecutable("ffmpeg");
+        if (p.isEmpty()) p = QCoreApplication::applicationDirPath() + "/ffmpeg.exe";
+        return p;
     }
 
     Q_INVOKABLE QString getFfmpegVersion() {
         QProcess ffmpeg;
-        ffmpeg.start("ffmpeg", {"-version"});
+        ffmpeg.start(findFfmpeg(), {"-version"});
         ffmpeg.waitForFinished(5000);
         return QString::fromUtf8(ffmpeg.readAllStandardOutput().split('\n').first());
     }
 
-    Q_INVOKABLE QString generatePreview(const QString& path, qint64 timeMs) {
+    static QString normalizePath(QString path) {
+#ifdef Q_OS_WIN
+        if (path.size() >= 3 && path[0] == '/' && path[2] == ':')
+            path = path.mid(1);
+#endif
+        return QDir::cleanPath(path);
+    }
+
+    Q_INVOKABLE QString generatePreview(const QString& rawPath, qint64 timeMs) {
+        QString path = normalizePath(rawPath);
         QString tmpDir = QDir::tempPath();
         QString previewPath = tmpDir + "/guinea_mpeg_preview.png";
 
@@ -149,7 +185,7 @@ public:
              << "-vframes" << "1"
              << "-q:v" << "2"
              << previewPath;
-        ffmpeg.start("ffmpeg", args);
+        ffmpeg.start(findFfmpeg(), args);
         ffmpeg.waitForFinished(30000);
 
         if (ffmpeg.exitCode() == 0)
@@ -157,9 +193,11 @@ public:
         return QString();
     }
 
-    Q_INVOKABLE QString startTranscode(const QString& input, const QString& output,
+    Q_INVOKABLE QString startTranscode(const QString& rawInput, const QString& rawOutput,
                                         double startTime, double endTime,
                                         const QString& profileJson) {
+        QString input = normalizePath(rawInput);
+        QString output = normalizePath(rawOutput);
         if (m_currentTranscode) {
             m_currentTranscode->kill();
             m_currentTranscode->waitForFinished(3000);
@@ -186,7 +224,7 @@ public:
 
             m_currentTranscode = new QProcess(this);
             connectOutputCapture();
-            m_currentTranscode->start("ffmpeg", fallbackArgs);
+            m_currentTranscode->start(findFfmpeg(), fallbackArgs);
             return "started";
         }
 
@@ -215,7 +253,7 @@ public:
 
         m_currentTranscode = new QProcess(this);
         connectOutputCapture();
-        m_currentTranscode->start("ffmpeg", args);
+        m_currentTranscode->start(findFfmpeg(), args);
         return "started";
     }
 
@@ -348,6 +386,89 @@ int main(int argc, char *argv[])
 #endif
     std::setlocale(LC_NUMERIC, "C");
 
+#ifdef Q_OS_WIN
+    // Ensure bundled ffmpeg/ffprobe in app directory are found by QProcess
+    QByteArray appDir = QCoreApplication::applicationDirPath().toUtf8();
+    SetEnvironmentVariableA("PATH", (appDir + ";" + qgetenv("PATH")).constData());
+#endif
+
+    // Fusion QML style — required for background/palette customization.
+    // The native "Windows" QML style does not support overriding control backgrounds.
+    QQuickStyle::setStyle("Fusion");
+
+    // Detect system dark/light mode
+    bool darkTheme = false;
+#ifdef Q_OS_WIN
+    // Direct registry read — more reliable than QStyleHints on Windows
+    HKEY hKey;
+    if (RegOpenKeyExA(HKEY_CURRENT_USER,
+            "Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+            0, KEY_READ, &hKey) == ERROR_SUCCESS) {
+        DWORD value = 1;
+        DWORD size = sizeof(value);
+        if (RegGetValueA(hKey, nullptr, "AppsUseLightTheme", RRF_RT_DWORD, nullptr, &value, &size) == ERROR_SUCCESS)
+            darkTheme = (value == 0);
+        RegCloseKey(hKey);
+    }
+#else
+    darkTheme = QApplication::styleHints()->colorScheme() == Qt::ColorScheme::Dark;
+#endif
+    qDebug() << "Dark mode:" << darkTheme;
+
+    {   // Set QPalette to match the active theme
+        QPalette p;
+        if (darkTheme) {
+            p.setColor(QPalette::Window, QColor(53, 53, 53));
+            p.setColor(QPalette::WindowText, Qt::white);
+            p.setColor(QPalette::Base, QColor(35, 35, 35));
+            p.setColor(QPalette::AlternateBase, QColor(53, 53, 53));
+            p.setColor(QPalette::ToolTipBase, QColor(25, 25, 25));
+            p.setColor(QPalette::ToolTipText, Qt::white);
+            p.setColor(QPalette::Text, Qt::white);
+            p.setColor(QPalette::Button, QColor(53, 53, 53));
+            p.setColor(QPalette::ButtonText, Qt::white);
+            p.setColor(QPalette::BrightText, Qt::red);
+            p.setColor(QPalette::Link, QColor(42, 130, 218));
+            p.setColor(QPalette::Highlight, QColor(42, 130, 218));
+            p.setColor(QPalette::HighlightedText, Qt::black);
+        }
+        app.setPalette(p);
+    }
+
+    // Theme color map shared with QML — replaces all hardcoded color strings
+    QVariantMap theme;
+    if (darkTheme) {
+        theme["bg"]            = "#1e1e1e";
+        theme["surface"]       = "#2d2d2d";
+        theme["widget"]        = "#333333";
+        theme["widgetBorder"]  = "#555555";
+        theme["text"]          = "#ffffff";
+        theme["textSecondary"] = "#aaaaaa";
+        theme["textMuted"]     = "#888888";
+        theme["textHeader"]    = "#eeeeee";
+        theme["textDim"]       = "#666666";
+        theme["accent"]        = "#4a9eff";
+        theme["accentEnd"]     = "#ff6b4a";
+        theme["overlay"]       = "#80000000";
+        theme["black"]         = "#000000";
+    } else {
+        theme["bg"]            = "#f0f0f0";
+        theme["surface"]       = "#ffffff";
+        theme["widget"]        = "#e0e0e0";
+        theme["widgetBorder"]  = "#c0c0c0";
+        theme["text"]          = "#000000";
+        theme["textSecondary"] = "#555555";
+        theme["textMuted"]     = "#999999";
+        theme["textHeader"]    = "#333333";
+        theme["textDim"]       = "#999999";
+        theme["accent"]        = "#1a73e8";
+        theme["accentEnd"]     = "#ea4335";
+        theme["overlay"]       = "#40ffffff";
+        theme["black"]         = "#000000";
+    }
+    // Keep a reference so we can toggle theme later if wanted
+    Q_UNUSED(darkTheme);
+
     // Force OpenGL so QQuickFramebufferObject + mpv_render_context works
     QQuickWindow::setGraphicsApi(QSGRendererInterface::OpenGL);
 
@@ -377,7 +498,7 @@ int main(int argc, char *argv[])
 #else
     buildInfo["distroName"] = "Windows";
 #endif
-    buildInfo["copyright"] = QString(buildInfo["author"].toString() + " " + (__DATE__ + 7));
+    buildInfo["copyright"] = QString(buildInfo["author"].toString() + " " + QString(__DATE__).right(4));
 
     QQmlApplicationEngine engine;
 
@@ -389,6 +510,7 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("ffmpegAvailable", QVariant(backend->ffmpegAvailable()));
     engine.rootContext()->setContextProperty("ffmpegVersion", QVariant(backend->getFfmpegVersion()));
     engine.rootContext()->setContextProperty("buildInfo", QVariant(buildInfo));
+    engine.rootContext()->setContextProperty("theme", QVariant(theme));
 
     QString initialFilePath;
     auto args = app.arguments();
@@ -399,7 +521,12 @@ int main(int argc, char *argv[])
         QString path = QUrl(a).toLocalFile();
         if (path.isEmpty())
             path = a;
-        initialFilePath = path;
+#ifdef Q_OS_WIN
+        // Strip leading / before drive letter: /E:/path → E:/path
+        if (path.size() >= 3 && path[0] == '/' && path[2] == ':')
+            path = path.mid(1);
+#endif
+        initialFilePath = QDir::cleanPath(path);
         break;
     }
     engine.rootContext()->setContextProperty("initialFilePath", QVariant(initialFilePath));

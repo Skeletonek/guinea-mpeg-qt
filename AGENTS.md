@@ -1,11 +1,13 @@
 # Agent Knowledge Base
 
 ## Architecture
-- Rust library (`libguinea_mpeg_core.so`, cdylib/staticlib) loaded at runtime via `dlopen` from C++ (`src/main.cpp`).
+- Rust library (`libguinea_mpeg_core.so` on Linux, `guinea_mpeg_core.dll` on Windows) loaded at runtime via `dlopen`/`LoadLibrary` from C++ (`src/main.cpp`).
 - 7 C FFI exports: `init_core`, `free_rust_string`, `available_profiles`, `load_profile`, `save_profile`, `delete_profile`, `build_ffmpeg_command`.
 - C++ `GuineaMpegBackend` class exposed as QML context property `backend`.
-- CMake builds Rust via `cargo build --release` as custom target, copies `.so` into build dir.
-- CLI argument (for MIME type opening) parsed in `src/main.cpp`: skips flags and flatpak `@@` markers, normalizes via `QUrl::toLocalFile()`, passed as `initialFilePath` context property to QML.
+- CMake builds Rust via `cargo build --release` as custom target, copies `.so`/`.dll` into build dir.
+- CLI argument (for MIME type opening) parsed in `src/main.cpp`: skips flags and flatpak `@@` markers, normalizes via `QUrl::toLocalFile()`.
+- **Windows path normalization**: CLI arguments may have a leading `/` before the drive letter (e.g. `/E:/path`). The `normalizePath()` helper strips it and calls `QDir::cleanPath()`. Applied in `getVideoInfo`, `generatePreview`, and `startTranscode`.
+- Passed as `initialFilePath` context property to QML.
 - QML `Component.onCompleted` calls `loadVideo(initialFilePath)` to auto-load the file.
 
 ## QML Patterns
@@ -18,6 +20,10 @@
 - Directory imports (`import "dialogs"`, `import "../"`) are required to make QML types in subdirectories or parent directories discoverable. Types in the same directory are auto-discovered, but types in different directories need explicit `import`.
 - Avoid property names that collide with parent scope IDs — `appWindow: appWindow` creates a binding loop because the property name and the id are the same. Use a different name like `hostWindow: appWindow`.
 - Dialog components (AboutDialog, TranscodeDialog, etc.) use `property QtObject appWindow: null` to receive a reference to the ApplicationWindow, giving them access to its methods and state. Set via `appWindow: appWindow` in main.qml (no binding loop here since the property is on a different object).
+- `Dialog` content can be clipped behind the footer (OK button). Fix: set `implicitHeight` explicitly (e.g. 350) and use `anchors.left/right/top` instead of `anchors.fill` on the inner layout.
+- Center a `Dialog` via `onOpened: centerInParent()` calling a function that sets `x` and `y` using `parent.width/height`.
+- `QQuickStyle::setStyle("Fusion")` is required to customize control backgrounds on Windows (native QML style forbids background overrides).
+- `QPalette` dark/light colors are set on `QApplication` but may be ignored by the native QML style; Fusion QML style respects them.
 
 ## TimelineControl Patterns
 - Handle x positions MUST be clamped to `[0, track.width - handle.width]` with `Math.max(0, Math.min(x, track.width - width))` to keep handles within the clickable area.
@@ -44,8 +50,10 @@
 - Compile flag `-mdirect-extern-access` needed for GCC 14+/Qt 6.11 compat (prevents copy relocation errors).
 - `build/` is for source-controlled packaging scripts; `out/` is gitignored (cmake artifacts + packages).
 - Version canonical source: `rust/Cargo.toml` — `update-version.sh` propagates to `CMakeLists.txt` (About dialog reads `buildInfo.version` from CMake `PROJECT_VERSION` at runtime).
+- `WIN32_EXECUTABLE` CMake property set to `TRUE` on Windows to suppress the console window. Override with `-DCONSOLE_MODE=ON` (set via the `-Console` flag in `windows_build.ps1`).
+- On Windows, all `QProcess` calls to ffprobe/ffmpeg use explicit paths via `QStandardPaths::findExecutable()` with fallback to `applicationDirPath() + "/ffmpeg.exe"`, instead of relying on `PATH` environment variable. The `normalizePath()` static helper strips leading `/` before Windows drive letters.
 
-## Build & Packaging
+## Build & Packaging (Linux)
 - `build/linux_build.sh` — builds the project and optionally produces packages.
 - Flags: `--clean`, `--package <list>`, `--no-build`, `--version X.Y.Z`, `--help`.
 - Default (no flags): cmake configure + build to `out/generic/` (no archive).
@@ -68,7 +76,9 @@
 - Exit code 255 = QML load/parse failure.
 - Exit code 143 = SIGTERM (normal kill).
 - Qt version: 6.11.0 on Arch Linux x86_64, KDE Plasma 6, Wayland, AMD GPU.
+- Qt version: 6.11.1 on Windows 11 x86_64, MSVC 2022, Fusion QML style.
 - When QML fails with exit 255 but no error message on stderr, use `QT_FORCE_STDERR_LOGGING=1` (or deprecated `QT_LOGGING_TO_CONSOLE=1`) to force QML engine errors to the terminal. Without it, error output may be suppressed.
+- Dark mode detection reads Windows registry `HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize\AppsUseLightTheme`. A `theme` context property with `bg`, `surface`, `text`, `textSecondary`, `textMuted`, `widgetBorder`, `overlay`, `black`, `accent` colors is exported to QML.
 
 ## MPV Integration Notes
 - `MpvItem` (QQuickFramebufferObject) wraps libmpv via `mpv_handle*` (GUI thread) + `mpv_render_context*` (render thread).

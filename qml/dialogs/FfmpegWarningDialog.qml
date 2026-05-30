@@ -6,6 +6,7 @@ Dialog {
     title: "FFmpeg Not Found"
     standardButtons: Dialog.Ok
     modal: true
+    background: Rectangle { color: theme.surface }
 
     Column {
         spacing: 10
@@ -13,7 +14,7 @@ Dialog {
 
         Label {
             text: "ffmpeg was not found on your system."
-            color: "white"
+            color: theme.text
             font.bold: true
         }
         Label {
@@ -22,7 +23,7 @@ Dialog {
                 + "  sudo pacman -S ffmpeg    (Arch Linux)\n"
                 + "  sudo apt install ffmpeg  (Debian/Ubuntu)\n"
                 + "  sudo dnf install ffmpeg  (Fedora)"
-            color: "white"
+            color: theme.text
             wrapMode: Text.Wrap
             width: 400
         }

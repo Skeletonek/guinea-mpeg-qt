@@ -5,8 +5,8 @@ import GuineaMpeg 1.0
 
 Rectangle {
     id: root
-    color: "black"
-    border.color: "#555"
+    color: theme.black
+    border.color: theme.widgetBorder
     border.width: 1
     clip: true
 
@@ -28,7 +28,7 @@ Rectangle {
     Text {
         anchors.centerIn: parent
         text: "No video loaded"
-        color: "white"
+        color: theme.text
         visible: !root.hasVideo
         font.pixelSize: 18
     }
@@ -37,7 +37,7 @@ Rectangle {
         anchors.bottom: parent.bottom
         width: parent.width
         height: 30
-        color: "#80000000"
+        color: theme.overlay
         visible: root.hasVideo
 
         RowLayout {
@@ -68,7 +68,7 @@ Rectangle {
 
             Label {
                 text: formatTime(player.position) + " / " + formatTime(player.duration)
-                color: "white"
+                color: theme.text
                 verticalAlignment: Text.AlignVCenter
                 Layout.fillHeight: true
             }
@@ -84,14 +84,14 @@ Rectangle {
 
             Label {
                 text: "🔊"
-                color: "white"
+                color: theme.text
                 verticalAlignment: Text.AlignVCenter
                 Layout.fillHeight: true
             }
 
             Label {
                 text: Math.round(player.volume) + "%"
-                color: "white"
+                color: theme.text
                 Layout.preferredWidth: 30
                 verticalAlignment: Text.AlignVCenter
                 Layout.fillHeight: true

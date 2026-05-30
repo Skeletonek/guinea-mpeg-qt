@@ -36,6 +36,7 @@ DisableProgramGroupPage=yes
 PrivilegesRequiredOverridesAllowed=dialog
 OutputDir={#OutputDir}
 OutputBaseFilename={#OutputFilename}
+LicenseFile=..\..\LICENSE
 SetupIconFile=..\..\media\logo\app.ico
 UninstallDisplayIcon={app}\{#MyAppExeName}
 Compression=lzma2
@@ -51,7 +52,7 @@ Name: "desktopicon"; Description: "Create a &desktop shortcut"; GroupDescription
 
 [Files]
 ; Main executable and all deployed DLLs/resources
-Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "CMakeCache.txt,cmake_install.cmake,build.ninja,.ninja_log,.ninja_deps,CMakeFiles,.qt,CMakeScripts"
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"

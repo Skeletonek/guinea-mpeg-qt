@@ -31,12 +31,25 @@ if(WIN32)
             $ENV{MPV_DIR}
         PATH_SUFFIXES include
     )
-    find_library(MPV_LIBRARY mpv
+    find_library(MPV_LIBRARY
+        NAMES mpv libmpv
         HINTS
             ${CMAKE_SOURCE_DIR}/build/windows/.mpv-dev
             $ENV{MPV_DIR}
-        PATH_SUFFIXES lib
+        PATH_SUFFIXES lib .
     )
+    if(NOT MPV_LIBRARY)
+        find_file(MPV_LIBRARY_FILE
+            NAMES mpv.lib libmpv.dll.a
+            HINTS
+                ${CMAKE_SOURCE_DIR}/build/windows/.mpv-dev
+                $ENV{MPV_DIR}
+            PATH_SUFFIXES lib .
+        )
+        if(MPV_LIBRARY_FILE)
+            set(MPV_LIBRARY "${MPV_LIBRARY_FILE}")
+        endif()
+    endif()
     if(NOT MPV_INCLUDE_DIR OR NOT MPV_LIBRARY)
         message(FATAL_ERROR "mpv not found. Download shinchiro's mpv-dev bundle to "
             "build/windows/.mpv-dev/ or set MPV_DIR environment variable."
@@ -75,6 +88,9 @@ qt_add_executable(guinea-mpeg
     src/mpvitem.h
     src/mpvitem.cpp
 )
+if(WIN32 AND NOT CONSOLE_MODE)
+    set_target_properties(guinea-mpeg PROPERTIES WIN32_EXECUTABLE TRUE)
+endif()
 
 # Embed QML files directly using resource file
 qt_add_resources(guinea-mpeg "app_qml"
