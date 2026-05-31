@@ -1,6 +1,5 @@
 #!/bin/bash
-# Update version string across the project.
-# Usage: ./update-version.sh 0.2.1
+# Usage: ./update-version.sh <version>
 
 if [ $# -ne 1 ]; then
     echo "Usage: $0 <version>"
@@ -10,10 +9,10 @@ fi
 VERSION="$1"
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 
-# rust/Cargo.toml — canonical source
+# rust/Cargo.toml is canonical version source
 sed -i "s/^version = \".*\"/version = \"$VERSION\"/" "$ROOT/rust/Cargo.toml"
 
-# CMakeLists.txt — CMake project() VERSION requires numeric dotted form only
+# CMake project() requires plain numeric dotted form
 CMAKE_VERSION="$(echo "$VERSION" | sed 's/[-+].*//')"
 sed -i "s/^project(guinea_mpeg VERSION [0-9.]*/project(guinea_mpeg VERSION $CMAKE_VERSION/" "$ROOT/CMakeLists.txt"
 

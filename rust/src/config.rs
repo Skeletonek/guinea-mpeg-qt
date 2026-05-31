@@ -44,21 +44,18 @@ fn user_config_path() -> PathBuf {
 }
 
 fn defaults_path() -> PathBuf {
-    // Try beside the executable first
     if let Ok(exe) = std::env::current_exe() {
         if let Some(dir) = exe.parent() {
             let p = dir.join("default_profiles.toml");
             if p.exists() {
                 return p;
             }
-            // ../share/guinea-mpeg/ relative to binary (flatpak & prefix installs)
             let p = dir.join("../share/guinea-mpeg/default_profiles.toml");
             if p.exists() {
                 return p.canonicalize().unwrap_or(p);
             }
         }
     }
-    // Fall back to system-wide install path
     PathBuf::from("/usr/share/guinea-mpeg/default_profiles.toml")
 }
 
@@ -67,12 +64,8 @@ fn dirs_or_fallback() -> PathBuf {
 }
 
 fn load_profiles_from_file(path: &Path) -> Vec<VideoProfile> {
-    let content = match std::fs::read_to_string(path) {
-        Ok(c) => c,
-        Err(_) => return Vec::new(),
-    };
+    let content = std::fs::read_to_string(path).unwrap_or_default();
 
-    // Try new format: [[profiles]] -> Vec<VideoProfile>
     #[derive(Deserialize)]
     struct VecConfig {
         profiles: Vec<VideoProfile>,
@@ -81,7 +74,6 @@ fn load_profiles_from_file(path: &Path) -> Vec<VideoProfile> {
         return cfg.profiles;
     }
 
-    // Fall back to old format: [profiles."name"] -> HashMap<String, VideoProfile>
     #[derive(Deserialize)]
     struct MapConfig {
         profiles: HashMap<String, VideoProfile>,
@@ -114,26 +106,9 @@ fn merge_configs() -> AppConfig {
     }
 }
 
-fn load_config() -> AppConfig {
-    merge_configs()
-}
-
-fn save_user_config(config: &AppConfig) -> anyhow::Result<()> {
-    let path = user_config_path();
-    if let Some(parent) = path.parent() {
-        std::fs::create_dir_all(parent)?;
-    }
-    let content = toml::to_string(config)?;
-    std::fs::write(&path, content)?;
-    Ok(())
-}
-
 fn get_config() -> AppConfig {
     let mut guard = CONFIG.lock().unwrap();
-    if guard.is_none() {
-        *guard = Some(load_config());
-    }
-    guard.as_ref().unwrap().clone()
+    guard.get_or_insert_with(merge_configs).clone()
 }
 
 fn set_config(config: AppConfig) {
@@ -143,7 +118,7 @@ fn set_config(config: AppConfig) {
 
 pub fn available_profiles() -> Vec<String> {
     let config = get_config();
-    let mut names: Vec<String> = config.profiles.iter().map(|p| p.name.clone()).collect();
+    let mut names = config.profiles.iter().map(|p| p.name.clone()).collect::<Vec<_>>();
     names.sort();
     names
 }
@@ -162,10 +137,9 @@ pub fn save_profile(name: &str, json: &str) -> anyhow::Result<()> {
     } else {
         user_profiles.push(profile);
     }
-    let user_config = AppConfig {
+    save_user_config(&AppConfig {
         profiles: user_profiles,
-    };
-    save_user_config(&user_config)?;
+    })?;
     set_config(merge_configs());
     Ok(())
 }
@@ -173,10 +147,18 @@ pub fn save_profile(name: &str, json: &str) -> anyhow::Result<()> {
 pub fn delete_profile(name: &str) -> anyhow::Result<()> {
     let mut user_profiles = load_user_config();
     user_profiles.retain(|p| p.name != name);
-    let user_config = AppConfig {
+    save_user_config(&AppConfig {
         profiles: user_profiles,
-    };
-    save_user_config(&user_config)?;
+    })?;
     set_config(merge_configs());
     Ok(())
+}
+
+fn save_user_config(config: &AppConfig) -> anyhow::Result<()> {
+    let path = user_config_path();
+    if let Some(parent) = path.parent() {
+        std::fs::create_dir_all(parent)?;
+    }
+    let content = toml::to_string(config)?;
+    Ok(std::fs::write(&path, content)?)
 }

@@ -136,7 +136,7 @@ void MpvItem::loadPendingSource()
 
     QByteArray pathData = path.toUtf8();
     guinea_mpeg_mpv_load_file(m_backend, pathData.constData());
-    // load_file autoplays (sets pause=no in Rust); optimistically mark as playing
+    // load_file autoplays
     m_playing = true;
     emit playingChanged();
 }

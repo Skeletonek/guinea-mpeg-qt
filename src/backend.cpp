@@ -67,9 +67,8 @@ QVariantMap GuineaMpegBackendExt::getVideoInfo(const QString& rawPath) {
             }
         }
         guinea_mpeg_free_string(json);
-    } else {
+    } else
         info["duration"] = 0.0;
-    }
     return info;
 }
 
@@ -110,10 +109,10 @@ QString GuineaMpegBackendExt::startTranscode(const QString& rawInput, const QStr
 
     QStringList args;
     QJsonDocument doc = QJsonDocument::fromJson(profileJson.toUtf8());
-    if (doc.isArray()) {
+    if (doc.isArray())
         for (const auto& arg : doc.array())
             args << arg.toString();
-    } else {
+    else {
         const char* jsonArgs = guinea_mpeg_build_ffmpeg_command(
             input.toUtf8().constData(),
             output.toUtf8().constData(),

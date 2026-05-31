@@ -98,12 +98,10 @@ if $DO_DEB || $DO_RPM || $DO_PACMAN || $DO_FLATPAK || $DO_APPIMAGE || $DO_GENERI
     HAS_PKG_FLAG=true
 fi
 
-# If no --package flag given, default to generic build
 if ! $HAS_PKG_FLAG; then
     DO_GENERIC=true
 fi
 
-# Automatically strip when packaging (release quality)
 if $HAS_PKG_FLAG || $DO_RELEASE; then
     DO_STRIP=true
 fi

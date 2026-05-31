@@ -110,11 +110,7 @@ $MpvDir = Join-Path (Join-Path (Join-Path (Join-Path $ProjectRoot "build") "wind
 if (-not $SkipMpv) {
     Write-Host "=== Step 1/7: Acquiring mpv-dev bundle ===" -ForegroundColor Cyan
 }
-else {
-    Write-Host "=== Step 1/7: Skipping mpv-dev download (--SkipMpv) ===" -ForegroundColor Yellow
-}
 
-# Verify mpv-dev was acquired
 if (-not (Test-Path "$MpvDir/include/mpv/client.h")) {
     Write-Error "mpv-dev not found at $MpvDir. Run without -SkipMpv or set MPV_DIR manually."
     exit 1
@@ -215,7 +211,6 @@ Write-Host "Build complete: $ExePath" -ForegroundColor Green
 # ---- Strip debug info (Release mode) ----
 if ($Release -or $Package) {
     Write-Host "=== Stripping debug info ===" -ForegroundColor Cyan
-    # Use PowerShell's ability to invoke external tools
     $StripTool = "strip"
     $StripArgs = @("--strip-debug", $ExePath)
     & $StripTool $StripArgs 2>$null
@@ -275,8 +270,6 @@ if (Test-Path $RustDll) {
 else {
     Write-Warning "guinea_mpeg_core.dll not found at $RustDll."
 }
-    Write-Host "=== Step 6/7: Skipping Rust DLL (static build) ===" -ForegroundColor Yellow
-}
 
 # ---- Step 7: Bundle ffmpeg ----
 if (-not $SkipFfmpeg) {
@@ -319,7 +312,6 @@ if ($Package) {
     Write-Host ""
     Write-Host "=== Packaging ===" -ForegroundColor Cyan
 
-    # Strip CMake build artifacts from output directory
     Write-Host "Cleaning build artifacts from output..." -ForegroundColor Gray
     @("CMakeCache.txt", "cmake_install.cmake", "build.ninja", ".ninja_log", ".ninja_deps") | ForEach-Object {
         Remove-Item -Force (Join-Path $OutputDir $_) -ErrorAction SilentlyContinue

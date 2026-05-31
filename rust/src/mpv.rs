@@ -24,8 +24,7 @@ impl Drop for MpvBackend {
     fn drop(&mut self) {
         if !self.handle.is_null() {
             unsafe {
-                let stop = CString::new("stop").unwrap();
-                mpv_command_string(self.handle, stop.as_ptr());
+                mpv_command_string(self.handle, CString::new("stop").unwrap().as_ptr());
                 mpv_terminate_destroy(self.handle);
             }
         }
@@ -34,15 +33,33 @@ impl Drop for MpvBackend {
 
 impl MpvBackend {
     fn set_string(&self, name: &str, val: &str) {
-        let cn = CString::new(name).unwrap();
-        let cv = CString::new(val).unwrap();
         unsafe {
-            mpv_set_property_string(self.handle, cn.as_ptr(), cv.as_ptr());
+            mpv_set_property_string(
+                self.handle,
+                CString::new(name).unwrap().as_ptr(),
+                CString::new(val).unwrap().as_ptr(),
+            );
         }
     }
 
     fn raw_handle(&self) -> *mut mpv_handle {
         self.handle
+    }
+}
+
+fn set_opt(handle: *mut mpv_handle, name: &str, val: &str) {
+    unsafe {
+        mpv_set_option_string(
+            handle,
+            CString::new(name).unwrap().as_ptr(),
+            CString::new(val).unwrap().as_ptr(),
+        );
+    }
+}
+
+fn observe(handle: *mut mpv_handle, name: &str, format: mpv_format) {
+    unsafe {
+        mpv_observe_property(handle, 0, CString::new(name).unwrap().as_ptr(), format);
     }
 }
 
@@ -57,54 +74,17 @@ pub extern "C" fn guinea_mpeg_mpv_create() -> *mut c_void {
         return std::ptr::null_mut();
     }
 
-    unsafe {
-        mpv_set_option_string(
-            handle,
-            CString::new("vo").unwrap().as_ptr(),
-            CString::new("libmpv").unwrap().as_ptr(),
-        );
-        mpv_set_option_string(
-            handle,
-            CString::new("keep-open").unwrap().as_ptr(),
-            CString::new("yes").unwrap().as_ptr(),
-        );
-        mpv_set_option_string(
-            handle,
-            CString::new("volume").unwrap().as_ptr(),
-            CString::new("100").unwrap().as_ptr(),
-        );
-        mpv_set_option_string(
-            handle,
-            CString::new("cache").unwrap().as_ptr(),
-            CString::new("yes").unwrap().as_ptr(),
-        );
-        mpv_set_option_string(
-            handle,
-            CString::new("hwdec").unwrap().as_ptr(),
-            CString::new("auto-copy").unwrap().as_ptr(),
-        );
+    set_opt(handle, "vo", "libmpv");
+    set_opt(handle, "keep-open", "yes");
+    set_opt(handle, "volume", "100");
+    set_opt(handle, "cache", "yes");
+    set_opt(handle, "hwdec", "auto-copy");
 
-        mpv_initialize(handle);
+    unsafe { mpv_initialize(handle) };
 
-        mpv_observe_property(
-            handle,
-            0,
-            CString::new("time-pos").unwrap().as_ptr(),
-            FORMAT_DOUBLE,
-        );
-        mpv_observe_property(
-            handle,
-            0,
-            CString::new("duration").unwrap().as_ptr(),
-            FORMAT_DOUBLE,
-        );
-        mpv_observe_property(
-            handle,
-            0,
-            CString::new("pause").unwrap().as_ptr(),
-            FORMAT_FLAG,
-        );
-    }
+    observe(handle, "time-pos", FORMAT_DOUBLE);
+    observe(handle, "duration", FORMAT_DOUBLE);
+    observe(handle, "pause", FORMAT_FLAG);
 
     let backend = Box::new(MpvBackend {
         handle,
@@ -132,9 +112,7 @@ pub extern "C" fn guinea_mpeg_mpv_available() -> bool {
         return false;
     }
     let ok = unsafe { mpv_initialize(handle) } == 0;
-    unsafe {
-        mpv_terminate_destroy(handle);
-    }
+    unsafe { mpv_terminate_destroy(handle) };
     ok
 }
 
@@ -158,62 +136,58 @@ pub extern "C" fn guinea_mpeg_mpv_load_file(ptr: *mut c_void, path: *const c_cha
     let backend = backend_from_ptr(ptr);
     let c_loadfile = CString::new("loadfile").unwrap();
     let c_path = CString::new(p).unwrap();
-    let args = [c_loadfile.as_ptr(), c_path.as_ptr(), std::ptr::null::<c_char>()];
+    let args = [c_loadfile.as_ptr(), c_path.as_ptr(), std::ptr::null()];
     unsafe {
         mpv_command(backend.handle, args.as_ptr() as *mut *const i8);
-    }
-    let no = CString::new("no").unwrap();
-    let pause = CString::new("pause").unwrap();
-    unsafe {
-        mpv_set_property_string(backend.handle, pause.as_ptr(), no.as_ptr());
+        mpv_set_property_string(
+            backend.handle,
+            CString::new("pause").unwrap().as_ptr(),
+            CString::new("no").unwrap().as_ptr(),
+        );
     }
 }
 
 #[no_mangle]
 pub extern "C" fn guinea_mpeg_mpv_play(ptr: *mut c_void) {
-    if ptr.is_null() {
-        return;
+    if !ptr.is_null() {
+        backend_from_ptr(ptr).set_string("pause", "no");
     }
-    backend_from_ptr(ptr).set_string("pause", "no");
 }
 
 #[no_mangle]
 pub extern "C" fn guinea_mpeg_mpv_pause(ptr: *mut c_void) {
-    if ptr.is_null() {
-        return;
+    if !ptr.is_null() {
+        backend_from_ptr(ptr).set_string("pause", "yes");
     }
-    backend_from_ptr(ptr).set_string("pause", "yes");
 }
 
 #[no_mangle]
 pub extern "C" fn guinea_mpeg_mpv_stop(ptr: *mut c_void) {
-    if ptr.is_null() {
-        return;
-    }
-    let backend = backend_from_ptr(ptr);
-    unsafe {
-        mpv_command_string(backend.handle, CString::new("stop").unwrap().as_ptr());
+    if !ptr.is_null() {
+        unsafe {
+            mpv_command_string(
+                backend_from_ptr(ptr).handle,
+                CString::new("stop").unwrap().as_ptr(),
+            );
+        }
     }
 }
 
 #[no_mangle]
 pub extern "C" fn guinea_mpeg_mpv_seek(ptr: *mut c_void, pos_ms: i32) {
-    if ptr.is_null() {
-        return;
-    }
-    let backend = backend_from_ptr(ptr);
-    let cmd = CString::new(format!("seek {} absolute", pos_ms as f64 / 1000.0)).unwrap();
-    unsafe {
-        mpv_command_string(backend.handle, cmd.as_ptr());
+    if !ptr.is_null() {
+        let cmd = CString::new(format!("seek {} absolute", pos_ms as f64 / 1000.0)).unwrap();
+        unsafe {
+            mpv_command_string(backend_from_ptr(ptr).handle, cmd.as_ptr());
+        }
     }
 }
 
 #[no_mangle]
 pub extern "C" fn guinea_mpeg_mpv_set_volume(ptr: *mut c_void, vol: i32) {
-    if ptr.is_null() {
-        return;
+    if !ptr.is_null() {
+        backend_from_ptr(ptr).set_string("volume", &vol.max(0).min(100).to_string());
     }
-    backend_from_ptr(ptr).set_string("volume", &vol.max(0).min(100).to_string());
 }
 
 #[no_mangle]

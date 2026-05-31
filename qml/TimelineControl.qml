@@ -33,7 +33,6 @@ Rectangle {
 
             property double _ratio: videoDuration > 0 ? width / videoDuration : 1
 
-            // Selection range
             Rectangle {
                 x: Math.max(0, Math.min(startTime * track._ratio, track.width))
                 width: Math.max(0, Math.min((endTime - startTime) * track._ratio, track.width - x))
@@ -43,7 +42,6 @@ Rectangle {
                 radius: 4
             }
 
-            // Start handle
             Rectangle {
                 id: startHandle
                 x: Math.max(0, Math.min(startTime * track._ratio - width / 2, track.width - width))
@@ -69,7 +67,6 @@ Rectangle {
                 }
             }
 
-            // End handle
             Rectangle {
                 id: endHandle
                 x: Math.max(0, Math.min(endTime * track._ratio - width / 2, track.width - width))

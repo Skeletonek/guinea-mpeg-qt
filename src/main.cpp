@@ -30,17 +30,17 @@ int main(int argc, char *argv[])
     std::setlocale(LC_NUMERIC, "C");
 
 #ifdef Q_OS_WIN
-    // Ensure bundled ffmpeg/ffprobe in app directory are found by QProcess
+    // Find bundled ffmpeg/ffprobe
     QByteArray appDir = QCoreApplication::applicationDirPath().toUtf8();
     SetEnvironmentVariableA("PATH", (appDir + ";" + qgetenv("PATH")).constData());
 
-    // Fusion QML style — the native Windows style forbids background overrides
+    // Fusion required for background overrides
     QQuickStyle::setStyle("Fusion");
 #endif
 
     bool darkTheme = false;
 #ifdef Q_OS_WIN
-    // Registry read — more reliable than QStyleHints on Windows
+    // More reliable than QStyleHints
     HKEY hKey;
     if (RegOpenKeyExA(HKEY_CURRENT_USER,
             "Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
@@ -153,7 +153,7 @@ int main(int argc, char *argv[])
     auto args = app.arguments();
     for (int i = 1; i < args.size(); ++i) {
         const auto& a = args[i];
-        if (a == "@@" || a.startsWith("@@") || a.startsWith('-'))
+        if (a.startsWith("@@") || a.startsWith('-'))
             continue;
         QString path = QUrl(a).toLocalFile();
         if (path.isEmpty())

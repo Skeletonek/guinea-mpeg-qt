@@ -87,7 +87,6 @@ else()
     set(RUST_LIB "${RUST_TARGET_DIR}/release/libguinea_mpeg_core.so")
 endif()
 
-# Build Rust library during configure
 execute_process(COMMAND ${CARGO} build --release
     WORKING_DIRECTORY ${RUST_PROJECT_DIR}
     RESULT_VARIABLE CARGO_RESULT
@@ -131,7 +130,6 @@ qt_add_resources(guinea-mpeg "app_qml"
         qml/ControlsPanel.qml
 )
 
-# Include path for the C header exported from Rust
 target_include_directories(guinea-mpeg PRIVATE ${RUST_PROJECT_DIR}/include)
 
 target_link_libraries(guinea-mpeg
@@ -153,7 +151,6 @@ else()
     )
 endif()
 
-# Link Rust library
 if(WIN32)
     target_link_libraries(guinea-mpeg PRIVATE "${RUST_TARGET_DIR}/release/guinea_mpeg_core.dll.lib")
 else()
