@@ -60,6 +60,7 @@ modules:
         - --share=network
       env:
         CARGO_HOME: /run/build/guinea-mpeg/cargo
+        LIBRARY_PATH: /app/lib
     buildsystem: cmake-ninja
     builddir: true
     config-opts:

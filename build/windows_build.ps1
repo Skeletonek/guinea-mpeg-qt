@@ -178,6 +178,7 @@ if ($Clean) {
 $null = New-Item -ItemType Directory -Force -Path $OutputDir
 
 $env:MPV_DIR = $MpvDir
+$env:MPV_LIB_DIR = Join-Path $MpvDir "lib"
 cmake -S $ProjectRoot -B $OutputDir `
     "-G" "Ninja" `
     "-DCMAKE_BUILD_TYPE=$Config" `
