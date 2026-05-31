@@ -26,6 +26,7 @@ const char* guinea_mpeg_build_ffmpeg_command(const char* input, const char* outp
 
 /* Mpv backend — returns opaque handle for C++ render context setup */
 void* guinea_mpeg_mpv_create(void);
+bool  guinea_mpeg_mpv_available(void);
 void  guinea_mpeg_mpv_destroy(void* handle);
 void* guinea_mpeg_mpv_raw_handle(void* handle);
 

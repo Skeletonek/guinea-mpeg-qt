@@ -119,6 +119,7 @@ qt_add_resources(guinea-mpeg "app_qml"
         qml/dialogs/AboutDialog.qml
         qml/dialogs/FfmpegWarningDialog.qml
         qml/dialogs/TranscodeDialog.qml
+        qml/dialogs/MpvWarningDialog.qml
         qml/dialogs/FileOpenDialog.qml
         qml/dialogs/FileSaveDialog.qml
         qml/ControlsPanel.qml

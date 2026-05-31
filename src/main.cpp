@@ -10,6 +10,7 @@
 #include <clocale>
 #include "mpvitem.h"
 #include "backend.h"
+#include "guinea_mpeg_core.h"
 #include <QDir>
 #include <QFile>
 #include <QIcon>
@@ -144,6 +145,7 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("backend", backend);
     engine.rootContext()->setContextProperty("ffmpegAvailable", QVariant(backend->ffmpegAvailable()));
     engine.rootContext()->setContextProperty("ffmpegVersion", QVariant(backend->getFfmpegVersion()));
+    engine.rootContext()->setContextProperty("mpvAvailable", QVariant(guinea_mpeg_mpv_available()));
     engine.rootContext()->setContextProperty("buildInfo", QVariant(buildInfo));
     engine.rootContext()->setContextProperty("theme", QVariant(theme));
 

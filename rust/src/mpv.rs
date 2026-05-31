@@ -126,6 +126,19 @@ pub extern "C" fn guinea_mpeg_mpv_destroy(ptr: *mut c_void) {
 }
 
 #[no_mangle]
+pub extern "C" fn guinea_mpeg_mpv_available() -> bool {
+    let handle = unsafe { mpv_create() };
+    if handle.is_null() {
+        return false;
+    }
+    let ok = unsafe { mpv_initialize(handle) } == 0;
+    unsafe {
+        mpv_terminate_destroy(handle);
+    }
+    ok
+}
+
+#[no_mangle]
 pub extern "C" fn guinea_mpeg_mpv_raw_handle(ptr: *mut c_void) -> *mut c_void {
     if ptr.is_null() {
         return std::ptr::null_mut();

@@ -25,7 +25,9 @@ ApplicationWindow {
     property url videoSource: ""
 
     Component.onCompleted: {
-        if (!ffmpegAvailable)
+        if (!mpvAvailable)
+            mpvWarningDialog.open()
+        else if (!ffmpegAvailable)
             ffmpegWarningDialog.open()
         else if (initialFilePath !== "")
             appWindow.loadVideo(initialFilePath)
@@ -112,6 +114,10 @@ ApplicationWindow {
 
     FfmpegWarningDialog {
         id: ffmpegWarningDialog
+    }
+
+    MpvWarningDialog {
+        id: mpvWarningDialog
     }
 
     function loadVideo(filePath, fileUrl) {
