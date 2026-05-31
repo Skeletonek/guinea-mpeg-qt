@@ -9,6 +9,7 @@ Options:
   --clean               Remove out/ and rust/target/ before building
   --package <list>      Build packages (comma-separated: deb,rpm,pacman,flatpak,generic)
   --no-build            Skip the build step
+   --release             Build release binary, strip debug info
   --version <ver>       Update project version, then build
   --help                Show this help message
 
@@ -47,6 +48,8 @@ DO_PACMAN=false
 DO_FLATPAK=false
 DO_APPIMAGE=false
 DO_GENERIC=false
+DO_RELEASE=false
+DO_STRIP=false
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -70,6 +73,8 @@ while [[ $# -gt 0 ]]; do
             shift ;;
         --no-build|-n)
             NO_BUILD=true; shift ;;
+        --release)
+            DO_RELEASE=true; DO_STRIP=true; shift ;;
         --version)
             shift
             "$PROJECT_DIR/update-version.sh" "$1"
@@ -98,6 +103,11 @@ if ! $HAS_PKG_FLAG; then
     DO_GENERIC=true
 fi
 
+# Automatically strip when packaging (release quality)
+if $HAS_PKG_FLAG || $DO_RELEASE; then
+    DO_STRIP=true
+fi
+
 # ---- Clean ----
 if $DO_CLEAN; then
     echo "=== Cleaning build artifacts ==="
@@ -105,6 +115,18 @@ if $DO_CLEAN; then
 fi
 
 mkdir -p "$OUT_DIR"
+
+# ---- Strip Function ----
+
+strip_artifacts() {
+    local dir="$1"
+    if ! $DO_STRIP; then return; fi
+    if command -v strip &>/dev/null; then
+        for f in "$dir/guinea-mpeg" "$dir/libguinea_mpeg_core.so"; do
+            [ -f "$f" ] && strip "$f" && echo "  stripped: $f" || true
+        done
+    fi
+}
 
 # ---- Build Functions ----
 
@@ -116,14 +138,17 @@ build_generic() {
     echo "=== Building GuineaMPEG $VERSION (generic) ==="
 
     export CARGO_TARGET_DIR="$cargo_dir"
-    if [ ! -f "$build_dir/CMakeCache.txt" ]; then
-        cmake -S "$PROJECT_DIR" -B "$build_dir" -DCMAKE_BUILD_TYPE=Release -DPACKAGE_TARGET=generic
-    fi
+    local cmake_opts="-DCMAKE_BUILD_TYPE=Release -DPACKAGE_TARGET=generic"
+    cmake -S "$PROJECT_DIR" -B "$build_dir" $cmake_opts
     cmake --build "$build_dir"
 
     mkdir -p "$generic_dir"
     cp "$build_dir/guinea-mpeg" "$generic_dir/"
+    if [ -f "$cargo_dir/release/libguinea_mpeg_core.so" ]; then
+        cp "$cargo_dir/release/libguinea_mpeg_core.so" "$generic_dir/"
+    fi
     cp "$PROJECT_DIR/default_profiles.toml" "$generic_dir/"
+    strip_artifacts "$generic_dir"
     echo "=== Artifacts in $generic_dir ==="
 }
 
@@ -164,9 +189,12 @@ build_in_docker() {
         bash -c "
             set -euo pipefail
             mkdir -p /tmp/home /source/out/$build_dir_name /source/out/$target
-            cmake -S /source -B /source/out/$build_dir_name -DCMAKE_BUILD_TYPE=Release -DPACKAGE_TARGET=${target}
+            cmake_opts='-DCMAKE_BUILD_TYPE=Release -DPACKAGE_TARGET=${target}'
+            cmake -S /source -B /source/out/$build_dir_name \$cmake_opts
             cmake --build /source/out/$build_dir_name
             cp /source/out/$build_dir_name/guinea-mpeg /source/out/$target/
+            cp /source/out/$cargo_dir_name/release/libguinea_mpeg_core.so /source/out/$target/ || true
+            $(if $DO_STRIP; then echo "strip /source/out/$target/guinea-mpeg 2>/dev/null || true; strip /source/out/$target/libguinea_mpeg_core.so 2>/dev/null || true"; fi)
             cp /source/default_profiles.toml /source/out/$target/
         " || {
             echo "WARNING: Docker build for $target failed" >&2
@@ -192,6 +220,7 @@ build_appimage() {
     local build_dir_name=".build-appimage"
     local cargo_dir_name=".cargo-appimage"
     local script="/source/build/docker/build-appimage.sh"
+    local build_args=""
 
     echo "=== Building AppImage ==="
 
@@ -204,7 +233,7 @@ build_appimage() {
         -e CARGO_HOME="/tmp/home/.cargo" \
         -e HOME="/tmp/home" \
         "$image_name" \
-        bash "$script" "/source/out/$build_dir_name" || {
+        bash "$script" "/source/out/$build_dir_name" "$build_args" || {
             echo "WARNING: AppImage build failed" >&2
             _cleanup_docker "appimage" || true
             return 1
@@ -221,10 +250,14 @@ stage_package() {
     local staging="$1"
     local artifacts="$2"
     mkdir -p "$staging/usr/bin" \
+             "$staging/usr/lib/$PKGNAME" \
              "$staging/usr/share/applications" \
              "$staging/usr/share/icons" \
              "$staging/usr/share/$PKGNAME"
     install -m755 "$artifacts/guinea-mpeg" "$staging/usr/bin/$PKGNAME"
+    if [ -f "$artifacts/libguinea_mpeg_core.so" ]; then
+        install -m755 "$artifacts/libguinea_mpeg_core.so" "$staging/usr/lib/$PKGNAME/"
+    fi
     install -m644 "$PROJECT_DIR/default_profiles.toml" "$staging/usr/share/$PKGNAME/"
     install -m644 "$PROJECT_DIR/build/linux/applications/$PKGNAME.desktop" "$staging/usr/share/applications/"
     cp -r "$PROJECT_DIR/build/linux/icons/hicolor" "$staging/usr/share/icons/"

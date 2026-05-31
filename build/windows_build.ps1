@@ -32,6 +32,9 @@
 .PARAMETER Clean
     Remove output directory and Rust build artifacts before building.
 
+.PARAMETER Release
+    Strip debug info from the final binary for a release build (smaller size).
+
 .EXAMPLE
     .\build\windows_build.ps1
 
@@ -51,7 +54,8 @@ param(
     [string]$OutputDir = (Join-Path (Join-Path (Join-Path $PSScriptRoot "..") "out") "windows"),
     [string]$QtDir = "",
     [switch]$Clean,
-    [switch]$Console
+    [switch]$Console,
+    [switch]$Release
 )
 
 $ErrorActionPreference = "Stop"
@@ -62,6 +66,7 @@ Write-Host "=== GuineaMPEG Windows Build ===" -ForegroundColor Cyan
 Write-Host "Project root: $ProjectRoot" -ForegroundColor Gray
 Write-Host "Configuration: $Config" -ForegroundColor Gray
 Write-Host "Output dir: $OutputDir" -ForegroundColor Gray
+Write-Host "Release: $(if ($Release) { 'Yes' } else { 'No' })" -ForegroundColor Gray
 
 # ---- Check prerequisites ----
 function Test-Command($Name) {
@@ -103,10 +108,10 @@ else {
 # ---- Step 1: Download mpv-dev ----
 $MpvDir = Join-Path (Join-Path (Join-Path (Join-Path $ProjectRoot "build") "windows") ".mpv-dev") "mpv-dev-x86_64"
 if (-not $SkipMpv) {
-    Write-Host "=== Step 1/6: Acquiring mpv-dev bundle ===" -ForegroundColor Cyan
+    Write-Host "=== Step 1/7: Acquiring mpv-dev bundle ===" -ForegroundColor Cyan
 }
 else {
-    Write-Host "=== Step 1/6: Skipping mpv-dev download (--SkipMpv) ===" -ForegroundColor Yellow
+    Write-Host "=== Step 1/7: Skipping mpv-dev download (--SkipMpv) ===" -ForegroundColor Yellow
 }
 
 # Verify mpv-dev was acquired
@@ -162,7 +167,7 @@ function Import-VisualStudioEnvironment {
 Import-VisualStudioEnvironment
 
 # ---- Step 2: CMake configure ----
-Write-Host "=== Step 2/6: CMake configure ===" -ForegroundColor Cyan
+Write-Host "=== Step 2/7: CMake configure ===" -ForegroundColor Cyan
 
 if ($Clean) {
     Write-Host "=== Cleaning build artifacts ===" -ForegroundColor Cyan
@@ -192,7 +197,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 # ---- Step 3: CMake build ----
-Write-Host "=== Step 3/6: CMake build ===" -ForegroundColor Cyan
+Write-Host "=== Step 3/7: CMake build ===" -ForegroundColor Cyan
 cmake "--build" $OutputDir "--config" $Config
 
 if ($LASTEXITCODE -ne 0) {
@@ -207,8 +212,34 @@ if (-not (Test-Path $ExePath)) {
 }
 Write-Host "Build complete: $ExePath" -ForegroundColor Green
 
+# ---- Strip debug info (Release mode) ----
+if ($Release -or $Package) {
+    Write-Host "=== Stripping debug info ===" -ForegroundColor Cyan
+    # Use PowerShell's ability to invoke external tools
+    $StripTool = "strip"
+    $StripArgs = @("--strip-debug", $ExePath)
+    & $StripTool $StripArgs 2>$null
+    if ($LASTEXITCODE -ne 0) {
+        # Try llvm-strip (MSVC doesn't ship strip, but we might have it)
+        $StripTool = "llvm-strip"
+        $StripArgs = @("--strip-debug", $ExePath)
+        & $StripTool $StripArgs 2>$null
+        if ($LASTEXITCODE -ne 0) {
+            Write-Warning "strip/llvm-strip not found. Binary may contain debug symbols."
+        } else {
+            Write-Host "Stripped with llvm-strip." -ForegroundColor Green
+        }
+    } else {
+        Write-Host "Stripped with strip." -ForegroundColor Green
+    }
+    $RustDllStrip = Join-Path $OutputDir "guinea_mpeg_core.dll"
+    if (Test-Path $RustDllStrip) {
+        & $StripTool "--strip-debug" $RustDllStrip 2>$null
+    }
+}
+
 # ---- Step 4: Deploy Qt DLLs ----
-Write-Host "=== Step 4/6: Deploying Qt DLLs ===" -ForegroundColor Cyan
+Write-Host "=== Step 4/7: Deploying Qt DLLs ===" -ForegroundColor Cyan
 $Windeployqt = Join-Path (Join-Path $QtDir "bin") "windeployqt.exe"
 if (Test-Path $Windeployqt) {
     & $Windeployqt $ExePath --qmldir (Join-Path $ProjectRoot "qml") --release --no-compiler-runtime
@@ -224,7 +255,7 @@ else {
 }
 
 # ---- Step 5: Copy mpv DLL ----
-Write-Host "=== Step 5/6: Copying mpv DLL ===" -ForegroundColor Cyan
+Write-Host "=== Step 5/7: Copying mpv DLL ===" -ForegroundColor Cyan
 $MpvDll = Join-Path $MpvDir "libmpv-2.dll"
 if (Test-Path $MpvDll) {
     Copy-Item $MpvDll (Join-Path $OutputDir "libmpv-2.dll") -Force
@@ -234,9 +265,22 @@ else {
     Write-Warning "libmpv-2.dll not found at $MpvDll. Copy manually."
 }
 
-# ---- Step 6: Bundle ffmpeg ----
+# ---- Step 6: Copy Rust DLL ----
+Write-Host "=== Step 6/7: Copying Rust DLL ===" -ForegroundColor Cyan
+$RustDll = Join-Path $RustDir "target\release\guinea_mpeg_core.dll"
+if (Test-Path $RustDll) {
+    Copy-Item $RustDll (Join-Path $OutputDir "guinea_mpeg_core.dll") -Force
+    Write-Host "guinea_mpeg_core.dll copied." -ForegroundColor Green
+}
+else {
+    Write-Warning "guinea_mpeg_core.dll not found at $RustDll."
+}
+    Write-Host "=== Step 6/7: Skipping Rust DLL (static build) ===" -ForegroundColor Yellow
+}
+
+# ---- Step 7: Bundle ffmpeg ----
 if (-not $SkipFfmpeg) {
-    Write-Host "=== Step 6/6: Bundling ffmpeg ===" -ForegroundColor Cyan
+    Write-Host "=== Step 7/7: Bundling ffmpeg ===" -ForegroundColor Cyan
     $FfmpegDir = Join-Path (Join-Path $ProjectRoot "build") "windows\.ffmpeg"
     $FfmpegExe = Join-Path $FfmpegDir "ffmpeg.exe"
     $FfprobeExe = Join-Path $FfmpegDir "ffprobe.exe"

@@ -79,7 +79,15 @@ else()
     set(RUST_TARGET_DIR "${RUST_PROJECT_DIR}/target")
 endif()
 
-# Build Rust library (staticlib) during configure
+if(WIN32)
+    set(RUST_LIB "${RUST_TARGET_DIR}/release/guinea_mpeg_core.dll")
+elseif(APPLE)
+    set(RUST_LIB "${RUST_TARGET_DIR}/release/libguinea_mpeg_core.dylib")
+else()
+    set(RUST_LIB "${RUST_TARGET_DIR}/release/libguinea_mpeg_core.so")
+endif()
+
+# Build Rust library during configure
 execute_process(COMMAND ${CARGO} build --release
     WORKING_DIRECTORY ${RUST_PROJECT_DIR}
     RESULT_VARIABLE CARGO_RESULT
@@ -87,8 +95,6 @@ execute_process(COMMAND ${CARGO} build --release
 if(NOT CARGO_RESULT EQUAL 0)
     message(FATAL_ERROR "Failed to build Rust library")
 endif()
-
-set(RUST_LIB "${RUST_TARGET_DIR}/release/libguinea_mpeg_core.a")
 
 add_custom_target(rust_lib ALL
     COMMAND ${CARGO} build --release
@@ -147,11 +153,12 @@ else()
     )
 endif()
 
-# Link Rust staticlib — plain link, no whole-archive needed for extern "C"
-target_link_libraries(guinea-mpeg PRIVATE
-    ${RUST_LIB}
-    pthread dl m rt
-)
+# Link Rust library
+if(WIN32)
+    target_link_libraries(guinea-mpeg PRIVATE "${RUST_TARGET_DIR}/release/guinea_mpeg_core.dll.lib")
+else()
+    target_link_libraries(guinea-mpeg PRIVATE ${RUST_LIB})
+endif()
 
 add_dependencies(guinea-mpeg rust_lib)
 
@@ -165,6 +172,15 @@ target_compile_definitions(guinea-mpeg PRIVATE
     PROJECT_VERSION="${PROJECT_VERSION}"
     PROJECT_VERSION_FULL="${PROJECT_VERSION_FULL}"
 )
+
+if(WIN32)
+    add_custom_command(TARGET guinea-mpeg POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${RUST_TARGET_DIR}/release/guinea_mpeg_core.dll"
+            $<TARGET_FILE_DIR:guinea-mpeg>
+        COMMENT "Copying Rust DLL to output"
+    )
+endif()
 
 add_custom_command(TARGET rust_lib POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different

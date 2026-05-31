@@ -16,12 +16,20 @@ echo "=== Building AppImage (version $VERSION) ==="
 mkdir -p /tmp/home "$APPDIR/usr/bin" /source/out/appimage
 
 # ---- Build ----
-cmake -S /source -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE=Release -DPACKAGE_TARGET=appimage
+CMAKE_OPTS="-DCMAKE_BUILD_TYPE=Release -DPACKAGE_TARGET=appimage"
+cmake -S /source -B "$BUILD_DIR" $CMAKE_OPTS
 cmake --build "$BUILD_DIR"
 
 # ---- Stage AppDir ----
 cp "$BUILD_DIR/guinea-mpeg" "$APPDIR/usr/bin/"
 cp /source/default_profiles.toml "$APPDIR/usr/bin/"
+if [ -f "$CARGO_DIR/release/libguinea_mpeg_core.so" ]; then
+    mkdir -p "$APPDIR/usr/lib"
+    cp "$CARGO_DIR/release/libguinea_mpeg_core.so" "$APPDIR/usr/lib/"
+fi
+# Strip debug info for smaller AppImage
+strip "$APPDIR/usr/bin/guinea-mpeg" 2>/dev/null || true
+[ -f "$APPDIR/usr/lib/libguinea_mpeg_core.so" ] && strip "$APPDIR/usr/lib/libguinea_mpeg_core.so" 2>/dev/null || true
 cp /source/build/linux/applications/guinea-mpeg.desktop "$APPDIR/"
 cp /source/build/linux/icons/hicolor/256x256/apps/guinea-mpeg.png "$APPDIR/"
 

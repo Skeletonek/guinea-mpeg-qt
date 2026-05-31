@@ -1,7 +1,7 @@
 # Agent Knowledge Base
 
 ## Architecture
-- Rust compiled as `staticlib` (`libguinea_mpeg_core.a`) linked directly into the C++ binary at build time. Rust exports plain `extern "C"` functions — no CXX, no CXX-Qt, no code generation.
+- Rust compiled as `cdylib` (`libguinea_mpeg_core.so`) linked dynamically at runtime. Rust exports plain `extern "C"` functions — no CXX, no CXX-Qt, no code generation.
 - C header `rust/include/guinea_mpeg_core.h` declares all FFI functions. CMake adds `rust/include/` as an include path.
 - Profile management lives in `rust/src/config.rs` (serde + toml). `rust/src/backend.rs` wraps it in `extern "C"` functions.
 - mpv handle creation/destruction/commands/event-property-caching lives in `rust/src/mpv.rs`, exposed via `extern "C"` functions. Raw `*mut c_void` is passed through FFI.
@@ -45,7 +45,8 @@
 
 ## Build
 - `cmake -S . -B out && cmake --build out` in project root. Rust builds automatically via cargo.
-- CMake runs `cargo build --release` at configure time via `execute_process`, discovers `.a` at `rust/target/release/libguinea_mpeg_core.a`.
+- CMake runs `cargo build --release` at configure time via `execute_process`. Rust is always built as `cdylib` (`.so`/`.dylib`/`.dll`) and linked dynamically.
+- `crate-type = ["cdylib"]` in `rust/Cargo.toml`.
 - No `--whole-archive` needed — plain `extern "C"` symbols are found by the linker without static initializer tricks.
 - No CXX/CXX-Qt generated code or discovery. C header at `rust/include/guinea_mpeg_core.h` is included via `target_include_directories`.
 - CMake requires `pkg_check_modules(MPV REQUIRED mpv)` for libmpv (needed by C++ mpvitem.cpp for render context).
@@ -60,7 +61,7 @@
 - `--version` delegates to `update-version.sh`, then continues.
 - Output dirs: `out/generic/`, `out/deb/`, `out/rpm/`, `out/pacman/`, `out/flatpak/`, `out/appimage/`.
 - Per-target cargo build dirs: `out/.build-{target}/` + `out/.cargo-{target}/` (auto-cleaned after pack).
-- Rust is statically linked (no `.so` shipped).
+- Rust is built as a shared library (`.so` shipped alongside the binary).
 - Docker-based builds (deb, rpm, pacman, appimage) use `build/docker/*.Dockerfile` with `build_in_docker()`.
 - `--package generic` creates a flat `.tar.gz` (no `usr/` prefix, no version subdir).
 - `--package flatpak` uses host `flatpak-builder` (not Docker), SDK `org.kde.Platform//6.10`.
