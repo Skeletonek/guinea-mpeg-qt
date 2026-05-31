@@ -21,11 +21,6 @@ cmake --build "$BUILD_DIR"
 
 # ---- Stage AppDir ----
 cp "$BUILD_DIR/guinea-mpeg" "$APPDIR/usr/bin/"
-if [ -f "$CARGO_DIR/release/libguinea_mpeg_core.so" ]; then
-    cp "$CARGO_DIR/release/libguinea_mpeg_core.so" "$APPDIR/usr/bin/"
-elif [ -f /source/rust/target/release/libguinea_mpeg_core.so ]; then
-    cp /source/rust/target/release/libguinea_mpeg_core.so "$APPDIR/usr/bin/"
-fi
 cp /source/default_profiles.toml "$APPDIR/usr/bin/"
 cp /source/build/linux/applications/guinea-mpeg.desktop "$APPDIR/"
 cp /source/build/linux/icons/hicolor/256x256/apps/guinea-mpeg.png "$APPDIR/"

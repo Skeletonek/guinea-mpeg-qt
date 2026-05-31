@@ -1,8 +1,8 @@
 #pragma once
 
 #include <QQuickFramebufferObject>
-#include <QUrl>
 #include <QOpenGLFunctions>
+#include <QUrl>
 
 struct mpv_handle;
 struct mpv_render_context;
@@ -59,6 +59,7 @@ private:
     int m_duration = 0;
     bool m_playing = false;
     qreal m_volume = 100.0;
+    void* m_backend = nullptr;
     mpv_handle* m_mpv = nullptr;
     bool m_renderReady = false;
 

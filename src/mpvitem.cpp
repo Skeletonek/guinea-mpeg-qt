@@ -1,4 +1,5 @@
 #include "mpvitem.h"
+#include "guinea_mpeg_core.h"
 #include <mpv/client.h>
 #include <mpv/render.h>
 #include <mpv/render_gl.h>
@@ -85,40 +86,22 @@ MpvItem::MpvItem()
 {
     setMirrorVertically(true);
 
-    m_mpv = mpv_create();
-    if (!m_mpv) {
-        qWarning() << "mpv: failed to create handle";
+    m_backend = guinea_mpeg_mpv_create();
+    if (!m_backend) {
+        qWarning() << "mpv: failed to create backend";
         return;
     }
 
-    mpv_set_option_string(m_mpv, "vo", "libmpv");
-    mpv_set_option_string(m_mpv, "keep-open", "yes");
-    mpv_set_option_string(m_mpv, "volume", "100");
-    mpv_set_option_string(m_mpv, "cache", "yes");
-
-    if (mpv_initialize(m_mpv) < 0) {
-        qWarning() << "mpv: failed to initialize";
-        mpv_terminate_destroy(m_mpv);
-        m_mpv = nullptr;
-        return;
-    }
+    m_mpv = static_cast<mpv_handle*>(guinea_mpeg_mpv_raw_handle(m_backend));
 
     mpv_set_wakeup_callback(m_mpv, wakeup, this);
     connect(this, &MpvItem::onMpvEvents, this, &MpvItem::handleMpvEvents);
-
-    // Observe time-pos and duration for QML property updates
-    mpv_observe_property(m_mpv, 0, "time-pos", MPV_FORMAT_DOUBLE);
-    mpv_observe_property(m_mpv, 0, "duration", MPV_FORMAT_DOUBLE);
-    mpv_observe_property(m_mpv, 0, "pause", MPV_FORMAT_FLAG);
-
 }
 
 MpvItem::~MpvItem()
 {
-    if (m_mpv) {
-        mpv_command_string(m_mpv, "stop");
-        mpv_terminate_destroy(m_mpv);
-    }
+    if (m_backend)
+        guinea_mpeg_mpv_destroy(m_backend);
 }
 
 void MpvItem::setSource(const QUrl& source)
@@ -134,7 +117,7 @@ void MpvItem::setSource(const QUrl& source)
     emit durationChanged();
     emit playingChanged();
 
-    if (m_mpv && m_renderReady)
+    if (m_backend && m_renderReady)
         loadPendingSource();
 
     emit sourceChanged();
@@ -142,7 +125,7 @@ void MpvItem::setSource(const QUrl& source)
 
 void MpvItem::loadPendingSource()
 {
-    if (!m_mpv || m_pendingSource.isEmpty()) return;
+    if (!m_backend || m_pendingSource.isEmpty()) return;
 
     QUrl src = m_pendingSource;
     m_pendingSource = QUrl();
@@ -152,40 +135,35 @@ void MpvItem::loadPendingSource()
         path = src.toString();
 
     QByteArray pathData = path.toUtf8();
-    const char* cmd[] = { "loadfile", pathData.constData(), nullptr };
-    if (mpv_command(m_mpv, cmd) < 0)
-        qWarning() << "mpv: loadfile failed";
-    mpv_set_property_string(m_mpv, "pause", "no");
+    guinea_mpeg_mpv_load_file(m_backend, pathData.constData());
 }
 
 void MpvItem::setPosition(int pos)
 {
-    if (!m_mpv) return;
-    double sec = pos / 1000.0;
-    QByteArray cmd = QString("seek %1 absolute").arg(sec).toUtf8();
-    mpv_command_string(m_mpv, cmd.constData());
+    if (!m_backend) return;
+    guinea_mpeg_mpv_seek(m_backend, pos);
 }
 
 void MpvItem::play()
 {
-    if (!m_mpv) return;
-    mpv_set_property_string(m_mpv, "pause", "no");
+    if (!m_backend) return;
+    guinea_mpeg_mpv_play(m_backend);
     m_playing = true;
     emit playingChanged();
 }
 
 void MpvItem::pause()
 {
-    if (!m_mpv) return;
-    mpv_set_property_string(m_mpv, "pause", "yes");
+    if (!m_backend) return;
+    guinea_mpeg_mpv_pause(m_backend);
     m_playing = false;
     emit playingChanged();
 }
 
 void MpvItem::stop()
 {
-    if (!m_mpv) return;
-    mpv_command_string(m_mpv, "stop");
+    if (!m_backend) return;
+    guinea_mpeg_mpv_stop(m_backend);
     m_playing = false;
     m_position = 0;
     emit playingChanged();
@@ -195,10 +173,9 @@ void MpvItem::stop()
 void MpvItem::setVolume(qreal vol)
 {
     m_volume = vol;
-    if (m_mpv) {
+    if (m_backend) {
         int v = qBound(0, (int)(vol), 100);
-        QByteArray volStr = QString::number(v).toUtf8();
-        mpv_set_property_string(m_mpv, "volume", volStr.constData());
+        guinea_mpeg_mpv_set_volume(m_backend, v);
     }
     emit volumeChanged();
 }
@@ -210,55 +187,21 @@ QQuickFramebufferObject::Renderer* MpvItem::createRenderer() const
 
 void MpvItem::handleMpvEvents()
 {
-    while (m_mpv) {
-        mpv_event* event = mpv_wait_event(m_mpv, 0);
-        if (event->event_id == MPV_EVENT_NONE)
-            break;
+    if (!m_backend) return;
 
-        switch (event->event_id) {
-        case MPV_EVENT_FILE_LOADED:
-            break;
-        case MPV_EVENT_PLAYBACK_RESTART: {
-            int paused = 0;
-            mpv_get_property(m_mpv, "pause", MPV_FORMAT_FLAG, &paused);
-            bool was = m_playing;
-            m_playing = !paused;
-            if (was != m_playing)
-                emit playingChanged();
-            break;
-        }
-        case MPV_EVENT_END_FILE:
-            if (m_playing) {
-                m_playing = false;
-                m_position = 0;
-                emit playingChanged();
-                emit positionChanged();
-            }
-            break;
-        case MPV_EVENT_PROPERTY_CHANGE: {
-            auto* prop = static_cast<mpv_event_property*>(event->data);
-            if (strcmp(prop->name, "time-pos") == 0 && prop->format == MPV_FORMAT_DOUBLE) {
-                int pos = static_cast<int>(*static_cast<double*>(prop->data) * 1000);
-                if (pos != m_position) {
-                    m_position = pos;
-                    emit positionChanged();
-                }
-            } else if (strcmp(prop->name, "duration") == 0 && prop->format == MPV_FORMAT_DOUBLE) {
-                m_duration = static_cast<int>(*static_cast<double*>(prop->data) * 1000);
-                emit durationChanged();
-            } else if (strcmp(prop->name, "pause") == 0 && prop->format == MPV_FORMAT_FLAG) {
-                int flag = *static_cast<int*>(prop->data);
-                bool paused = flag != 0;
-                if (paused != !m_playing) {
-                    m_playing = !paused;
-                    emit playingChanged();
-                }
-            }
-            break;
-        }
-        default:
-            break;
-        }
+    int changed = guinea_mpeg_mpv_process_events(m_backend);
+
+    if (changed & 1) {
+        m_position = guinea_mpeg_mpv_position(m_backend);
+        emit positionChanged();
+    }
+    if (changed & 2) {
+        m_duration = guinea_mpeg_mpv_duration(m_backend);
+        emit durationChanged();
+    }
+    if (changed & 4) {
+        m_playing = guinea_mpeg_mpv_is_playing(m_backend);
+        emit playingChanged();
     }
 }
 

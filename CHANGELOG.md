@@ -4,6 +4,12 @@
 - Added better support for light themes
 - Fixed About dialog centering on open in some QT styles
 - Refactored all hardcoded QML colors to theme-aware properties
+- Replaced runtime Rust `.so` dynamic loading with static linking (`staticlib`)
+- Dropped CXX/CXX-Qt bridge; Rust now exports plain `extern "C"` functions via hand-written C header
+- Simplified CMake build: removed `--whole-archive`, generated header discovery, and CXX-Qt static library chain
+- Moved mpv handle management, event processing, and all playback commands to Rust
+- Moved ffprobe video info, ffmpeg availability check, preview generation, and command building to Rust
+- Removed unused C++ includes and legacy `findExecutable`/`normalizePath` helpers
 
 ### 0.3.0
 - AppImage support with Docker-based builds

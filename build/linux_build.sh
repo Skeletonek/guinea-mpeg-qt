@@ -123,8 +123,6 @@ build_generic() {
 
     mkdir -p "$generic_dir"
     cp "$build_dir/guinea-mpeg" "$generic_dir/"
-    cp "$cargo_dir/release/libguinea_mpeg_core.so" "$generic_dir/" 2>/dev/null || \
-        cp "$PROJECT_DIR/rust/target/release/libguinea_mpeg_core.so" "$generic_dir/"
     cp "$PROJECT_DIR/default_profiles.toml" "$generic_dir/"
     echo "=== Artifacts in $generic_dir ==="
 }
@@ -169,8 +167,6 @@ build_in_docker() {
             cmake -S /source -B /source/out/$build_dir_name -DCMAKE_BUILD_TYPE=Release -DPACKAGE_TARGET=${target}
             cmake --build /source/out/$build_dir_name
             cp /source/out/$build_dir_name/guinea-mpeg /source/out/$target/
-            cp /source/out/$cargo_dir_name/release/libguinea_mpeg_core.so /source/out/$target/ 2>/dev/null || \
-                cp /source/rust/target/release/libguinea_mpeg_core.so /source/out/$target/
             cp /source/default_profiles.toml /source/out/$target/
         " || {
             echo "WARNING: Docker build for $target failed" >&2
@@ -224,12 +220,11 @@ build_appimage() {
 stage_package() {
     local staging="$1"
     local artifacts="$2"
-    mkdir -p "$staging/usr/bin" "$staging/usr/lib/$PKGNAME" \
+    mkdir -p "$staging/usr/bin" \
              "$staging/usr/share/applications" \
              "$staging/usr/share/icons" \
              "$staging/usr/share/$PKGNAME"
     install -m755 "$artifacts/guinea-mpeg" "$staging/usr/bin/$PKGNAME"
-    install -m644 "$artifacts/libguinea_mpeg_core.so" "$staging/usr/lib/$PKGNAME/"
     install -m644 "$PROJECT_DIR/default_profiles.toml" "$staging/usr/share/$PKGNAME/"
     install -m644 "$PROJECT_DIR/build/linux/applications/$PKGNAME.desktop" "$staging/usr/share/applications/"
     cp -r "$PROJECT_DIR/build/linux/icons/hicolor" "$staging/usr/share/icons/"
@@ -281,7 +276,7 @@ build_fpm_package() {
     local staging; staging=$(mktemp -d)
     trap 'rm -rf "$staging"' RETURN
 
-    if [ ! -f "$artifacts_dir/guinea-mpeg" ] || [ ! -f "$artifacts_dir/libguinea_mpeg_core.so" ]; then
+    if [ ! -f "$artifacts_dir/guinea-mpeg" ]; then
         echo "WARNING: Missing artifacts in $artifacts_dir, skipping .${target}" >&2
         return 1
     fi
@@ -307,7 +302,7 @@ build_generic_tar() {
     local archive_name="${PKGNAME}-${VERSION}-${ARCH}"
     local archive_file="$generic_dir/${archive_name}.tar.gz"
 
-    if [ ! -f "$generic_dir/guinea-mpeg" ] || [ ! -f "$generic_dir/libguinea_mpeg_core.so" ]; then
+    if [ ! -f "$generic_dir/guinea-mpeg" ]; then
         echo "WARNING: Missing artifacts in $generic_dir, skipping tar.gz" >&2
         return 1
     fi

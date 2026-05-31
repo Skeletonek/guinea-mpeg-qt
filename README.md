@@ -1,6 +1,6 @@
 # GuineaMPEG
 
-A modern FFmpeg transcoding GUI with a Rust core library loaded at runtime via C FFI.
+A modern FFmpeg transcoding GUI with a Rust core library statically linked via C FFI.
 
 ## Features
 
@@ -118,11 +118,13 @@ A GitLab CI pipeline (`.gitlab-ci.yml`) builds and releases all packages on tag 
 
 ## Project Structure
 
-- `rust/` — Rust core library: C FFI exports (`lib.rs`), TOML profile config (`config.rs`), ffmpeg command builder (`ffmpeg.rs`)
+- `rust/` — Rust core library: `backend.rs` (profile management FFI), `config.rs` (TOML profile config), `ffmpeg.rs` (ffmpeg subprocess calls and command building), `mpv.rs` (mpv handle/events/commands)
+- `rust/include/guinea_mpeg_core.h` — Hand-written C header declaring all `extern "C"` FFI functions
 - `qml/` — Qt Quick QML UI: main window (`main.qml`), video preview (`VideoPreview.qml`), control panel (`ControlsPanel.qml`), timeline handles (`TimelineControl.qml`), profile editor (`ProfileEditor.qml`), and `dialogs/` subdirectory for modal dialogs
-- `src/main.cpp` — Qt C++ entry point, `GuineaMpegBackend` class with `Q_INVOKABLE` methods, dynamic `dlopen` of Rust `.so`
-- `src/mpvitem.h` / `src/mpvitem.cpp` — `MpvItem` (QQuickFramebufferObject) wrapping libmpv for video playback
-- `CMakeLists.txt` — CMake build, finds Qt6 + mpv, builds Rust as custom target
+- `src/main.cpp` — Qt C++ entry point, `GuineaMpegBackend` class with `Q_INVOKABLE` methods
+- `src/backend.h` / `src/backend.cpp` — Plain `QObject` wrapping Rust `extern "C"` calls; only transcode QProcess lifecycle stays in C++
+- `src/mpvitem.h` / `src/mpvitem.cpp` — `MpvItem` (QQuickFramebufferObject) + `MpvRenderer` delegating mpv commands to Rust via `extern "C"`
+- `CMakeLists.txt` — CMake build, links `libguinea_mpeg_core.a` (built via cargo), finds Qt6 + mpv
 
 ## Configuration
 

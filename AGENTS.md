@@ -1,14 +1,14 @@
 # Agent Knowledge Base
 
 ## Architecture
-- Rust library (`libguinea_mpeg_core.so` on Linux, `guinea_mpeg_core.dll` on Windows) loaded at runtime via `dlopen`/`LoadLibrary` from C++ (`src/main.cpp`).
-- 7 C FFI exports: `init_core`, `free_rust_string`, `available_profiles`, `load_profile`, `save_profile`, `delete_profile`, `build_ffmpeg_command`.
-- C++ `GuineaMpegBackend` class exposed as QML context property `backend`.
-- CMake builds Rust via `cargo build --release` as custom target, copies `.so`/`.dll` into build dir.
-- CLI argument (for MIME type opening) parsed in `src/main.cpp`: skips flags and flatpak `@@` markers, normalizes via `QUrl::toLocalFile()`.
-- **Windows path normalization**: CLI arguments may have a leading `/` before the drive letter (e.g. `/E:/path`). The `normalizePath()` helper strips it and calls `QDir::cleanPath()`. Applied in `getVideoInfo`, `generatePreview`, and `startTranscode`.
-- Passed as `initialFilePath` context property to QML.
-- QML `Component.onCompleted` calls `loadVideo(initialFilePath)` to auto-load the file.
+- Rust compiled as `staticlib` (`libguinea_mpeg_core.a`) linked directly into the C++ binary at build time. Rust exports plain `extern "C"` functions — no CXX, no CXX-Qt, no code generation.
+- C header `rust/include/guinea_mpeg_core.h` declares all FFI functions. CMake adds `rust/include/` as an include path.
+- Profile management lives in `rust/src/config.rs` (serde + toml). `rust/src/backend.rs` wraps it in `extern "C"` functions.
+- mpv handle creation/destruction/commands/event-property-caching lives in `rust/src/mpv.rs`, exposed via `extern "C"` functions. Raw `*mut c_void` is passed through FFI.
+- `GuineaMpegBackendExt` (`src/backend.h`, `src/backend.cpp`) is a plain `QObject` (no generated base class). Profile and ffmpeg invokables call Rust `extern "C"` functions. Only transcode process lifecycle (start/kill/capture output) is pure C++/Qt (needs QProcess signals for real-time streaming to QML).
+- `MpvItem` (QQuickFramebufferObject) owns a `void* m_backend` pointer from `guinea_mpeg_mpv_create()`. Gets raw `mpv_handle*` via `guinea_mpeg_mpv_raw_handle()` for render context creation and wakeup callback. Delegates all mpv commands to Rust `extern "C"` functions.
+- Event processing: mpv wakeup callback → Qt signal → `handleMpvEvents()` calls `guinea_mpeg_mpv_process_events()` → emits Qt signals based on returned bitmask (1=position, 2=duration, 4=playing).
+- `MpvRenderer` stays in C++ (QQuickFramebufferObject::Renderer cannot be in Rust). Creates `mpv_render_context*` from the raw handle.
 
 ## QML Patterns
 - IDs inside a `Component` are NOT accessible from outside it. The reverse works (parent scope IDs accessible from within Component).
@@ -45,13 +45,10 @@
 
 ## Build
 - `cmake -S . -B out && cmake --build out` in project root. Rust builds automatically via cargo.
-- `#include "main.moc"` at end of `main.cpp` is required since the `Q_OBJECT` class is defined in the cpp file.
-- CMake requires `pkg_check_modules(MPV REQUIRED mpv)` for libmpv.
-- Compile flag `-mdirect-extern-access` needed for GCC 14+/Qt 6.11 compat (prevents copy relocation errors).
-- `build/` is for source-controlled packaging scripts; `out/` is gitignored (cmake artifacts + packages).
-- Version canonical source: `rust/Cargo.toml` — `update-version.sh` propagates to `CMakeLists.txt` (About dialog reads `buildInfo.version` from CMake `PROJECT_VERSION` at runtime).
-- `WIN32_EXECUTABLE` CMake property set to `TRUE` on Windows to suppress the console window. Override with `-DCONSOLE_MODE=ON` (set via the `-Console` flag in `windows_build.ps1`).
-- On Windows, all `QProcess` calls to ffprobe/ffmpeg use explicit paths via `QStandardPaths::findExecutable()` with fallback to `applicationDirPath() + "/ffmpeg.exe"`, instead of relying on `PATH` environment variable. The `normalizePath()` static helper strips leading `/` before Windows drive letters.
+- CMake runs `cargo build --release` at configure time via `execute_process`, discovers `.a` at `rust/target/release/libguinea_mpeg_core.a`.
+- No `--whole-archive` needed — plain `extern "C"` symbols are found by the linker without static initializer tricks.
+- No CXX/CXX-Qt generated code or discovery. C header at `rust/include/guinea_mpeg_core.h` is included via `target_include_directories`.
+- CMake requires `pkg_check_modules(MPV REQUIRED mpv)` for libmpv (needed by C++ mpvitem.cpp for render context).
 
 ## Build & Packaging (Linux)
 - `build/linux_build.sh` — builds the project and optionally produces packages.
@@ -63,6 +60,7 @@
 - `--version` delegates to `update-version.sh`, then continues.
 - Output dirs: `out/generic/`, `out/deb/`, `out/rpm/`, `out/pacman/`, `out/flatpak/`, `out/appimage/`.
 - Per-target cargo build dirs: `out/.build-{target}/` + `out/.cargo-{target}/` (auto-cleaned after pack).
+- Rust is statically linked (no `.so` shipped).
 - Docker-based builds (deb, rpm, pacman, appimage) use `build/docker/*.Dockerfile` with `build_in_docker()`.
 - `--package generic` creates a flat `.tar.gz` (no `usr/` prefix, no version subdir).
 - `--package flatpak` uses host `flatpak-builder` (not Docker), SDK `org.kde.Platform//6.10`.
@@ -75,20 +73,19 @@
 ## Runtime
 - Exit code 255 = QML load/parse failure.
 - Exit code 143 = SIGTERM (normal kill).
+- Exit code 124 = timeout (normal for offscreen test).
 - Qt version: 6.11.0 on Arch Linux x86_64, KDE Plasma 6, Wayland, AMD GPU.
 - Qt version: 6.11.1 on Windows 11 x86_64, MSVC 2022, Fusion QML style.
-- When QML fails with exit 255 but no error message on stderr, use `QT_FORCE_STDERR_LOGGING=1` (or deprecated `QT_LOGGING_TO_CONSOLE=1`) to force QML engine errors to the terminal. Without it, error output may be suppressed.
-- Dark mode detection reads Windows registry `HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize\AppsUseLightTheme`. A `theme` context property with `bg`, `surface`, `text`, `textSecondary`, `textMuted`, `widgetBorder`, `overlay`, `black`, `accent` colors is exported to QML.
+- When QML fails with exit 255 but no error message on stderr, use `QT_FORCE_STDERR_LOGGING=1` to force QML engine errors to the terminal.
+- Dark mode detection reads Windows registry `HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize\AppsUseLightTheme`. A `theme` context property with color keys is exported to QML.
 
 ## MPV Integration Notes
-- `MpvItem` (QQuickFramebufferObject) wraps libmpv via `mpv_handle*` (GUI thread) + `mpv_render_context*` (render thread).
+- `MpvItem` (QQuickFramebufferObject) wraps libmpv via Rust's `extern "C"` backend (`void* m_backend`). The raw `mpv_handle*` is extracted from Rust for render context + wakeup setup.
+- Bitmask from `guinea_mpeg_mpv_process_events()`: 1=position, 2=duration, 4=playing.
 - **Must** `setMirrorVertically(true)` on MpvItem AND `MPV_RENDER_PARAM_FLIP_Y = 1` — mpv renders upside-down into FBO, Qt flips on display.
 - `MPV_RENDER_PARAM_OPENGL_FBO` requires full `mpv_opengl_fbo` struct (`fbo`, `w`, `h`, `internal_format`), not just an `int`.
-- Options: `vo=libmpv`, `keep-open=yes`, `cache=yes`.
+- Options (set by Rust on create): `vo=libmpv`, `keep-open=yes`, `cache=yes`.
 - `setlocale(LC_NUMERIC, "C")` after `QApplication` (QApplication overrides locale).
-- Dangling pointer trap: `path.toUtf8().constData()` temp dies. Always store `QByteArray` in local var.
-- `loadfile` MUST be deferred until `mpv_render_context*` exists — `setSource()` stores URL in `m_pendingSource`, and `MpvRenderer` constructor calls `loadPendingSource()` via `QMetaObject::invokeMethod` after creating the render context. Without this, the `vo=libmpv` driver stalls at `width=0 height=0`.
-- `mpv_command` (synchronous) for `loadfile`; `mpv_command_async` only if the calling thread must not block.
-- `MPV_FORMAT_FLAG` data is `int*`, NOT `bool*` — cast accordingly.
-- `MPV_EVENT_PLAYBACK_RESTART` fires after seeking even in paused state — do NOT blindly set `m_playing = true`; check actual `pause` property via `mpv_get_property`.
+- `loadfile` MUST be deferred until `mpv_render_context*` exists — `setSource()` stores URL in `m_pendingSource`, and `MpvRenderer` constructor calls `loadPendingSource()` via `QMetaObject::invokeMethod` after creating the render context.
 - `m_renderReady` flag on MpvItem, set by renderer constructor, guards whether `setSource` can load immediately or must defer.
+- Rust's `libmpv2-sys` crate provides mpv FFI. CMake also links `PkgConfig::MPV` for C++ mpv header includes (render context API). Linker deduplicates, no conflict.
