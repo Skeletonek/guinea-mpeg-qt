@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(guinea_mpeg VERSION 0.3.0 LANGUAGES CXX)
+project(guinea_mpeg VERSION 0.4.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -154,9 +154,15 @@ target_link_libraries(guinea-mpeg PRIVATE
 
 add_dependencies(guinea-mpeg rust_lib)
 
+# Read full semver from canonical Cargo.toml (may include pre-release suffix like -dev)
+file(READ "${CMAKE_SOURCE_DIR}/rust/Cargo.toml" CARGO_TOML)
+string(REGEX MATCH "version = \"([^\"]+)\"" _ "${CARGO_TOML}")
+set(PROJECT_VERSION_FULL "${CMAKE_MATCH_1}")
+
 target_compile_definitions(guinea-mpeg PRIVATE
     PACKAGE_TARGET="${PACKAGE_TARGET}"
     PROJECT_VERSION="${PROJECT_VERSION}"
+    PROJECT_VERSION_FULL="${PROJECT_VERSION_FULL}"
 )
 
 add_custom_command(TARGET rust_lib POST_BUILD

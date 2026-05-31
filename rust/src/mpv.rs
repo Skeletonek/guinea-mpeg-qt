@@ -78,6 +78,11 @@ pub extern "C" fn guinea_mpeg_mpv_create() -> *mut c_void {
             CString::new("cache").unwrap().as_ptr(),
             CString::new("yes").unwrap().as_ptr(),
         );
+        mpv_set_option_string(
+            handle,
+            CString::new("hwdec").unwrap().as_ptr(),
+            CString::new("auto-copy").unwrap().as_ptr(),
+        );
 
         mpv_initialize(handle);
 

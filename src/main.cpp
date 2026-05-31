@@ -54,6 +54,7 @@ int main(int argc, char *argv[])
     darkTheme = QApplication::styleHints()->colorScheme() == Qt::ColorScheme::Dark;
 #endif
 
+#ifdef Q_OS_WIN
     {
         QPalette p;
         if (darkTheme) {
@@ -73,6 +74,7 @@ int main(int argc, char *argv[])
         }
         app.setPalette(p);
     }
+#endif
 
     QVariantMap theme;
     if (darkTheme) {
@@ -110,7 +112,7 @@ int main(int argc, char *argv[])
     QVariantMap buildInfo;
     buildInfo["author"] = "Skeletonek";
     buildInfo["license"] = "BSD 3-Clause";
-    buildInfo["version"] = PROJECT_VERSION;
+    buildInfo["version"] = PROJECT_VERSION_FULL;
     buildInfo["buildDate"] = __DATE__ " " __TIME__;
     buildInfo["packageTarget"] = PACKAGE_TARGET;
 #ifdef Q_OS_LINUX

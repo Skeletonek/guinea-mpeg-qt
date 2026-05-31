@@ -33,6 +33,13 @@ Item {
             spacing: 12
             width: parent.width
 
+            Label {
+                text: "Input File"
+                font.bold: true
+                font.pixelSize: 16
+                color: theme.text
+            }
+
             Button {
                 text: "Open Video..."
                 onClicked: root.openVideoClicked()

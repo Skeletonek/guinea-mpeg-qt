@@ -13,8 +13,9 @@ ROOT="$(cd "$(dirname "$0")" && pwd)"
 # rust/Cargo.toml — canonical source
 sed -i "s/^version = \".*\"/version = \"$VERSION\"/" "$ROOT/rust/Cargo.toml"
 
-# CMakeLists.txt
-sed -i "s/^project(guinea_mpeg VERSION [0-9.]*/project(guinea_mpeg VERSION $VERSION/" "$ROOT/CMakeLists.txt"
+# CMakeLists.txt — CMake project() VERSION requires numeric dotted form only
+CMAKE_VERSION="$(echo "$VERSION" | sed 's/[-+].*//')"
+sed -i "s/^project(guinea_mpeg VERSION [0-9.]*/project(guinea_mpeg VERSION $CMAKE_VERSION/" "$ROOT/CMakeLists.txt"
 
 echo "Version updated to $VERSION in:"
 echo "  rust/Cargo.toml"
