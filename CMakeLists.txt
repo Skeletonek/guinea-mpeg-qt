@@ -140,6 +140,9 @@ target_link_libraries(guinea-mpeg
 )
 
 if(WIN32)
+    if(NOT CONSOLE_MODE)
+        set_target_properties(guinea-mpeg PROPERTIES WIN32_EXECUTABLE TRUE)
+    endif()
     target_link_libraries(guinea-mpeg
         PRIVATE mpv::mpv
         PRIVATE OpenGL::GL

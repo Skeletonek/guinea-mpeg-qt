@@ -55,8 +55,45 @@ param(
     [string]$QtDir = "",
     [switch]$Clean,
     [switch]$Console,
-    [switch]$Release
+    [switch]$Release,
+    [switch]$Help
 )
+
+if ($Help) {
+    Write-Host @"
+GuineaMPEG Windows Build Script
+===============================
+
+Builds GuineaMPEG from source. Handles the full pipeline:
+  - Downloads mpv-dev bundle (auto)
+  - Configures with CMake (MSVC + Ninja)
+  - Builds Rust library (cargo) and C++ app
+  - Deploys Qt DLLs (windeployqt)
+  - Copies mpv and Rust DLLs
+  - Bundles ffmpeg for transcoding
+
+Usage:
+  .\build\windows_build.ps1 [options]
+
+Options:
+  -Config <type>     Build config: Release (default) or RelWithDebInfo
+  -OutputDir <path>  Output directory (default: out/windows)
+  -QtDir <path>      Qt installation dir (auto-detected if omitted)
+  -Clean             Remove output dir and Rust artifacts before building
+  -Release           Strip debug info from the binary
+  -Console           Keep a console window attached (useful for debugging)
+  -Package           Create portable ZIP and InnoSetup installer
+  -SkipMpv           Skip mpv-dev download (use existing)
+  -SkipFfmpeg        Skip ffmpeg download (use existing)
+  -Help              Show this help message
+
+Examples:
+  .\build\windows_build.ps1
+  .\build\windows_build.ps1 -Config RelWithDebInfo -Console
+  .\build\windows_build.ps1 -Package -Clean
+"@
+    exit 0
+}
 
 $ErrorActionPreference = "Stop"
 $ProjectRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
@@ -109,10 +146,141 @@ else {
 $MpvDir = Join-Path (Join-Path (Join-Path (Join-Path $ProjectRoot "build") "windows") ".mpv-dev") "mpv-dev-x86_64"
 if (-not $SkipMpv) {
     Write-Host "=== Step 1/7: Acquiring mpv-dev bundle ===" -ForegroundColor Cyan
-}
 
-if (-not (Test-Path "$MpvDir/include/mpv/client.h")) {
-    Write-Error "mpv-dev not found at $MpvDir. Run without -SkipMpv or set MPV_DIR manually."
+    if (-not (Test-Path "$MpvDir/include/mpv/client.h")) {
+        Write-Host "mpv-dev not found. Downloading from SourceForge..." -ForegroundColor Yellow
+
+        $MpvParentDir = Split-Path $MpvDir -Parent
+        $null = New-Item -ItemType Directory -Force -Path $MpvParentDir
+
+        # Fetch RSS feed to find latest mpv-dev-x86_64 bundle
+        Write-Host "Fetching latest release info..." -ForegroundColor Gray
+        $rssUrl = "https://sourceforge.net/projects/mpv-player-windows/rss?path=/libmpv"
+        try {
+            $rss = [xml](Invoke-WebRequest -Uri $rssUrl -UseBasicParsing).Content
+        } catch {
+            Write-Error "Failed to fetch mpv release info from SourceForge: $_"
+            exit 1
+        }
+
+        # Find newest non-v3 x86_64 dev entry
+        $latestEntry = $rss.rss.channel.item |
+            Where-Object { $_.title -match '/mpv-dev-x86_64-\d{8}' -and $_.title -notmatch '-v3-' } |
+            Select-Object -First 1
+        if (-not $latestEntry) {
+            Write-Error "Could not find mpv-dev-x86_64 entry in SourceForge RSS feed"
+            exit 1
+        }
+
+        $downloadUrl = $latestEntry.link
+        $archiveName = [System.IO.Path]::GetFileName(($latestEntry.title -replace '^/', ''))
+        Write-Host "Latest: $archiveName" -ForegroundColor Green
+
+        # Download
+        $downloadPath = Join-Path $MpvParentDir $archiveName
+        Write-Host "Downloading (30 MB)..." -ForegroundColor Yellow
+        Invoke-WebRequest -Uri $downloadUrl -OutFile $downloadPath -UseBasicParsing
+
+        # Extract
+        if (-not (Get-Command "7z" -ErrorAction SilentlyContinue)) {
+            Write-Error "7-Zip (7z) not found in PATH. Install 7-Zip and try again."
+            exit 1
+        }
+        Write-Host "Extracting..." -ForegroundColor Yellow
+        $null = 7z x $downloadPath -o"$MpvParentDir" -y
+        if ($LASTEXITCODE -ne 0) {
+            Write-Error "7-Zip extraction failed"
+            exit 1
+        }
+        Remove-Item -Force $downloadPath
+
+        # Archive extracts to a versioned dir like mpv-dev-x86_64-YYYYMMDD-git-*.
+        # Relocate to the canonical mpv-dev-x86_64/ path.
+        Remove-Item -Recurse -Force $MpvDir -ErrorAction SilentlyContinue
+        $extracted = Get-ChildItem -LiteralPath $MpvParentDir -Directory |
+            Where-Object { $_.Name -like "mpv-dev-x86_64-*" } |
+            Select-Object -First 1
+        if ($extracted) {
+            Move-Item $extracted.FullName $MpvDir -Force
+        }
+
+        # Ensure lib/ subdirectory
+        $libDir = Join-Path $MpvDir "lib"
+        $null = New-Item -ItemType Directory -Force -Path $libDir
+
+        # Ensure we have mpv.lib (MSVC COFF import library)
+        $mpvLibPath = Join-Path $libDir "mpv.lib"
+        if (-not (Test-Path $mpvLibPath)) {
+            # Check if a .lib already shipped in the bundle
+            $existingLib = Get-ChildItem -LiteralPath $MpvDir -Filter "*.lib" -ErrorAction SilentlyContinue |
+                Select-Object -First 1
+            if ($existingLib) {
+                Copy-Item $existingLib.FullName $mpvLibPath -Force
+                Write-Host "Found existing MSVC import library." -ForegroundColor Green
+            } else {
+                # MinGW/GCC bundle: generate mpv.lib from libmpv-2.dll via MSVC tools
+                Write-Host "MinGW bundle detected. Generating MSVC import library from DLL..." -ForegroundColor Yellow
+                $dllPath = Join-Path $MpvDir "libmpv-2.dll"
+                if (-not (Test-Path $dllPath)) {
+                    Write-Error "libmpv-2.dll not found in extracted bundle"
+                    exit 1
+                }
+
+                # Ensure MSVC tools are loaded
+                if (-not (Get-Command "dumpbin" -ErrorAction SilentlyContinue)) {
+                    $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+                    if (-not (Test-Path $vswhere)) { $vswhere = "$env:ProgramFiles\Microsoft Visual Studio\Installer\vswhere.exe" }
+                    $vsPath = if (Test-Path $vswhere) { & $vswhere -latest -property installationPath } else { $null }
+                    if (-not $vsPath) {
+                        $vsPath = @(
+                            "C:\Program Files\Microsoft Visual Studio\2022\Community",
+                            "C:\Program Files (x86)\Microsoft Visual Studio\2022\Community",
+                            "C:\Program Files\Microsoft Visual Studio\2022\Professional",
+                            "C:\Program Files (x86)\Microsoft Visual Studio\2022\Professional",
+                            "C:\Program Files\Microsoft Visual Studio\2022\Enterprise",
+                            "C:\Program Files (x86)\Microsoft Visual Studio\2022\Enterprise",
+                            "C:\Program Files\Microsoft Visual Studio\2022\BuildTools",
+                            "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools"
+                        ) | Where-Object { Test-Path "$_\VC\Auxiliary\Build\vcvars64.bat" } | Select-Object -First 1
+                    }
+                    if (-not $vsPath) {
+                        Write-Error "Visual Studio (MSVC) not found. Cannot generate mpv.lib."
+                        exit 1
+                    }
+                    $vcvars = Join-Path (Join-Path (Join-Path $vsPath "VC") "Auxiliary") "Build\vcvars64.bat"
+                    cmd /c "`"$vcvars`" x64 > nul 2>&1 && set" | ForEach-Object {
+                        if ($_ -match '^([^=]+)=(.*)$') { Set-Item -Path "env:$($matches[1])" -Value $matches[2] }
+                    }
+                }
+
+                # Generate .def from DLL exports (only mpv_* symbols)
+                $defPath = Join-Path $libDir "mpv.def"
+                $output = & dumpbin /exports $dllPath
+                $inExports = $false
+                $exports = @()
+                foreach ($line in $output) {
+                    if ($line -match '^\s+ordinal\s+hint\s+RVA\s+name') { $inExports = $true; continue }
+                    if ($inExports -and $line -match '^\s+(\d+)\s+([0-9A-F]+)\s+([0-9A-F]+)\s+(\S+)') {
+                        $name = $matches[4]
+                        if ($name -like 'mpv_*') { $exports += $name }
+                    }
+                }
+                Set-Content -Path $defPath -Value "LIBRARY libmpv-2.dll`r`nEXPORTS`r`n$($exports -join "`r`n")" -Encoding ASCII
+
+                # Create mpv.lib
+                & lib /def:$defPath /out:$mpvLibPath /machine:x64
+                if ($LASTEXITCODE -ne 0) { Write-Error "Failed to generate mpv.lib"; exit 1 }
+                Remove-Item -Force $defPath
+                Write-Host "Generated mpv.lib ($($exports.Count) exports)" -ForegroundColor Green
+            }
+        }
+
+        Write-Host "mpv-dev bundle ready at $MpvDir" -ForegroundColor Green
+    } else {
+        Write-Host "mpv-dev already present at $MpvDir" -ForegroundColor Green
+    }
+} elseif (-not (Test-Path "$MpvDir/include/mpv/client.h")) {
+    Write-Error "mpv-dev not found at $MpvDir and -SkipMpv was specified. Remove -SkipMpv to download automatically, or place the bundle manually."
     exit 1
 }
 
@@ -212,25 +380,18 @@ Write-Host "Build complete: $ExePath" -ForegroundColor Green
 # ---- Strip debug info (Release mode) ----
 if ($Release -or $Package) {
     Write-Host "=== Stripping debug info ===" -ForegroundColor Cyan
-    $StripTool = "strip"
-    $StripArgs = @("--strip-debug", $ExePath)
-    & $StripTool $StripArgs 2>$null
-    if ($LASTEXITCODE -ne 0) {
-        # Try llvm-strip (MSVC doesn't ship strip, but we might have it)
-        $StripTool = "llvm-strip"
-        $StripArgs = @("--strip-debug", $ExePath)
-        & $StripTool $StripArgs 2>$null
-        if ($LASTEXITCODE -ne 0) {
-            Write-Warning "strip/llvm-strip not found. Binary may contain debug symbols."
-        } else {
-            Write-Host "Stripped with llvm-strip." -ForegroundColor Green
+    $stripTool = if (Get-Command "strip" -ErrorAction SilentlyContinue) { "strip" }
+        elseif (Get-Command "llvm-strip" -ErrorAction SilentlyContinue) { "llvm-strip" }
+        else { $null }
+    if ($stripTool) {
+        & $stripTool "--strip-debug" $ExePath
+        $RustDllStrip = Join-Path $OutputDir "guinea_mpeg_core.dll"
+        if (Test-Path $RustDllStrip) {
+            & $stripTool "--strip-debug" $RustDllStrip
         }
+        Write-Host "Stripped with $stripTool." -ForegroundColor Green
     } else {
-        Write-Host "Stripped with strip." -ForegroundColor Green
-    }
-    $RustDllStrip = Join-Path $OutputDir "guinea_mpeg_core.dll"
-    if (Test-Path $RustDllStrip) {
-        & $StripTool "--strip-debug" $RustDllStrip 2>$null
+        Write-Warning "strip/llvm-strip not found. Binary may contain debug symbols."
     }
 }
 
@@ -255,7 +416,10 @@ Write-Host "=== Step 5/7: Copying mpv DLL ===" -ForegroundColor Cyan
 $MpvDll = Join-Path $MpvDir "libmpv-2.dll"
 if (Test-Path $MpvDll) {
     Copy-Item $MpvDll (Join-Path $OutputDir "libmpv-2.dll") -Force
-    Write-Host "libmpv-2.dll copied." -ForegroundColor Green
+    # The import library references libmpv-2.dll (via LIBRARY directive in .def),
+    # but also provide mpv.dll as a fallback for compatibility.
+    Copy-Item $MpvDll (Join-Path $OutputDir "mpv.dll") -Force
+    Write-Host "libmpv-2.dll and mpv.dll copied." -ForegroundColor Green
 }
 else {
     Write-Warning "libmpv-2.dll not found at $MpvDll. Copy manually."

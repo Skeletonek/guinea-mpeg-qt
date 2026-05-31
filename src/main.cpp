@@ -8,6 +8,7 @@
 #include <QStyleHints>
 
 #include <clocale>
+#include <cstdio>
 #include "mpvitem.h"
 #include "backend.h"
 #include "guinea_mpeg_core.h"
@@ -15,14 +16,31 @@
 #include <QFile>
 #include <QIcon>
 #include <QUrl>
+#include <QQmlError>
 
 #ifdef Q_OS_WIN
 #include <windows.h>
 #endif
 
+// Custom Qt message handler that writes to stderr immediately
+static void messageHandler(QtMsgType type, const QMessageLogContext &ctx, const QString &msg)
+{
+    fprintf(stderr, "%s\n", msg.toUtf8().constData());
+    fflush(stderr);
+}
+
 int main(int argc, char *argv[])
 {
+#ifdef Q_OS_WIN
+    // Attach to parent console so error messages are visible in the terminal
+    if (AttachConsole(ATTACH_PARENT_PROCESS)) {
+        FILE *dummy;
+        freopen_s(&dummy, "CONOUT$", "w", stdout);
+        freopen_s(&dummy, "CONOUT$", "w", stderr);
+    }
+#endif
     QApplication app(argc, argv);
+    qInstallMessageHandler(messageHandler);
 #ifdef Q_OS_LINUX
     app.setDesktopFileName("guinea-mpeg");
     app.setWindowIcon(QIcon::fromTheme("guinea-mpeg"));
@@ -171,7 +189,10 @@ int main(int argc, char *argv[])
         &engine,
         &QQmlApplicationEngine::objectCreationFailed,
         &app,
-        []() { QCoreApplication::exit(-1); },
+        [&engine]() {
+            qWarning().noquote() << "QML object creation failed (exit 255). Use QT_FORCE_STDERR_LOGGING=1 for details.";
+            QCoreApplication::exit(-1);
+        },
         Qt::QueuedConnection
     );
     engine.load(QUrl(QStringLiteral("qrc:/qml/main.qml")));
