@@ -78,7 +78,10 @@ ApplicationWindow {
                             currentProfile = ""
                             stackView.push(profileEditorPage)
                         }
-                        onBrowseOutputClicked: saveDialog.open()
+                        onBrowseOutputClicked: {
+                            saveDialog.currentFile = "file://" + encodeURI(appWindow.outputFilePath)
+                            saveDialog.open()
+                        }
                         onViewTranscodeClicked: transcodeDialog.open()
                         onAboutClicked: aboutDialog.open()
                     }
