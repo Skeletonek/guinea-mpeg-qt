@@ -256,6 +256,7 @@ stage_package() {
     if [ -f "$artifacts/libguinea_mpeg_core.so" ]; then
         install -m755 "$artifacts/libguinea_mpeg_core.so" "$staging/usr/lib/$PKGNAME/"
     fi
+    patchelf --add-rpath '$ORIGIN/../lib/'"$PKGNAME" "$staging/usr/bin/$PKGNAME"
     install -m644 "$PROJECT_DIR/default_profiles.toml" "$staging/usr/share/$PKGNAME/"
     install -m644 "$PROJECT_DIR/build/linux/applications/$PKGNAME.desktop" "$staging/usr/share/applications/"
     cp -r "$PROJECT_DIR/build/linux/icons/hicolor" "$staging/usr/share/icons/"

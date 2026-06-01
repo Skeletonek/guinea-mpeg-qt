@@ -7,7 +7,8 @@ Dialog {
     title: "About GuineaMPEG"
     standardButtons: Dialog.Ok
     width: 380
-    implicitHeight: 400
+    padding: 0
+    implicitHeight: implicitHeaderHeight + mainLayout.implicitHeight + implicitFooterHeight + 24
 
     Component.onCompleted: centerInParent()
     onOpened: centerInParent()
@@ -19,14 +20,26 @@ Dialog {
     }
 
     ColumnLayout {
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.top: parent.top
-        anchors.margins: 20
+        id: mainLayout
+        anchors.fill: parent
+        anchors.margins: 16
+        anchors.topMargin: 8
         spacing: 6
 
-        Label { text: "GuineaMPEG"; font.pixelSize: 20; font.bold: true; color: theme.text }
-        Label { text: "FFmpeg Frontend with Rust Core"; color: theme.textSecondary; font.pixelSize: 12 }
+        RowLayout {
+            spacing: 12
+            ColumnLayout {
+                Label { text: "GuineaMPEG"; font.pixelSize: 20; font.bold: true; color: theme.text }
+                Label { text: "FFmpeg Frontend with Rust Core"; color: theme.textSecondary; font.pixelSize: 12 }
+            }
+            Item { Layout.fillWidth: true }
+            Image {
+                source: "/media/logo/logo.png"
+                sourceSize.width: 80
+                sourceSize.height: 80
+                fillMode: Image.PreserveAspectFit
+            }
+        }
 
         Rectangle {
             Layout.fillWidth: true
