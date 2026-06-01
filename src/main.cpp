@@ -12,9 +12,9 @@
 #include "backend.h"
 #include "guinea_mpeg_core.h"
 #include <QDir>
-#include <QFile>
 #include <QIcon>
 #include <QUrl>
+#include <QSysInfo>
 
 #ifdef Q_OS_WIN
 #include <windows.h>
@@ -116,25 +116,7 @@ int main(int argc, char *argv[])
     buildInfo["version"] = PROJECT_VERSION_FULL;
     buildInfo["buildDate"] = __DATE__ " " __TIME__;
     buildInfo["packageTarget"] = PACKAGE_TARGET;
-#ifdef Q_OS_LINUX
-    buildInfo["distroName"] = []() -> QString {
-        QFile f("/etc/os-release");
-        if (!f.open(QIODevice::ReadOnly))
-            return "Unknown";
-        while (!f.atEnd()) {
-            QString line = QString::fromUtf8(f.readLine()).trimmed();
-            if (line.startsWith("PRETTY_NAME=")) {
-                QString val = line.mid(12);
-                if (val.startsWith('"') && val.endsWith('"'))
-                    val = val.mid(1, val.length() - 2);
-                return val;
-            }
-        }
-        return "Unknown";
-    }();
-#else
-    buildInfo["distroName"] = "Windows";
-#endif
+    buildInfo["distroName"] = QSysInfo::prettyProductName();
     buildInfo["copyright"] = QString(buildInfo["author"].toString() + " " + QString(__DATE__).right(4));
 
     QQmlApplicationEngine engine;

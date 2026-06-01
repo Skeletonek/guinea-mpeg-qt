@@ -52,7 +52,7 @@ Dialog {
         Label { text: "Version: " + buildInfo.version; color: theme.text }
         Label { text: "Author: " + buildInfo.author; color: theme.text }
         Label { text: "License: " + buildInfo.license; color: theme.text }
-        Label { text: "Distro: " + buildInfo.distroName; color: theme.text }
+        Label { text: "OS name: " + buildInfo.distroName; color: theme.text }
         Label { text: "Package: " + buildInfo.packageTarget; color: theme.textMuted; font.pixelSize: 11 }
         Label { text: "Build: " + buildInfo.buildDate; color: theme.textMuted; font.pixelSize: 11 }
         Label { text: "Copyright © " + buildInfo.copyright; color: theme.textMuted; font.pixelSize: 11 }

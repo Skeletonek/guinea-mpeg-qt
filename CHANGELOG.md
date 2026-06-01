@@ -4,6 +4,7 @@
 - Added better support for light themes
 - Fixed About dialog centering on open in some QT styles
 - Refactored all hardcoded QML colors to theme-aware properties
+- Reworked about dialog
 - Replaced runtime Rust dynamic loading with static linking
 - Moved mpv handle management, event processing, and all playback commands to Rust
 - Moved ffprobe video info, ffmpeg availability check, preview generation, and command building to Rust
