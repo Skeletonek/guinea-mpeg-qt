@@ -9,6 +9,8 @@ ApplicationWindow {
     id: appWindow
     width: 1024
     height: 768
+    minimumWidth: 700
+    minimumHeight: 670
     visible: true
     title: qsTr("GuineaMPEG - FFmpeg Frontend")
 

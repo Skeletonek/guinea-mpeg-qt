@@ -21,15 +21,18 @@ Item {
     signal viewTranscodeClicked()
     signal aboutClicked()
 
-    ScrollView {
-        id: rightPanelScroll
+    Flickable {
+        id: rightPanelFlickable
         anchors.top: parent.top
         anchors.bottom: aboutButton.top
         anchors.bottomMargin: 4
         width: parent.width
+        contentHeight: column.height
         clip: true
+        interactive: false
 
         Column {
+            id: column
             spacing: 12
             width: parent.width
 
@@ -187,9 +190,15 @@ Item {
 
     Button {
         id: aboutButton
+        anchors.right: parent.right
         anchors.bottom: parent.bottom
-        width: parent.width
-        text: "About GuineaMPEG"
+        anchors.bottomMargin: 8
+        width: 48
+        height: 48
+        icon.name: "help-about-symbolic"
+        icon.width: 32
+        icon.height: 32
+        display: Button.IconOnly
         onClicked: root.aboutClicked()
     }
 }
