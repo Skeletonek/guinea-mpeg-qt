@@ -13,17 +13,20 @@
 ## QML Patterns
 - IDs inside a `Component` are NOT accessible from outside it. The reverse works (parent scope IDs accessible from within Component).
 - `FileDialog.selectedFile` is a `file:///...` URL. Strip `file://` prefix only for C++ paths; QML `url` properties accept it directly.
-- `Column` from `QtQuick` 2.15+ has `padding` support.
 - `Q_PROPERTY` signals (`NOTIFY`) are the cleanest way to push streaming data (like ffmpeg output) from C++ to QML.
 - `StackView.onActivated` on a page fires every time it becomes the current item — useful for refreshing data after popping back.
 - Use `encodeURI()` on the file path when constructing `file://` URLs in QML (handles spaces/special chars).
 - Directory imports (`import "dialogs"`, `import "../"`) are required to make QML types in subdirectories or parent directories discoverable. Types in the same directory are auto-discovered, but types in different directories need explicit `import`.
 - Avoid property names that collide with parent scope IDs — `appWindow: appWindow` creates a binding loop because the property name and the id are the same. Use a different name like `hostWindow: appWindow`.
 - Dialog components (AboutDialog, TranscodeDialog, etc.) use `property QtObject appWindow: null` to receive a reference to the ApplicationWindow, giving them access to its methods and state. Set via `appWindow: appWindow` in main.qml (no binding loop here since the property is on a different object).
-- `Dialog` content can be clipped behind the footer (OK button). Fix: set `implicitHeight` explicitly (e.g. 350) and use `anchors.left/right/top` instead of `anchors.fill` on the inner layout.
+- `Dialog` height: use `implicitHeight: implicitHeaderHeight + layout.implicitHeight + implicitFooterHeight + margins` for auto-sizing instead of hardcoded values.
+- Auto-height dialog: set `padding: 0` and use `anchors.fill: parent` with `anchors.margins` on the inner layout to avoid double-padding with the dialog's default padding.
 - Center a `Dialog` via `onOpened: centerInParent()` calling a function that sets `x` and `y` using `parent.width/height`.
 - `QQuickStyle::setStyle("Fusion")` is required to customize control backgrounds on Windows (native QML style forbids background overrides).
 - `QPalette` dark/light colors are set on `QApplication` but may be ignored by the native QML style; Fusion QML style respects them.
+- Use `Flickable` instead of `ScrollView` when you never want a scrollbar to reserve space — `ScrollBar.vertical.policy: ScrollBar.AlwaysOff` still reserves space in some QQC2 styles.
+- `DropArea` handles drag & drop: read `drop.urls[0]` as string, strip `file://` prefix, call load function.
+- Icon-only buttons: use `icon.name` (Freedesktop icon names like `help-about-symbolic`), `display: Button.IconOnly`, set `width`/`height` to a fixed square size.
 
 ## TimelineControl Patterns
 - Handle x positions MUST be clamped to `[0, track.width - handle.width]` with `Math.max(0, Math.min(x, track.width - width))` to keep handles within the clickable area.
@@ -67,18 +70,15 @@
 - `--package flatpak` uses host `flatpak-builder` (not Docker), SDK `org.kde.Platform//6.10`.
 - Version canonical source: `rust/Cargo.toml`.
 - Flatpak post-install: installs SVG to `hicolor/scalable/apps/` + 256×256 PNG fallback.
-- AppImage build: `AppRun` is created manually (not relying on linuxdeploy to generate it). `patchelf` explicitly sets the ELF interpreter to the bundled `ld-linux-x86-64.so.2` — linuxdeploy copies the lib but does NOT repoint `.interp`.
-- AppImage plugin symlink: points directly to the binary (`usr/bin/linuxdeploy-plugin-qt`), not through `AppRun` (which is a symlink itself).
+- AppImage: `AppRun` is a symlink to the binary; `patchelf` sets ELF interpreter to bundled `ld-linux-x86-64.so.2`.
 - CI pipeline: `.gitlab-ci.yml` — `package` stage with dind-based jobs + GitLab release on tags.
+- Deb/rpm/pacman: `stage_package()` runs `patchelf --add-rpath '$ORIGIN/../lib/$PKGNAME'` on the binary so it finds the Rust `.so` in `/usr/lib/<pkg>/`.
 
 ## Runtime
-- Exit code 255 = QML load/parse failure.
-- Exit code 143 = SIGTERM (normal kill).
-- Exit code 124 = timeout (normal for offscreen test).
-- Qt version: 6.11.0 on Arch Linux x86_64, KDE Plasma 6, Wayland, AMD GPU.
-- Qt version: 6.11.1 on Windows 11 x86_64, MSVC 2022, Fusion QML style.
+- Qt version: 6.11.0 on Arch Linux x86_64, KDE Plasma 6, Wayland, AMD GPU; 6.11.1 on Windows 11 x86_64, MSVC 2022, Fusion QML style.
 - When QML fails with exit 255 but no error message on stderr, use `QT_FORCE_STDERR_LOGGING=1` to force QML engine errors to the terminal.
 - Dark mode detection reads Windows registry `HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize\AppsUseLightTheme`. A `theme` context property with color keys is exported to QML.
+- OS name / distro detection uses `QSysInfo::prettyProductName()` on all platforms — no manual `/etc/os-release` parsing.
 
 ## MPV Integration Notes
 - `MpvItem` (QQuickFramebufferObject) wraps libmpv via Rust's `extern "C"` backend (`void* m_backend`). The raw `mpv_handle*` is extracted from Rust for render context + wakeup setup.

@@ -49,6 +49,32 @@ ApplicationWindow {
 
                 StackView.onActivated: controlsPanel.refreshProfiles()
 
+                DropArea {
+                    anchors.fill: parent
+                    onEntered: dragOverlay.visible = true
+                    onExited: dragOverlay.visible = false
+                    onDropped: function(drop) {
+                        dragOverlay.visible = false
+                        var url = String(drop.urls[0])
+                        if (url.length === 0) return
+                        var path = url
+                        if (path.startsWith("file://"))
+                            path = path.substring(7)
+                        appWindow.loadVideo(path, url)
+                    }
+                }
+
+                Rectangle {
+                    id: dragOverlay
+                    anchors.fill: parent
+                    color: theme.accent
+                    opacity: 0.15
+                    visible: false
+                    border.color: theme.accent
+                    border.width: 3
+                    z: 100
+                }
+
                 Row {
                     anchors.fill: parent
                     anchors.margins: 10

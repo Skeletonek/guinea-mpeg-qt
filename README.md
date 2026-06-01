@@ -4,15 +4,13 @@ A modern FFmpeg transcoding GUI with a Rust core library statically linked via C
 
 ## Features
 
-- **Video Preview with Playback**: Load any video via embedded libmpv (no Qt Multimedia dependency)
+- **Video Preview with Playback**: Load any video via embedded libmpv
 - **Timeline Selection**: Drag start/end handles to select a segment for transcoding
 - **Transcoding Profiles**: Built-in profiles for H.264, VP9, and SVT-AV1
 - **Profile Editor**: Create, edit, and delete profiles in-app
 - **Live Transcode Output**: Non-modal dialog showing real-time ffmpeg stderr output with autoscroll
-- **Cancel Transcode**: Kill running ffmpeg process mid-transcode
-- **Output Options**: MP4 (H.264) and WebM (VP9/AV1); AAC for H.264, Opus for everything else
 - **MIME type integration**: Open video files directly from your file manager
-- **Dark / Light theme**: Automatic detection based on system preference (Windows + Linux)
+- **Drag & Drop**: Drop a video file anywhere on the window to load it
 
 ## Build Requirements
 
@@ -62,12 +60,6 @@ sudo pacman -S --needed base-devel cmake \
 
 ### Linux
 ```bash
-cmake -S . -B out && cmake --build out   # also builds Rust via cargo
-```
-
-Or use the build script (recommended for packaging):
-
-```bash
 ./build/linux_build.sh                              # build to out/generic/
 ```
 
@@ -96,8 +88,6 @@ Output goes to `out/{target}/` — e.g. `out/deb/`, `out/appimage/`.
 .\build\windows_build.ps1 -Clean                    # full rebuild (removes out/ and rust/target/)
 .\build\windows_build.ps1 -Console                  # build with visible console (for debugging)
 .\build\windows_build.ps1 -Config RelWithDebInfo    # debug symbols enabled
-.\build\windows_build.ps1 -SkipMpv                  # reuse existing mpv-dev bundle
-.\build\windows_build.ps1 -SkipFfmpeg               # reuse existing ffmpeg download
 ```
 
 The script auto-detects Visual Studio 2022 (via vswhere), downloads the mpv-dev bundle and ffmpeg/ffprobe, builds Rust via cargo, deploys Qt DLLs with windeployqt, and copies all runtime dependencies into the output directory.
@@ -124,7 +114,7 @@ A GitLab CI pipeline (`.gitlab-ci.yml`) builds and releases all packages on tag 
 - `src/main.cpp` — Qt C++ entry point, `GuineaMpegBackend` class with `Q_INVOKABLE` methods
 - `src/backend.h` / `src/backend.cpp` — Plain `QObject` wrapping Rust `extern "C"` calls; only transcode QProcess lifecycle stays in C++
 - `src/mpvitem.h` / `src/mpvitem.cpp` — `MpvItem` (QQuickFramebufferObject) + `MpvRenderer` delegating mpv commands to Rust via `extern "C"`
-- `CMakeLists.txt` — CMake build, links `libguinea_mpeg_core.a` (built via cargo), finds Qt6 + mpv
+- `CMakeLists.txt` — CMake build, links `libguinea_mpeg_core.so` (built via cargo), finds Qt6 + mpv
 
 ## Configuration
 

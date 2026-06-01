@@ -1,14 +1,19 @@
 ### 0.4.0
-- Added Windows support via MSVC
-- Added Windows install bundle from InnoSetup
-- Added better support for light themes
-- Fixed About dialog centering on open in some QT styles
+- Added Windows support via MSVC and packaging via InnoSetup
+- Added drag & drop support — drop a video file anywhere on the window to load it
+- Added file save dialog proposing default filename
+- Added app logo to About dialog
+- Added minimum window size (700×670)
+- Improved support for light themes
+- Minor changes for About dialog layout
+- Replaced full-width "About" text button with a compact 48×48 icon button (bottom-right)
+- Fixed MPV not utilising hardware decoding when available causing choppy playback
+- Fixed right panel uneven margins caused by ScrollBar
+- Fixed About dialog not centering on open in some QT styles
 - Refactored all hardcoded QML colors to theme-aware properties
-- Reworked about dialog
-- Replaced runtime Rust dynamic loading with static linking
 - Moved mpv handle management, event processing, and all playback commands to Rust
 - Moved ffprobe video info, ffmpeg availability check, preview generation, and command building to Rust
-- Changed using custom file dialogs instead of the system provided
+- Decrease library size, by removing unnecessary debug info
 
 ### 0.3.0
 - AppImage support with Docker-based builds
