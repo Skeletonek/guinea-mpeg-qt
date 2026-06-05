@@ -1,6 +1,7 @@
 ### 0.4.1
 - Fix missing ffprobe in Appimage build
 - Fix QT style not using system colors for background
+- Fix missing 'about' icon in Appimage and Windows builds
 
 ### 0.4.0
 - Added Windows support via MSVC and packaging via InnoSetup
