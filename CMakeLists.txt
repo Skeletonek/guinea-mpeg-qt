@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(guinea_mpeg VERSION 0.4.0 LANGUAGES CXX)
+project(guinea_mpeg VERSION 0.4.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -119,6 +119,7 @@ qt_add_resources(guinea-mpeg "app_qml"
     FILES
         qml/main.qml
         media/logo/logo.png
+        media/icons/info.png
         qml/TimelineControl.qml
         qml/ProfileEditor.qml
         qml/VideoPreview.qml

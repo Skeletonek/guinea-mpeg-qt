@@ -62,22 +62,10 @@ rm /tmp/linuxdeploy-plugin-qt.AppImage
 # Symlink directly to binary, not AppRun (which is a symlink itself)
 ln -s /tmp/linuxdeploy-plugin-qt-root/usr/bin/linuxdeploy-plugin-qt /tmp/linuxdeploy-root/usr/bin/linuxdeploy-plugin-qt
 
-# linuxdeploy-plugin-qt expects the SVG icon engine plugin to exist when it
-# discovers the svg module. Debian Trixie's libqt6svg6 doesn't ship it, so
-# create a minimal stub to satisfy the file existence check.
-mkdir -p /usr/lib/x86_64-linux-gnu/qt6/plugins/iconengines
-echo 'void qsvgicon_stub(){}' | gcc -x c - -shared \
-    -o /usr/lib/x86_64-linux-gnu/qt6/plugins/iconengines/libqsvgicon.so \
-    -fPIC 2>/dev/null || touch /usr/lib/x86_64-linux-gnu/qt6/plugins/iconengines/libqsvgicon.so
-
 echo "=== Bundling dependencies ==="
 export QML_SOURCES_PATHS="$APPDIR/qml"
 export EXTRA_QT_MODULES="quick;quickcontrols2"
 /tmp/linuxdeploy-root/AppRun --appdir "$APPDIR" --plugin qt
-
-# linuxdeploy-plugin-qt may detect the system SVG module even without an explicit
-# link dependency. The stub below prevents a hard failure in that case.
-# The image format plugin (qsvg.so) is deliberately NOT bundled — no app SVGs use it.
 
 rm -rf "$APPDIR/qml"
 

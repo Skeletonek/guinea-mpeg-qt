@@ -1,3 +1,7 @@
+### 0.4.1
+- Fix missing ffprobe in Appimage build
+- Fix QT style not using system colors for background
+
 ### 0.4.0
 - Added Windows support via MSVC and packaging via InnoSetup
 - Added drag & drop support — drop a video file anywhere on the window to load it
