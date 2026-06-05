@@ -32,5 +32,6 @@ CMakeLists.txt.user*
 *.obj
 
 # vcpkg / Windows dependency cache
+build/vendor/
 build/windows/.mpv-dev/
 vcpkg_installed/
