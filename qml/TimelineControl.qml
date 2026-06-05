@@ -28,7 +28,7 @@ Rectangle {
                 id: track
                 width: parent.width - parent.leftPadding - parent.rightPadding
             height: 20
-            color: theme.widgetBorder
+            color: "#555555"
             radius: 4
 
             property double _ratio: videoDuration > 0 ? width / videoDuration : 1
@@ -37,8 +37,8 @@ Rectangle {
                 x: Math.max(0, Math.min(startTime * track._ratio, track.width))
                 width: Math.max(0, Math.min((endTime - startTime) * track._ratio, track.width - x))
                 height: parent.height
-                color: theme.accent
-                opacity: 0.4
+                color: "#4a9eff"
+                opacity: 0.5
                 radius: 4
             }
 
@@ -48,7 +48,7 @@ Rectangle {
                 y: 0
                 width: 12
                 height: parent.height
-                color: theme.accent
+                color: "#4a9eff"
                 radius: 3
                 MouseArea {
                     anchors.fill: parent
@@ -73,7 +73,7 @@ Rectangle {
                 y: 0
                 width: 12
                 height: parent.height
-                color: theme.accentEnd
+                color: "#ff6b4a"
                 radius: 3
                 MouseArea {
                     anchors.fill: parent

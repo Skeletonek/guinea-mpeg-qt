@@ -37,7 +37,7 @@ Rectangle {
         anchors.bottom: parent.bottom
         width: parent.width
         height: 30
-        color: theme.overlay
+        color: theme.bg
         visible: root.hasVideo
 
         RowLayout {

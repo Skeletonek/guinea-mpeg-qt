@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libmpv-dev \
     qt6-base-dev \
     qt6-declarative-dev \
+    libqt6svg6 \
     libgl1-mesa-dev \
     libegl1-mesa-dev \
     libxkbcommon-dev \

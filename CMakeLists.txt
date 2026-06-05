@@ -119,6 +119,7 @@ qt_add_resources(guinea-mpeg "app_qml"
     FILES
         qml/main.qml
         media/logo/logo.png
+        media/icons/info.svg
         qml/TimelineControl.qml
         qml/ProfileEditor.qml
         qml/VideoPreview.qml
@@ -138,6 +139,7 @@ target_link_libraries(guinea-mpeg
     PRIVATE Qt6::QuickControls2
     PRIVATE Qt6::Gui
     PRIVATE Qt6::Widgets
+
 )
 
 if(WIN32)

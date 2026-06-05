@@ -62,10 +62,29 @@ rm /tmp/linuxdeploy-plugin-qt.AppImage
 # Symlink directly to binary, not AppRun (which is a symlink itself)
 ln -s /tmp/linuxdeploy-plugin-qt-root/usr/bin/linuxdeploy-plugin-qt /tmp/linuxdeploy-root/usr/bin/linuxdeploy-plugin-qt
 
+# linuxdeploy-plugin-qt expects the SVG icon engine plugin to exist when it
+# discovers the svg module. Debian Trixie's libqt6svg6 doesn't ship it, so
+# create a minimal stub to satisfy the file existence check.
+mkdir -p /usr/lib/x86_64-linux-gnu/qt6/plugins/iconengines
+echo 'void qsvgicon_stub(){}' | gcc -x c - -shared \
+    -o /usr/lib/x86_64-linux-gnu/qt6/plugins/iconengines/libqsvgicon.so \
+    -fPIC 2>/dev/null || touch /usr/lib/x86_64-linux-gnu/qt6/plugins/iconengines/libqsvgicon.so
+
 echo "=== Bundling dependencies ==="
 export QML_SOURCES_PATHS="$APPDIR/qml"
 export EXTRA_QT_MODULES="quick;quickcontrols2"
 /tmp/linuxdeploy-root/AppRun --appdir "$APPDIR" --plugin qt
+
+# Manually bundle the SVG image format plugin (runtime decode, no linked dep)
+mkdir -p "$APPDIR/usr/plugins/imageformats"
+SVG_PLUGIN=""
+for dir in /usr/lib/qt6/plugins/imageformats /usr/lib/*/qt6/plugins/imageformats; do
+    [ -f "$dir/qsvg.so" ] && SVG_PLUGIN="$dir/qsvg.so" && break
+done
+if [ -n "$SVG_PLUGIN" ]; then
+    cp -a "$SVG_PLUGIN" "$APPDIR/usr/plugins/imageformats/"
+    echo "  -> bundled SVG plugin from $SVG_PLUGIN"
+fi
 
 rm -rf "$APPDIR/qml"
 
@@ -100,7 +119,7 @@ echo "=== AppDir structure ==="
 find "$APPDIR" -type f | sort
 
 echo "=== Downloading appimagetool ==="
-wget -q -c "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage" -O /tmp/appimagetool.AppImage
+wget -q -c "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage" -O /tmp/appimagetool.AppImage
 chmod +x /tmp/appimagetool.AppImage
 /tmp/appimagetool.AppImage --appimage-extract
 mv squashfs-root /tmp/appimagetool-root

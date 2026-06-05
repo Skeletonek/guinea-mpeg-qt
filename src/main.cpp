@@ -60,55 +60,41 @@ int main(int argc, char *argv[])
     darkTheme = QApplication::styleHints()->colorScheme() == Qt::ColorScheme::Dark;
 #endif
 
-    if (useFusion) {
-        QPalette p;
-        if (darkTheme) {
-            p.setColor(QPalette::Window, QColor(53, 53, 53));
-            p.setColor(QPalette::WindowText, Qt::white);
-            p.setColor(QPalette::Base, QColor(35, 35, 35));
-            p.setColor(QPalette::AlternateBase, QColor(53, 53, 53));
-            p.setColor(QPalette::ToolTipBase, QColor(25, 25, 25));
-            p.setColor(QPalette::ToolTipText, Qt::white);
-            p.setColor(QPalette::Text, Qt::white);
-            p.setColor(QPalette::Button, QColor(53, 53, 53));
-            p.setColor(QPalette::ButtonText, Qt::white);
-            p.setColor(QPalette::BrightText, Qt::red);
-            p.setColor(QPalette::Link, QColor(42, 130, 218));
-            p.setColor(QPalette::Highlight, QColor(42, 130, 218));
-            p.setColor(QPalette::HighlightedText, Qt::black);
-        }
-        app.setPalette(p);
-    }
-
     QVariantMap theme;
-    if (darkTheme) {
-        theme["bg"]            = "#1e1e1e";
-        theme["surface"]       = "#2d2d2d";
-        theme["widget"]        = "#333333";
-        theme["widgetBorder"]  = "#555555";
-        theme["text"]          = "#ffffff";
-        theme["textSecondary"] = "#aaaaaa";
-        theme["textMuted"]     = "#888888";
-        theme["textHeader"]    = "#eeeeee";
-        theme["textDim"]       = "#666666";
-        theme["accent"]        = "#4a9eff";
-        theme["accentEnd"]     = "#ff6b4a";
-        theme["overlay"]       = "#80000000";
+    {
+        QPalette pal = app.palette();
+
+        auto hex = [](const QColor &c) { return c.name(QColor::HexArgb); };
+
+        QColor bgCol = pal.color(QPalette::Window);
+        QColor txtCol = pal.color(QPalette::WindowText);
+        QColor btnCol = pal.color(QPalette::Button);
+
+        auto blend = [](const QColor &a, const QColor &b, double t) {
+            return QColor(
+                int(a.red() * (1 - t) + b.red() * t),
+                int(a.green() * (1 - t) + b.green() * t),
+                int(a.blue() * (1 - t) + b.blue() * t),
+                int(a.alpha() * (1 - t) + b.alpha() * t)
+            );
+        };
+
+        theme["bg"]            = hex(bgCol);
+        theme["surface"]       = hex(pal.color(QPalette::Base));
+        theme["widget"]        = hex(btnCol);
+        theme["widgetBorder"]  = hex(pal.color(QPalette::Mid));
+        theme["text"]          = hex(txtCol);
+        theme["textSecondary"] = hex(blend(txtCol, bgCol, 0.4));
+        theme["textMuted"]     = hex(blend(txtCol, bgCol, 0.65));
+        theme["textHeader"]    = hex(txtCol);
+        theme["textDim"]       = hex(blend(txtCol, bgCol, 0.8));
+        theme["accent"]        = hex(pal.color(QPalette::Highlight));
+        theme["accentEnd"]     = hex(pal.color(QPalette::Highlight));
         theme["black"]         = "#000000";
-    } else {
-        theme["bg"]            = "#f0f0f0";
-        theme["surface"]       = "#ffffff";
-        theme["widget"]        = "#e0e0e0";
-        theme["widgetBorder"]  = "#c0c0c0";
-        theme["text"]          = "#000000";
-        theme["textSecondary"] = "#555555";
-        theme["textMuted"]     = "#999999";
-        theme["textHeader"]    = "#333333";
-        theme["textDim"]       = "#999999";
-        theme["accent"]        = "#1a73e8";
-        theme["accentEnd"]     = "#ea4335";
-        theme["overlay"]       = "#40ffffff";
-        theme["black"]         = "#000000";
+
+        QColor overlayCol = txtCol;
+        overlayCol.setAlpha(darkTheme ? 128 : 64);
+        theme["overlay"] = hex(overlayCol);
     }
 
     QQuickWindow::setGraphicsApi(QSGRendererInterface::OpenGL);
