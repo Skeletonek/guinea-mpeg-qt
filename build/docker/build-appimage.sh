@@ -28,6 +28,19 @@ strip "$APPDIR/usr/bin/guinea-mpeg" 2>/dev/null || true
 cp /source/build/linux/applications/guinea-mpeg.desktop "$APPDIR/"
 cp /source/build/linux/icons/hicolor/256x256/apps/guinea-mpeg.png "$APPDIR/"
 
+# Bundle static ffmpeg and ffprobe for self-contained transcoding
+echo "=== Downloading static ffmpeg ==="
+wget -q -c "https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz" -O /tmp/ffmpeg-static.tar.xz
+tar xf /tmp/ffmpeg-static.tar.xz -C /tmp/
+FFMPEG_DIR=$(ls -d /tmp/ffmpeg-*-static 2>/dev/null | head -1)
+if [ -n "$FFMPEG_DIR" ]; then
+    cp "$FFMPEG_DIR/ffmpeg" "$APPDIR/usr/bin/"
+    cp "$FFMPEG_DIR/ffprobe" "$APPDIR/usr/bin/"
+    strip "$APPDIR/usr/bin/ffmpeg" "$APPDIR/usr/bin/ffprobe" 2>/dev/null || true
+else
+    echo "  WARNING: static ffmpeg download failed!"
+fi
+
 # linuxdeploy-plugin-qt scans QML files for imports — copy temporarily
 mkdir -p "$APPDIR/qml"
 cp /source/qml/*.qml "$APPDIR/qml/"

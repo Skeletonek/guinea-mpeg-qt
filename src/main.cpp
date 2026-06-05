@@ -29,14 +29,19 @@ int main(int argc, char *argv[])
 #endif
     std::setlocale(LC_NUMERIC, "C");
 
+    bool useFusion = false;
 #ifdef Q_OS_WIN
     // Find bundled ffmpeg/ffprobe
     QByteArray appDir = QCoreApplication::applicationDirPath().toUtf8();
     SetEnvironmentVariableA("PATH", (appDir + ";" + qgetenv("PATH")).constData());
-
-    // Fusion required for background overrides
-    QQuickStyle::setStyle("Fusion");
+    useFusion = true;
+#else
+    if (QStringLiteral(PACKAGE_TARGET) == "appimage")
+        useFusion = true;
 #endif
+
+    if (useFusion)
+        QQuickStyle::setStyle("Fusion");
 
     bool darkTheme = false;
 #ifdef Q_OS_WIN
@@ -55,8 +60,7 @@ int main(int argc, char *argv[])
     darkTheme = QApplication::styleHints()->colorScheme() == Qt::ColorScheme::Dark;
 #endif
 
-#ifdef Q_OS_WIN
-    {
+    if (useFusion) {
         QPalette p;
         if (darkTheme) {
             p.setColor(QPalette::Window, QColor(53, 53, 53));
@@ -75,7 +79,6 @@ int main(int argc, char *argv[])
         }
         app.setPalette(p);
     }
-#endif
 
     QVariantMap theme;
     if (darkTheme) {
