@@ -166,6 +166,8 @@ build_in_docker() {
     local out_dir="$OUT_DIR/$target"
     local build_dir_name=".build-${target}"
     local cargo_dir_name=".cargo-${target}"
+    local build_dir="$OUT_DIR/$build_dir_name"
+    local cargo_dir="$OUT_DIR/$cargo_dir_name"
 
     if ! command -v docker &>/dev/null; then
         echo "ERROR: docker not found. Install Docker to build $target packages." >&2
@@ -176,7 +178,7 @@ build_in_docker() {
 
     docker build -t "$image_name" -f "$dockerfile" "$SCRIPT_DIR/docker"
 
-    mkdir -p "$out_dir"
+    mkdir -p "$out_dir" "$build_dir" "$cargo_dir"
 
     docker run --rm \
         -v "$PROJECT_DIR:/source" \
@@ -186,7 +188,7 @@ build_in_docker() {
         "$image_name" \
         bash -c "
             set -euo pipefail
-            mkdir -p /tmp/home /source/out/$build_dir_name /source/out/$target
+            mkdir -p /tmp/home
             cmake_opts='-DCMAKE_BUILD_TYPE=Release -DPACKAGE_TARGET=${target}'
             cmake -S /source -B /source/out/$build_dir_name \$cmake_opts
             cmake --build /source/out/$build_dir_name
@@ -196,13 +198,11 @@ build_in_docker() {
             cp /source/default_profiles.toml /source/out/$target/
         " || {
             echo "WARNING: Docker build for $target failed" >&2
-            _cleanup_docker "$target" || true
             return 1
         }
 
     # Fix ownership if running rootful Docker (no-op under rootless podman)
-    chown -R "$(id -u):$(id -g)" "$out_dir" 2>/dev/null || true
-    _cleanup_docker "$target"
+    chown -R "$(id -u):$(id -g)" "$out_dir" "$build_dir" "$cargo_dir" 2>/dev/null || true
     echo "=== Docker build for $target complete ==="
 }
 
@@ -217,13 +217,14 @@ build_appimage() {
     local out_dir="$OUT_DIR/appimage"
     local build_dir_name=".build-appimage"
     local cargo_dir_name=".cargo-appimage"
+    local build_dir="$OUT_DIR/$build_dir_name"
+    local cargo_dir="$OUT_DIR/$cargo_dir_name"
     local script="/source/build/docker/build-appimage.sh"
-    local build_args=""
 
     echo "=== Building AppImage ==="
 
     docker build -t "$image_name" -f "$dockerfile" "$SCRIPT_DIR/docker"
-    mkdir -p "$out_dir"
+    mkdir -p "$out_dir" "$build_dir" "$cargo_dir"
 
     docker run --rm \
         -v "$PROJECT_DIR:/source" \
@@ -231,14 +232,12 @@ build_appimage() {
         -e CARGO_HOME="/tmp/home/.cargo" \
         -e HOME="/tmp/home" \
         "$image_name" \
-        bash "$script" "/source/out/$build_dir_name" "$build_args" || {
+        bash "$script" "/source/out/$build_dir_name" || {
             echo "WARNING: AppImage build failed" >&2
-            _cleanup_docker "appimage" || true
             return 1
         }
 
-    chown -R "$(id -u):$(id -g)" "$out_dir" 2>/dev/null || true
-    _cleanup_docker "appimage"
+    chown -R "$(id -u):$(id -g)" "$out_dir" "$build_dir" "$cargo_dir" 2>/dev/null || true
     echo "=== AppImage build complete ==="
 }
 

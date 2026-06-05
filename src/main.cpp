@@ -40,25 +40,37 @@ int main(int argc, char *argv[])
         useFusion = true;
 #endif
 
-    if (useFusion)
-        QQuickStyle::setStyle("Fusion");
-
     bool darkTheme = false;
+
+    if (useFusion) {
+        QQuickStyle::setStyle("Fusion");
 #ifdef Q_OS_WIN
-    // More reliable than QStyleHints
-    HKEY hKey;
-    if (RegOpenKeyExA(HKEY_CURRENT_USER,
-            "Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
-            0, KEY_READ, &hKey) == ERROR_SUCCESS) {
-        DWORD value = 1;
-        DWORD size = sizeof(value);
-        if (RegGetValueA(hKey, nullptr, "AppsUseLightTheme", RRF_RT_DWORD, nullptr, &value, &size) == ERROR_SUCCESS)
-            darkTheme = (value == 0);
-        RegCloseKey(hKey);
-    }
+        // Windows: always force dark palette (Fusion in light mode looks wrong)
+        QPalette darkPal;
+        darkPal.setColor(QPalette::Window, QColor(53, 53, 53));
+        darkPal.setColor(QPalette::WindowText, QColor(220, 220, 220));
+        darkPal.setColor(QPalette::Base, QColor(42, 42, 42));
+        darkPal.setColor(QPalette::AlternateBase, QColor(66, 66, 66));
+        darkPal.setColor(QPalette::ToolTipBase, QColor(53, 53, 53));
+        darkPal.setColor(QPalette::ToolTipText, QColor(220, 220, 220));
+        darkPal.setColor(QPalette::Text, QColor(220, 220, 220));
+        darkPal.setColor(QPalette::Button, QColor(53, 53, 53));
+        darkPal.setColor(QPalette::ButtonText, QColor(220, 220, 220));
+        darkPal.setColor(QPalette::BrightText, QColor(255, 0, 0));
+        darkPal.setColor(QPalette::Link, QColor(42, 130, 218));
+        darkPal.setColor(QPalette::Highlight, QColor(42, 130, 218));
+        darkPal.setColor(QPalette::HighlightedText, QColor(220, 220, 220));
+        darkPal.setColor(QPalette::Mid, QColor(80, 80, 80));
+        app.setPalette(darkPal);
+        darkTheme = true;
 #else
-    darkTheme = QApplication::styleHints()->colorScheme() == Qt::ColorScheme::Dark;
+        // AppImage: respect system theme
+        darkTheme = QApplication::styleHints()->colorScheme() == Qt::ColorScheme::Dark;
 #endif
+    } else {
+        // Native Linux: respect system theme
+        darkTheme = QApplication::styleHints()->colorScheme() == Qt::ColorScheme::Dark;
+    }
 
     QVariantMap theme;
     {
