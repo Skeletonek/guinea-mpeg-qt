@@ -119,7 +119,6 @@ qt_add_resources(guinea-mpeg "app_qml"
     FILES
         qml/main.qml
         media/logo/logo.png
-        media/icons/info.svg
         qml/TimelineControl.qml
         qml/ProfileEditor.qml
         qml/VideoPreview.qml

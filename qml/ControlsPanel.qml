@@ -196,7 +196,6 @@ Item {
         width: 48
         height: 48
         icon.name: "help-about-symbolic"
-        icon.source: "/media/icons/info.svg"
         icon.width: 32
         icon.height: 32
         display: Button.IconOnly

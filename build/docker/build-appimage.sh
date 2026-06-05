@@ -75,16 +75,9 @@ export QML_SOURCES_PATHS="$APPDIR/qml"
 export EXTRA_QT_MODULES="quick;quickcontrols2"
 /tmp/linuxdeploy-root/AppRun --appdir "$APPDIR" --plugin qt
 
-# Manually bundle the SVG image format plugin (runtime decode, no linked dep)
-mkdir -p "$APPDIR/usr/plugins/imageformats"
-SVG_PLUGIN=""
-for dir in /usr/lib/qt6/plugins/imageformats /usr/lib/*/qt6/plugins/imageformats; do
-    [ -f "$dir/qsvg.so" ] && SVG_PLUGIN="$dir/qsvg.so" && break
-done
-if [ -n "$SVG_PLUGIN" ]; then
-    cp -a "$SVG_PLUGIN" "$APPDIR/usr/plugins/imageformats/"
-    echo "  -> bundled SVG plugin from $SVG_PLUGIN"
-fi
+# linuxdeploy-plugin-qt may detect the system SVG module even without an explicit
+# link dependency. The stub below prevents a hard failure in that case.
+# The image format plugin (qsvg.so) is deliberately NOT bundled — no app SVGs use it.
 
 rm -rf "$APPDIR/qml"
 
