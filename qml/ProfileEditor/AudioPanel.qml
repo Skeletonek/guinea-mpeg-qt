@@ -12,95 +12,111 @@ Column {
 
     signal changed
 
+    readonly property alias audioEnabled: audioEnabledSwitch.checked
+
     Rectangle {
         width: parent.width
         height: 28
         color: theme.widget
         radius: 4
-        Label {
+        Row {
             anchors.verticalCenter: parent.verticalCenter
             leftPadding: 6
-            text: "Audio"
-            color: theme.text
-            font.bold: true
-            font.pixelSize: 14
+            spacing: 8
+            Label {
+                text: "Audio"
+                color: theme.text
+                font.bold: true
+                font.pixelSize: 14
+                verticalAlignment: Text.AlignVCenter
+            }
+            Switch {
+                id: audioEnabledSwitch
+                checked: true
+                onCheckedChanged: if (!root.loading) root.changed()
+            }
         }
-    }
-
-    Label {
-        id: audioCodecAutoLabel
-        visible: videoEnabled
-        text: "Codec: Auto (" + (currentCodecKey === "h264" ? "AAC" : "Opus") + ")"
-        color: theme.textDim
-        font.pixelSize: 12
-        topPadding: 4
-    }
-
-    Label {
-        text: "Codec"
-        color: theme.textMuted
-        font.bold: true
-        font.pixelSize: 14
-        topPadding: 4
-        visible: !videoEnabled
-    }
-    ComboBox {
-        id: audioCodecCombo
-        visible: !videoEnabled
-        model: audioCodecLabels
-        width: parent.width
-        onCurrentIndexChanged: if (!root.loading) root.changed()
     }
 
     Column {
         width: parent.width
-        spacing: 6
-        topPadding: 4
+        spacing: 8
+        visible: audioEnabledSwitch.checked
 
-        Row {
-            spacing: 8
-            width: parent.width
-            Label { text: "Bitrate"; color: theme.textSecondary; width: 80 }
-            TextField {
-                id: audioBitrateField
-                width: parent.width - 88
-                placeholderText: "128k"
-                onTextChanged: if (!root.loading) root.changed()
-            }
+        Label {
+            id: audioCodecAutoLabel
+            visible: videoEnabled
+            text: "Codec: Auto (" + (currentCodecKey === "h264" ? "AAC" : "Opus") + ")"
+            color: theme.textDim
+            font.pixelSize: 12
         }
-        Row {
-            spacing: 8
-            width: parent.width
-            Label { text: "Channels"; color: theme.textSecondary; width: 80 }
-            TextField {
-                id: audioChannelsField
-                width: parent.width - 88
-                placeholderText: "2"
-                validator: IntValidator { bottom: 0; top: 8 }
-                onTextChanged: if (!root.loading) root.changed()
-            }
+
+        Label {
+            text: "Codec"
+            color: theme.textMuted
+            font.bold: true
+            font.pixelSize: 14
+            topPadding: 4
+            visible: !videoEnabled
         }
-        Row {
-            spacing: 8
+        ComboBox {
+            id: audioCodecCombo
+            visible: !videoEnabled
+            model: audioCodecLabels
             width: parent.width
-            Label { text: "Sample rate"; color: theme.textSecondary; width: 80 }
-            TextField {
-                id: audioSrField
-                width: parent.width - 88
-                placeholderText: "48000"
-                validator: IntValidator { bottom: 0; top: 192000 }
-                onTextChanged: if (!root.loading) root.changed()
+            onCurrentIndexChanged: if (!root.loading) root.changed()
+        }
+
+        Column {
+            width: parent.width
+            spacing: 6
+
+            Row {
+                spacing: 8
+                width: parent.width
+                Label { text: "Bitrate"; color: theme.textSecondary; width: 80 }
+                TextField {
+                    id: audioBitrateField
+                    width: parent.width - 88
+                    placeholderText: "128k"
+                    onTextChanged: if (!root.loading) root.changed()
+                }
+            }
+            Row {
+                spacing: 8
+                width: parent.width
+                Label { text: "Channels"; color: theme.textSecondary; width: 80 }
+                TextField {
+                    id: audioChannelsField
+                    width: parent.width - 88
+                    placeholderText: "2"
+                    validator: IntValidator { bottom: 0; top: 8 }
+                    onTextChanged: if (!root.loading) root.changed()
+                }
+            }
+            Row {
+                spacing: 8
+                width: parent.width
+                Label { text: "Sample rate"; color: theme.textSecondary; width: 80 }
+                TextField {
+                    id: audioSrField
+                    width: parent.width - 88
+                    placeholderText: "48000"
+                    validator: IntValidator { bottom: 0; top: 192000 }
+                    onTextChanged: if (!root.loading) root.changed()
+                }
             }
         }
     }
 
     function getData() {
         var data = {
+            audio_enabled: audioEnabledSwitch.checked,
             audio_bitrate: audioBitrateField.text || "128k",
             audio_channels: audioChannelsField.text ? parseInt(audioChannelsField.text) : null,
             audio_sample_rate: audioSrField.text ? parseInt(audioSrField.text) : null
         }
-        if (videoEnabled) {
+        if (!audioEnabledSwitch.checked || videoEnabled) {
             data.audio_codec = null
         } else {
             data.audio_codec = audioCodecCombo.currentText || null
@@ -109,6 +125,7 @@ Column {
     }
 
     function setData(d) {
+        audioEnabledSwitch.checked = d.audio_enabled !== false
         audioBitrateField.text = d.audio_bitrate || "128k"
         audioChannelsField.text = d.audio_channels != null ? String(d.audio_channels) : ""
         audioSrField.text = d.audio_sample_rate != null ? String(d.audio_sample_rate) : ""

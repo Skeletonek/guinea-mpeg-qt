@@ -171,8 +171,9 @@ Rectangle {
             crf: null, bitrate: null
         })
         audioPanel.setData({
-            audio_bitrate: "128k", audio_channels: null,
-            audio_sample_rate: null, audio_codec: null
+            audio_enabled: true, audio_bitrate: "128k",
+            audio_channels: null, audio_sample_rate: null,
+            audio_codec: null
         })
         advancedPanel.setData({ extra_args: [] })
         _loading = false

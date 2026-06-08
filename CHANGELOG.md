@@ -5,6 +5,7 @@
 - Added option to restore default profiles
 - Added option to use VBR (Variable bitrate)
 - Added option to encode only audio
+- Added option to encode without audio
 - Added support for FLAC, MP3, OGG Vorbis audio codecs (only when exporting without video)
 - Added preview of the final ffmpeg command
 

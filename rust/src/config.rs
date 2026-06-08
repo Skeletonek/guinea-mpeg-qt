@@ -27,6 +27,7 @@ pub struct VideoProfile {
     #[serde(default)]
     pub extra_args: Vec<String>,
     pub video_enabled: Option<bool>,
+    pub audio_enabled: Option<bool>,
     pub audio_codec: Option<String>,
     pub rate_control: Option<String>,
 }

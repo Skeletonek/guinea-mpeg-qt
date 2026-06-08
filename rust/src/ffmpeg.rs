@@ -195,20 +195,26 @@ fn build_command(
         }
     }
 
-    args.push("-c:a".to_string());
-    args.push(audio_codec_for_profile(profile).to_string());
+    let audio_enabled = profile.audio_enabled.unwrap_or(true);
 
-    if !profile.audio_bitrate.is_empty() {
-        args.push("-b:a".to_string());
-        args.push(profile.audio_bitrate.clone());
-    }
-    if let Some(ch) = profile.audio_channels {
-        args.push("-ac".to_string());
-        args.push(ch.to_string());
-    }
-    if let Some(sr) = profile.audio_sample_rate {
-        args.push("-ar".to_string());
-        args.push(sr.to_string());
+    if !audio_enabled {
+        args.push("-an".to_string());
+    } else {
+        args.push("-c:a".to_string());
+        args.push(audio_codec_for_profile(profile).to_string());
+
+        if !profile.audio_bitrate.is_empty() {
+            args.push("-b:a".to_string());
+            args.push(profile.audio_bitrate.clone());
+        }
+        if let Some(ch) = profile.audio_channels {
+            args.push("-ac".to_string());
+            args.push(ch.to_string());
+        }
+        if let Some(sr) = profile.audio_sample_rate {
+            args.push("-ar".to_string());
+            args.push(sr.to_string());
+        }
     }
 
     args.push("-y".to_string());
