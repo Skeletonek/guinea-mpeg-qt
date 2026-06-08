@@ -55,7 +55,7 @@
 - CMake requires `pkg_check_modules(MPV REQUIRED mpv)` for libmpv (needed by C++ mpvitem.cpp for render context).
 
 ## Build & Packaging (Linux)
-- `build/linux_build.sh` — builds the project and optionally produces packages.
+- `build/linux-build.sh` — builds the project and optionally produces packages.
 - Flags: `--clean`, `--package <list>`, `--no-build`, `--version X.Y.Z`, `--help`.
 - Default (no flags): cmake configure + build to `out/generic/` (no archive).
 - `--clean` removes `out/` and `rust/target/` before building.

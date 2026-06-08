@@ -34,10 +34,21 @@ fn video_codec(codec: &str) -> &str {
     }
 }
 
-fn audio_codec(codec: &str) -> &str {
-    match codec {
-        "h264" => "aac",
-        _ => "libopus",
+fn audio_codec_for_profile(profile: &VideoProfile) -> &str {
+    if let Some(ref ac) = profile.audio_codec {
+        match ac.to_lowercase().as_str() {
+            "aac" => "aac",
+            "opus" => "libopus",
+            "mp3" => "libmp3lame",
+            "flac" => "flac",
+            "vorbis" => "libvorbis",
+            _ => "aac",
+        }
+    } else {
+        match profile.codec.as_str() {
+            "h264" => "aac",
+            _ => "libopus",
+        }
     }
 }
 
@@ -62,85 +73,130 @@ fn build_command(
         args.push(format!("{:.3}", end_time - start_time));
     }
 
-    args.push("-c:v".to_string());
-    args.push(video_codec(&profile.codec).to_string());
+    let video_enabled = profile.video_enabled.unwrap_or(true);
+    let rate_control = profile.rate_control.as_deref();
 
-    if let Some(crf) = profile.crf {
-        args.push("-crf".to_string());
-        args.push(crf.to_string());
-    }
-    if let Some(bitrate) = &profile.bitrate {
-        if !bitrate.is_empty() {
-            args.push("-b:v".to_string());
-            args.push(bitrate.clone());
-        }
-    }
-    if let Some(preset) = &profile.preset {
-        if profile.codec != "svtav1" {
-            args.push("-preset".to_string());
-            args.push(preset.clone());
-        }
-    }
-    if let Some(pix_fmt) = &profile.pixel_format {
-        args.push("-pix_fmt".to_string());
-        args.push(pix_fmt.clone());
-    }
+    if video_enabled {
+        args.push("-c:v".to_string());
+        args.push(video_codec(&profile.codec).to_string());
 
-    let mut filter_parts = Vec::new();
-    if let Some(fps) = profile.framerate {
-        if fps > 0.0 {
-            filter_parts.push(format!("fps={}", fps));
-        }
-    }
-    if let Some(res) = &profile.resolution {
-        if let Some(height) = res.strip_suffix('p') {
-            if height != "native" {
-                filter_parts.push(format!("scale=-2:{}", height));
+        match rate_control {
+            Some("cbr") => {
+                if let Some(bitrate) = &profile.bitrate {
+                    if !bitrate.is_empty() {
+                        args.push("-b:v".to_string());
+                        args.push(bitrate.clone());
+                        args.push("-minrate".to_string());
+                        args.push(bitrate.clone());
+                        args.push("-maxrate".to_string());
+                        args.push(bitrate.clone());
+                        args.push("-bufsize".to_string());
+                        args.push(bitrate.clone());
+                    }
+                }
+            }
+            Some("vbr") | Some("bitrate") => {
+                if let Some(bitrate) = &profile.bitrate {
+                    if !bitrate.is_empty() {
+                        args.push("-b:v".to_string());
+                        args.push(bitrate.clone());
+                    }
+                }
+            }
+            _ => {
+                if let Some(crf) = profile.crf {
+                    args.push("-crf".to_string());
+                    args.push(crf.to_string());
+                }
+                if rate_control.is_none() {
+                    if let Some(bitrate) = &profile.bitrate {
+                        if !bitrate.is_empty() {
+                            args.push("-b:v".to_string());
+                            args.push(bitrate.clone());
+                        }
+                    }
+                }
             }
         }
-    }
-    if !filter_parts.is_empty() {
-        args.push("-vf".to_string());
-        args.push(filter_parts.join(","));
-    }
 
-    if profile.codec == "svtav1" {
-        let mut svt = Vec::new();
-        if let Some(p) = &profile.preset {
-            svt.push(format!("preset={}", p));
+        if let Some(preset) = &profile.preset {
+            if profile.codec != "svtav1" {
+                args.push("-preset".to_string());
+                args.push(preset.clone());
+            }
         }
-        if profile.enable_qm.unwrap_or(false) {
-            svt.push("enable-qm=1".to_string());
+        if let Some(pix_fmt) = &profile.pixel_format {
+            args.push("-pix_fmt".to_string());
+            args.push(pix_fmt.clone());
         }
-        if let Some(tune) = &profile.tune {
-            svt.push(format!("tune={}", match tune.to_lowercase().as_str() {
-                "psnr" => "0",
-                "ssim" => "1",
-                "vmaf" => "2",
-                _ => "0",
-            }));
-        }
-        if let Some(crf) = profile.crf {
-            svt.push(format!("crf={}", crf));
-        }
-        if let Some(tr) = profile.tile_rows {
-            svt.push(format!("tile-rows={}", tr));
-        }
-        if let Some(tc) = profile.tile_columns {
-            svt.push(format!("tile-columns={}", tc));
-        }
-        if !svt.is_empty() {
-            args.push("-svtav1-params".to_string());
-            args.push(svt.join(":"));
-        }
-    }
 
-    for arg in &profile.extra_args {
-        args.push(arg.clone());
+        let mut filter_parts = Vec::new();
+        if let Some(fps) = profile.framerate {
+            if fps > 0.0 {
+                filter_parts.push(format!("fps={}", fps));
+            }
+        }
+        if let Some(res) = &profile.resolution {
+            if let Some(height) = res.strip_suffix('p') {
+                if height != "native" {
+                    filter_parts.push(format!("scale=-2:{}", height));
+                }
+            }
+        }
+        if !filter_parts.is_empty() {
+            args.push("-vf".to_string());
+            args.push(filter_parts.join(","));
+        }
+
+        if profile.codec == "svtav1" {
+            let mut svt = Vec::new();
+            if let Some(p) = &profile.preset {
+                svt.push(format!("preset={}", p));
+            }
+            if profile.enable_qm.unwrap_or(false) {
+                svt.push("enable-qm=1".to_string());
+            }
+            if let Some(tune) = &profile.tune {
+                svt.push(format!("tune={}", match tune.to_lowercase().as_str() {
+                    "psnr" => "0",
+                    "ssim" => "1",
+                    "vmaf" => "2",
+                    _ => "0",
+                }));
+            }
+            match rate_control {
+                Some("cbr" | "vbr" | "bitrate") => {
+                    if let Some(bitrate) = &profile.bitrate {
+                        if !bitrate.is_empty() {
+                            svt.push(format!("br={}", bitrate));
+                        }
+                    }
+                }
+                _ => {
+                    if let Some(crf) = profile.crf {
+                        svt.push(format!("crf={}", crf));
+                    }
+                }
+            }
+            if let Some(tr) = profile.tile_rows {
+                svt.push(format!("tile-rows={}", tr));
+            }
+            if let Some(tc) = profile.tile_columns {
+                svt.push(format!("tile-columns={}", tc));
+            }
+            if !svt.is_empty() {
+                args.push("-svtav1-params".to_string());
+                args.push(svt.join(":"));
+            }
+        }
+
+        for arg in &profile.extra_args {
+            args.push(arg.clone());
+        }
     }
 
     args.push("-c:a".to_string());
-    args.push(audio_codec(&profile.codec).to_string());
+    args.push(audio_codec_for_profile(profile).to_string());
 
     if !profile.audio_bitrate.is_empty() {
         args.push("-b:a".to_string());
@@ -211,6 +267,24 @@ pub extern "C" fn guinea_mpeg_generate_preview(path: *const c_char, time_ms: i64
         .unwrap_or(false);
 
     if ok { to_c_string(preview) } else { std::ptr::null_mut() }
+}
+
+fn build_preview(profile: &VideoProfile) -> Vec<String> {
+    build_command("[input]", "[output]", 0.0, 0.0, profile)
+}
+
+#[no_mangle]
+pub extern "C" fn guinea_mpeg_preview_command(profile_json: *const c_char) -> *mut c_char {
+    let json = unsafe { cstr(profile_json) };
+    if json.is_empty() {
+        return std::ptr::null_mut();
+    }
+    let profile: VideoProfile = match serde_json::from_str(json) {
+        Ok(p) => p,
+        Err(_) => return std::ptr::null_mut(),
+    };
+    let args = build_preview(&profile);
+    to_c_string(serde_json::to_string(&args).unwrap_or_default())
 }
 
 #[no_mangle]

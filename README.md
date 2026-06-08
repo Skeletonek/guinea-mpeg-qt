@@ -1,6 +1,6 @@
 # GuineaMPEG
 
-A modern FFmpeg transcoding GUI with a Rust core library statically linked via C FFI.
+A modern FFmpeg transcoding GUI with a Rust core library dynamically linked via C FFI.
 
 ## Features
 
@@ -16,7 +16,7 @@ A modern FFmpeg transcoding GUI with a Rust core library statically linked via C
 
 ### Linux
 - CMake 3.16+
-- Rust 1.83+ (use your distro's `cargo`/`rustc` packages)
+- Rust 1.56+ (use your distro's `cargo`/`rustc` packages)
 - Qt 6.5+ (tested on 6.11.0)
 - libmpv (development headers, `pkg-config` findable)
 - OpenGL / GLX development headers
@@ -24,12 +24,22 @@ A modern FFmpeg transcoding GUI with a Rust core library statically linked via C
 
 ### Windows
 - CMake 3.16+
-- Visual Studio 2022 (Build Tools or full IDE) with C++ workload
-- Rust 1.83+
-- Qt 6.5+ for MSVC 2022 (tested on 6.11.1)
-- [mpv-dev bundle](https://mpv.srsfckn.biz/) (shinchiro's builds) — auto-downloaded by the build script to `build/windows/.mpv-dev/`
-- FFmpeg & ffprobe — auto-downloaded by the build script (gyan.dev essential build)
-- Ninja (optional, auto-detected if available)
+- Visual Studio 2022 (Build Tools or full IDE) with **Desktop development with C++** workload
+- Rust 1.56+ with MSVC toolchain:
+  ```powershell
+  rustup toolchain install stable-msvc
+  rustup default stable-msvc
+  rustup target add x86_64-pc-windows-msvc
+  ```
+- Qt 6.5+ for MSVC 2022 (tested on 6.11.1) — required components:
+  - `Qt 6.x / MSVC 2022 64-bit`
+  - `Qt Quick`
+  - `Qt QuickControls2`
+- [mpv-dev bundle](https://github.com/zhongfly/mpv-winbuild) (auto-downloaded by the build script to `build/vendor/mpv-dev-x86_64/`)
+- FFmpeg & ffprobe (auto-downloaded by the build script, gyan.dev essential build)
+- 7-Zip (required by the mpv-dev download script): `winget install 7zip.7zip`
+- Ninja (optional, auto-detected): `winget install Ninja-build.Ninja`
+- InnoSetup 6 (optional, for installer) — download from [jrsoftware.org](https://jrsoftware.org/isdl.php)
 
 ### Per-Distro Package Lists
 
@@ -60,37 +70,65 @@ sudo pacman -S --needed base-devel cmake \
 
 ### Linux
 ```bash
-./build/linux_build.sh                              # build to out/generic/
+./build/linux-build.sh                              # build to out/generic/
 ```
 
 #### Packaging (Linux)
 
-The `build/linux_build.sh` script supports Docker-based cross-distro packaging:
+The `build/linux-build.sh` script supports Docker-based cross-distro packaging:
 
 ```bash
-./build/linux_build.sh --package generic            # build + .tar.gz
-./build/linux_build.sh --package deb                # Docker build + .deb
-./build/linux_build.sh --package rpm                # Docker build + .rpm
-./build/linux_build.sh --package pacman             # Docker build + .pkg.tar.zst
-./build/linux_build.sh --package flatpak            # flatpak-builder build
-./build/linux_build.sh --package appimage           # Docker build + .AppImage
-./build/linux_build.sh --package deb,rpm,pacman     # multiple targets
-./build/linux_build.sh --package all                # all targets
-./build/linux_build.sh --clean --package deb        # clean + rebuild + .deb
+./build/linux-build.sh --package generic            # build + .tar.gz
+./build/linux-build.sh --package deb                # Docker build + .deb
+./build/linux-build.sh --package rpm                # Docker build + .rpm
+./build/linux-build.sh --package pacman             # Docker build + .pkg.tar.zst
+./build/linux-build.sh --package flatpak            # flatpak-builder build
+./build/linux-build.sh --package appimage           # Docker build + .AppImage
+./build/linux-build.sh --package deb,rpm,pacman     # multiple targets
+./build/linux-build.sh --package all                # all targets
+./build/linux-build.sh --clean --package deb        # clean + rebuild + .deb
 ```
 
 Output goes to `out/{target}/` — e.g. `out/deb/`, `out/appimage/`.
 
 ### Windows
+
+Open **x64 Native Tools Command Prompt for VS 2022** (or any PowerShell where `cl.exe` and `nmake` are available from PATH), then:
+
 ```powershell
-.\build\windows_build.ps1                           # build to out/windows/
-.\build\windows_build.ps1 -Package                  # build + ZIP + InnoSetup installer
-.\build\windows_build.ps1 -Clean                    # full rebuild (removes out/ and rust/target/)
-.\build\windows_build.ps1 -Console                  # build with visible console (for debugging)
-.\build\windows_build.ps1 -Config RelWithDebInfo    # debug symbols enabled
+.\build\windows-build.ps1                           # build to out/windows/
+.\build\windows-build.ps1 -Package                  # build + ZIP + InnoSetup installer
+.\build\windows-build.ps1 -Clean                    # full rebuild
+.\build\windows-build.ps1 -Console                  # build with visible console (for debugging)
+.\build\windows-build.ps1 -Config RelWithDebInfo    # debug symbols enabled
 ```
 
-The script auto-detects Visual Studio 2022 (via vswhere), downloads the mpv-dev bundle and ffmpeg/ffprobe, builds Rust via cargo, deploys Qt DLLs with windeployqt, and copies all runtime dependencies into the output directory.
+The script will:
+1. Auto-detect Visual Studio 2022 (via vswhere)
+2. Download the mpv-dev bundle and ffmpeg/ffprobe if missing
+3. Build the Rust library with `cargo`
+4. Configure and build with CMake + Ninja (MSVC)
+5. Run `windeployqt` to collect Qt DLLs
+6. Copy `mpv-2.dll` to the output directory
+7. Create a portable ZIP archive
+8. Build an InnoSetup installer (if ISCC.exe is available)
+
+Additional flags:
+
+| Flag | Description |
+|------|-------------|
+| `-SkipPackage` | Build only, skip packaging |
+| `-SkipMpv` | Skip mpv-dev download (use existing) |
+| `-QtDir C:\Qt\6.8.0\msvc2022_64` | Specify Qt path manually |
+| `-NoClean` | Rebuild without cleaning |
+
+Artifacts:
+
+| Artifact | Path |
+|----------|------|
+| Executable | `out/windows/guinea-mpeg.exe` |
+| Portable ZIP | `out/GuineaMPEG-{version}-win64.zip` |
+| Installer (exe) | `out/GuineaMPEG-{version}-win64.exe` |
 
 Output: `out/windows/guinea-mpeg.exe` (no console window by default).
 
@@ -110,8 +148,8 @@ A GitLab CI pipeline (`.gitlab-ci.yml`) builds and releases all packages on tag 
 
 - `rust/` — Rust core library: `backend.rs` (profile management FFI), `config.rs` (TOML profile config), `ffmpeg.rs` (ffmpeg subprocess calls and command building), `mpv.rs` (mpv handle/events/commands)
 - `rust/include/guinea_mpeg_core.h` — Hand-written C header declaring all `extern "C"` FFI functions
-- `qml/` — Qt Quick QML UI: main window (`main.qml`), video preview (`VideoPreview.qml`), control panel (`ControlsPanel.qml`), timeline handles (`TimelineControl.qml`), profile editor (`ProfileEditor.qml`), and `dialogs/` subdirectory for modal dialogs
-- `src/main.cpp` — Qt C++ entry point, `GuineaMpegBackend` class with `Q_INVOKABLE` methods
+- `qml/` — Qt Quick QML UI: main window (`main.qml`), video preview (`VideoPreview.qml`), control panel (`ControlsPanel.qml`), timeline handles (`TimelineControl.qml`), profile editor (`ProfileEditor.qml` + sub-panels in `ProfileEditor/`), and `dialogs/` subdirectory for modal dialogs
+- `src/main.cpp` — Qt C++ entry point, `GuineaMpegBackendExt` class with `Q_INVOKABLE` methods
 - `src/backend.h` / `src/backend.cpp` — Plain `QObject` wrapping Rust `extern "C"` calls; only transcode QProcess lifecycle stays in C++
 - `src/mpvitem.h` / `src/mpvitem.cpp` — `MpvItem` (QQuickFramebufferObject) + `MpvRenderer` delegating mpv commands to Rust via `extern "C"`
 - `CMakeLists.txt` — CMake build, links `libguinea_mpeg_core.so` (built via cargo), finds Qt6 + mpv

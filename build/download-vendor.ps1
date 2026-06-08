@@ -5,7 +5,7 @@
     Fetches mpv-dev-x86_64 (libmpv SDK) and ffmpeg/ffprobe
     into build/vendor/ so the build script doesn't need network access.
 .EXAMPLE
-    .\build\download_vendor.ps1
+    .\build\download-vendor.ps1
 #>
 
 $ErrorActionPreference = "Stop"
@@ -84,4 +84,4 @@ if (-not (Test-Path $FfmpegExe)) {
 
 Write-Host ""
 Write-Host "=== Vendor download complete! ===" -ForegroundColor Green
-Write-Host "Run .\build\windows_build.ps1 to build." -ForegroundColor Cyan
+Write-Host "Run .\build\windows-build.ps1 to build." -ForegroundColor Cyan

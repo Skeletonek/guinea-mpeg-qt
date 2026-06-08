@@ -15,8 +15,7 @@ Item {
     }
 
     signal openVideoClicked()
-    signal editProfileClicked(string profileName)
-    signal newProfileClicked()
+    signal profileEditorClicked()
     signal browseOutputClicked()
     signal viewTranscodeClicked()
     signal aboutClicked()
@@ -90,23 +89,10 @@ Item {
                 width: parent.width
             }
 
-            Row {
-                spacing: 5
+            Button {
+                text: "Profile Editor"
+                onClicked: root.profileEditorClicked()
                 width: parent.width
-
-                Button {
-                    text: "Edit Profile..."
-                    onClicked: {
-                        if (hostWindow) root.editProfileClicked(hostWindow.currentProfile)
-                    }
-                    width: (parent.width - parent.spacing) / 2
-                }
-
-                Button {
-                    text: "New Profile..."
-                    onClicked: root.newProfileClicked()
-                    width: (parent.width - parent.spacing) / 2
-                }
             }
 
             Label {

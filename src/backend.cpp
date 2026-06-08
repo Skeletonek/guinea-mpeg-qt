@@ -43,8 +43,20 @@ bool GuineaMpegBackendExt::saveProfile(const QString& name, const QString& json)
     return guinea_mpeg_save_profile(name.toUtf8().constData(), json.toUtf8().constData());
 }
 
+QString GuineaMpegBackendExt::generateCommandPreview(const QString& json) {
+    const char* result = guinea_mpeg_preview_command(json.toUtf8().constData());
+    if (!result) return {};
+    QString preview = QString::fromUtf8(result);
+    guinea_mpeg_free_string(result);
+    return preview;
+}
+
 bool GuineaMpegBackendExt::deleteProfile(const QString& name) {
     return guinea_mpeg_delete_profile(name.toUtf8().constData());
+}
+
+bool GuineaMpegBackendExt::restoreDefaultProfiles() {
+    return guinea_mpeg_restore_defaults();
 }
 
 QVariantMap GuineaMpegBackendExt::getVideoInfo(const QString& rawPath) {

@@ -7,6 +7,7 @@ static CONFIG: Mutex<Option<AppConfig>> = Mutex::new(None);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VideoProfile {
+    #[serde(default)]
     pub name: String,
     pub codec: String,
     pub crf: Option<i32>,
@@ -25,6 +26,9 @@ pub struct VideoProfile {
     pub audio_sample_rate: Option<u32>,
     #[serde(default)]
     pub extra_args: Vec<String>,
+    pub video_enabled: Option<bool>,
+    pub audio_codec: Option<String>,
+    pub rate_control: Option<String>,
 }
 
 fn default_audio_bitrate() -> String {
@@ -137,6 +141,17 @@ pub fn save_profile(name: &str, json: &str) -> anyhow::Result<()> {
     } else {
         user_profiles.push(profile);
     }
+    save_user_config(&AppConfig {
+        profiles: user_profiles,
+    })?;
+    set_config(merge_configs());
+    Ok(())
+}
+
+pub fn restore_defaults() -> anyhow::Result<()> {
+    let default_names: Vec<String> = load_defaults().into_iter().map(|p| p.name.clone()).collect();
+    let mut user_profiles = load_user_config();
+    user_profiles.retain(|p| !default_names.contains(&p.name));
     save_user_config(&AppConfig {
         profiles: user_profiles,
     })?;

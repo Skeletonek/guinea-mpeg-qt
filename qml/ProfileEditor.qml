@@ -1,5 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
+import QtQuick.Layouts 1.15
+import "ProfileEditor"
 
 Rectangle {
     id: root
@@ -7,264 +9,251 @@ Rectangle {
     property string profileName: ""
     signal back
 
-    property var codecKeys: ["h264", "vp8", "vp9", "svtav1"]
-    property var codecLabels: ["H.264", "VP8", "VP9", "AV1 (SVT-AV1)"]
-    property var resOptions: ["native", "360p", "480p", "720p", "1080p", "1440p", "2160p"]
-    property var fpsOptions: ["source", 20, 23.976, 25, 30, 40, 45, 50, 60]
-    property var tuneByCodec: {
-        "h264": ["film", "grain", "animation", "psnr", "ssim", "fastdecode", "zerolatency"],
-        "vp8": ["psnr", "ssim", "good", "best"],
-        "vp9": ["psnr", "ssim", "good", "best"],
-        "svtav1": ["psnr", "ssim", "vmaf"]
-    }
+    property bool _loading: false
 
     Flickable {
         anchors.fill: parent
         anchors.margins: 10
-        contentHeight: formColumn.height + 60
+        contentHeight: mainColumn.height + 30
         clip: true
 
         Column {
-            id: formColumn
+            id: mainColumn
             width: parent.width
-            spacing: 8
+            spacing: 16
 
-            Row {
-                spacing: 10
+            Label {
+                text: "Profile Editor"
+                font.bold: true
+                font.pixelSize: 20
+                color: theme.text
+                bottomPadding: 4
+            }
+
+            // Top bar
+            RowLayout {
+                width: parent.width
+
                 Button {
                     text: "\u2190 Back"
                     onClicked: back()
                 }
+
                 Label {
-                    text: profileName ? "Edit Profile: " + profileName : "New Profile"
-                    font.pixelSize: 18
-                    font.bold: true
-                    color: theme.text
+                    text: "Profile:"
+                    color: theme.textSecondary
+                    font.pixelSize: 14
                     verticalAlignment: Text.AlignVCenter
                 }
-                Item { width: 20 }
-                Button {
-                    text: "Delete"
-                    visible: profileName !== ""
-                    onClicked: deleteCurrent()
+
+                ComboBox {
+                    id: profileSelector
+                    Layout.preferredWidth: 300
+                    model: {
+                        var raw = backend.availableProfiles()
+                        try { return JSON.parse(raw) } catch(e) { return [] }
+                    }
+                    onCurrentTextChanged: {
+                        if (_loading) return
+                        if (currentText && currentText !== profileName)
+                            loadProfile(currentText)
+                    }
                 }
+
+                Button {
+                    text: "+ New"
+                    onClicked: resetToNew()
+                }
+
                 Button {
                     text: "Save"
                     highlighted: true
                     onClicked: saveCurrent()
                 }
+
+                Button {
+                    text: "Delete"
+                    visible: profileName !== ""
+                    onClicked: deleteCurrent()
+                }
+
+                Item { Layout.fillWidth: true }
+
+                Button {
+                    text: "Restore Defaults"
+                    onClicked: restoreDialog.open()
+                }
             }
 
+            Label {
+                text: "Profile name"
+                color: theme.textMuted
+                font.bold: true
+                font.pixelSize: 14
+            }
             TextField {
-                id: newProfileNameField
-                visible: profileName === ""
+                id: profileNameField
                 width: parent.width
                 placeholderText: "Enter profile name..."
             }
 
-            Label { text: "Codec"; color: theme.textMuted; font.bold: true; font.pixelSize: 14; topPadding: 8 }
-            ComboBox {
-                id: codecCombo
-                model: codecLabels
-                width: parent.width
-                onCurrentIndexChanged: rebuildTuneModel()
-            }
+            Rectangle { width: parent.width; height: 1; color: theme.textDim }
 
-            Label { text: "Video Quality"; color: theme.textMuted; font.bold: true; font.pixelSize: 14; topPadding: 8 }
-            Grid {
-                columns: 2
-                columnSpacing: 8
-                rowSpacing: 6
+            // Two-column layout
+            Row {
+                spacing: 20
                 width: parent.width
 
-                Label { text: "CRF"; color: theme.textSecondary }
-                TextField {
-                    id: crfField
-                    width: 120; placeholderText: "e.g. 18"
-                    validator: IntValidator { bottom: 0; top: 63 }
+                VideoPanel {
+                    id: videoPanel
+                    width: parent.width / 2 - 10
+                    loading: root._loading
+                    onChanged: updatePreview()
                 }
-                Label { text: "Bitrate (video)"; color: theme.textSecondary }
-                TextField {
-                    id: bitrateField
-                    width: 160; placeholderText: "e.g. 2M"
-                }
-                Label { text: "Preset"; color: theme.textSecondary }
-                TextField {
-                    id: presetField
-                    width: 200; placeholderText: "x264: slow/medium…  svtav1: 0-13"
-                }
-                Label { text: "Tune"; color: theme.textSecondary }
-                ComboBox {
-                    id: tuneCombo
-                    width: 200; editable: true
-                    model: ["film", "grain", "animation", "psnr", "ssim", "fastdecode", "zerolatency"]
-                }
-                Label { text: "Pixel format"; color: theme.textSecondary }
-                TextField {
-                    id: pixfmtField
-                    width: 120; placeholderText: "yuv420p"
+
+                AudioPanel {
+                    id: audioPanel
+                    width: parent.width / 2 - 10
+                    loading: root._loading
+                    videoEnabled: videoPanel.videoEnabled
+                    currentCodecKey: videoPanel.codec
+                    onChanged: updatePreview()
                 }
             }
 
-            Label { text: "Scaling"; color: theme.textMuted; font.bold: true; font.pixelSize: 14; topPadding: 8 }
-            Grid {
-                columns: 2
-                columnSpacing: 8
-                rowSpacing: 6
+            Rectangle { width: parent.width; height: 1; color: theme.textDim }
+
+            AdvancedPanel {
+                id: advancedPanel
                 width: parent.width
-
-                Label { text: "Resolution"; color: theme.textSecondary }
-                ComboBox {
-                    id: resCombo
-                    model: resOptions
-                    width: 200
-                }
-                Label { text: "Framerate"; color: theme.textSecondary }
-                ComboBox {
-                    id: fpsCombo
-                    model: fpsOptions
-                    width: 200; editable: true
-                    validator: DoubleValidator { bottom: 0; top: 120 }
-                }
-            }
-
-            Column {
-                width: parent.width
-                visible: codecKeys[codecCombo.currentIndex] === "svtav1"
-                spacing: 6
-                Label { text: "AV1 (SVT-AV1)"; color: theme.textMuted; font.bold: true; font.pixelSize: 14; topPadding: 8 }
-                Grid {
-                    columns: 4
-                    columnSpacing: 8
-                    rowSpacing: 6
-                    width: parent.width
-                    Label { text: "Tile rows"; color: theme.textSecondary }
-                    TextField { id: tileRowsField; width: 60; placeholderText: "2"; validator: IntValidator { bottom: 0; top: 8 } }
-                    Label { text: "Tile cols"; color: theme.textSecondary }
-                    TextField { id: tileColsField; width: 60; placeholderText: "3"; validator: IntValidator { bottom: 0; top: 8 } }
-                }
-                CheckBox { id: enableQmCheck; text: "Enable Quantization Matrix" }
-            }
-
-            Label { text: "Audio"; color: theme.textMuted; font.bold: true; font.pixelSize: 14; topPadding: 8 }
-            Label { text: "Codec auto-selected: " + (codecKeys[codecCombo.currentIndex] === "h264" ? "AAC" : "Opus"); color: theme.textDim; font.pixelSize: 12 }
-            Grid {
-                columns: 2
-                columnSpacing: 8
-                rowSpacing: 6
-                width: parent.width
-
-                Label { text: "Bitrate"; color: theme.textSecondary }
-                TextField {
-                    id: audioBitrateField
-                    width: 120; placeholderText: "128k"
-                }
-                Label { text: "Channels"; color: theme.textSecondary }
-                TextField {
-                    id: audioChannelsField
-                    width: 80; placeholderText: "2"
-                    validator: IntValidator { bottom: 0; top: 8 }
-                }
-                Label { text: "Sample rate"; color: theme.textSecondary }
-                TextField {
-                    id: audioSrField
-                    width: 100; placeholderText: "48000"
-                    validator: IntValidator { bottom: 0; top: 192000 }
-                }
-            }
-
-            Label { text: "Advanced"; color: theme.textMuted; font.bold: true; font.pixelSize: 14; topPadding: 8 }
-            Label { text: "Extra FFmpeg arguments"; color: theme.textSecondary; font.pixelSize: 12 }
-            TextField {
-                id: extraArgsField
-                width: parent.width
-                placeholderText: "e.g. -row-mt 1 -tiles 2x2"
+                loading: root._loading
+                onExtraArgsChanged: updatePreview()
             }
         }
     }
 
-    function rebuildTuneModel() {
-        var codec = codecKeys[codecCombo.currentIndex]
-        var tunes = tuneByCodec[codec] || []
-        var prev = tuneCombo.currentText
-        tuneCombo.model = tunes
-        var idx = tunes.indexOf(prev)
-        tuneCombo.currentIndex = idx >= 0 ? idx : 0
+    function buildCurrentData() {
+        var data = {}
+        var v = videoPanel.getData()
+        for (var k in v) data[k] = v[k]
+        var a = audioPanel.getData()
+        for (var k in a) data[k] = a[k]
+        var x = advancedPanel.getData()
+        for (var k in x) data[k] = x[k]
+        return data
     }
 
-    function loadProfile(name) {
-        var raw = backend.loadProfile(name)
-        var d = JSON.parse(raw)
-        if (!d) {
-            rebuildTuneModel()
-            return
-        }
-
-        var ci = codecKeys.indexOf(d.codec)
-        if (ci >= 0) codecCombo.currentIndex = ci
-
-        crfField.text = d.crf != null ? String(d.crf) : ""
-        bitrateField.text = d.bitrate || ""
-        presetField.text = d.preset || ""
-        pixfmtField.text = d.pixel_format || ""
-
-        var ri = resOptions.indexOf(d.resolution)
-        resCombo.currentIndex = ri >= 0 ? ri : 0
-
-        if (d.framerate != null) {
-            var fi = fpsOptions.indexOf(d.framerate)
-            if (fi >= 0) fpsCombo.currentIndex = fi
-            else fpsCombo.editText = String(d.framerate)
-        } else {
-            fpsCombo.currentIndex = 0
-        }
-
-        tileRowsField.text = d.tile_rows != null ? String(d.tile_rows) : ""
-        tileColsField.text = d.tile_columns != null ? String(d.tile_columns) : ""
-        enableQmCheck.checked = d.enable_qm === true
-
-        rebuildTuneModel()
-        if (d.tune) {
-            var ti = tuneCombo.model.indexOf(d.tune)
-            if (ti >= 0) tuneCombo.currentIndex = ti
-            else tuneCombo.editText = d.tune
-        }
-
-        audioBitrateField.text = d.audio_bitrate || "128k"
-        audioChannelsField.text = d.audio_channels != null ? String(d.audio_channels) : ""
-        audioSrField.text = d.audio_sample_rate != null ? String(d.audio_sample_rate) : ""
-
-        extraArgsField.text = (d.extra_args || []).join(" ")
-    }
-
-    function saveCurrent() {
-        var name = profileName
-        if (!name) {
-            name = newProfileNameField.text.trim()
-            if (!name) {
-                newProfileNameField.placeholderText = "Name is required!"
+    function updatePreview() {
+        if (_loading) return
+        var data = buildCurrentData()
+        var json = JSON.stringify(data)
+        var raw = backend.generateCommandPreview(json)
+        if (raw) {
+            var args = JSON.parse(raw)
+            if (args && args.length > 0) {
+                advancedPanel.setPreview("ffmpeg " + args.join(" "))
                 return
             }
         }
-        var codec = codecKeys[codecCombo.currentIndex]
-        var data = {
-            name: name,
-            codec: codec,
-            crf: crfField.text ? parseInt(crfField.text) : null,
-            bitrate: bitrateField.text || null,
-            preset: presetField.text || null,
-            tune: tuneCombo.currentText || null,
-            pixel_format: pixfmtField.text || null,
-            resolution: resCombo.currentText === "native" ? null : resCombo.currentText,
-            framerate: fpsCombo.currentIndex === 0 ? null : parseFloat(fpsCombo.currentText),
-            tile_rows: tileRowsField.text ? parseInt(tileRowsField.text) : null,
-            tile_columns: tileColsField.text ? parseInt(tileColsField.text) : null,
-            enable_qm: enableQmCheck.checked ? true : null,
-            audio_bitrate: audioBitrateField.text || "128k",
-            audio_channels: audioChannelsField.text ? parseInt(audioChannelsField.text) : null,
-            audio_sample_rate: audioSrField.text ? parseInt(audioSrField.text) : null,
-            extra_args: extraArgsField.text.trim() ? extraArgsField.text.trim().split(/\s+/) : []
+        advancedPanel.setPreview("Failed to generate preview")
+    }
+
+    function resetToNew() {
+        profileName = ""
+        profileNameField.text = ""
+        profileNameField.placeholderText = "Enter profile name..."
+        _loading = true
+        videoPanel.setData({
+            codec: "h264", video_enabled: true, rate_control: "crf",
+            preset: null, tune: null, pixel_format: null,
+            resolution: null, framerate: null,
+            tile_rows: null, tile_columns: null, enable_qm: null,
+            crf: null, bitrate: null
+        })
+        audioPanel.setData({
+            audio_bitrate: "128k", audio_channels: null,
+            audio_sample_rate: null, audio_codec: null
+        })
+        advancedPanel.setData({ extra_args: [] })
+        _loading = false
+        updatePreview()
+    }
+
+    function loadProfile(name) {
+        _loading = true
+        var raw = backend.loadProfile(name)
+        var d = JSON.parse(raw)
+        if (!d) {
+            profileName = name
+            profileNameField.text = name
+            _loading = false
+            return
         }
+        profileName = name
+        profileNameField.text = name
+
+        videoPanel.setData(d)
+        audioPanel.setData(d)
+        advancedPanel.setData(d)
+
+        for (var i = 0; i < profileSelector.model.length; i++) {
+            if (profileSelector.model[i] === name) {
+                profileSelector.currentIndex = i
+                break
+            }
+        }
+
+        _loading = false
+        updatePreview()
+    }
+
+    function restoreDefaults() {
+        backend.restoreDefaultProfiles()
+        var names = JSON.parse(backend.availableProfiles())
+        profileSelector.model = names
+        if (names.length > 0)
+            loadProfile(names[0])
+        else
+            resetToNew()
+    }
+
+    Dialog {
+        id: restoreDialog
+        title: "Restore Default Profiles"
+        standardButtons: Dialog.Yes | Dialog.No
+        width: 400
+        padding: 0
+        implicitHeight: implicitHeaderHeight + msg.implicitHeight + implicitFooterHeight + 24
+        Component.onCompleted: centerInParent()
+        onOpened: centerInParent()
+        function centerInParent() {
+            if (parent) {
+                x = Math.round((parent.width - width) / 2)
+                y = Math.round((parent.height - height) / 2)
+            }
+        }
+        onAccepted: restoreDefaults()
+
+        Label {
+            id: msg
+            anchors.fill: parent
+            anchors.margins: 16
+            text: "This will reset all built-in profiles to their original settings.\n\n" +
+                  "Custom profiles you created will not be affected.\n\n" +
+                  "Continue?"
+            color: theme.text
+            wrapMode: Text.WordWrap
+        }
+    }
+
+    function saveCurrent() {
+        var name = profileNameField.text.trim()
+        if (!name) {
+            profileNameField.placeholderText = "Name is required!"
+            return
+        }
+        var data = buildCurrentData()
+        data.name = name
         backend.saveProfile(name, JSON.stringify(data))
         back()
     }

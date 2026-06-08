@@ -23,11 +23,13 @@ public:
     Q_INVOKABLE QString loadProfile(const QString& name);
     Q_INVOKABLE bool saveProfile(const QString& name, const QString& json);
     Q_INVOKABLE bool deleteProfile(const QString& name);
+    Q_INVOKABLE bool restoreDefaultProfiles();
 
     Q_INVOKABLE QVariantMap getVideoInfo(const QString& rawPath);
     Q_INVOKABLE bool ffmpegAvailable();
     Q_INVOKABLE QString getFfmpegVersion();
     Q_INVOKABLE QString generatePreview(const QString& rawPath, qint64 timeMs);
+    Q_INVOKABLE QString generateCommandPreview(const QString& json);
     Q_INVOKABLE QString startTranscode(const QString& rawInput, const QString& rawOutput,
                                         double startTime, double endTime,
                                         const QString& profileJson);

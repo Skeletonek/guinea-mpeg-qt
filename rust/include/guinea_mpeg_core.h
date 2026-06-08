@@ -11,6 +11,7 @@ const char* guinea_mpeg_available_profiles(void);
 const char* guinea_mpeg_load_profile(const char* name);
 bool        guinea_mpeg_save_profile(const char* name, const char* json);
 bool        guinea_mpeg_delete_profile(const char* name);
+bool        guinea_mpeg_restore_defaults(void);
 void        guinea_mpeg_free_string(const char* s);
 
 bool        guinea_mpeg_ffmpeg_available(void);
@@ -20,8 +21,11 @@ const char* guinea_mpeg_generate_preview(const char* path, long long time_ms);
 
 /* Build ffmpeg cmd line from profile, returns JSON array or NULL */
 const char* guinea_mpeg_build_ffmpeg_command(const char* input, const char* output,
-                                              double start_time, double end_time,
-                                              const char* profile_json);
+                                               double start_time, double end_time,
+                                               const char* profile_json);
+
+/* Preview: build ffmpeg args from profile without input/output paths */
+const char* guinea_mpeg_preview_command(const char* profile_json);
 
 /* Mpv backend: returns opaque handle for C++ render context setup */
 void* guinea_mpeg_mpv_create(void);

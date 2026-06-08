@@ -1,7 +1,17 @@
+### 0.5.0
+- Reworked Profile Editor for visual fidelity
+- Changed profile related buttons in main view to one "Profile Editor" button
+- Allowed renaming default profiles
+- Added option to restore default profiles
+- Added option to use VBR (Variable bitrate)
+- Added option to encode only audio
+- Added support for FLAC, MP3, OGG Vorbis audio codecs (only when exporting without video)
+- Added preview of the final ffmpeg command
+
 ### 0.4.1
-- Fix missing ffprobe in Appimage build
-- Fix QT style not using system colors for background
-- Fix missing 'about' icon in Appimage and Windows builds
+- Fixed missing ffprobe in Appimage build
+- Fixed QT style not using system colors for background
+- Fixed missing 'about' icon in Appimage and Windows builds
 
 ### 0.4.0
 - Added Windows support via MSVC and packaging via InnoSetup

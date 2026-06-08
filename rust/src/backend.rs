@@ -38,6 +38,11 @@ pub extern "C" fn guinea_mpeg_save_profile(
 }
 
 #[no_mangle]
+pub extern "C" fn guinea_mpeg_restore_defaults() -> bool {
+    crate::config::restore_defaults().is_ok()
+}
+
+#[no_mangle]
 pub extern "C" fn guinea_mpeg_delete_profile(name: *const c_char) -> bool {
     let n = unsafe { from_cstr(name) };
     crate::config::delete_profile(n).is_ok()

@@ -5,7 +5,7 @@
 .DESCRIPTION
     Builds GuineaMPEG from source with vendored dependencies.
     Requires `build/vendor/mpv-dev-x86_64/` and `build/vendor/ffmpeg/`. 
-    Run `build\download_vendor.ps1` to fetch these if missing.
+    Run `build\download-vendor.ps1` to fetch these if missing.
 
 .PARAMETER Package
     Create portable ZIP and InnoSetup installer after building.
@@ -26,13 +26,13 @@
     Strip debug info from the final binary for a release build (smaller size).
 
 .EXAMPLE
-    .\build\windows_build.ps1
+    .\build\windows-build.ps1
 
 .EXAMPLE
-    .\build\windows_build.ps1 -Config RelWithDebInfo
+    .\build\windows-build.ps1 -Config RelWithDebInfo
 
 .EXAMPLE
-    .\build\windows_build.ps1 -Package
+    .\build\windows-build.ps1 -Package
 #>
 
 param(
@@ -60,7 +60,7 @@ Builds GuineaMPEG from source. Handles the full pipeline:
   - Bundles ffmpeg for transcoding
 
 Usage:
-  .\build\windows_build.ps1 [options]
+  .\build\windows-build.ps1 [options]
 
 Options:
   -Config <type>     Build config: Release (default) or RelWithDebInfo
@@ -73,9 +73,9 @@ Options:
   -Help              Show this help message
 
 Examples:
-  .\build\windows_build.ps1
-  .\build\windows_build.ps1 -Config RelWithDebInfo -Console
-  .\build\windows_build.ps1 -Package -Clean
+  .\build\windows-build.ps1
+  .\build\windows-build.ps1 -Config RelWithDebInfo -Console
+  .\build\windows-build.ps1 -Package -Clean
 "@
     exit 0
 }
@@ -131,7 +131,7 @@ else {
 $MpvDir = Join-Path (Join-Path (Join-Path $ProjectRoot "build") "vendor") "mpv-dev-x86_64"
 $MpvH = Join-Path $MpvDir "include/mpv/client.h"
 if (-not (Test-Path $MpvH)) {
-    Write-Error "mpv-dev not found at $MpvDir.`nRun .\build\download_vendor.ps1 or download the bundle manually."
+    Write-Error "mpv-dev not found at $MpvDir.`nRun .\build\download-vendor.ps1 or download the bundle manually."
     exit 1
 }
 Write-Host "=== Step 1/6: mpv-dev bundle ===" -ForegroundColor Cyan
@@ -352,7 +352,7 @@ $FfmpegDir = Join-Path (Join-Path (Join-Path $ProjectRoot "build") "vendor") "ff
 $FfmpegExe = Join-Path $FfmpegDir "ffmpeg.exe"
 $FfprobeExe = Join-Path $FfmpegDir "ffprobe.exe"
 if (-not (Test-Path $FfmpegExe)) {
-    Write-Error "ffmpeg.exe not found at $FfmpegDir.`nRun .\build\download_vendor.ps1 or download manually."
+    Write-Error "ffmpeg.exe not found at $FfmpegDir.`nRun .\build\download-vendor.ps1 or download manually."
     exit 1
 }
 Copy-Item $FfmpegExe (Join-Path $OutputDir "ffmpeg.exe") -Force

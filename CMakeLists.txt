@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(guinea_mpeg VERSION 0.4.1 LANGUAGES CXX)
+project(guinea_mpeg VERSION 0.5.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -130,6 +130,9 @@ qt_add_resources(guinea-mpeg "app_qml"
         qml/dialogs/FileOpenDialog.qml
         qml/dialogs/FileSaveDialog.qml
         qml/ControlsPanel.qml
+        qml/ProfileEditor/VideoPanel.qml
+        qml/ProfileEditor/AudioPanel.qml
+        qml/ProfileEditor/AdvancedPanel.qml
 )
 
 target_include_directories(guinea-mpeg PRIVATE ${RUST_PROJECT_DIR}/include)

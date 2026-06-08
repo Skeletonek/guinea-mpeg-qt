@@ -27,7 +27,7 @@ package-generic:
   stage: package
   script:
     - docker build -t guinea-build -f build/docker/debian-trixie.Dockerfile build/docker
-    - docker run --rm -v $PWD:/build -w /build guinea-build ./build/linux_build.sh
+    - docker run --rm -v $PWD:/build -w /build guinea-build ./build/linux-build.sh
   artifacts:
     paths:
       - out/generic/
@@ -38,7 +38,7 @@ package-deb:
   <<: *dind
   stage: package
   script:
-    - ./build/linux_build.sh --package deb
+    - ./build/linux-build.sh --package deb
   artifacts:
     paths:
       - out/deb/
@@ -48,7 +48,7 @@ package-rpm:
   <<: *dind
   stage: package
   script:
-    - ./build/linux_build.sh --package rpm
+    - ./build/linux-build.sh --package rpm
   artifacts:
     paths:
       - out/rpm/
@@ -58,7 +58,7 @@ package-pacman:
   <<: *dind
   stage: package
   script:
-    - ./build/linux_build.sh --package pacman
+    - ./build/linux-build.sh --package pacman
   artifacts:
     paths:
       - out/pacman/
@@ -72,7 +72,7 @@ package-flatpak:
       flatpak flatpak-builder git elfutils ca-certificates librsvg2-common
     - flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
   script:
-    - ./build/linux_build.sh --package flatpak
+    - ./build/linux-build.sh --package flatpak
   artifacts:
     paths:
       - out/flatpak/

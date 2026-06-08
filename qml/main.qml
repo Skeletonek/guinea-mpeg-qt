@@ -96,12 +96,7 @@ ApplicationWindow {
                         playerItem: player
 
                         onOpenVideoClicked: fileDialog.open()
-                        onEditProfileClicked: function(profileName) {
-                            currentProfile = profileName
-                            stackView.push(profileEditorPage)
-                        }
-                        onNewProfileClicked: {
-                            currentProfile = ""
+                        onProfileEditorClicked: {
                             stackView.push(profileEditorPage)
                         }
                         onBrowseOutputClicked: {
@@ -175,12 +170,23 @@ ApplicationWindow {
         var dot = name.lastIndexOf(".")
         var base = dot >= 0 ? name.substring(0, dot) : name
         var dir = idx >= 0 ? filePath.substring(0, idx + 1) : ""
-        appWindow.outputFilePath = dir + base + "_transcoded." + getExtensionForCodec(currentCodec)
+        var profileData = {}
+        try { profileData = JSON.parse(backend.loadProfile(currentProfile)) } catch(e) {}
+        appWindow.outputFilePath = dir + base + "_transcoded." + getExtensionForProfile(profileData)
     }
 
-    function getExtensionForCodec(codec) {
-        if (codec === "h264") return "mp4"
-        return "webm"
+    function getExtensionForProfile(d) {
+        if (d.video_enabled !== false) {
+            if (d.codec === "h264") return "mp4"
+            return "webm"
+        }
+        switch (d.audio_codec) {
+            case "FLAC": return "flac"
+            case "MP3":  return "mp3"
+            case "AAC":  return "m4a"
+            case "Opus": return "opus"
+            case "Vorbis": return "ogg"
+        }
     }
 
     function updateCodec() {
@@ -190,7 +196,7 @@ ApplicationWindow {
         } catch(e) {
             currentCodec = "h264"
         }
-        var ext = getExtensionForCodec(currentCodec)
+        var ext = getExtensionForProfile(d || {})
         var path = appWindow.outputFilePath
         var dot = path.lastIndexOf(".")
         if (dot >= 0) path = path.substring(0, dot)
