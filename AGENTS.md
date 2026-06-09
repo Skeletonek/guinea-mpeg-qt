@@ -10,6 +10,16 @@
 - Event processing: mpv wakeup callback → Qt signal → `handleMpvEvents()` calls `guinea_mpeg_mpv_process_events()` → emits Qt signals based on returned bitmask (1=position, 2=duration, 4=playing).
 - `MpvRenderer` stays in C++ (QQuickFramebufferObject::Renderer cannot be in Rust). Creates `mpv_render_context*` from the raw handle.
 
+## Profile Editor Patterns
+- Profile selector `ComboBox` uses `property var _profileNames` as model (via `model: root._profileNames` binding) instead of direct `model` assignment. Update `_profileNames` to trigger model refresh; avoids Qt internal ComboBox index-reset issues.
+- Notification label sits in the toolbar `RowLayout` between Delete and Restore Defaults buttons. Uses `visible: false` to collapse, with a two-timer sequence: 3s fade via `opacity`, then 350ms delay before `visible = false` so the fade animation completes.
+- `Flickable` wrapping the editor has `ScrollBar.vertical` with `policy: ScrollBar.AsNeeded`.
+- Tune, Pixel fmt, and Preset fields use editable ComboBoxes with a "default"/"source" sentinel at index 0. When selected, the value is emitted as `null` (omitted from ffmpeg command).
+- Preset ComboBox model is codec-aware: H.264 lists `ultrafast..placebo`, VP8/VP9 lists `good/best/realtime`, SVT-AV1 lists `0..13`. Changing codec resets preset to "default" if the old value isn't in the new model.
+- VP8/VP9 have a dedicated section (like SVT-AV1's tile section) with a `-cpu-used` selector (0–5). `cpu_used` emitted as integer; Rust emits `-cpu-used <N>` and `-deadline <preset>` instead of `-preset` for vp8/vp9 codecs.
+- Scaling section uses Row-based layout (Label width 100px + ComboBox fills rest) matching Preset/Tune/Pixel fmt rows, replacing the old Grid layout.
+- `_loading` guard wraps model/list changes in save/delete/restore functions to prevent `onCurrentTextChanged` from triggering spurious `loadProfile` calls.
+
 ## QML Patterns
 - IDs inside a `Component` are NOT accessible from outside it. The reverse works (parent scope IDs accessible from within Component).
 - `FileDialog.selectedFile` is a `file:///...` URL. Strip `file://` prefix only for C++ paths; QML `url` properties accept it directly.
@@ -45,6 +55,7 @@
 - `load_profiles_from_file()` tries `Vec` format first, falls back to legacy `HashMap` (`[profiles."name"]`) for backwards compat.
 - `save_user_config()` writes in `[[profiles]]` format (the canonical form).
 - Merging: defaults loaded first, then user config overlays by `p.name`. Same name = user profile wins.
+- `cpu_used: Option<i32>` stores VP8/VP9 `-cpu-used` value (0–5). Used only for vp8/vp9 codecs; Rust emits `-deadline <preset>` instead of `-preset` for these codecs.
 
 ## Build
 - `cmake -S . -B out && cmake --build out` in project root. Rust builds automatically via cargo.

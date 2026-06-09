@@ -8,6 +8,13 @@
 - Added option to encode without audio
 - Added support for FLAC, MP3, OGG Vorbis audio codecs (only when exporting without video)
 - Added preview of the final ffmpeg command
+- Added option to use source Pixel format and default Tune
+- Added option to specify cpu-used parameter for VP8 and VP9 codecs
+- Added confirmation dialog when deleting a profile
+- Increased minimum application window size to 1024x768
+- Changed pixel format to have predefined options
+- Changed preset to have predefined options based on the codec chosen
+- Changed default profiles to simplify basic transcoding
 
 ### 0.4.1
 - Fixed missing ffprobe in Appimage build

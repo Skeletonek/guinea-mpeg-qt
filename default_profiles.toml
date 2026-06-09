@@ -1,76 +1,52 @@
 [[profiles]]
-name = "H.264 1080p"
+name = "H.264 High"
 codec = "h264"
 crf = 18
 preset = "slow"
 tune = "film"
 resolution = "1080p"
-framerate = 30.0
+framerate = 0.0
 pixel_format = "yuv420p"
-audio_bitrate = "192k"
+audio_bitrate = "256k"
 audio_channels = 2
 audio_sample_rate = 48000
 
 [[profiles]]
-name = "H.264 720p"
-codec = "h264"
-crf = 23
-preset = "medium"
-tune = "film"
+name = "VP9 Low"
+codec = "vp9"
+crf = 40
+preset = "good"
+cpu_used = 3
+tune = "ssim"
 resolution = "720p"
 framerate = 30.0
 pixel_format = "yuv420p"
-audio_bitrate = "128k"
+audio_bitrate = "64k"
 audio_channels = 2
 audio_sample_rate = 48000
 
 [[profiles]]
-name = "VP9 720p Web"
-codec = "vp9"
-crf = 35
-preset = "medium"
-tune = "vmaf"
-resolution = "720p"
-framerate = 30.0
-pixel_format = "yuv420p"
-audio_bitrate = "128k"
-audio_channels = 2
-audio_sample_rate = 48000
-
-[[profiles]]
-name = "VP9 1080p"
-codec = "vp9"
-crf = 30
-preset = "medium"
-tune = "vmaf"
-resolution = "1080p"
-framerate = 30.0
-pixel_format = "yuv420p"
-audio_bitrate = "192k"
-audio_channels = 2
-audio_sample_rate = 48000
-
-[[profiles]]
-name = "VP9 720p"
+name = "VP9 Medium"
 codec = "vp9"
 crf = 32
-preset = "medium"
-tune = "vmaf"
+preset = "good"
+cpu_used = 2
+tune = "ssim"
 resolution = "720p"
-framerate = 30.0
+framerate = 0.0
 pixel_format = "yuv420p"
 audio_bitrate = "128k"
 audio_channels = 2
 audio_sample_rate = 48000
 
 [[profiles]]
-name = "AV1 1080p"
+name = "AV1 High"
 codec = "svtav1"
 crf = 28
-preset = "8"
+preset = "6"
 tune = "vmaf"
-resolution = "1080p"
-framerate = 30.0
+resolution = "native"
+framerate = 0.0
 pixel_format = "yuv420p"
 tile_rows = 2
 tile_columns = 3
@@ -80,10 +56,26 @@ audio_channels = 2
 audio_sample_rate = 48000
 
 [[profiles]]
-name = "AV1 720p"
+name = "AV1 Medium"
 codec = "svtav1"
 crf = 35
-preset = "10"
+preset = "6"
+tune = "vmaf"
+resolution = "720p"
+framerate = 0.0
+pixel_format = "yuv420p"
+tile_rows = 1
+tile_columns = 2
+enable_qm = false
+audio_bitrate = "128k"
+audio_channels = 2
+audio_sample_rate = 48000
+
+[[profiles]]
+name = "AV1 Low"
+codec = "svtav1"
+crf = 42
+preset = "6"
 tune = "vmaf"
 resolution = "720p"
 framerate = 30.0
@@ -91,6 +83,6 @@ pixel_format = "yuv420p"
 tile_rows = 1
 tile_columns = 2
 enable_qm = false
-audio_bitrate = "128k"
+audio_bitrate = "64k"
 audio_channels = 2
 audio_sample_rate = 48000

@@ -166,10 +166,9 @@ User profiles merge over defaults (same name = user override).
 
 | Profile | Codec | Quality |
 |---------|-------|---------|
-| H.264 1080p | libx264 | CRF 18, slow preset, film tune, 192k audio |
-| H.264 720p | libx264 | CRF 23, medium preset, film tune |
-| VP9 720p Web | libvpx-vp9 | CRF 35, medium preset, VMAF tune |
-| VP9 1080p | libvpx-vp9 | CRF 30, medium preset, VMAF tune, 192k audio |
-| VP9 720p | libvpx-vp9 | CRF 32, medium preset, VMAF tune |
-| AV1 1080p | libsvtav1 | CRF 28, preset 8, VMAF tune, 192k audio |
-| AV1 720p | libsvtav1 | CRF 35, preset 10, VMAF tune |
+| H.264 High | libx264 | CRF 18, slow preset, film tune, 1080p |
+| VP9 Low | libvpx-vp9 | CRF 40, deadline=good, cpu-used=3, ssim tune, 720p |
+| VP9 Medium | libvpx-vp9 | CRF 32, deadline=good, cpu-used=2, ssim tune, 720p |
+| AV1 High | libsvtav1 | CRF 28, preset 6, VMAF tune, native res, tiles 2x3 |
+| AV1 Medium | libsvtav1 | CRF 35, preset 6, VMAF tune, 720p, tiles 1x2 |
+| AV1 Low | libsvtav1 | CRF 42, preset 6, VMAF tune, 720p |

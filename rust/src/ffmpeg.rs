@@ -119,7 +119,16 @@ fn build_command(
             }
         }
 
-        if let Some(preset) = &profile.preset {
+        if profile.codec == "vp8" || profile.codec == "vp9" {
+            if let Some(cpu) = profile.cpu_used {
+                args.push("-cpu-used".to_string());
+                args.push(cpu.to_string());
+            }
+            if let Some(preset) = &profile.preset {
+                args.push("-deadline".to_string());
+                args.push(preset.clone());
+            }
+        } else if let Some(preset) = &profile.preset {
             if profile.codec != "svtav1" {
                 args.push("-preset".to_string());
                 args.push(preset.clone());

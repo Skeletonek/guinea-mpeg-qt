@@ -12,11 +12,20 @@ Rectangle {
     property bool _loading: false
     property var _defaultNames: []
     property bool _isDefaultProfile: _defaultNames.indexOf(profileName) >= 0
+    property var _profileNames: []
 
     Timer {
         id: notifyTimer
         interval: 3000
-        onTriggered: notifyLabel.opacity = 0
+        onTriggered: {
+            notifyLabel.opacity = 0
+            notifyCollapseTimer.start()
+        }
+    }
+    Timer {
+        id: notifyCollapseTimer
+        interval: 350
+        onTriggered: notifyLabel.visible = false
     }
 
     Flickable {
@@ -24,6 +33,9 @@ Rectangle {
         anchors.margins: 10
         contentHeight: mainColumn.height + 30
         clip: true
+        ScrollBar.vertical: ScrollBar {
+            policy: ScrollBar.AsNeeded
+        }
 
         Column {
             id: mainColumn
@@ -36,16 +48,6 @@ Rectangle {
                 font.pixelSize: 20
                 color: theme.text
                 bottomPadding: 4
-            }
-
-            Label {
-                id: notifyLabel
-                width: parent.width
-                color: theme.accent
-                font.pixelSize: 13
-                wrapMode: Text.WordWrap
-                opacity: 0
-                Behavior on opacity { NumberAnimation { duration: 300 } }
             }
 
             // Top bar
@@ -67,10 +69,7 @@ Rectangle {
                 ComboBox {
                     id: profileSelector
                     Layout.preferredWidth: 300
-                    model: {
-                        var raw = backend.availableProfiles()
-                        try { return JSON.parse(raw) } catch(e) { return [] }
-                    }
+                    model: root._profileNames
                     displayText: currentIndex < 0 ? "New profile" : currentText
                     onCurrentTextChanged: {
                         if (_loading) return
@@ -94,6 +93,17 @@ Rectangle {
                     text: _isDefaultProfile ? "Restore" : "Delete"
                     visible: profileName !== ""
                     onClicked: _isDefaultProfile ? restoreSingleProfile() : deleteDialog.open()
+                }
+
+                Label {
+                    id: notifyLabel
+                    Layout.leftMargin: 12
+                    color: theme.accent
+                    font.pixelSize: 13
+                    elide: Text.ElideRight
+                    visible: false
+                    opacity: 0
+                    Behavior on opacity { NumberAnimation { duration: 300 } }
                 }
 
                 Item { Layout.fillWidth: true }
@@ -217,8 +227,8 @@ Rectangle {
         audioPanel.setData(d)
         advancedPanel.setData(d)
 
-        for (var i = 0; i < profileSelector.model.length; i++) {
-            if (profileSelector.model[i] === name) {
+        for (var i = 0; i < _profileNames.length; i++) {
+            if (_profileNames[i] === name) {
                 profileSelector.currentIndex = i
                 break
             }
@@ -230,11 +240,10 @@ Rectangle {
 
     function restoreDefaults() {
         backend.restoreDefaultProfiles()
-        var names = JSON.parse(backend.availableProfiles())
         _loading = true
-        profileSelector.model = names
-        if (names.length > 0)
-            loadProfile(names[0])
+        _profileNames = JSON.parse(backend.availableProfiles())
+        if (_profileNames.length > 0)
+            loadProfile(_profileNames[0])
         else
             resetToNew()
         _loading = false
@@ -299,6 +308,7 @@ Rectangle {
     function showNotification(msg, clr) {
         notifyLabel.text = msg
         notifyLabel.color = clr || theme.accent
+        notifyLabel.visible = true
         notifyLabel.opacity = 1
         notifyTimer.restart()
     }
@@ -313,11 +323,10 @@ Rectangle {
         data.name = name
         backend.saveProfile(name, JSON.stringify(data))
         _defaultNames = JSON.parse(backend.defaultProfileNames())
-        var names = JSON.parse(backend.availableProfiles())
         _loading = true
-        profileSelector.model = names
+        _profileNames = JSON.parse(backend.availableProfiles())
         profileName = name
-        profileSelector.currentIndex = profileSelector.model.indexOf(name)
+        profileSelector.currentIndex = _profileNames.indexOf(name)
         _loading = false
         showNotification("Profile \"" + name + "\" saved", theme.accent)
     }
@@ -325,11 +334,10 @@ Rectangle {
     function deleteCurrent() {
         var deletedName = profileName
         backend.deleteProfile(deletedName)
-        var names = JSON.parse(backend.availableProfiles())
         _loading = true
-        profileSelector.model = names
-        if (names.length > 0)
-            loadProfile(names[0])
+        _profileNames = JSON.parse(backend.availableProfiles())
+        if (_profileNames.length > 0)
+            loadProfile(_profileNames[0])
         else
             resetToNew()
         _loading = false
@@ -339,15 +347,15 @@ Rectangle {
     function restoreSingleProfile() {
         var restoredName = profileName
         backend.deleteProfile(restoredName)
-        var names = JSON.parse(backend.availableProfiles())
         _loading = true
-        profileSelector.model = names
+        _profileNames = JSON.parse(backend.availableProfiles())
         loadProfile(restoredName)
         _loading = false
         showNotification("Profile \"" + restoredName + "\" restored to defaults", theme.accent)
     }
 
     Component.onCompleted: {
+        _profileNames = JSON.parse(backend.availableProfiles())
         _defaultNames = JSON.parse(backend.defaultProfileNames())
         loadProfile(profileName)
     }
