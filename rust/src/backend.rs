@@ -21,6 +21,12 @@ pub extern "C" fn guinea_mpeg_available_profiles() -> *mut c_char {
 }
 
 #[no_mangle]
+pub extern "C" fn guinea_mpeg_default_profile_names() -> *mut c_char {
+    let names = crate::config::default_profile_names();
+    to_json(&names)
+}
+
+#[no_mangle]
 pub extern "C" fn guinea_mpeg_load_profile(name: *const c_char) -> *mut c_char {
     let n = unsafe { from_cstr(name) };
     let profile = crate::config::load_profile(n);

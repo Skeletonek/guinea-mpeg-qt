@@ -8,6 +8,7 @@ extern "C" {
 
 /* Profile mgmt: returns JSON strings, free with guinea_mpeg_free_string */
 const char* guinea_mpeg_available_profiles(void);
+const char* guinea_mpeg_default_profile_names(void);
 const char* guinea_mpeg_load_profile(const char* name);
 bool        guinea_mpeg_save_profile(const char* name, const char* json);
 bool        guinea_mpeg_delete_profile(const char* name);

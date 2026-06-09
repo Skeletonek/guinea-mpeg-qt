@@ -121,6 +121,12 @@ fn set_config(config: AppConfig) {
     *guard = Some(config);
 }
 
+pub fn default_profile_names() -> Vec<String> {
+    let mut names = load_defaults().into_iter().map(|p| p.name.clone()).collect::<Vec<_>>();
+    names.sort();
+    names
+}
+
 pub fn available_profiles() -> Vec<String> {
     let config = get_config();
     let mut names = config.profiles.iter().map(|p| p.name.clone()).collect::<Vec<_>>();

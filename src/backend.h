@@ -20,6 +20,7 @@ public:
     void setTranscoding(bool v);
 
     Q_INVOKABLE QString availableProfiles();
+    Q_INVOKABLE QString defaultProfileNames();
     Q_INVOKABLE QString loadProfile(const QString& name);
     Q_INVOKABLE bool saveProfile(const QString& name, const QString& json);
     Q_INVOKABLE bool deleteProfile(const QString& name);

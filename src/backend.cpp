@@ -25,6 +25,13 @@ void GuineaMpegBackendExt::setTranscoding(bool v) {
     emit transcodingChanged();
 }
 
+QString GuineaMpegBackendExt::defaultProfileNames() {
+    const char* json = guinea_mpeg_default_profile_names();
+    QString result = QString::fromUtf8(json);
+    guinea_mpeg_free_string(json);
+    return result;
+}
+
 QString GuineaMpegBackendExt::availableProfiles() {
     const char* json = guinea_mpeg_available_profiles();
     QString result = QString::fromUtf8(json);

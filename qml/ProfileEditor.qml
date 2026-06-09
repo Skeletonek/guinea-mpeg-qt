@@ -10,6 +10,14 @@ Rectangle {
     signal back
 
     property bool _loading: false
+    property var _defaultNames: []
+    property bool _isDefaultProfile: _defaultNames.indexOf(profileName) >= 0
+
+    Timer {
+        id: notifyTimer
+        interval: 3000
+        onTriggered: notifyLabel.opacity = 0
+    }
 
     Flickable {
         anchors.fill: parent
@@ -28,6 +36,16 @@ Rectangle {
                 font.pixelSize: 20
                 color: theme.text
                 bottomPadding: 4
+            }
+
+            Label {
+                id: notifyLabel
+                width: parent.width
+                color: theme.accent
+                font.pixelSize: 13
+                wrapMode: Text.WordWrap
+                opacity: 0
+                Behavior on opacity { NumberAnimation { duration: 300 } }
             }
 
             // Top bar
@@ -53,6 +71,7 @@ Rectangle {
                         var raw = backend.availableProfiles()
                         try { return JSON.parse(raw) } catch(e) { return [] }
                     }
+                    displayText: currentIndex < 0 ? "New profile" : currentText
                     onCurrentTextChanged: {
                         if (_loading) return
                         if (currentText && currentText !== profileName)
@@ -72,9 +91,9 @@ Rectangle {
                 }
 
                 Button {
-                    text: "Delete"
+                    text: _isDefaultProfile ? "Restore" : "Delete"
                     visible: profileName !== ""
-                    onClicked: deleteCurrent()
+                    onClicked: _isDefaultProfile ? restoreSingleProfile() : deleteDialog.open()
                 }
 
                 Item { Layout.fillWidth: true }
@@ -162,6 +181,7 @@ Rectangle {
         profileName = ""
         profileNameField.text = ""
         profileNameField.placeholderText = "Enter profile name..."
+        profileSelector.currentIndex = -1
         _loading = true
         videoPanel.setData({
             codec: "h264", video_enabled: true, rate_control: "crf",
@@ -211,11 +231,13 @@ Rectangle {
     function restoreDefaults() {
         backend.restoreDefaultProfiles()
         var names = JSON.parse(backend.availableProfiles())
+        _loading = true
         profileSelector.model = names
         if (names.length > 0)
             loadProfile(names[0])
         else
             resetToNew()
+        _loading = false
     }
 
     Dialog {
@@ -247,6 +269,40 @@ Rectangle {
         }
     }
 
+    Dialog {
+        id: deleteDialog
+        title: "Delete Profile"
+        standardButtons: Dialog.Yes | Dialog.No
+        width: 380
+        padding: 0
+        implicitHeight: implicitHeaderHeight + delMsg.implicitHeight + implicitFooterHeight + 24
+        Component.onCompleted: centerInParent()
+        onOpened: centerInParent()
+        function centerInParent() {
+            if (parent) {
+                x = Math.round((parent.width - width) / 2)
+                y = Math.round((parent.height - height) / 2)
+            }
+        }
+        onAccepted: deleteCurrent()
+
+        Label {
+            id: delMsg
+            anchors.fill: parent
+            anchors.margins: 16
+            text: "Delete profile \"" + profileName + "\"?\n\nThis cannot be undone."
+            color: theme.text
+            wrapMode: Text.WordWrap
+        }
+    }
+
+    function showNotification(msg, clr) {
+        notifyLabel.text = msg
+        notifyLabel.color = clr || theme.accent
+        notifyLabel.opacity = 1
+        notifyTimer.restart()
+    }
+
     function saveCurrent() {
         var name = profileNameField.text.trim()
         if (!name) {
@@ -256,13 +312,43 @@ Rectangle {
         var data = buildCurrentData()
         data.name = name
         backend.saveProfile(name, JSON.stringify(data))
-        back()
+        _defaultNames = JSON.parse(backend.defaultProfileNames())
+        var names = JSON.parse(backend.availableProfiles())
+        _loading = true
+        profileSelector.model = names
+        profileName = name
+        profileSelector.currentIndex = profileSelector.model.indexOf(name)
+        _loading = false
+        showNotification("Profile \"" + name + "\" saved", theme.accent)
     }
 
     function deleteCurrent() {
-        backend.deleteProfile(profileName)
-        back()
+        var deletedName = profileName
+        backend.deleteProfile(deletedName)
+        var names = JSON.parse(backend.availableProfiles())
+        _loading = true
+        profileSelector.model = names
+        if (names.length > 0)
+            loadProfile(names[0])
+        else
+            resetToNew()
+        _loading = false
+        showNotification("Profile \"" + deletedName + "\" deleted", "#e66")
     }
 
-    Component.onCompleted: loadProfile(profileName)
+    function restoreSingleProfile() {
+        var restoredName = profileName
+        backend.deleteProfile(restoredName)
+        var names = JSON.parse(backend.availableProfiles())
+        _loading = true
+        profileSelector.model = names
+        loadProfile(restoredName)
+        _loading = false
+        showNotification("Profile \"" + restoredName + "\" restored to defaults", theme.accent)
+    }
+
+    Component.onCompleted: {
+        _defaultNames = JSON.parse(backend.defaultProfileNames())
+        loadProfile(profileName)
+    }
 }
