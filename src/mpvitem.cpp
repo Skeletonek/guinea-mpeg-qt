@@ -150,6 +150,11 @@ void MpvItem::setPosition(int pos)
 void MpvItem::play()
 {
     if (!m_backend) return;
+    if (m_duration > 0 && m_position >= m_duration - 500) {
+        guinea_mpeg_mpv_seek(m_backend, 0);
+        m_position = 0;
+        emit positionChanged();
+    }
     guinea_mpeg_mpv_play(m_backend);
     m_playing = true;
     emit playingChanged();

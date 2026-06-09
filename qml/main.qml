@@ -176,6 +176,11 @@ ApplicationWindow {
         appWindow.outputFilePath = dir + base + "_transcoded." + getExtensionForProfile(profileData)
     }
 
+    function getExtensionForCodec(codec) {
+        if (codec === "h264") return "mp4"
+        return "webm"
+    }
+
     function getExtensionForProfile(d) {
         if (d.video_enabled !== false) {
             if (d.codec === "h264") return "mp4"

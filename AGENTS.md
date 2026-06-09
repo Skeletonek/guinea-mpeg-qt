@@ -58,8 +58,9 @@
 - `cpu_used: Option<i32>` stores VP8/VP9 `-cpu-used` value (0–5). Used only for vp8/vp9 codecs; Rust emits `-deadline <preset>` instead of `-preset` for these codecs.
 
 ## Build
-- `cmake -S . -B out && cmake --build out` in project root. Rust builds automatically via cargo.
-- CMake runs `cargo build --release` at configure time via `execute_process`. Rust is always built as `cdylib` (`.so`/`.dylib`/`.dll`) and linked dynamically.
+- Always use `build/linux-build.sh` to build (not manual cmake). The script uses `out/.build-generic/` as the build directory.
+- `build/linux-build.sh --clean` to rebuild from scratch.
+- Rust builds automatically via cargo.
 - `crate-type = ["cdylib"]` in `rust/Cargo.toml`.
 - No `--whole-archive` needed — plain `extern "C"` symbols are found by the linker without static initializer tricks.
 - No CXX/CXX-Qt generated code or discovery. C header at `rust/include/guinea_mpeg_core.h` is included via `target_include_directories`.
