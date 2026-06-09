@@ -18,7 +18,7 @@ if(UNIX)
     include(GNUInstallDirs)
 endif()
 
-find_package(Qt6 6.5 REQUIRED COMPONENTS Quick QuickControls2 Widgets)
+find_package(Qt6 6.5 REQUIRED COMPONENTS Quick QuickControls2 Widgets Multimedia)
 if(UNIX AND NOT APPLE)
     find_package(Qt6 6.5 REQUIRED COMPONENTS DBus)
 endif()
@@ -136,6 +136,8 @@ qt_add_resources(guinea-mpeg "app_qml"
         qml/ProfileEditor/VideoPanel.qml
         qml/ProfileEditor/AudioPanel.qml
         qml/ProfileEditor/AdvancedPanel.qml
+        media/images/lettuce.png
+        media/audio/guinea.wav
 )
 
 target_include_directories(guinea-mpeg PRIVATE ${RUST_PROJECT_DIR}/include)
@@ -145,6 +147,7 @@ target_link_libraries(guinea-mpeg
     PRIVATE Qt6::QuickControls2
     PRIVATE Qt6::Gui
     PRIVATE Qt6::Widgets
+    PRIVATE Qt6::Multimedia
 
 )
 

@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import QtMultimedia
 
 Dialog {
     id: root
@@ -10,13 +11,106 @@ Dialog {
     padding: 0
     implicitHeight: implicitHeaderHeight + mainLayout.implicitHeight + implicitFooterHeight + 24
 
+    property bool easterEggActivated: false
+    property var konamiSequence: [Qt.Key_Up, Qt.Key_Up, Qt.Key_Down, Qt.Key_Down,
+        Qt.Key_Left, Qt.Key_Right, Qt.Key_Left, Qt.Key_Right, Qt.Key_B, Qt.Key_A]
+    property int konamiIndex: 0
+
+    SoundEffect {
+        id: eatSound
+        source: "/media/audio/guinea.wav"
+        volume: 1.0
+    }
+
+    Item {
+        id: keyCatcher
+        focus: true
+        width: 0
+        height: 0
+
+        Keys.onPressed: function(event) {
+            if (!easterEggActivated) {
+                if (event.key === konamiSequence[konamiIndex]) {
+                    konamiIndex++
+                    if (konamiIndex === konamiSequence.length) {
+                        konamiIndex = 0
+                        spawnLettuce()
+                    }
+                } else {
+                    konamiIndex = 0
+                }
+            }
+            event.accepted = false
+        }
+    }
+
     Component.onCompleted: centerInParent()
-    onOpened: centerInParent()
+    onOpened: {
+        centerInParent()
+        keyCatcher.forceActiveFocus()
+    }
     function centerInParent() {
         if (parent) {
             x = Math.round((parent.width - width) / 2)
             y = Math.round((parent.height - height) / 2)
         }
+    }
+
+    Item {
+        id: overlay
+        anchors.fill: parent
+        z: 999
+
+        Item {
+            id: lettuceItem
+            visible: false
+            width: 64
+            height: 64
+            z: 100
+
+            Image {
+                anchors.fill: parent
+                source: "/media/images/lettuce.png"
+                sourceSize.width: 64
+                sourceSize.height: 64
+                fillMode: Image.PreserveAspectFit
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                drag.target: parent
+                cursorShape: Qt.OpenHandCursor
+
+                onReleased: checkLettuceDrop(lettuceItem)
+                onCanceled: hideLettuce()
+            }
+        }
+    }
+
+    function spawnLettuce() {
+        if (easterEggActivated) return
+        easterEggActivated = true
+        lettuceItem.visible = true
+        lettuceItem.x = Math.round((root.width - 64) / 2)
+        lettuceItem.y = root.height - 64 - implicitFooterHeight - 16
+    }
+
+    function hideLettuce() {
+        lettuceItem.visible = false
+    }
+
+    function checkLettuceDrop(lettuce) {
+        var pos = lettuce.mapToItem(guineaPigItem, 0, 0)
+
+        var lx = pos.x
+        var ly = pos.y
+        var rx = lx + lettuce.width
+        var ry = ly + lettuce.height
+
+        if (rx > 0 && lx < guineaPigItem.width && ry > 0 && ly < guineaPigItem.height) {
+            eatSound.play()
+        }
+        hideLettuce()
     }
 
     ColumnLayout {
@@ -33,11 +127,18 @@ Dialog {
                 Label { text: "FFmpeg Frontend with Rust Core"; color: theme.textSecondary; font.pixelSize: 12 }
             }
             Item { Layout.fillWidth: true }
-            Image {
-                source: "/media/logo/logo.png"
-                sourceSize.width: 80
-                sourceSize.height: 80
-                fillMode: Image.PreserveAspectFit
+            Item {
+                id: guineaPigItem
+                implicitWidth: 80
+                implicitHeight: 80
+
+                Image {
+                    anchors.fill: parent
+                    source: "/media/logo/logo.png"
+                    sourceSize.width: 80
+                    sourceSize.height: 80
+                    fillMode: Image.PreserveAspectFit
+                }
             }
         }
 

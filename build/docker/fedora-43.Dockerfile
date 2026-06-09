@@ -10,6 +10,7 @@ RUN dnf install -y \
     qt6-qtbase-devel \
     qt6-qtdeclarative-devel \
     qt6-qtquickcontrols2-devel \
+    qt6-qtmultimedia-devel \
     mesa-libGL-devel \
     libglvnd-devel \
     libxkbcommon-devel \

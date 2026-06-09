@@ -92,6 +92,15 @@
 - Dark mode detection reads Windows registry `HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize\AppsUseLightTheme`. A `theme` context property with color keys is exported to QML.
 - OS name / distro detection uses `QSysInfo::prettyProductName()` on all platforms — no manual `/etc/os-release` parsing.
 
+## Konami Code Easter Egg (AboutDialog)
+- Trigger: ↑↑↓↓←→←→BA typed while About window is open. One-shot per app run (`easterEggActivated` guard).
+- Keyboard capture: `Keys.onPressed` on a child `Item` (`keyCatcher`) with `focus: true`. `forceActiveFocus()` is called in `onOpened` to ensure focus. Must NOT be attached to `Dialog`/`Popup` directly — QML rejects `Keys` on non-Item types.
+- `event.accepted = false` is set so keys propagate to other controls (OK button etc.).
+- Lettuce: declared inline inside an `overlay` Item (`anchors.fill: parent`, `z: 999`) with `visible: false` initially. Toggled on spawn — avoids `createObject`/`Component` which caused scene graph parenting issues with QQC2 Popup.
+- Drag via `MouseArea.drag.target: parent`. Drop detection via manual AABB intersection using `mapToItem(guineaPigItem, 0, 0)` + coordinate math — `Qt.rect().intersects()` is NOT available in QML runtime. `DropArea` was unreliable with Popup child items.
+- `onCanceled: hideLettuce()` on the MouseArea handles drags aborted when the mouse leaves the dialog area (popup cancels the mouse grab).
+- Audio: `SoundEffect` from `QtMultimedia`. Requires WAV (PCM s16le) — OGG Vorbis is not decodable by `QSoundEffect` even with the FFmpeg backend. `Qt6::Multimedia` is a required CMake dependency.
+
 ## MPV Integration Notes
 - `MpvItem` (QQuickFramebufferObject) wraps libmpv via Rust's `extern "C"` backend (`void* m_backend`). The raw `mpv_handle*` is extracted from Rust for render context + wakeup setup.
 - Bitmask from `guinea_mpeg_mpv_process_events()`: 1=position, 2=duration, 4=playing.

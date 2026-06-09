@@ -9,5 +9,6 @@ RUN pacman -Syu --noconfirm && \
     rust \
     mpv \
     qt6-base \
+    qt6-multimedia \
     qt6-declarative \
     && pacman -Scc --noconfirm
