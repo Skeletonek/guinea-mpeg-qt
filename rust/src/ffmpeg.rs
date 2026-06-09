@@ -66,7 +66,7 @@ fn build_command(
         args.push(format!("{}", start_time));
     }
     args.push("-i".to_string());
-    args.push(input.to_string());
+    args.push(normalize_path(input));
 
     if end_time > start_time {
         args.push("-t".to_string());
@@ -227,7 +227,7 @@ fn build_command(
     }
 
     args.push("-y".to_string());
-    args.push(output.to_string());
+    args.push(normalize_path(output));
 
     args
 }
