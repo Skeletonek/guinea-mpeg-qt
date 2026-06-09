@@ -41,9 +41,10 @@ else
     echo "  WARNING: static ffmpeg download failed!"
 fi
 
-# linuxdeploy-plugin-qt scans QML files for imports — copy temporarily
+# linuxdeploy-plugin-qt scans QML files for imports — copy recursively so
+# subdirectory QML files (dialogs/, ProfileEditor/) are also scanned
 mkdir -p "$APPDIR/qml"
-cp /source/qml/*.qml "$APPDIR/qml/"
+cp -r /source/qml/. "$APPDIR/qml/"
 
 echo "=== Downloading linuxdeploy ==="
 wget -q -c "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage" -O /tmp/linuxdeploy.AppImage
@@ -64,7 +65,7 @@ ln -s /tmp/linuxdeploy-plugin-qt-root/usr/bin/linuxdeploy-plugin-qt /tmp/linuxde
 
 echo "=== Bundling dependencies ==="
 export QML_SOURCES_PATHS="$APPDIR/qml"
-export EXTRA_QT_MODULES="quick;quickcontrols2"
+export EXTRA_QT_MODULES="quick;quickcontrols2;multimedia"
 /tmp/linuxdeploy-root/AppRun --appdir "$APPDIR" --plugin qt
 
 rm -rf "$APPDIR/qml"

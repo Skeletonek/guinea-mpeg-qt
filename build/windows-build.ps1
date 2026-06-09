@@ -380,7 +380,7 @@ if ($Package) {
 
     $CargoToml = Join-Path (Join-Path $ProjectRoot "rust") "Cargo.toml"
     $Version = Select-String -Path $CargoToml '^version = "(.+)"' | ForEach-Object { $_.Matches.Groups[1].Value }
-    $ArchiveName = "GuineaMPEG-$Version-win64"
+    $ArchiveName = "guinea-mpeg-$Version-x86_64"
 
     # Portable ZIP
     $ZipPath = Join-Path (Split-Path $OutputDir -Parent) "$ArchiveName.zip"

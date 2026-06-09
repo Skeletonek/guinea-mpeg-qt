@@ -19,7 +19,7 @@
 #endif
 
 #ifndef OutputFilename
-    #define OutputFilename "GuineaMPEG-" + AppVersion + "-win64"
+    #define OutputFilename "guinea-mpeg-" + AppVersion + "-x86_64"
 #endif
 
 [Setup]

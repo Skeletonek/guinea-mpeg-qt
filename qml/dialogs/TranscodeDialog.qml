@@ -91,7 +91,7 @@ Dialog {
                     font.pixelSize: 12
                     color: theme.text
                     wrapMode: TextEdit.Wrap
-                    selectByMouse: false
+                    selectByMouse: true
                     textFormat: TextEdit.PlainText
                 }
             }

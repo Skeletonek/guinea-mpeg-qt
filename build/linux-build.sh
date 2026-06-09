@@ -273,18 +273,21 @@ DEB_DEPS=(
     --depends "qml6-module-qtquick-controls"
     --depends "qml6-module-qtquick-layouts"
     --depends "qml6-module-qtquick-dialogs"
+    --depends "qml6-module-qtmultimedia"
 )
 RPM_DEPS=(
     --depends "mpv-libs"
     --depends "qt6-qtquickcontrols2"
     --depends "qt6-qtdeclarative"
     --depends "qt6-qtbase-gui"
+    --depends "qt6-qtmultimedia"
 )
 PACMAN_DEPS=(
     --depends "ffmpeg"
     --depends "mpv"
     --depends "qt6-base"
     --depends "qt6-declarative"
+    --depends "qt6-multimedia"
 )
 
 FPM_BASE=(

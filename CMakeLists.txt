@@ -209,6 +209,13 @@ if(NOT WIN32)
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     )
 
+    # Install the Rust shared library so cmake --install places it correctly
+    # (needed by Flatpak and manual "make install")
+    install(FILES ${RUST_LIB} DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
+    # Set rpath so the installed binary finds the Rust .so without LD_LIBRARY_PATH
+    set_target_properties(guinea-mpeg PROPERTIES INSTALL_RPATH "$ORIGIN/../${CMAKE_INSTALL_LIBDIR}")
+
     install(FILES ${CMAKE_SOURCE_DIR}/default_profiles.toml
         DESTINATION ${CMAKE_INSTALL_DATADIR}/guinea-mpeg
     )

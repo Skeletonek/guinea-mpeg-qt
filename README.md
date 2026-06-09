@@ -127,8 +127,8 @@ Artifacts:
 | Artifact | Path |
 |----------|------|
 | Executable | `out/windows/guinea-mpeg.exe` |
-| Portable ZIP | `out/GuineaMPEG-{version}-win64.zip` |
-| Installer (exe) | `out/GuineaMPEG-{version}-win64.exe` |
+| Portable ZIP | `out/guinea-mpeg-{version}-x86_64.zip` |
+| Installer (exe) | `out/guinea-mpeg-{version}-x86_64.exe` |
 
 Output: `out/windows/guinea-mpeg.exe` (no console window by default).
 

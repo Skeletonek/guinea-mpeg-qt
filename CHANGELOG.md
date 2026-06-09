@@ -2,6 +2,7 @@
 - Added system notification when transcoding finishes (D-Bus on Linux, native toast on Windows)
 - Added auto-pausing preview on entering profile editor or when starting transcode
 - Added replaying preview from start on pressing Play when video is seeked to the end of file
+- Allowed highlighting ffmpeg logs in transcoding window
 - Reworked Profile Editor for visual fidelity
 - Changed profile related buttons in main view to one "Profile Editor" button
 - Allowed renaming default profiles
