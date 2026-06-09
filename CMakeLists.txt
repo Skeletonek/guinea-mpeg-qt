@@ -19,6 +19,9 @@ if(UNIX)
 endif()
 
 find_package(Qt6 6.5 REQUIRED COMPONENTS Quick QuickControls2 Widgets)
+if(UNIX AND NOT APPLE)
+    find_package(Qt6 6.5 REQUIRED COMPONENTS DBus)
+endif()
 
 if(WIN32)
     find_path(MPV_INCLUDE_DIR mpv/client.h
@@ -157,6 +160,7 @@ else()
     target_link_libraries(guinea-mpeg
         PRIVATE PkgConfig::MPV
         PRIVATE PkgConfig::OPENGL
+        PRIVATE Qt6::DBus
     )
 endif()
 

@@ -4,9 +4,22 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#ifdef Q_OS_LINUX
+#include <QDBusMessage>
+#include <QDBusConnection>
+#include <QDBusPendingCall>
+#endif
+#ifdef Q_OS_WIN
+#include <QIcon>
+#endif
 
 GuineaMpegBackendExt::GuineaMpegBackendExt(QObject* parent)
-    : QObject(parent) {}
+    : QObject(parent) {
+#ifdef Q_OS_WIN
+    m_trayIcon = new QSystemTrayIcon(this);
+    m_trayIcon->setIcon(QIcon(QStringLiteral(":/media/logo/logo.png")));
+#endif
+}
 
 GuineaMpegBackendExt::~GuineaMpegBackendExt() {
     if (m_currentTranscode) {
@@ -173,6 +186,31 @@ void GuineaMpegBackendExt::cancelTranscode() {
     m_currentTranscode = nullptr;
 }
 
+void GuineaMpegBackendExt::sendNotification(const QString& title, const QString& body) {
+#ifdef Q_OS_LINUX
+    QDBusMessage msg = QDBusMessage::createMethodCall(
+        QStringLiteral("org.freedesktop.Notifications"),
+        QStringLiteral("/org/freedesktop/Notifications"),
+        QStringLiteral("org.freedesktop.Notifications"),
+        QStringLiteral("Notify")
+    );
+    msg.setArguments({
+        QStringLiteral("GuineaMPEG"),
+        0u,
+        QStringLiteral("guinea-mpeg"),
+        title,
+        body,
+        QStringList(),
+        QVariantMap(),
+        5000
+    });
+    QDBusConnection::sessionBus().asyncCall(msg);
+#elif defined(Q_OS_WIN)
+    if (m_trayIcon)
+        m_trayIcon->showMessage(title, body, QSystemTrayIcon::Information, 5000);
+#endif
+}
+
 void GuineaMpegBackendExt::connectOutputCapture() {
     connect(m_currentTranscode, &QProcess::readyReadStandardError, this, [this]() {
         setTranscodeOutput(transcodeOutput() + QString::fromUtf8(m_currentTranscode->readAllStandardError()));
@@ -184,6 +222,11 @@ void GuineaMpegBackendExt::connectOutputCapture() {
         else
             setTranscodeOutput(transcodeOutput() + "\n--- Transcoding finished: FAILED (exit code "
                 + QString::number(exitCode) + ") ---\n");
+        sendNotification(
+            exitCode == 0 ? "Transcoding Complete" : "Transcoding Failed",
+            exitCode == 0 ? "Your video has been transcoded successfully."
+                          : "Transcoding exited with code " + QString::number(exitCode)
+        );
         emit transcodeFinished(exitCode == 0);
         setTranscoding(false);
         m_currentTranscode->deleteLater();

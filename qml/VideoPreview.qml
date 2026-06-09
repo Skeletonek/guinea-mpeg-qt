@@ -99,6 +99,9 @@ Rectangle {
         }
     }
 
+    function pause() { player.pause() }
+    function play() { player.play() }
+
     function formatTime(ms) {
         var s = Math.floor(ms / 1000)
         var m = Math.floor(s / 60)

@@ -97,6 +97,7 @@ ApplicationWindow {
 
                         onOpenVideoClicked: fileDialog.open()
                         onProfileEditorClicked: {
+                            player.pause()
                             stackView.push(profileEditorPage)
                         }
                         onBrowseOutputClicked: {

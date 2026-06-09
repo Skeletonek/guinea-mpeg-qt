@@ -4,6 +4,9 @@
 #include <QProcess>
 #include <QString>
 #include <QVariantMap>
+#ifdef Q_OS_WIN
+#include <QSystemTrayIcon>
+#endif
 
 class GuineaMpegBackendExt : public QObject {
     Q_OBJECT
@@ -43,8 +46,12 @@ signals:
 
 private:
     void connectOutputCapture();
+    void sendNotification(const QString& title, const QString& body);
 
     QString m_transcodeOutput;
     bool m_transcoding = false;
     QProcess* m_currentTranscode = nullptr;
+#ifdef Q_OS_WIN
+    QSystemTrayIcon* m_trayIcon = nullptr;
+#endif
 };

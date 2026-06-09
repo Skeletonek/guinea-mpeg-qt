@@ -1,4 +1,5 @@
 ### 0.5.0
+- Added system notification when transcoding finishes (D-Bus on Linux, native toast on Windows)
 - Reworked Profile Editor for visual fidelity
 - Changed profile related buttons in main view to one "Profile Editor" button
 - Allowed renaming default profiles

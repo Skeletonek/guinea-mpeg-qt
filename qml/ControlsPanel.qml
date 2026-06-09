@@ -154,6 +154,7 @@ Item {
                 text: "Start Transcoding"
                 enabled: hostWindow && hostWindow.currentVideoPath !== "" && hostWindow.endTime > hostWindow.startTime
                 onClicked: {
+                    if (playerItem) playerItem.pause()
                     if (hostWindow) hostWindow.startTranscoding()
                 }
                 width: parent.width
