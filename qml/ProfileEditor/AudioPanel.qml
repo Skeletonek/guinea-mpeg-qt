@@ -74,7 +74,7 @@ Column {
             Row {
                 spacing: 8
                 width: parent.width
-                visible: !videoEnabled && audioCodecLabels[audioCodecCombo.currentIndex] !== "FLAC"
+                visible: videoEnabled || audioCodecLabels[audioCodecCombo.currentIndex] !== "FLAC"
                 Label { text: "Bitrate"; color: theme.textSecondary; width: 80 }
                 TextField {
                     id: audioBitrateField
