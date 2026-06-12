@@ -74,7 +74,7 @@ Column {
             Row {
                 spacing: 8
                 width: parent.width
-                visible: !videoEnabled && audioCodecCombo.currentText !== "FLAC"
+                visible: !videoEnabled && audioCodecLabels[audioCodecCombo.currentIndex] !== "FLAC"
                 Label { text: "Bitrate"; color: theme.textSecondary; width: 80 }
                 TextField {
                     id: audioBitrateField
@@ -111,8 +111,9 @@ Column {
     }
 
     function getData() {
-        var audioCodec = (!videoEnabled && audioEnabledSwitch.checked)
-            ? audioCodecCombo.currentText || null : null
+        var idx = audioCodecCombo.currentIndex
+        var audioCodec = (!videoEnabled && audioEnabledSwitch.checked && idx >= 0)
+            ? audioCodecLabels[idx] : null
         var data = {
             audio_enabled: audioEnabledSwitch.checked,
             audio_bitrate: audioCodec === "FLAC" ? "" : (audioBitrateField.text || "128k"),

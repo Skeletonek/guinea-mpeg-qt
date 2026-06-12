@@ -2,6 +2,7 @@
 - Fixed flatpak package showing up as generic
 - Fixed wrong container format for only audio exports
 - Fixed using the old container format for updated profile
+- Fixed wrong audio codec showing up in preview for audio only exports
 
 ### 0.5.0
 - Added system notification when transcoding finishes (D-Bus on Linux, native toast on Windows)
