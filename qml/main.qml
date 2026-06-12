@@ -12,7 +12,7 @@ ApplicationWindow {
     minimumWidth: 1024
     minimumHeight: 768
     visible: true
-    title: qsTr("GuineaMPEG - FFmpeg Frontend")
+    title: "GuineaMPEG - FFmpeg Frontend"
 
     property string currentVideoPath: ""
     property var currentVideoInfo: ({})
@@ -164,12 +164,11 @@ ApplicationWindow {
 
         var idx = filePath.lastIndexOf("/")
         var name = idx >= 0 ? filePath.substring(idx + 1) : filePath
-        var audioCodecName = info.audio_codec ? info.audio_codec : "N/A"
         videoInfoText = "File: " + name + "\n" +
                       "Duration: " + info.duration.toFixed(1) + "s\n" +
                       "Resolution: " + info.width + "x" + info.height + "\n" +
                       "Video: " + info.codec + "\n" +
-                      "Audio: " + audioCodecName
+                      "Audio: " + (info.audio_codec || "N/A")
 
         var dot = name.lastIndexOf(".")
         var base = dot >= 0 ? name.substring(0, dot) : name
@@ -194,17 +193,16 @@ ApplicationWindow {
     }
 
     function updateCodec() {
+        var d
         try {
-            var d = JSON.parse(backend.loadProfile(currentProfile))
+            d = JSON.parse(backend.loadProfile(currentProfile))
             currentCodec = d.codec || "h264"
         } catch(e) {
             currentCodec = "h264"
         }
         var ext = getExtensionForProfile(d || {})
-        var path = appWindow.outputFilePath
-        var dot = path.lastIndexOf(".")
-        if (dot >= 0) path = path.substring(0, dot)
-        appWindow.outputFilePath = path + "." + ext
+        var dot = appWindow.outputFilePath.lastIndexOf(".")
+        appWindow.outputFilePath = appWindow.outputFilePath.substring(0, dot >= 0 ? dot : 0) + "." + ext
     }
 
     function startTranscoding() {

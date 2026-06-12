@@ -50,7 +50,6 @@ Rectangle {
                 bottomPadding: 4
             }
 
-            // Top bar
             RowLayout {
                 width: parent.width
 
@@ -128,7 +127,6 @@ Rectangle {
 
             Rectangle { width: parent.width; height: 1; color: theme.textDim }
 
-            // Two-column layout
             Row {
                 spacing: 20
                 width: parent.width

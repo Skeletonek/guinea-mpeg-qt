@@ -24,9 +24,9 @@ Rectangle {
             Label { text: formatTime(endTime); width: 80; color: theme.text }
         }
 
-            Rectangle {
-                id: track
-                width: parent.width - parent.leftPadding - parent.rightPadding
+        Rectangle {
+            id: track
+            width: parent.width - parent.leftPadding - parent.rightPadding
             height: 20
             color: "#555555"
             radius: 4

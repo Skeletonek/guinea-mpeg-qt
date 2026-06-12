@@ -19,7 +19,6 @@ Dialog {
     SoundEffect {
         id: eatSound
         source: "/media/audio/guinea.wav"
-        volume: 1.0
     }
 
     Item {
