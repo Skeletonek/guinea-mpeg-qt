@@ -47,7 +47,10 @@ ApplicationWindow {
                 height: stackView.height
                 color: theme.bg
 
-                StackView.onActivated: controlsPanel.refreshProfiles()
+                StackView.onActivated: {
+                    controlsPanel.refreshProfiles()
+                    appWindow.updateCodec()
+                }
 
                 DropArea {
                     anchors.fill: parent
@@ -174,11 +177,6 @@ ApplicationWindow {
         var profileData = {}
         try { profileData = JSON.parse(backend.loadProfile(currentProfile)) } catch(e) {}
         appWindow.outputFilePath = dir + base + "_transcoded." + getExtensionForProfile(profileData)
-    }
-
-    function getExtensionForCodec(codec) {
-        if (codec === "h264") return "mp4"
-        return "webm"
     }
 
     function getExtensionForProfile(d) {
