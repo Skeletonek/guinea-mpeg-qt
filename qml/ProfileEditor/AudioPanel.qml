@@ -74,6 +74,7 @@ Column {
             Row {
                 spacing: 8
                 width: parent.width
+                visible: !videoEnabled && audioCodecCombo.currentText !== "FLAC"
                 Label { text: "Bitrate"; color: theme.textSecondary; width: 80 }
                 TextField {
                     id: audioBitrateField
@@ -110,31 +111,30 @@ Column {
     }
 
     function getData() {
+        var audioCodec = (!videoEnabled && audioEnabledSwitch.checked)
+            ? audioCodecCombo.currentText || null : null
         var data = {
             audio_enabled: audioEnabledSwitch.checked,
-            audio_bitrate: audioBitrateField.text || "128k",
+            audio_bitrate: audioCodec === "FLAC" ? "" : (audioBitrateField.text || "128k"),
             audio_channels: audioChannelsField.text ? parseInt(audioChannelsField.text) : null,
-            audio_sample_rate: audioSrField.text ? parseInt(audioSrField.text) : null
-        }
-        if (!audioEnabledSwitch.checked || videoEnabled) {
-            data.audio_codec = null
-        } else {
-            data.audio_codec = audioCodecCombo.currentText || null
+            audio_sample_rate: audioSrField.text ? parseInt(audioSrField.text) : null,
+            audio_codec: audioCodec
         }
         return data
     }
 
     function setData(d) {
         audioEnabledSwitch.checked = d.audio_enabled !== false
-        audioBitrateField.text = d.audio_bitrate || "128k"
         audioChannelsField.text = d.audio_channels != null ? String(d.audio_channels) : ""
         audioSrField.text = d.audio_sample_rate != null ? String(d.audio_sample_rate) : ""
 
         if (d.audio_codec) {
             var aci = audioCodecLabels.indexOf(d.audio_codec)
             audioCodecCombo.currentIndex = aci >= 0 ? aci : 0
+            audioBitrateField.text = d.audio_codec === "FLAC" ? "" : (d.audio_bitrate || "128k")
         } else {
             audioCodecCombo.currentIndex = 0
+            audioBitrateField.text = d.audio_bitrate || "128k"
         }
     }
 }

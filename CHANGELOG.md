@@ -1,3 +1,8 @@
+### 0.5.1
+- Fixed flatpak package showing up as generic
+- Fixed wrong container format for only audio exports
+- Fixed using the old container format for updated profile
+
 ### 0.5.0
 - Added system notification when transcoding finishes (D-Bus on Linux, native toast on Windows)
 - Added auto-pausing preview on entering profile editor or when starting transcode
