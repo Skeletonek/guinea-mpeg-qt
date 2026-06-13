@@ -109,7 +109,7 @@ Item {
                             }
                             return s.width + "x" + s.height + " " + s.codec + " " + fps + "fps"
                         }
-                        onCheckedChanged: {
+                        onClicked: {
                             if (!hostWindow) return
                             var arr = hostWindow.selectedVideoIndices.slice()
                             var pos = arr.indexOf(index)
@@ -144,7 +144,7 @@ Item {
                             var s = hostWindow.audioStreams[index]
                             return s.language || "Stream " + (index + 1) + ": " + s.codec
                         }
-                        onCheckedChanged: {
+                        onClicked: {
                             if (!hostWindow) return
                             var arr = hostWindow.selectedAudioIndices.slice()
                             var pos = arr.indexOf(index)
