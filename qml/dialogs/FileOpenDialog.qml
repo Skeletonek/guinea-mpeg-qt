@@ -4,7 +4,7 @@ import QtQuick.Dialogs
 FileDialog {
     id: root
     title: "Select Video File"
-    nameFilters: ["Video files (*.mp4 *.mkv *.avi *.mov *.webm)"]
+    nameFilters: ["Media files (*.mp4 *.mkv *.avi *.mov *.webm *.mp3 *.flac *.ogg *.opus *.wav *.aac *.m4a *.wma)"]
 
     property QtObject appWindow: null
 

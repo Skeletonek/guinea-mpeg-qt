@@ -1,8 +1,12 @@
-### 0.5.1
+### 0.6.0
+- Added audio and video stream selector when the input file has more than one
+- Added option to open known audio formats
+- Added framerate to Video Information section
 - Fixed flatpak package showing up as generic
 - Fixed wrong container format for only audio exports
 - Fixed using the old container format for updated profile
 - Fixed wrong audio codec showing up in preview for audio only exports
+- Fixed Video Information text rendering outside visible area if filename is very long
 
 ### 0.5.0
 - Added system notification when transcoding finishes (D-Bus on Linux, native toast on Windows)

@@ -176,9 +176,13 @@ ApplicationWindow {
 
         var idx = filePath.lastIndexOf("/")
         var name = idx >= 0 ? filePath.substring(idx + 1) : filePath
+        var parts = (info.fps || "0/1").split("/")
+        var fps = parts.length === 2 && Number(parts[1]) !== 0
+            ? (Number(parts[0]) / Number(parts[1])).toFixed(2) : "?"
         videoInfoText = "File: " + name + "\n" +
                       "Duration: " + info.duration.toFixed(1) + "s\n" +
                       "Resolution: " + info.width + "x" + info.height + "\n" +
+                      "FPS: " + fps + "\n" +
                       "Video: " + info.codec + "\n" +
                       "Audio: " + (info.audio_codec || "N/A")
 

@@ -60,7 +60,7 @@ Item {
                 readOnly: true
                 text: hostWindow ? hostWindow.videoInfoText : ""
                 wrapMode: TextArea.Wrap
-                height: 100
+                implicitHeight: Math.max(contentHeight, 120)
                 width: parent.width
                 color: theme.text
                 background: Rectangle { color: theme.bg }
