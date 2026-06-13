@@ -43,6 +43,10 @@ Column {
             if (!root.loading) root.extraArgsChanged()
             if (!root.loading) root.changed()
         }
+        onEditingFinished: {
+            if (!root.loading) root.extraArgsChanged()
+            if (!root.loading) root.changed()
+        }
     }
 
     Label {

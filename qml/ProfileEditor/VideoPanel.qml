@@ -110,6 +110,7 @@ Column {
                 placeholderText: rateControlKeys[rateControlCombo.currentIndex] === "crf" ? "CRF value (e.g. 18)" : "Bitrate (e.g. 2M)"
                 validator: root.rateValidator
                 onTextChanged: if (!root.loading) root.changed()
+                onEditingFinished: if (!root.loading) root.changed()
             }
         }
 
@@ -179,6 +180,7 @@ Column {
                 model: resOptions
                 width: parent.width - 108
                 onCurrentIndexChanged: if (!root.loading) root.changed()
+                onActivated: if (!root.loading) root.changed()
             }
         }
         Row {

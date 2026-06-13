@@ -6,6 +6,10 @@
 - Fixed wrong container format for only audio exports
 - Fixed using the old container format for updated profile
 - Fixed wrong audio codec showing up in preview for audio only exports
+- Fixed tune setting not working for H.264, VP8 and VP9
+- Fixed settings not updating instantly when manually entering values
+- Fixed resolution updating preview with the previous value instead of the current one
+- Fixed profile editor using first profile on launch instead of the selected one in main view
 - Fixed Video Information text rendering outside visible area if filename is very long
 
 ### 0.5.0

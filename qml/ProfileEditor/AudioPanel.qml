@@ -76,12 +76,13 @@ Column {
                 width: parent.width
                 visible: videoEnabled || audioCodecLabels[audioCodecCombo.currentIndex] !== "FLAC"
                 Label { text: "Bitrate"; color: theme.textSecondary; width: 80 }
-                TextField {
-                    id: audioBitrateField
-                    width: parent.width - 88
-                    placeholderText: "128k"
-                    onTextChanged: if (!root.loading) root.changed()
-                }
+                    TextField {
+                        id: audioBitrateField
+                        width: parent.width - 88
+                        placeholderText: "128k"
+                        onTextChanged: if (!root.loading) root.changed()
+                        onEditingFinished: if (!root.loading) root.changed()
+                    }
             }
             Row {
                 spacing: 8

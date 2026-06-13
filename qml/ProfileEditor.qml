@@ -356,8 +356,10 @@ Rectangle {
     }
 
     Component.onCompleted: {
+        _loading = true
         _profileNames = JSON.parse(backend.availableProfiles())
         _defaultNames = JSON.parse(backend.defaultProfileNames())
         loadProfile(profileName)
+        _loading = false
     }
 }

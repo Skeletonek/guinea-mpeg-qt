@@ -167,6 +167,18 @@ fn build_command(
             args.push(pix_fmt.clone());
         }
 
+        if let Some(tune) = &profile.tune {
+            if profile.codec == "h264" || profile.codec == "svtav1" {
+                args.push("-tune".to_string());
+                args.push(tune.clone());
+            } else if profile.codec == "vp8" || profile.codec == "vp9" {
+                if tune == "psnr" || tune == "ssim" {
+                    args.push("-tune".to_string());
+                    args.push(tune.clone());
+                }
+            }
+        }
+
         let mut filter_parts = Vec::new();
         if let Some(fps) = profile.framerate {
             if fps > 0.0 {
