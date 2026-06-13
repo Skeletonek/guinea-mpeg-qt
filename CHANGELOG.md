@@ -1,7 +1,11 @@
 ### 0.6.0
+- Added support for H.265 / HEVC codec
+- Added support for hardware encoding (NVENC, VA-API, QSV, AMF) for H.264, H.265 and AV1
+- Added compatibility table to profile editor to show what is supported by ffmpeg
 - Added audio and video stream selector when the input file has more than one
 - Added option to open known audio formats
 - Added framerate to Video Information section
+- Updated default profiles
 - Fixed flatpak package showing up as generic
 - Fixed wrong container format for only audio exports
 - Fixed using the old container format for updated profile

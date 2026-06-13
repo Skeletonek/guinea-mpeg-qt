@@ -14,11 +14,20 @@
 - Profile selector `ComboBox` uses `property var _profileNames` as model (via `model: root._profileNames` binding) instead of direct `model` assignment. Update `_profileNames` to trigger model refresh; avoids Qt internal ComboBox index-reset issues.
 - Notification label sits in the toolbar `RowLayout` between Delete and Restore Defaults buttons. Uses `visible: false` to collapse, with a two-timer sequence: 3s fade via `opacity`, then 350ms delay before `visible = false` so the fade animation completes.
 - `Flickable` wrapping the editor has `ScrollBar.vertical` with `policy: ScrollBar.AsNeeded`.
-- Tune, Pixel fmt, and Preset fields use editable ComboBoxes with a "default"/"source" sentinel at index 0. When selected, the value is emitted as `null` (omitted from ffmpeg command).
-- Preset ComboBox model is codec-aware: H.264 lists `ultrafast..placebo`, VP8/VP9 lists `good/best/realtime`, SVT-AV1 lists `0..13`. Changing codec resets preset to "default" if the old value isn't in the new model.
+- Tune, Pixel fmt, and Preset fields use editable ComboBoxes. "default" sentinel at index 0 means `null` (omitted from ffmpeg command). The Encoder ComboBox has NO sentinel — it lists only real encoders detected from ffmpeg.
+- Preset ComboBox model is codec-aware: H.264/H.265 lists `ultrafast..placebo`, VP8/VP9 lists `good/best/realtime`, SVT-AV1 lists `0..13`. When an encoder with capabilities is selected, the model is overridden by the encoder's supported presets (e.g. NVENC → p1-p7). Changing codec resets preset to "default" if the old value isn't in the new model.
 - VP8/VP9 have a dedicated section (like SVT-AV1's tile section) with a `-cpu-used` selector (0–5). `cpu_used` emitted as integer; Rust emits `-cpu-used <N>` and `-deadline <preset>` instead of `-preset` for vp8/vp9 codecs.
 - Scaling section uses Row-based layout (Label width 100px + ComboBox fills rest) matching Preset/Tune/Pixel fmt rows, replacing the old Grid layout.
 - `_loading` guard wraps model/list changes in save/delete/restore functions to prevent `onCurrentTextChanged` from triggering spurious `loadProfile` calls.
+- **Encoder ComboBox** model is explicitly set in `rebuildEncoderModel()` (no binding), called from codec handler AND `setData`. This avoids stale model issues when switching between same-codec profiles. `rebuildEncoderModel(forceDefault)` when called from `setData` to ensure default is used instead of previous encoder.
+- **Codec availability**: `_availableEncoders` contains only encoders detected from ffmpeg. Codecs with zero entries get `(unavailable)` suffix in the codec ComboBox delegate. Still selectable (profile may target another system).
+- **`applyEncoderCapabilities()`**: called on encoder selection change. Fetches JSON from `backend.encoderCapabilities(encName)`, parses preset/tune/pixfmt overrides, updates `_capOverrides`. Must NOT be guarded by `_loading` — needs to run during profile loading to properly set up models.
+- **Compatibility dialog**: `?` / ⓘ button opens a `Dialog` listing all detected encoders grouped by codec with counts.
+- **`_encodersForKey(codec)`**: maps internal codec key to ffmpeg's codec name (`"svtav1"` → `"av1"`, others pass through). Used to look up `_availableEncoders` by the correct key.
+- **`_defaultEncoderForKey(codec)`**: returns software encoder for each codec: `libx264`/`libx265`/`libsvtav1`/`libvpx-vp9`/`libvpx`.
+- **`setData` behavior**: always calls `rebuildEncoderModel(true)` to refresh model and set default, then `if (d.encoder)` overrides if profile has explicit encoder. When no `encoder` field, `rebuildEncoderModel(true)` already sets the default (no need for separate `else` branch).
+- **Pixfmt model** always prepends `"default"` at index 0 even when encoder capabilities override the list.
+- **`Component.onCompleted`** in ProfileEditor.qml: set `_loading = true` before `_profileNames = [...]` to suppress `onCurrentTextChanged` → `loadProfile` spurious call on initial population.
 
 ## QML Patterns
 - IDs inside a `Component` are NOT accessible from outside it. The reverse works (parent scope IDs accessible from within Component).
@@ -56,6 +65,22 @@
 - `save_user_config()` writes in `[[profiles]]` format (the canonical form).
 - Merging: defaults loaded first, then user config overlays by `p.name`. Same name = user profile wins.
 - `cpu_used: Option<i32>` stores VP8/VP9 `-cpu-used` value (0–5). Used only for vp8/vp9 codecs; Rust emits `-deadline <preset>` instead of `-preset` for these codecs.
+- `encoder: Option<String>` stores explicit encoder name (e.g. `"libx264"`, `"h264_nvenc"`). `None` means auto-select default software encoder at runtime.
+
+## FFmpeg & Encoder Capabilities (Rust)
+- `rust/src/ffmpeg.rs` handles ffmpeg subprocess launch, encoder detection, command building.
+- `encoder_family(name)` maps encoder name suffix to `EncoderFamily`: `Software`, `Nvenc`, `Qsv`, `Vaapi`, `Amf`, `Vulkan`, `VideoToolbox`.
+- `EncoderCapabilities` struct stores per-family overrides: `presets`, `tunes`, `pix_fmts` lists; `crf_name` (`-crf`/`-cq`/`-global_quality`/`-qp`/`-quality`); `cbr_flag_name`/`vbr_flag_name`; `uses_preset`/`uses_tune` booleans; `append_rate_control` flag.
+- `software_video_codec(codec)` returns `libx264`/`libx265`/`libsvtav1`/`libvpx-vp9`/`libvpx`.
+- `build_command()` translates rate control per encoder family:
+  - CRF → `-crf` (Software), `-cq` (NVENC), `-global_quality` (QSV), `-qp` (VAAPI/AMF), `-quality` (VideoToolbox), `-qp` (Vulkan)
+  - CBR → adds `-rc cbr` (NVENC/QSV/AMF), `-rc_mode CBR` (VAAPI), `-b:v <bitrate>` with `-b:v <minrate>=<maxrate>=<bufsize>` for CBR mode
+  - VBR → adds `-rc vbr` (NVENC/QSV/AMF), `-rc_mode VBR` (VAAPI)
+  - NVENC: CRF+CBR → `-rc vbr` + `-cq <crf>` + `-b:v <bitrate>` + `-maxrate <bitrate>`
+- VP8/VP9: emits `-deadline <preset>` + `-cpu-used <N>`, no `-preset` flag.
+- `guinea_mpeg_available_encoders()` runs `ffmpeg -hide_banner -encoders`, parses lines like `....V libx264  H.264... (codec h264)`, groups by codec key, returns JSON.
+- `guinea_mpeg_encoder_capabilities(name)` looks up encoder family for a given encoder name, returns JSON or `null` for software encoders.
+- Encoder detection and capabilities are exposed to QML via `GuineaMpegBackendExt::availableEncoders()` and `encoderCapabilities()`.
 
 ## Build
 - Always use `build/linux-build.sh` to build (not manual cmake). The script uses `out/.build-generic/` as the build directory.

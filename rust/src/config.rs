@@ -17,6 +17,7 @@ pub struct VideoProfile {
     pub pixel_format: Option<String>,
     pub resolution: Option<String>,
     pub framerate: Option<f64>,
+    pub encoder: Option<String>,
     pub tile_rows: Option<u32>,
     pub tile_columns: Option<u32>,
     pub enable_qm: Option<bool>,

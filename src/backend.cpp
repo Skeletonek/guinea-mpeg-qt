@@ -63,6 +63,22 @@ bool GuineaMpegBackendExt::saveProfile(const QString& name, const QString& json)
     return guinea_mpeg_save_profile(name.toUtf8().constData(), json.toUtf8().constData());
 }
 
+QString GuineaMpegBackendExt::availableEncoders() {
+    const char* result = guinea_mpeg_available_encoders();
+    if (!result) return "null";
+    QString json = QString::fromUtf8(result);
+    guinea_mpeg_free_string(result);
+    return json;
+}
+
+QString GuineaMpegBackendExt::encoderCapabilities(const QString& encoderName) {
+    const char* result = guinea_mpeg_encoder_capabilities(encoderName.toUtf8().constData());
+    if (!result) return "null";
+    QString json = QString::fromUtf8(result);
+    guinea_mpeg_free_string(result);
+    return json;
+}
+
 QString GuineaMpegBackendExt::generateCommandPreview(const QString& json) {
     const char* result = guinea_mpeg_preview_command(json.toUtf8().constData());
     if (!result) return {};

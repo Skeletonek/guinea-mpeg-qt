@@ -1,8 +1,127 @@
+use std::collections::HashMap;
 use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
 use std::process::Command;
 
 use crate::config::VideoProfile;
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+enum EncoderFamily {
+    Software,
+    Nvenc,
+    Qsv,
+    Vaapi,
+    Amf,
+    Vulkan,
+    VideoToolbox,
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
+struct EncoderCapabilities {
+    presets: Option<Vec<String>>,
+    tunes: Option<Vec<String>>,
+    pix_fmts: Option<Vec<String>>,
+    uses_preset: bool,
+    uses_tune: bool,
+    crf_flag: String,
+    vbr_flag: String,
+    cbr_flag: String,
+    rc_flag: Option<String>,
+}
+
+fn encoder_family(encoder: &str) -> EncoderFamily {
+    if encoder.starts_with("libx26") || encoder.starts_with("libvpx") || encoder == "libsvtav1"
+        || encoder == "libaom-av1" || encoder == "librav1e"
+    {
+        EncoderFamily::Software
+    } else if encoder.ends_with("_nvenc") || encoder.ends_with("_nvenc_hybrid") {
+        EncoderFamily::Nvenc
+    } else if encoder.ends_with("_qsv") {
+        EncoderFamily::Qsv
+    } else if encoder.ends_with("_vaapi") {
+        EncoderFamily::Vaapi
+    } else if encoder.ends_with("_amf") {
+        EncoderFamily::Amf
+    } else if encoder.ends_with("_vulkan") {
+        EncoderFamily::Vulkan
+    } else if encoder.ends_with("_videotoolbox") {
+        EncoderFamily::VideoToolbox
+    } else {
+        EncoderFamily::Software
+    }
+}
+
+fn encoder_capabilities(encoder: &str) -> Option<EncoderCapabilities> {
+    Some(match encoder_family(encoder) {
+        EncoderFamily::Nvenc => EncoderCapabilities {
+            presets: Some(vec!["p1","p2","p3","p4","p5","p6","p7"].into_iter().map(String::from).collect()),
+            tunes: Some(vec!["hq","ll","ull","lossless"].into_iter().map(String::from).collect()),
+            pix_fmts: Some(vec!["yuv420p","nv12","p010le","yuv444p"].into_iter().map(String::from).collect()),
+            uses_preset: true,
+            uses_tune: true,
+            crf_flag: "-cq".into(),
+            vbr_flag: "-b:v".into(),
+            cbr_flag: "-b:v".into(),
+            rc_flag: Some("-rc".into()),
+        },
+        EncoderFamily::Qsv => EncoderCapabilities {
+            presets: Some(vec!["veryfast","faster","fast","medium","slow","slower"].into_iter().map(String::from).collect()),
+            tunes: Some(vec!["film","animation","grain"].into_iter().map(String::from).collect()),
+            pix_fmts: Some(vec!["nv12","yuv420p","p010le"].into_iter().map(String::from).collect()),
+            uses_preset: true,
+            uses_tune: true,
+            crf_flag: "-global_quality".into(),
+            vbr_flag: "-b:v".into(),
+            cbr_flag: "-b:v".into(),
+            rc_flag: Some("-rc".into()),
+        },
+        EncoderFamily::Vaapi => EncoderCapabilities {
+            presets: None,
+            tunes: None,
+            pix_fmts: Some(vec!["nv12","vaapi_vld","p010le"].into_iter().map(String::from).collect()),
+            uses_preset: false,
+            uses_tune: false,
+            crf_flag: "-qp".into(),
+            vbr_flag: "-b:v".into(),
+            cbr_flag: "-b:v".into(),
+            rc_flag: Some("-rc_mode".into()),
+        },
+        EncoderFamily::Amf => EncoderCapabilities {
+            presets: Some(vec!["speed","balanced","quality"].into_iter().map(String::from).collect()),
+            tunes: Some(vec!["film","animation","grain"].into_iter().map(String::from).collect()),
+            pix_fmts: Some(vec!["nv12","yuv420p"].into_iter().map(String::from).collect()),
+            uses_preset: true,
+            uses_tune: true,
+            crf_flag: "-quality".into(),
+            vbr_flag: "-b:v".into(),
+            cbr_flag: "-b:v".into(),
+            rc_flag: Some("-rc".into()),
+        },
+        EncoderFamily::Vulkan => EncoderCapabilities {
+            presets: None,
+            tunes: None,
+            pix_fmts: Some(vec!["yuv420p","nv12","gbrp10le"].into_iter().map(String::from).collect()),
+            uses_preset: false,
+            uses_tune: false,
+            crf_flag: "-crf".into(),
+            vbr_flag: "-b:v".into(),
+            cbr_flag: "-b:v".into(),
+            rc_flag: None,
+        },
+        EncoderFamily::VideoToolbox => EncoderCapabilities {
+            presets: None,
+            tunes: None,
+            pix_fmts: Some(vec!["nv12","yuv420p"].into_iter().map(String::from).collect()),
+            uses_preset: false,
+            uses_tune: false,
+            crf_flag: "-quality".into(),
+            vbr_flag: "-b:v".into(),
+            cbr_flag: "-b:v".into(),
+            rc_flag: Some("-rc".into()),
+        },
+        EncoderFamily::Software => return None,
+    })
+}
 
 fn normalize_path(path: &str) -> String {
     #[cfg(target_os = "windows")]
@@ -24,14 +143,19 @@ fn run_cmd(prog: &str, args: &[&str]) -> Option<String> {
     }
 }
 
-fn video_codec(codec: &str) -> &str {
+fn software_video_codec(codec: &str) -> &str {
     match codec {
         "h264" => "libx264",
+        "hevc" => "libx265",
         "vp8" => "libvpx",
         "vp9" => "libvpx-vp9",
         "svtav1" => "libsvtav1",
         _ => "libx264",
     }
+}
+
+fn video_codec(profile: &VideoProfile) -> String {
+    profile.encoder.clone().unwrap_or_else(|| software_video_codec(&profile.codec).to_string())
 }
 
 fn audio_codec_for_profile(profile: &VideoProfile) -> &str {
@@ -46,7 +170,7 @@ fn audio_codec_for_profile(profile: &VideoProfile) -> &str {
         }
     } else {
         match profile.codec.as_str() {
-            "h264" => "aac",
+            "h264" | "hevc" => "aac",
             _ => "libopus",
         }
     }
@@ -105,8 +229,17 @@ fn build_command(
     }
 
     if video_enabled {
+        let enc = video_codec(profile);
         args.push("-c:v".to_string());
-        args.push(video_codec(&profile.codec).to_string());
+        args.push(enc.clone());
+
+        let family = if profile.encoder.is_some() {
+            encoder_family(&enc)
+        } else {
+            EncoderFamily::Software
+        };
+
+        let caps = encoder_capabilities(&enc);
 
         match rate_control {
             Some("cbr") => {
@@ -120,6 +253,20 @@ fn build_command(
                         args.push(bitrate.clone());
                         args.push("-bufsize".to_string());
                         args.push(bitrate.clone());
+                        if family == EncoderFamily::Vaapi {
+                            args.push("-rc_mode".to_string());
+                            args.push("CBR".to_string());
+                        } else if let Some(ref caps) = caps {
+                            if let Some(ref rc_flag) = caps.rc_flag {
+                                if rc_flag == "-rc" {
+                                    args.push("-rc".to_string());
+                                    args.push("cbr".to_string());
+                                } else if rc_flag == "-rc_mode" {
+                                    args.push("-rc_mode".to_string());
+                                    args.push("CBR".to_string());
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -128,12 +275,29 @@ fn build_command(
                     if !bitrate.is_empty() {
                         args.push("-b:v".to_string());
                         args.push(bitrate.clone());
+                        if family == EncoderFamily::Vaapi {
+                            args.push("-rc_mode".to_string());
+                            args.push("VBR".to_string());
+                        } else if let Some(ref caps) = caps {
+                            if let Some(ref rc_flag) = caps.rc_flag {
+                                if rc_flag == "-rc" {
+                                    args.push("-rc".to_string());
+                                    args.push("vbr".to_string());
+                                } else if rc_flag == "-rc_mode" {
+                                    args.push("-rc_mode".to_string());
+                                    args.push("VBR".to_string());
+                                }
+                            }
+                        }
                     }
                 }
             }
             _ => {
                 if let Some(crf) = profile.crf {
-                    args.push("-crf".to_string());
+                    let crf_flag = caps.as_ref()
+                        .map(|c| c.crf_flag.as_str())
+                        .unwrap_or("-crf");
+                    args.push(crf_flag.to_string());
                     args.push(crf.to_string());
                 }
                 if rate_control.is_none() {
@@ -147,7 +311,12 @@ fn build_command(
             }
         }
 
-        if profile.codec == "vp8" || profile.codec == "vp9" {
+        if profile.codec == "hevc" || profile.codec == "h264" {
+            if let Some(preset) = &profile.preset {
+                args.push("-preset".to_string());
+                args.push(preset.clone());
+            }
+        } else if profile.codec == "vp8" || profile.codec == "vp9" {
             if let Some(cpu) = profile.cpu_used {
                 args.push("-cpu-used".to_string());
                 args.push(cpu.to_string());
@@ -168,7 +337,7 @@ fn build_command(
         }
 
         if let Some(tune) = &profile.tune {
-            if profile.codec == "h264" || profile.codec == "svtav1" {
+            if profile.codec == "h264" || profile.codec == "hevc" || profile.codec == "svtav1" {
                 args.push("-tune".to_string());
                 args.push(tune.clone());
             } else if profile.codec == "vp8" || profile.codec == "vp9" {
@@ -324,6 +493,56 @@ pub extern "C" fn guinea_mpeg_generate_preview(path: *const c_char, time_ms: i64
 
 fn build_preview(profile: &VideoProfile) -> Vec<String> {
     build_command("[input]", "[output]", 0.0, 0.0, profile)
+}
+
+#[no_mangle]
+pub extern "C" fn guinea_mpeg_encoder_capabilities(encoder_name: *const c_char) -> *mut c_char {
+    let name = unsafe { cstr(encoder_name) };
+    if name.is_empty() {
+        return to_c_string("null".to_string());
+    }
+    match encoder_capabilities(name) {
+        Some(ref caps) => to_c_string(serde_json::to_string(caps).unwrap_or_default()),
+        None => to_c_string("null".to_string()),
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn guinea_mpeg_available_encoders() -> *mut c_char {
+    let output = match run_cmd("ffmpeg", &["-hide_banner", "-encoders"]) {
+        Some(o) => o,
+        None => return to_c_string("null".to_string()),
+    };
+    let mut by_codec: HashMap<String, Vec<String>> = HashMap::new();
+    for line in output.lines() {
+        let trimmed = line.trim();
+        if !trimmed.starts_with('V') {
+            continue;
+        }
+        // V....D libx264  ... (codec h264)
+        let parts: Vec<&str> = trimmed.split_whitespace().collect();
+        if parts.len() < 2 {
+            continue;
+        }
+        let enc_name = parts[1].to_string();
+        // Extract (codec xxx) suffix
+        let codec = if let Some(start) = trimmed.rfind("(codec ") {
+            let after = &trimmed[start + 7..];
+            if let Some(end) = after.find(')') {
+                after[..end].trim().to_string()
+            } else {
+                continue;
+            }
+        } else {
+            continue;
+        };
+        by_codec.entry(codec).or_default().push(enc_name);
+    }
+    // Sort each list
+    for list in by_codec.values_mut() {
+        list.sort();
+    }
+    to_c_string(serde_json::to_string(&by_codec).unwrap_or_default())
 }
 
 #[no_mangle]

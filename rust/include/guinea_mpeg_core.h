@@ -28,6 +28,12 @@ const char* guinea_mpeg_build_ffmpeg_command(const char* input, const char* outp
 /* Preview: build ffmpeg args from profile without input/output paths */
 const char* guinea_mpeg_preview_command(const char* profile_json);
 
+/* Encoder detection: returns JSON of {codec: [encoder names]} */
+const char* guinea_mpeg_available_encoders(void);
+
+/* Per-encoder capabilities: returns JSON or null */
+const char* guinea_mpeg_encoder_capabilities(const char* encoder_name);
+
 /* Mpv backend: returns opaque handle for C++ render context setup */
 void* guinea_mpeg_mpv_create(void);
 bool  guinea_mpeg_mpv_available(void);

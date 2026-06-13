@@ -6,8 +6,9 @@ A modern FFmpeg transcoding GUI with a Rust core library dynamically linked via 
 
 - **Video Preview with Playback**: Load any video via embedded libmpv
 - **Timeline Selection**: Drag start/end handles to select a segment for transcoding
-- **Transcoding Profiles**: Built-in profiles for H.264, VP9, and SVT-AV1
-- **Profile Editor**: Create, edit, and delete profiles in-app
+- **Transcoding Profiles**: Built-in profiles for H.264, H.265/HEVC, VP9, and AV1 (SVT-AV1)
+- **Hardware Encoding**: Runtime detection of NVENC, QSV, VAAPI, AMF, Vulkan encoders via ffmpeg
+- **Profile Editor**: Create, edit, and delete profiles in-app; per-encoder preset/tune/pixfmt filtering
 - **Live Transcode Output**: Non-modal dialog showing real-time ffmpeg stderr output with autoscroll
 - **MIME type integration**: Open video files directly from your file manager
 - **Drag & Drop**: Drop a video file anywhere on the window to load it
@@ -167,6 +168,8 @@ User profiles merge over defaults (same name = user override).
 | Profile | Codec | Quality |
 |---------|-------|---------|
 | H.264 High | libx264 | CRF 18, slow preset, film tune, 1080p |
+| H.265 High | libx265 | CRF 22, slow preset, film tune, 1080p |
+| H.265 Medium | libx265 | CRF 28, medium preset, film tune, 720p |
 | VP9 Low | libvpx-vp9 | CRF 40, deadline=good, cpu-used=3, ssim tune, 720p |
 | VP9 Medium | libvpx-vp9 | CRF 32, deadline=good, cpu-used=2, ssim tune, 720p |
 | AV1 High | libsvtav1 | CRF 28, preset 6, VMAF tune, native res, tiles 2x3 |

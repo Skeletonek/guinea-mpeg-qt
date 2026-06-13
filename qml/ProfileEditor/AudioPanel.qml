@@ -46,7 +46,7 @@ Column {
         Label {
             id: audioCodecAutoLabel
             visible: videoEnabled
-            text: "Codec: Auto (" + (currentCodecKey === "h264" ? "AAC" : "Opus") + ")"
+            text: "Codec: Auto (" + ((currentCodecKey === "h264" || currentCodecKey === "hevc") ? "AAC" : "Opus") + ")"
             color: theme.textDim
             font.pixelSize: 12
         }
