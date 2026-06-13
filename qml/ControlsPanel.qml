@@ -20,20 +20,20 @@ Item {
     signal viewTranscodeClicked()
     signal aboutClicked()
 
-    Flickable {
+    ScrollView {
         id: rightPanelFlickable
         anchors.top: parent.top
         anchors.bottom: aboutButton.top
         anchors.bottomMargin: 4
-        width: parent.width
-        contentHeight: column.height
+        anchors.left: parent.left
+        anchors.right: parent.right
         clip: true
-        interactive: false
+        ScrollBar.vertical.policy: ScrollBar.AsNeeded
 
         Column {
             id: column
             spacing: 12
-            width: parent.width
+            width: rightPanelFlickable.availableWidth
 
             Label {
                 text: "Input File"
@@ -64,6 +64,92 @@ Item {
                 width: parent.width
                 color: theme.text
                 background: Rectangle { color: theme.bg }
+            }
+
+            Label {
+                text: "Stream Selection"
+                font.bold: true
+                font.pixelSize: 16
+                color: theme.text
+                visible: (hostWindow && hostWindow.videoStreams.length > 1)
+                         || (hostWindow && hostWindow.audioStreams.length > 1)
+            }
+
+            Label {
+                text: "Video"
+                color: theme.textMuted
+                font.bold: true
+                font.pixelSize: 14
+                visible: hostWindow && hostWindow.videoStreams.length > 1
+            }
+
+            Column {
+                spacing: 2
+                width: parent.width
+                visible: hostWindow && hostWindow.videoStreams.length > 1
+
+                Repeater {
+                    model: hostWindow ? hostWindow.videoStreams.length : 0
+
+                    delegate: CheckBox {
+                        checked: hostWindow ? hostWindow.selectedVideoIndices.indexOf(index) >= 0 : false
+                        text: {
+                            if (!hostWindow) return ""
+                            var s = hostWindow.videoStreams[index]
+                            var fps = ""
+                            if (s.fps) {
+                                var parts = String(s.fps).split("/")
+                                fps = parts.length === 2
+                                    ? (parseInt(parts[0]) / parseInt(parts[1])).toFixed(1)
+                                    : s.fps
+                            }
+                            return s.width + "x" + s.height + " " + s.codec + " " + fps + "fps"
+                        }
+                        onCheckedChanged: {
+                            if (!hostWindow) return
+                            var arr = hostWindow.selectedVideoIndices.slice()
+                            var pos = arr.indexOf(index)
+                            if (checked && pos < 0) arr.push(index)
+                            else if (!checked && pos >= 0) arr.splice(pos, 1)
+                            hostWindow.selectedVideoIndices = arr
+                        }
+                    }
+                }
+            }
+
+            Label {
+                text: "Audio"
+                color: theme.textMuted
+                font.bold: true
+                font.pixelSize: 14
+                visible: hostWindow && hostWindow.audioStreams.length > 1
+            }
+
+            Column {
+                spacing: 2
+                width: parent.width
+                visible: hostWindow && hostWindow.audioStreams.length > 1
+
+                Repeater {
+                    model: hostWindow ? hostWindow.audioStreams.length : 0
+
+                    delegate: CheckBox {
+                        checked: hostWindow ? hostWindow.selectedAudioIndices.indexOf(index) >= 0 : false
+                        text: {
+                            if (!hostWindow) return ""
+                            var s = hostWindow.audioStreams[index]
+                            return s.language || "Stream " + (index + 1) + ": " + s.codec
+                        }
+                        onCheckedChanged: {
+                            if (!hostWindow) return
+                            var arr = hostWindow.selectedAudioIndices.slice()
+                            var pos = arr.indexOf(index)
+                            if (checked && pos < 0) arr.push(index)
+                            else if (!checked && pos >= 0) arr.splice(pos, 1)
+                            hostWindow.selectedAudioIndices = arr
+                        }
+                    }
+                }
             }
 
             Label {

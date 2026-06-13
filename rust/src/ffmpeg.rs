@@ -74,7 +74,35 @@ fn build_command(
     }
 
     let video_enabled = profile.video_enabled.unwrap_or(true);
+    let audio_enabled = profile.audio_enabled.unwrap_or(true);
     let rate_control = profile.rate_control.as_deref();
+
+    let vs_idxs = &profile.video_stream_indices;
+    let as_idxs = &profile.audio_stream_indices;
+    if !vs_idxs.is_empty() || !as_idxs.is_empty() {
+        if video_enabled {
+            if vs_idxs.is_empty() {
+                args.push("-map".to_string());
+                args.push("0:v:0".to_string());
+            } else {
+                for idx in vs_idxs {
+                    args.push("-map".to_string());
+                    args.push(format!("0:v:{}", idx));
+                }
+            }
+        }
+        if audio_enabled {
+            if as_idxs.is_empty() {
+                args.push("-map".to_string());
+                args.push("0:a:0".to_string());
+            } else {
+                for idx in as_idxs {
+                    args.push("-map".to_string());
+                    args.push(format!("0:a:{}", idx));
+                }
+            }
+        }
+    }
 
     if video_enabled {
         args.push("-c:v".to_string());
@@ -203,8 +231,6 @@ fn build_command(
             args.push(arg.clone());
         }
     }
-
-    let audio_enabled = profile.audio_enabled.unwrap_or(true);
 
     if !audio_enabled {
         args.push("-an".to_string());

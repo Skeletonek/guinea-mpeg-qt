@@ -31,6 +31,10 @@ pub struct VideoProfile {
     pub audio_enabled: Option<bool>,
     pub audio_codec: Option<String>,
     pub rate_control: Option<String>,
+    #[serde(default)]
+    pub video_stream_indices: Vec<u32>,
+    #[serde(default)]
+    pub audio_stream_indices: Vec<u32>,
 }
 
 fn default_audio_bitrate() -> String {

@@ -85,6 +85,10 @@ QVariantMap GuineaMpegBackendExt::getVideoInfo(const QString& rawPath) {
     if (json) {
         QJsonObject root = QJsonDocument::fromJson(QByteArray(json)).object();
         info["duration"] = root["format"].toObject()["duration"].toString().toDouble();
+        QVariantList videoStreams;
+        QVariantList audioStreams;
+        int videoTypeIdx = 0;
+        int audioTypeIdx = 0;
         for (const auto& s : root["streams"].toArray()) {
             QJsonObject stream = s.toObject();
             QString type = stream["codec_type"].toString();
@@ -94,10 +98,27 @@ QVariantMap GuineaMpegBackendExt::getVideoInfo(const QString& rawPath) {
                 info["codec"] = stream["codec_name"].toString();
                 info["fps"] = stream["r_frame_rate"].toString();
                 info["bitrate"] = (qint64)stream["bit_rate"].toString().toULongLong();
-            } else if (type == "audio" && !info.contains("audio_codec")) {
-                info["audio_codec"] = stream["codec_name"].toString();
+                QVariantMap vs;
+                vs["index"] = videoTypeIdx++;
+                vs["codec"] = stream["codec_name"].toString();
+                vs["width"] = stream["width"].toInt();
+                vs["height"] = stream["height"].toInt();
+                vs["fps"] = stream["r_frame_rate"].toString();
+                videoStreams.append(vs);
+            } else if (type == "audio") {
+                if (!info.contains("audio_codec"))
+                    info["audio_codec"] = stream["codec_name"].toString();
+                QVariantMap as;
+                as["index"] = audioTypeIdx++;
+                as["codec"] = stream["codec_name"].toString();
+                as["channels"] = stream["channels"].toInt();
+                as["sample_rate"] = stream["sample_rate"].toString();
+                as["language"] = stream["tags"].toObject()["language"].toString();
+                audioStreams.append(as);
             }
         }
+        info["video_streams"] = videoStreams;
+        info["audio_streams"] = audioStreams;
         guinea_mpeg_free_string(json);
     } else
         info["duration"] = 0.0;

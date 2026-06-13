@@ -25,6 +25,10 @@ ApplicationWindow {
     property string outputFilePath: ""
     property bool settingTimeline: false
     property url videoSource: ""
+    property var videoStreams: []
+    property var audioStreams: []
+    property var selectedVideoIndices: []
+    property var selectedAudioIndices: []
 
     Component.onCompleted: {
         if (!mpvAvailable)
@@ -161,6 +165,14 @@ ApplicationWindow {
         startTime = 0
         endTime = videoDuration
         settingTimeline = false
+        videoStreams = info.video_streams || []
+        audioStreams = info.audio_streams || []
+        var vi = []
+        for (var v = 0; v < videoStreams.length; v++) vi.push(v)
+        selectedVideoIndices = vi
+        var ai = []
+        for (var a = 0; a < audioStreams.length; a++) ai.push(a)
+        selectedAudioIndices = ai
 
         var idx = filePath.lastIndexOf("/")
         var name = idx >= 0 ? filePath.substring(idx + 1) : filePath
@@ -210,10 +222,14 @@ ApplicationWindow {
             videoInfoText = "Please set an output file path first"
             return
         }
-        var profileJson = backend.loadProfile(currentProfile)
+        var profile = JSON.parse(backend.loadProfile(currentProfile))
+        if (selectedVideoIndices.length > 0)
+            profile.video_stream_indices = selectedVideoIndices
+        if (selectedAudioIndices.length > 0)
+            profile.audio_stream_indices = selectedAudioIndices
         backend.startTranscode(currentVideoPath, appWindow.outputFilePath,
                                     startTime / 1000.0, endTime / 1000.0,
-                                    profileJson)
+                                    JSON.stringify(profile))
         transcodeDialog.open()
     }
 }
