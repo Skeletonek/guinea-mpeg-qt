@@ -6,8 +6,7 @@ Rectangle {
     property int videoDuration: 0
     property int startTime: 0
     property int endTime: 0
-
-    onVideoDurationChanged: Qt.callLater(resetHandles)
+    property QtObject mainWindow: null
 
     color: theme.widget
     border.color: theme.widgetBorder
@@ -44,7 +43,7 @@ Rectangle {
 
             Rectangle {
                 id: startHandle
-                x: Math.max(0, Math.min(startTime * track._ratio - width / 2, track.width - width))
+                x: Math.max(0, Math.min(startTime * track._ratio, track.width - width))
                 y: 0
                 width: 12
                 height: parent.height
@@ -58,18 +57,22 @@ Rectangle {
                     drag.maximumX: track.width - width
                     onPositionChanged: {
                         startHandle.x = Math.max(0, Math.min(startHandle.x, track.width - width))
-                        var t = Math.round((startHandle.x + startHandle.width / 2) / track._ratio)
+                        var t = Math.round(startHandle.x / track._ratio)
                         t = Math.max(0, Math.min(t, videoDuration))
                         if (t < endTime) {
                             startTime = t
                         }
+                    }
+                    onReleased: {
+                        startHandle.x = Qt.binding(function() { return Math.max(0, Math.min(startTime * track._ratio, track.width - startHandle.width)) })
+                        startTime = Qt.binding(function() { return mainWindow ? mainWindow.startTime : 0 })
                     }
                 }
             }
 
             Rectangle {
                 id: endHandle
-                x: Math.max(0, Math.min(endTime * track._ratio - width / 2, track.width - width))
+                x: Math.max(0, Math.min(endTime * track._ratio - width, track.width - width))
                 y: 0
                 width: 12
                 height: parent.height
@@ -83,20 +86,19 @@ Rectangle {
                     drag.maximumX: track.width - width
                     onPositionChanged: {
                         endHandle.x = Math.max(0, Math.min(endHandle.x, track.width - width))
-                        var t = Math.round((endHandle.x + endHandle.width / 2) / track._ratio)
+                        var t = Math.round((endHandle.x + width) / track._ratio)
                         t = Math.max(0, Math.min(t, videoDuration))
                         if (t > startTime) {
                             endTime = t
                         }
                     }
+                    onReleased: {
+                        endHandle.x = Qt.binding(function() { return Math.max(0, Math.min(endTime * track._ratio - endHandle.width, track.width - endHandle.width)) })
+                        endTime = Qt.binding(function() { return mainWindow ? mainWindow.endTime : 0 })
+                    }
                 }
             }
         }
-    }
-
-    function resetHandles() {
-        startHandle.x = Math.max(0, Math.min(startTime * track._ratio - startHandle.width / 2, track.width - startHandle.width))
-        endHandle.x = Math.max(0, Math.min(endTime * track._ratio - endHandle.width / 2, track.width - endHandle.width))
     }
 
     function formatTime(ms) {

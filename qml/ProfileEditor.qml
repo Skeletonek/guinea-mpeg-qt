@@ -28,16 +28,21 @@ Rectangle {
         onTriggered: notifyLabel.visible = false
     }
 
-    ScrollView {
-        id: editorScrollView
+    Flickable {
+        id: editorFlickable
         anchors.fill: parent
         anchors.margins: 10
+        contentHeight: mainColumn.height + 30
         clip: true
-        ScrollBar.vertical.policy: ScrollBar.AsNeeded
+
+        ScrollBar.vertical: ScrollBar {
+            id: editorScrollBar
+            policy: ScrollBar.AsNeeded
+        }
 
         Column {
             id: mainColumn
-            width: editorScrollView.availableWidth
+            width: editorFlickable.width - (editorScrollBar.visible ? editorScrollBar.width : 0)
             spacing: 16
 
             Label {

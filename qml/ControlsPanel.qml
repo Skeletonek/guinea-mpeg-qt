@@ -20,20 +20,24 @@ Item {
     signal viewTranscodeClicked()
     signal aboutClicked()
 
-    ScrollView {
+    Flickable {
         id: rightPanelFlickable
         anchors.top: parent.top
         anchors.bottom: aboutButton.top
         anchors.bottomMargin: 4
-        anchors.left: parent.left
-        anchors.right: parent.right
+        width: parent.width
+        contentHeight: column.height
         clip: true
-        ScrollBar.vertical.policy: ScrollBar.AsNeeded
+
+        ScrollBar.vertical: ScrollBar {
+            id: vbar
+            policy: ScrollBar.AsNeeded
+        }
 
         Column {
             id: column
             spacing: 12
-            width: rightPanelFlickable.availableWidth
+            width: rightPanelFlickable.width - (vbar.visible ? vbar.width : 0)
 
             Label {
                 text: "Input File"
@@ -192,6 +196,7 @@ Item {
                 id: timeline
                 width: parent.width
                 height: 80
+                mainWindow: hostWindow
                 videoDuration: hostWindow ? hostWindow.videoDuration : 0
                 startTime: hostWindow ? hostWindow.startTime : 0
                 endTime: hostWindow ? hostWindow.endTime : 0
