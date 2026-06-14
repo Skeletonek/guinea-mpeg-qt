@@ -272,6 +272,18 @@ Rectangle {
         onDeleteRequested: deleteCurrent()
     }
 
+    EncoderCompatDialog {
+        id: compatDialog
+        codecLabels: videoPanel.codecLabels
+        codecKeys: videoPanel.codecKeys
+        availableEncoders: videoPanel._availableEncoders
+    }
+
+    Connections {
+        target: videoPanel
+        function onOpenEncoderCompatDialog() { compatDialog.open() }
+    }
+
     function showNotification(msg, clr) {
         notifyLabel.text = msg
         notifyLabel.color = clr || theme.accent

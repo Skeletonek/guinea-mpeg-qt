@@ -2,7 +2,7 @@
 - Fixed wrong encoder being set up when loading Profile Editor
 - Fixed AV1 still being named SVT-AV1, despite adding support for other encoders
 - Fixed ffmpeg preview showing incorrect information
-- Fixed Windows version being stuck on "0.3.0" in Windows settings
+- Fixed encoder compatibility dialog not being centered in some QT styles
 - Fixed incorrect project URL for Windows (Installer)
 - Cleaned up codebase
 

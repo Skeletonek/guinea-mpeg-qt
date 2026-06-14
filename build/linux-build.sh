@@ -357,15 +357,21 @@ build_flatpak() {
     fi
     local manifest="$PROJECT_DIR/build/flatpak/guinea-mpeg.yaml"
     local build_dir="$OUT_DIR/.flatpak-build"
+    local repo_dir="$OUT_DIR/.flatpak-repo"
     local bundle_dir="$OUT_DIR/flatpak"
     local bundle="$bundle_dir/${PKGNAME}-${VERSION}-${ARCH}.flatpak"
     mkdir -p "$bundle_dir"
+    rm -rf "$repo_dir"
     echo "=== Building Flatpak ==="
-    flatpak-builder --force-clean --ccache \
+    flatpak-builder --force-clean \
         --install-deps-from flathub \
-        --repo="$OUT_DIR/.flatpak-repo" \
-        "$build_dir" "$manifest"
-    flatpak build-bundle "$OUT_DIR/.flatpak-repo" "$bundle" \
+        --repo="$repo_dir" \
+        "$build_dir" "$manifest" || {
+            rm -rf "$build_dir" "$repo_dir"
+            echo "ERROR: Flatpak build failed" >&2
+            return 1
+        }
+    flatpak build-bundle "$repo_dir" "$bundle" \
         com.skeletonek.guinea-mpeg master
     rm -rf "$build_dir"
     echo "Created: $bundle"

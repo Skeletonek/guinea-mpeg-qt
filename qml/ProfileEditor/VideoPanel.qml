@@ -1,7 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
-import "../Utils/Centering.js" as Utils
 
 Column {
     id: root
@@ -41,6 +40,7 @@ Column {
     readonly property string codec: codecKeys[codecCombo.currentIndex]
 
     signal changed
+    signal openEncoderCompatDialog()
 
     IntValidator { id: crfValidatorInst; bottom: 0; top: 63 }
 
@@ -117,7 +117,7 @@ Column {
                 text: "?"
                 font.bold: true
                 font.pixelSize: 15
-                onClicked: compatDialog.open()
+                onClicked: root.openEncoderCompatDialog()
                 ToolTip.visible: hovered
                 ToolTip.text: "Show available encoders"
             }
@@ -306,49 +306,6 @@ Column {
                     model: ["default", "0", "1", "2", "3", "4", "5"]
                     onCurrentIndexChanged: if (!root.loading) root.changed()
                     onEditTextChanged: if (!root.loading) root.changed()
-                }
-            }
-        }
-    }
-
-    Dialog {
-        id: compatDialog
-        title: "Available Encoders"
-        standardButtons: Dialog.Ok
-        width: 360
-        padding: 0
-        implicitHeight: implicitHeaderHeight + compatList.implicitHeight + implicitFooterHeight + 24
-        Component.onCompleted: Utils.centerInParent(compatDialog)
-        onOpened: Utils.centerInParent(compatDialog)
-
-        Column {
-            id: compatList
-            anchors.fill: parent
-            anchors.margins: 16
-            spacing: 8
-            Repeater {
-                model: root.codecLabels.length
-                delegate: Column {
-                    spacing: 3
-                    visible: {
-                        var encs = root._encodersForKey(root.codecKeys[index])
-                        return encs.length > 0
-                    }
-                    Label {
-                        text: root.codecLabels[index] + " (" + root._encodersForKey(root.codecKeys[index]).length + ")"
-                        color: theme.text
-                        font.bold: true
-                        font.pixelSize: 12
-                    }
-                    Repeater {
-                        model: root._encodersForKey(root.codecKeys[index])
-                        delegate: Label {
-                            text: "\u2022 " + modelData
-                            color: theme.textSecondary
-                            font.pixelSize: 11
-                            leftPadding: 12
-                        }
-                    }
                 }
             }
         }
