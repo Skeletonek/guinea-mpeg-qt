@@ -436,17 +436,15 @@ Column {
     function rebuildEncoderModel(forceDefault) {
         var codec = codecKeys[codecCombo.currentIndex]
         var encs = root._encodersForKey(codec)
+        var prev = encoderCombo.currentText
         encoderCombo.model = encs
         if (encs.length === 0) {
             encoderCombo.currentIndex = -1
             return
         }
-        if (!forceDefault) {
-            var prev = encoderCombo.currentText
-            if (prev && encs.indexOf(prev) >= 0) {
-                encoderCombo.currentIndex = encs.indexOf(prev)
-                return
-            }
+        if (!forceDefault && prev && encs.indexOf(prev) >= 0) {
+            encoderCombo.currentIndex = encs.indexOf(prev)
+            return
         }
         var defEnc = root._defaultEncoderForKey(codec)
         var ei = encs.indexOf(defEnc)
@@ -568,5 +566,6 @@ Column {
             root._availableEncoders = JSON.parse(raw)
         }
         rebuildCodecItems()
+        rebuildEncoderModel()
     }
 }
