@@ -11,8 +11,7 @@ Column {
     property var codecLabels: ["H.264", "H.265/HEVC", "VP8", "VP9", "AV1"]
     property var resOptions: ["native", "360p", "480p", "720p", "1080p", "1440p", "2160p"]
     property var fpsOptions: ["source", 20, 23.976, 25, 30, 40, 45, 50, 60]
-    property string pixfmtDefault: "default"
-    property var pixfmtOptions: [root.pixfmtDefault, "yuv420p", "yuv422p", "yuv444p", "yuv420p10le", "yuv422p10le", "yuv444p10le", "nv12"]
+    property var pixfmtOptions: ["default", "yuv420p", "yuv422p", "yuv444p", "yuv420p10le", "yuv422p10le", "yuv444p10le", "nv12"]
     property var _availableEncoders: ({})
     property var _codecAvailable: []
     property var _capOverrides: ({})  // {presets, tunes, pix_fmts} from encoder capabilities
@@ -93,7 +92,10 @@ Column {
             onCurrentIndexChanged: {
                 if (!root._codecAvailable[currentIndex]) return
                 root._capOverrides = {}
+                rebuildPresetModel()
                 rebuildTuneModel()
+                rebuildPixfmtModel()
+                pixfmtCombo.currentIndex = 0
                 rebuildEncoderModel()
                 if (!root.loading) root.changed()
             }
@@ -170,12 +172,7 @@ Column {
                 id: presetCombo
                 width: parent.width - 108
                 editable: true
-                model: {
-                    var codec = codecKeys[codecCombo.currentIndex]
-                    var list = (root._capOverrides.presets || root._presetDefaults[codec] || []).slice()
-                    list.unshift("default")
-                    return list
-                }
+                // model set explicitly by rebuildPresetModel (no binding)
                 onCurrentIndexChanged: {
                     if (!root.loading) root.changed()
                 }
@@ -193,12 +190,7 @@ Column {
                 id: tuneCombo
                 width: parent.width - 108
                 editable: true
-                model: {
-                    var codec = codecKeys[codecCombo.currentIndex]
-                    var tunes = (root._capOverrides.tunes || root._tuneDefaults[codec] || []).slice()
-                    tunes.unshift("default")
-                    return tunes
-                }
+                // model set explicitly by rebuildTuneModel (no binding)
                 onCurrentIndexChanged: if (!root.loading) root.changed()
                 onEditTextChanged: if (!root.loading) root.changed()
             }
@@ -212,14 +204,7 @@ Column {
                 id: pixfmtCombo
                 width: parent.width - 108
                 editable: true
-                model: {
-                    var list = root._capOverrides.pix_fmts
-                        ? root._capOverrides.pix_fmts.slice()
-                        : root.pixfmtOptions.slice()
-                    if (list.indexOf(root.pixfmtDefault) < 0)
-                        list.unshift(root.pixfmtDefault)
-                    return list
-                }
+                // model set explicitly by rebuildPixfmtModel (no binding)
                 onCurrentIndexChanged: if (!root.loading) root.changed()
                 onEditTextChanged: if (!root.loading) root.changed()
             }
@@ -369,6 +354,16 @@ Column {
         }
     }
 
+    function rebuildPresetModel() {
+        var codec = codecKeys[codecCombo.currentIndex]
+        var list = (root._capOverrides.presets || root._presetDefaults[codec] || []).slice()
+        list.unshift("default")
+        var prev = presetCombo.currentText
+        presetCombo.model = list
+        var idx = list.indexOf(prev)
+        presetCombo.currentIndex = idx >= 0 ? idx : 0
+    }
+
     function rebuildTuneModel() {
         var codec = codecKeys[codecCombo.currentIndex]
         var tunes = (root._capOverrides.tunes || root._tuneDefaults[codec] || []).slice()
@@ -379,41 +374,38 @@ Column {
         tuneCombo.currentIndex = idx >= 0 ? idx : 0
     }
 
+    function rebuildPixfmtModel() {
+        var list = root._capOverrides.pix_fmts
+            ? root._capOverrides.pix_fmts.slice()
+            : root.pixfmtOptions.slice()
+        if (list.indexOf("default") < 0)
+            list.unshift("default")
+        var prev = pixfmtCombo.currentText
+        pixfmtCombo.model = list
+        var idx = list.indexOf(prev)
+        pixfmtCombo.currentIndex = idx >= 0 ? idx : 0
+    }
+
     function applyEncoderCapabilities(encName) {
         if (!encName) {
             root._capOverrides = {}
+            rebuildPresetModel()
+            rebuildTuneModel()
+            rebuildPixfmtModel()
             return
         }
         var raw = backend.encoderCapabilities(encName)
         if (!raw || raw === "null") {
             root._capOverrides = {}
+            rebuildPresetModel()
+            rebuildTuneModel()
+            rebuildPixfmtModel()
             return
         }
-        var caps = JSON.parse(raw)
-        root._capOverrides = caps
-
-        // Check if current values are still valid in the new models
-        var codec = codecKeys[codecCombo.currentIndex]
-
-        // Preset: check if current value exists in new model
-        var newPresets = caps.presets || root._presetDefaults[codec] || []
-        var curPreset = presetCombo.currentText
-        if (curPreset !== "" && curPreset !== "default" && newPresets.indexOf(curPreset) < 0)
-            presetCombo.currentIndex = 0
-
-        // Tune: check if current value exists
-        var newTunes = caps.tunes || root._tuneDefaults[codec] || []
-        var curTune = tuneCombo.currentText
-        if (curTune !== "" && curTune !== "default" && newTunes.indexOf(curTune) < 0)
-            tuneCombo.currentIndex = 0
-
-        // Pixfmt: check if current value exists
-        var newPixfmts = caps.pix_fmts
-        if (newPixfmts) {
-            var curPix = pixfmtCombo.currentText
-            if (curPix !== "" && curPix !== root.pixfmtDefault && newPixfmts.indexOf(curPix) < 0)
-                pixfmtCombo.currentIndex = 0
-        }
+        root._capOverrides = JSON.parse(raw)
+        rebuildPresetModel()
+        rebuildTuneModel()
+        rebuildPixfmtModel()
     }
 
     function _encodersForKey(key) {
@@ -458,11 +450,15 @@ Column {
             combo.currentIndex = 0
             return
         }
-        var idx = combo.model.indexOf(value)
-        if (idx >= 0)
-            combo.currentIndex = idx
-        else
-            combo.editText = value
+        if (typeof combo.textAt === "function") {
+            for (var i = 0; i < combo.count; i++) {
+                if (combo.textAt(i) === value) {
+                    combo.currentIndex = i
+                    return
+                }
+            }
+        }
+        combo.editText = value
     }
 
     function _indexValue(keys, combo) {
@@ -484,7 +480,7 @@ Column {
             encoder: encoderCombo.currentText || null,
             preset: _comboText(presetCombo, "default"),
             tune: _comboText(tuneCombo, "default"),
-            pixel_format: _comboText(pixfmtCombo, root.pixfmtDefault),
+            pixel_format: _comboText(pixfmtCombo, "default"),
             resolution: _comboText(resCombo, "native"),
             framerate: fpsCombo.currentIndex === 0 ? null : parseFloat(fpsCombo.currentText),
             tile_rows: tileRowsField.text ? parseInt(tileRowsField.text) : null,
@@ -516,9 +512,6 @@ Column {
             rateValueField.text = d.bitrate || ""
         }
 
-        _setComboText(presetCombo, d.preset, "default")
-        _setComboText(pixfmtCombo, d.pixel_format, root.pixfmtDefault)
-
         _setIndex(resOptions, resCombo, d.resolution)
 
         if (d.framerate != null) {
@@ -543,11 +536,16 @@ Column {
                 encoderCombo.currentIndex = ei
             else
                 encoderCombo.editText = d.encoder
-            applyEncoderCapabilities(d.encoder)
         }
 
+        // apply capabilities for the final encoder (profile's encoder, or default from rebuildEncoderModel)
+        var finalEnc = encoderCombo.currentText
+        applyEncoderCapabilities(finalEnc)
+
         rebuildTuneModel()
+        _setComboText(presetCombo, d.preset, "default")
         _setComboText(tuneCombo, d.tune, "default")
+        _setComboText(pixfmtCombo, d.pixel_format, "default")
     }
 
     function rebuildCodecItems() {
@@ -564,6 +562,9 @@ Column {
             root._availableEncoders = JSON.parse(raw)
         }
         rebuildCodecItems()
+        rebuildPresetModel()
+        rebuildTuneModel()
+        rebuildPixfmtModel()
         rebuildEncoderModel()
     }
 }

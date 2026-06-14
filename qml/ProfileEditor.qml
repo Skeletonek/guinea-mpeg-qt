@@ -218,8 +218,11 @@ Rectangle {
         var raw = backend.loadProfile(name)
         var d = JSON.parse(raw)
         if (!d) {
-            profileName = name
-            profileNameField.text = name
+            if (_profileNames.length > 0) {
+                loadProfile(_profileNames[0])
+                return
+            }
+            resetToNew()
             _loading = false
             return
         }
@@ -238,7 +241,13 @@ Rectangle {
         }
 
         _loading = false
-        updatePreview()
+        var previewRaw = backend.generateCommandPreview(JSON.stringify(d))
+        if (previewRaw) {
+            var args = JSON.parse(previewRaw)
+            if (args && args.length > 0) {
+                advancedPanel.setPreview("ffmpeg " + args.join(" "))
+            }
+        }
     }
 
     function restoreDefaults() {
@@ -316,7 +325,9 @@ Rectangle {
         _loading = true
         _profileNames = JSON.parse(backend.availableProfiles())
         _defaultNames = JSON.parse(backend.defaultProfileNames())
-        loadProfile(profileName)
-        _loading = false
+        Qt.callLater(function() {
+            loadProfile(profileName)
+            _loading = false
+        })
     }
 }
