@@ -77,23 +77,34 @@ fn dirs_or_fallback() -> PathBuf {
 fn load_profiles_from_file(path: &Path) -> Vec<VideoProfile> {
     let content = std::fs::read_to_string(path).unwrap_or_default();
 
+    let mut profiles: Vec<VideoProfile>;
+
     #[derive(Deserialize)]
     struct VecConfig {
         profiles: Vec<VideoProfile>,
     }
     if let Ok(cfg) = toml::from_str::<VecConfig>(&content) {
-        return cfg.profiles;
+        profiles = cfg.profiles;
+    } else {
+        #[derive(Deserialize)]
+        struct MapConfig {
+            profiles: HashMap<String, VideoProfile>,
+        }
+        if let Ok(cfg) = toml::from_str::<MapConfig>(&content) {
+            profiles = cfg.profiles.into_values().collect();
+        } else {
+            return Vec::new();
+        }
     }
 
-    #[derive(Deserialize)]
-    struct MapConfig {
-        profiles: HashMap<String, VideoProfile>,
-    }
-    if let Ok(cfg) = toml::from_str::<MapConfig>(&content) {
-        return cfg.profiles.into_values().collect();
+    // migrate old "svtav1" codec key to "av1"
+    for p in &mut profiles {
+        if p.codec == "svtav1" {
+            p.codec = "av1".to_string();
+        }
     }
 
-    Vec::new()
+    profiles
 }
 
 fn load_defaults() -> Vec<VideoProfile> {

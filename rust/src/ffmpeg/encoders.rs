@@ -100,7 +100,7 @@ pub(crate) fn software_video_codec(codec: &str) -> &str {
         "hevc" => "libx265",
         "vp8" => "libvpx",
         "vp9" => "libvpx-vp9",
-        "svtav1" => "libsvtav1",
+        "av1" => "libsvtav1",
         _ => "libx264",
     }
 }

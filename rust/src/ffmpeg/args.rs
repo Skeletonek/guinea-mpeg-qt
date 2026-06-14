@@ -119,7 +119,7 @@ fn add_codec_specific(args: &mut Vec<String>, profile: &VideoProfile) {
         }
         codec => {
             if let Some(preset) = &profile.preset {
-                if codec != "svtav1" {
+                if codec != "av1" {
                     args.push("-preset".to_string());
                     args.push(preset.clone());
                 }
@@ -132,7 +132,7 @@ fn add_codec_specific(args: &mut Vec<String>, profile: &VideoProfile) {
     }
     if let Some(tune) = &profile.tune {
         match profile.codec.as_str() {
-            "h264" | "hevc" | "svtav1" => {
+            "h264" | "hevc" | "av1" => {
                 args.push("-tune".to_string());
                 args.push(tune.clone());
             }
@@ -167,8 +167,8 @@ fn add_filter_graph(args: &mut Vec<String>, profile: &VideoProfile) {
     }
 }
 
-fn add_svtav1_params(args: &mut Vec<String>, profile: &VideoProfile) {
-    if profile.codec != "svtav1" {
+fn add_av1_params(args: &mut Vec<String>, profile: &VideoProfile) {
+    if profile.codec != "av1" {
         return;
     }
     let mut svt = Vec::new();
@@ -243,7 +243,7 @@ pub(crate) fn build_command(
         add_rate_control(&mut args, profile, &enc);
         add_codec_specific(&mut args, profile);
         add_filter_graph(&mut args, profile);
-        add_svtav1_params(&mut args, profile);
+        add_av1_params(&mut args, profile);
 
         for arg in &profile.extra_args {
             args.push(arg.clone());

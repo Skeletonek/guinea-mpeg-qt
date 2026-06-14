@@ -44,7 +44,7 @@ audio_sample_rate = 48000
 
 [[profiles]]
 name = "AV1 High"
-codec = "svtav1"
+codec = "av1"
 encoder = "libsvtav1"
 crf = 28
 preset = "6"
@@ -61,7 +61,7 @@ audio_sample_rate = 48000
 
 [[profiles]]
 name = "AV1 Medium"
-codec = "svtav1"
+codec = "av1"
 encoder = "libsvtav1"
 crf = 35
 preset = "6"
@@ -78,7 +78,7 @@ audio_sample_rate = 48000
 
 [[profiles]]
 name = "AV1 Low"
-codec = "svtav1"
+codec = "av1"
 encoder = "libsvtav1"
 crf = 42
 preset = "6"

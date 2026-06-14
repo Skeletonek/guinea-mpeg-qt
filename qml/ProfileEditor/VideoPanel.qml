@@ -7,8 +7,8 @@ Column {
     id: root
     spacing: 8
 
-    property var codecKeys: ["h264", "hevc", "vp8", "vp9", "svtav1"]
-    property var codecLabels: ["H.264", "H.265/HEVC", "VP8", "VP9", "AV1 (SVT-AV1)"]
+    property var codecKeys: ["h264", "hevc", "vp8", "vp9", "av1"]
+    property var codecLabels: ["H.264", "H.265/HEVC", "VP8", "VP9", "AV1"]
     property var resOptions: ["native", "360p", "480p", "720p", "1080p", "1440p", "2160p"]
     property var fpsOptions: ["source", 20, 23.976, 25, 30, 40, 45, 50, 60]
     property string pixfmtDefault: "default"
@@ -23,14 +23,14 @@ Column {
         "hevc": ["film", "grain", "animation", "psnr", "ssim", "fastdecode", "zerolatency"],
         "vp8": ["psnr", "ssim", "good", "best"],
         "vp9": ["psnr", "ssim", "good", "best"],
-        "svtav1": ["psnr", "ssim", "vmaf"]
+        "av1": ["psnr", "ssim", "vmaf"]
     }
     property var _presetDefaults: {
         "h264": ["ultrafast", "superfast", "veryfast", "faster", "fast", "medium", "slow", "slower", "veryslow", "placebo"],
         "hevc": ["ultrafast", "superfast", "veryfast", "faster", "fast", "medium", "slow", "slower", "veryslow", "placebo"],
         "vp8": ["good", "best", "realtime"],
         "vp9": ["good", "best", "realtime"],
-        "svtav1": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13"]
+        "av1": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13"]
     }
 
     property var rateControlLabels: ["CRF", "VBR", "CBR"]
@@ -261,10 +261,10 @@ Column {
 
         Column {
             width: parent.width
-            visible: codecKeys[codecCombo.currentIndex] === "svtav1"
+            visible: codecKeys[codecCombo.currentIndex] === "av1"
             spacing: 6
             Label {
-                text: "AV1 (SVT-AV1)"
+                text: "AV1"
                 color: theme.textMuted
                 font.bold: true
                 font.pixelSize: 14
@@ -417,9 +417,7 @@ Column {
     }
 
     function _encodersForKey(key) {
-        // map internal codec key to ffmpeg codec name
-        var ffmpegKey = (key === "svtav1") ? "av1" : key
-        return root._availableEncoders[ffmpegKey] || []
+        return root._availableEncoders[key] || []
     }
 
     function _defaultEncoderForKey(key) {
@@ -428,7 +426,7 @@ Column {
             "hevc": "libx265",
             "vp8": "libvpx",
             "vp9": "libvpx-vp9",
-            "svtav1": "libsvtav1"
+            "av1": "libsvtav1"
         }
         return map[key] || "libx264"
     }
