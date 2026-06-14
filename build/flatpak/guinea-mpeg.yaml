@@ -61,7 +61,7 @@ modules:
       env:
         CARGO_HOME: /run/build/guinea-mpeg/cargo
         LIBRARY_PATH: /app/lib
-    buildsystem: cmake-ninja
+    buildsystem: cmake
     builddir: true
     config-opts:
       - -DCMAKE_BUILD_TYPE=Release
