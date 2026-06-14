@@ -3,11 +3,11 @@
 
 #define MyAppName "GuineaMPEG"
 #define MyAppPublisher "Skeletonek"
-#define MyAppURL "https://github.com/skeletonek/guinea-mpeg"
+#define MyAppURL "https://gitlab.com/Skeletonek/guinea-mpeg-qt"
 #define MyAppExeName "guinea-mpeg.exe"
 
 #ifndef AppVersion
-    #define AppVersion "0.3.0"
+    #define AppVersion "0.6.1"
 #endif
 
 #ifndef SourceDir

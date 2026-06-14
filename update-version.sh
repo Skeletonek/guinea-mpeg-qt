@@ -16,6 +16,10 @@ sed -i "s/^version = \".*\"/version = \"$VERSION\"/" "$ROOT/rust/Cargo.toml"
 CMAKE_VERSION="$(echo "$VERSION" | sed 's/[-+].*//')"
 sed -i "s/^project(guinea_mpeg VERSION [0-9.]*/project(guinea_mpeg VERSION $CMAKE_VERSION/" "$ROOT/CMakeLists.txt"
 
+# build/windows/installer.iss — AppVersion define (plain numeric only)
+sed -i "s/^\([[:space:]]*\)#define AppVersion \".*\"/\1#define AppVersion \"$CMAKE_VERSION\"/" "$ROOT/build/windows/installer.iss"
+
 echo "Version updated to $VERSION in:"
 echo "  rust/Cargo.toml"
 echo "  CMakeLists.txt"
+echo "  build/windows/installer.iss"

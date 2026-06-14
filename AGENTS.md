@@ -23,11 +23,14 @@
 - **Codec availability**: `_availableEncoders` contains only encoders detected from ffmpeg. Codecs with zero entries get `(unavailable)` suffix in the codec ComboBox delegate. Still selectable (profile may target another system).
 - **`applyEncoderCapabilities()`**: called on encoder selection change. Fetches JSON from `backend.encoderCapabilities(encName)`, parses preset/tune/pixfmt overrides, updates `_capOverrides`. Must NOT be guarded by `_loading` — needs to run during profile loading to properly set up models.
 - **Compatibility dialog**: `?` / ⓘ button opens a `Dialog` listing all detected encoders grouped by codec with counts.
-- **`_encodersForKey(codec)`**: maps internal codec key to ffmpeg's codec name (`"svtav1"` → `"av1"`, others pass through). Used to look up `_availableEncoders` by the correct key.
+- **`_encodersForKey(codec)`**: direct lookup in `_availableEncoders` by codec key (keys match ffmpeg's codec naming: `"h264"`, `"hevc"`, `"vp8"`, `"vp9"`, `"av1"`).
 - **`_defaultEncoderForKey(codec)`**: returns software encoder for each codec: `libx264`/`libx265`/`libsvtav1`/`libvpx-vp9`/`libvpx`.
 - **`setData` behavior**: always calls `rebuildEncoderModel(true)` to refresh model and set default, then `if (d.encoder)` overrides if profile has explicit encoder. When no `encoder` field, `rebuildEncoderModel(true)` already sets the default (no need for separate `else` branch).
 - **Pixfmt model** always prepends `"default"` at index 0 even when encoder capabilities override the list.
-- **`Component.onCompleted`** in ProfileEditor.qml: set `_loading = true` before `_profileNames = [...]` to suppress `onCurrentTextChanged` → `loadProfile` spurious call on initial population.
+- **`Component.onCompleted`** in ProfileEditor.qml: set `_loading = true` before `_profileNames = [...]` to suppress `onCurrentTextChanged` → `loadProfile` spurious call on initial population. `loadProfile` and `_loading = false` are deferred via `Qt.callLater` so child `Component.onCompleted` handlers (which set up combo models) fire first.
+- **Previews**: `loadProfile` generates the initial preview from source profile data directly (`backend.generateCommandPreview(JSON.stringify(d))`) instead of reading back from combos — avoids timing issues during model population. Interactive changes after load read from combos via `updatePreview()`.
+- **`_comboText(combo, sentinel)`**: reads `combo.currentText`, returns it if non-empty and not equal to sentinel, otherwise `null` (omitted from preview).
+- **`_setComboText(combo, value, sentinel)`**: first scans `combo.textAt(i)` to set `currentIndex` (matching items in the model stay in sync via `currentText`), falls back to `combo.editText = value` for custom values not in the model.
 
 ## QML Patterns
 - IDs inside a `Component` are NOT accessible from outside it. The reverse works (parent scope IDs accessible from within Component).
@@ -61,25 +64,25 @@
 
 ## Profile Config (Rust)
 - `AppConfig.profiles` is `Vec<VideoProfile>` (matches TOML `[[profiles]]` array format).
-- `load_profiles_from_file()` tries `Vec` format first, falls back to legacy `HashMap` (`[profiles."name"]`) for backwards compat.
+- `load_profiles_from_file()` tries `Vec` format first, falls back to legacy `HashMap` (`[profiles."name"]`) for backwards compat. Also migrates old `"svtav1"` codec key to `"av1"`.
 - `save_user_config()` writes in `[[profiles]]` format (the canonical form).
 - Merging: defaults loaded first, then user config overlays by `p.name`. Same name = user profile wins.
 - `cpu_used: Option<i32>` stores VP8/VP9 `-cpu-used` value (0–5). Used only for vp8/vp9 codecs; Rust emits `-deadline <preset>` instead of `-preset` for these codecs.
 - `encoder: Option<String>` stores explicit encoder name (e.g. `"libx264"`, `"h264_nvenc"`). `None` means auto-select default software encoder at runtime.
 
 ## FFmpeg & Encoder Capabilities (Rust)
-- `rust/src/ffmpeg.rs` handles ffmpeg subprocess launch, encoder detection, command building.
-- `encoder_family(name)` maps encoder name suffix to `EncoderFamily`: `Software`, `Nvenc`, `Qsv`, `Vaapi`, `Amf`, `Vulkan`, `VideoToolbox`.
-- `EncoderCapabilities` struct stores per-family overrides: `presets`, `tunes`, `pix_fmts` lists; `crf_name` (`-crf`/`-cq`/`-global_quality`/`-qp`/`-quality`); `cbr_flag_name`/`vbr_flag_name`; `uses_preset`/`uses_tune` booleans; `append_rate_control` flag.
-- `software_video_codec(codec)` returns `libx264`/`libx265`/`libsvtav1`/`libvpx-vp9`/`libvpx`.
-- `build_command()` translates rate control per encoder family:
+- `rust/src/ffmpeg/` module (split across `args.rs`, `codecs.rs`, `encoders.rs`, `ffi.rs`, `types.rs`, `util.rs`) handles ffmpeg subprocess launch, encoder detection, command building.
+- `encoder_family()` (in `encoders.rs`) maps encoder name suffix to `EncoderFamily`: `Software`, `Nvenc`, `Qsv`, `Vaapi`, `Amf`, `Vulkan`, `VideoToolbox`.
+- `EncoderCapabilities` struct (in `types.rs`) stores per-family overrides: `presets`, `tunes`, `pix_fmts` lists; `crf_name` (`-crf`/`-cq`/`-global_quality`/`-qp`/`-quality`); `cbr_flag_name`/`vbr_flag_name`; `uses_preset`/`uses_tune` booleans; `append_rate_control` flag.
+- `software_video_codec()` (in `encoders.rs`) returns `libx264`/`libx265`/`libsvtav1`/`libvpx-vp9`/`libvpx`.
+- `build_command()` (in `args.rs`) translates rate control per encoder family:
   - CRF → `-crf` (Software), `-cq` (NVENC), `-global_quality` (QSV), `-qp` (VAAPI/AMF), `-quality` (VideoToolbox), `-qp` (Vulkan)
   - CBR → adds `-rc cbr` (NVENC/QSV/AMF), `-rc_mode CBR` (VAAPI), `-b:v <bitrate>` with `-b:v <minrate>=<maxrate>=<bufsize>` for CBR mode
   - VBR → adds `-rc vbr` (NVENC/QSV/AMF), `-rc_mode VBR` (VAAPI)
   - NVENC: CRF+CBR → `-rc vbr` + `-cq <crf>` + `-b:v <bitrate>` + `-maxrate <bitrate>`
 - VP8/VP9: emits `-deadline <preset>` + `-cpu-used <N>`, no `-preset` flag.
-- `guinea_mpeg_available_encoders()` runs `ffmpeg -hide_banner -encoders`, parses lines like `....V libx264  H.264... (codec h264)`, groups by codec key, returns JSON.
-- `guinea_mpeg_encoder_capabilities(name)` looks up encoder family for a given encoder name, returns JSON or `null` for software encoders.
+- `guinea_mpeg_available_encoders()` (in `ffi.rs`) runs `ffmpeg -hide_banner -encoders`, parses lines like `....V libx264  H.264... (codec h264)`, groups by codec key, returns JSON.
+- `guinea_mpeg_encoder_capabilities(name)` (in `ffi.rs`) looks up encoder family for a given encoder name, returns JSON or `null` for software encoders.
 - Encoder detection and capabilities are exposed to QML via `GuineaMpegBackendExt::availableEncoders()` and `encoderCapabilities()`.
 
 ## Build

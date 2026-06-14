@@ -6,7 +6,7 @@ A modern FFmpeg transcoding GUI with a Rust core library dynamically linked via 
 
 - **Video Preview with Playback**: Load any video via embedded libmpv
 - **Timeline Selection**: Drag start/end handles to select a segment for transcoding
-- **Transcoding Profiles**: Built-in profiles for H.264, H.265/HEVC, VP9, and AV1 (SVT-AV1)
+- **Transcoding Profiles**: Built-in profiles for H.264, H.265/HEVC, VP9, and AV1
 - **Hardware Encoding**: Runtime detection of NVENC, QSV, VAAPI, AMF, Vulkan encoders via ffmpeg
 - **Profile Editor**: Create, edit, and delete profiles in-app; per-encoder preset/tune/pixfmt filtering
 - **Live Transcode Output**: Non-modal dialog showing real-time ffmpeg stderr output with autoscroll
@@ -147,7 +147,7 @@ A GitLab CI pipeline (`.gitlab-ci.yml`) builds and releases all packages on tag 
 
 ## Project Structure
 
-- `rust/` — Rust core library: `backend.rs` (profile management FFI), `config.rs` (TOML profile config), `ffmpeg.rs` (ffmpeg subprocess calls and command building), `mpv.rs` (mpv handle/events/commands)
+- `rust/` — Rust core library: `backend.rs` (profile management FFI), `config.rs` (TOML profile config), `ffmpeg/` (ffmpeg subprocess calls and command building — `args.rs`, `encoders.rs`, `codecs.rs`, `ffi.rs`, `types.rs`, `util.rs`), `mpv.rs` (mpv handle/events/commands)
 - `rust/include/guinea_mpeg_core.h` — Hand-written C header declaring all `extern "C"` FFI functions
 - `qml/` — Qt Quick QML UI: main window (`main.qml`), video preview (`VideoPreview.qml`), control panel (`ControlsPanel.qml`), timeline handles (`TimelineControl.qml`), profile editor (`ProfileEditor.qml` + sub-panels in `ProfileEditor/`), and `dialogs/` subdirectory for modal dialogs
 - `src/main.cpp` — Qt C++ entry point, `GuineaMpegBackendExt` class with `Q_INVOKABLE` methods

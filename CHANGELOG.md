@@ -1,3 +1,11 @@
+### 0.6.1
+- Fixed wrong encoder being set up when loading Profile Editor
+- Fixed AV1 still being named SVT-AV1, despite adding support for other encoders
+- Fixed ffmpeg preview showing incorrect information
+- Fixed Windows version being stuck on "0.3.0" in Windows settings
+- Fixed incorrect project URL for Windows (Installer)
+- Cleaned up codebase
+
 ### 0.6.0
 - Added support for H.265 / HEVC codec
 - Added support for hardware encoding (NVENC, VA-API, QSV, AMF) for H.264, H.265 and AV1
