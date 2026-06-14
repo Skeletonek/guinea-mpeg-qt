@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtMultimedia
+import "../Utils/Centering.js" as Utils
 
 Dialog {
     id: root
@@ -43,16 +44,10 @@ Dialog {
         }
     }
 
-    Component.onCompleted: centerInParent()
+    Component.onCompleted: Utils.centerInParent(root)
     onOpened: {
-        centerInParent()
+        Utils.centerInParent(root)
         keyCatcher.forceActiveFocus()
-    }
-    function centerInParent() {
-        if (parent) {
-            x = Math.round((parent.width - width) / 2)
-            y = Math.round((parent.height - height) / 2)
-        }
     }
 
     Item {

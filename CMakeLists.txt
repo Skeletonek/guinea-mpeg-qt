@@ -6,8 +6,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-    # GCC 14+ / Qt 6.11 compat: prevent copy-relocation errors against protected
-    # Qt symbols (GNU_PROPERTY_1_NEEDED_INDIRECT_EXTERN_ACCESS).
     add_compile_options(-mdirect-extern-access)
 endif()
 
@@ -75,6 +73,7 @@ if(NOT PACKAGE_TARGET)
     set(PACKAGE_TARGET "generic")
 endif()
 
+# Rust library path setup
 set(RUST_PROJECT_DIR ${CMAKE_SOURCE_DIR}/rust)
 if(DEFINED ENV{CARGO_TARGET_DIR})
     set(RUST_TARGET_DIR "$ENV{CARGO_TARGET_DIR}")
@@ -90,117 +89,14 @@ else()
     set(RUST_LIB "${RUST_TARGET_DIR}/release/libguinea_mpeg_core.so")
 endif()
 
-execute_process(COMMAND ${CARGO} build --release
-    WORKING_DIRECTORY ${RUST_PROJECT_DIR}
-    RESULT_VARIABLE CARGO_RESULT
-)
-if(NOT CARGO_RESULT EQUAL 0)
-    message(FATAL_ERROR "Failed to build Rust library")
-endif()
-
-add_custom_target(rust_lib ALL
-    COMMAND ${CARGO} build --release
-    WORKING_DIRECTORY ${RUST_PROJECT_DIR}
-    COMMENT "Building Rust library"
-    BYPRODUCTS ${RUST_LIB}
-)
-
-if(WIN32)
-    set(GUINEA_APP_SOURCES src/main.cpp src/backend.cpp src/app.rc)
-else()
-    set(GUINEA_APP_SOURCES src/main.cpp src/backend.cpp)
-endif()
-qt_add_executable(guinea-mpeg
-    ${GUINEA_APP_SOURCES}
-    src/mpvitem.h
-    src/mpvitem.cpp
-    src/backend.h
-)
-
-qt_add_resources(guinea-mpeg "app_qml"
-    PREFIX "/"
-    FILES
-        qml/main.qml
-        media/logo/logo.png
-        media/icons/info.png
-        qml/TimelineControl.qml
-        qml/ProfileEditor.qml
-        qml/VideoPreview.qml
-        qml/dialogs/AboutDialog.qml
-        qml/dialogs/FfmpegWarningDialog.qml
-        qml/dialogs/TranscodeDialog.qml
-        qml/dialogs/MpvWarningDialog.qml
-        qml/dialogs/FileOpenDialog.qml
-        qml/dialogs/FileSaveDialog.qml
-        qml/ControlsPanel.qml
-        qml/ProfileEditor/VideoPanel.qml
-        qml/ProfileEditor/AudioPanel.qml
-        qml/ProfileEditor/AdvancedPanel.qml
-        media/images/lettuce.png
-        media/audio/guinea.wav
-)
-
-target_include_directories(guinea-mpeg PRIVATE ${RUST_PROJECT_DIR}/include)
-
-target_link_libraries(guinea-mpeg
-    PRIVATE Qt6::Quick
-    PRIVATE Qt6::QuickControls2
-    PRIVATE Qt6::Gui
-    PRIVATE Qt6::Widgets
-    PRIVATE Qt6::Multimedia
-
-)
-
-if(WIN32)
-    if(NOT CONSOLE_MODE)
-        set_target_properties(guinea-mpeg PROPERTIES WIN32_EXECUTABLE TRUE)
-    endif()
-    target_link_libraries(guinea-mpeg
-        PRIVATE mpv::mpv
-        PRIVATE OpenGL::GL
-    )
-else()
-    target_link_libraries(guinea-mpeg
-        PRIVATE PkgConfig::MPV
-        PRIVATE PkgConfig::OPENGL
-        PRIVATE Qt6::DBus
-    )
-endif()
-
-if(WIN32)
-    target_link_libraries(guinea-mpeg PRIVATE "${RUST_TARGET_DIR}/release/guinea_mpeg_core.dll.lib")
-else()
-    target_link_libraries(guinea-mpeg PRIVATE ${RUST_LIB})
-endif()
-
-add_dependencies(guinea-mpeg rust_lib)
-
 # Read full semver from canonical Cargo.toml (may include pre-release suffix like -dev)
 file(READ "${CMAKE_SOURCE_DIR}/rust/Cargo.toml" CARGO_TOML)
 string(REGEX MATCH "version = \"([^\"]+)\"" _ "${CARGO_TOML}")
 set(PROJECT_VERSION_FULL "${CMAKE_MATCH_1}")
 
-target_compile_definitions(guinea-mpeg PRIVATE
-    PACKAGE_TARGET="${PACKAGE_TARGET}"
-    PROJECT_VERSION="${PROJECT_VERSION}"
-    PROJECT_VERSION_FULL="${PROJECT_VERSION_FULL}"
-)
-
-if(WIN32)
-    add_custom_command(TARGET guinea-mpeg POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${RUST_TARGET_DIR}/release/guinea_mpeg_core.dll"
-            $<TARGET_FILE_DIR:guinea-mpeg>
-        COMMENT "Copying Rust DLL to output"
-    )
-endif()
-
-add_custom_command(TARGET rust_lib POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${CMAKE_SOURCE_DIR}/default_profiles.toml
-        $<TARGET_FILE_DIR:guinea-mpeg>/default_profiles.toml
-    COMMENT "Copying default profiles"
-)
+add_subdirectory(rust)
+add_subdirectory(src)
+add_subdirectory(qml)
 
 if(NOT WIN32)
     install(TARGETS guinea-mpeg
@@ -209,11 +105,8 @@ if(NOT WIN32)
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     )
 
-    # Install the Rust shared library so cmake --install places it correctly
-    # (needed by Flatpak and manual "make install")
     install(FILES ${RUST_LIB} DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-    # Set rpath so the installed binary finds the Rust .so without LD_LIBRARY_PATH
     set_target_properties(guinea-mpeg PROPERTIES INSTALL_RPATH "$ORIGIN/../${CMAKE_INSTALL_LIBDIR}")
 
     install(FILES ${CMAKE_SOURCE_DIR}/default_profiles.toml

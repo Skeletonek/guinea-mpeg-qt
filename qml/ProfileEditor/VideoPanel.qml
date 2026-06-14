@@ -1,6 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
+import "../Utils/Centering.js" as Utils
 
 Column {
     id: root
@@ -332,14 +333,8 @@ Column {
         width: 360
         padding: 0
         implicitHeight: implicitHeaderHeight + compatList.implicitHeight + implicitFooterHeight + 24
-        Component.onCompleted: centerInParent()
-        onOpened: centerInParent()
-        function centerInParent() {
-            if (parent) {
-                x = Math.round((parent.width - width) / 2)
-                y = Math.round((parent.height - height) / 2)
-            }
-        }
+        Component.onCompleted: Utils.centerInParent(compatDialog)
+        onOpened: Utils.centerInParent(compatDialog)
 
         Column {
             id: compatList
@@ -458,22 +453,48 @@ Column {
         encoderCombo.currentIndex = ei >= 0 ? ei : 0
     }
 
+    function _comboText(combo, sentinel) {
+        return (combo.currentText && combo.currentText !== sentinel) ? combo.currentText : null
+    }
+
+    function _setComboText(combo, value, sentinel) {
+        if (value == null || value === sentinel || value === "") {
+            combo.currentIndex = 0
+            return
+        }
+        var idx = combo.model.indexOf(value)
+        if (idx >= 0)
+            combo.currentIndex = idx
+        else
+            combo.editText = value
+    }
+
+    function _indexValue(keys, combo) {
+        return keys[combo.currentIndex]
+    }
+
+    function _setIndex(keys, combo, value) {
+        var idx = keys.indexOf(value)
+        combo.currentIndex = idx >= 0 ? idx : 0
+    }
+
     function getData() {
-        var rcKey = rateControlKeys[rateControlCombo.currentIndex]
+        var rcKey = _indexValue(rateControlKeys, rateControlCombo)
+        var cpuUsedTmp = _comboText(cpuUsedCombo, "default")
         var data = {
-            codec: codecKeys[codecCombo.currentIndex],
+            codec: _indexValue(codecKeys, codecCombo),
             video_enabled: videoEnabledSwitch.checked,
             rate_control: rcKey,
             encoder: encoderCombo.currentText || null,
-            preset: (presetCombo.currentText && presetCombo.currentText !== "default") ? presetCombo.currentText : null,
-            tune: (tuneCombo.currentText && tuneCombo.currentText !== "default") ? tuneCombo.currentText : null,
-            pixel_format: (pixfmtCombo.currentText && pixfmtCombo.currentText !== root.pixfmtDefault) ? pixfmtCombo.currentText : null,
-            resolution: resCombo.currentText === "native" ? null : resCombo.currentText,
+            preset: _comboText(presetCombo, "default"),
+            tune: _comboText(tuneCombo, "default"),
+            pixel_format: _comboText(pixfmtCombo, root.pixfmtDefault),
+            resolution: _comboText(resCombo, "native"),
             framerate: fpsCombo.currentIndex === 0 ? null : parseFloat(fpsCombo.currentText),
             tile_rows: tileRowsField.text ? parseInt(tileRowsField.text) : null,
             tile_columns: tileColsField.text ? parseInt(tileColsField.text) : null,
             enable_qm: enableQmCheck.checked ? true : null,
-            cpu_used: (cpuUsedCombo.currentText && cpuUsedCombo.currentText !== "default") ? parseInt(cpuUsedCombo.currentText) : null
+            cpu_used: cpuUsedTmp ? parseInt(cpuUsedTmp) : null
         }
         if (rcKey === "crf") {
             data.crf = rateValueField.text ? parseInt(rateValueField.text) : null
@@ -486,39 +507,23 @@ Column {
     }
 
     function setData(d) {
-        var ci = codecKeys.indexOf(d.codec)
-        if (ci >= 0) codecCombo.currentIndex = ci
+        _setIndex(codecKeys, codecCombo, d.codec)
 
         videoEnabledSwitch.checked = d.video_enabled !== false
 
-        var rci = rateControlKeys.indexOf(d.rate_control)
-        if (rci < 0) rci = 0
-        rateControlCombo.currentIndex = rci
-        root.rateValidator = rateControlKeys[rci] === "crf" ? crfValidatorInst : null
+        _setIndex(rateControlKeys, rateControlCombo, d.rate_control)
+        root.rateValidator = rateControlKeys[rateControlCombo.currentIndex] === "crf" ? crfValidatorInst : null
 
-        if (d.rate_control === "crf") {
+        if (rateControlKeys[rateControlCombo.currentIndex] === "crf") {
             rateValueField.text = d.crf != null ? String(d.crf) : ""
         } else {
             rateValueField.text = d.bitrate || ""
         }
 
-        if (d.preset) {
-            var pi2 = presetCombo.model.indexOf(d.preset)
-            if (pi2 >= 0) presetCombo.currentIndex = pi2
-            else presetCombo.editText = d.preset
-        } else {
-            presetCombo.currentIndex = 0
-        }
-        if (d.pixel_format) {
-            pixfmtCombo.editText = d.pixel_format
-            var pi = pixfmtOptions.indexOf(d.pixel_format)
-            if (pi >= 0) pixfmtCombo.currentIndex = pi
-        } else {
-            pixfmtCombo.currentIndex = 0
-        }
+        _setComboText(presetCombo, d.preset, "default")
+        _setComboText(pixfmtCombo, d.pixel_format, root.pixfmtDefault)
 
-        var ri = resOptions.indexOf(d.resolution)
-        resCombo.currentIndex = ri >= 0 ? ri : 0
+        _setIndex(resOptions, resCombo, d.resolution)
 
         if (d.framerate != null) {
             var fi = fpsOptions.indexOf(d.framerate)
@@ -532,14 +537,7 @@ Column {
         tileColsField.text = d.tile_columns != null ? String(d.tile_columns) : ""
         enableQmCheck.checked = d.enable_qm === true
 
-        if (d.cpu_used != null) {
-            var cu = String(d.cpu_used)
-            var cui = cpuUsedCombo.model.indexOf(cu)
-            if (cui >= 0) cpuUsedCombo.currentIndex = cui
-            else cpuUsedCombo.editText = cu
-        } else {
-            cpuUsedCombo.currentIndex = 0
-        }
+        _setComboText(cpuUsedCombo, d.cpu_used != null ? String(d.cpu_used) : null, "default")
 
         rebuildEncoderModel(true)
         if (d.encoder) {
@@ -553,13 +551,7 @@ Column {
         }
 
         rebuildTuneModel()
-        if (d.tune) {
-            var ti = tuneCombo.model.indexOf(d.tune)
-            if (ti >= 0) tuneCombo.currentIndex = ti
-            else tuneCombo.editText = d.tune
-        } else {
-            tuneCombo.currentIndex = 0
-        }
+        _setComboText(tuneCombo, d.tune, "default")
     }
 
     function rebuildCodecItems() {

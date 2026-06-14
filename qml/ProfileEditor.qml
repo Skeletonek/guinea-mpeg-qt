@@ -2,6 +2,8 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 import "ProfileEditor"
+import "Dialogs"
+import "Utils/Centering.js" as Utils
 
 Rectangle {
     id: root
@@ -250,60 +252,15 @@ Rectangle {
         _loading = false
     }
 
-    Dialog {
+    RestoreDefaultsDialog {
         id: restoreDialog
-        title: "Restore Default Profiles"
-        standardButtons: Dialog.Yes | Dialog.No
-        width: 400
-        padding: 0
-        implicitHeight: implicitHeaderHeight + msg.implicitHeight + implicitFooterHeight + 24
-        Component.onCompleted: centerInParent()
-        onOpened: centerInParent()
-        function centerInParent() {
-            if (parent) {
-                x = Math.round((parent.width - width) / 2)
-                y = Math.round((parent.height - height) / 2)
-            }
-        }
-        onAccepted: restoreDefaults()
-
-        Label {
-            id: msg
-            anchors.fill: parent
-            anchors.margins: 16
-            text: "This will reset all built-in profiles to their original settings.\n\n" +
-                  "Custom profiles you created will not be affected.\n\n" +
-                  "Continue?"
-            color: theme.text
-            wrapMode: Text.WordWrap
-        }
+        onRestoreRequested: restoreDefaults()
     }
 
-    Dialog {
+    DeleteProfileDialog {
         id: deleteDialog
-        title: "Delete Profile"
-        standardButtons: Dialog.Yes | Dialog.No
-        width: 380
-        padding: 0
-        implicitHeight: implicitHeaderHeight + delMsg.implicitHeight + implicitFooterHeight + 24
-        Component.onCompleted: centerInParent()
-        onOpened: centerInParent()
-        function centerInParent() {
-            if (parent) {
-                x = Math.round((parent.width - width) / 2)
-                y = Math.round((parent.height - height) / 2)
-            }
-        }
-        onAccepted: deleteCurrent()
-
-        Label {
-            id: delMsg
-            anchors.fill: parent
-            anchors.margins: 16
-            text: "Delete profile \"" + profileName + "\"?\n\nThis cannot be undone."
-            color: theme.text
-            wrapMode: Text.WordWrap
-        }
+        profileName: root.profileName
+        onDeleteRequested: deleteCurrent()
     }
 
     function showNotification(msg, clr) {

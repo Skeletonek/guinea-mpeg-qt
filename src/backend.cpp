@@ -161,49 +161,70 @@ QString GuineaMpegBackendExt::generatePreview(const QString& rawPath, qint64 tim
     return result;
 }
 
+static void killTranscodeProcess(QProcess*& proc) {
+    if (!proc) return;
+    proc->disconnect();
+    proc->kill();
+    proc->waitForFinished(3000);
+    if (proc) {
+        proc->deleteLater();
+        proc = nullptr;
+    }
+}
+
+static QStringList parseArgsFromArray(const QString& json) {
+    QStringList args;
+    QJsonDocument doc = QJsonDocument::fromJson(json.toUtf8());
+    if (doc.isArray())
+        for (const auto& arg : doc.array())
+            args << arg.toString();
+    return args;
+}
+
+static QStringList buildArgsFromProfile(const QString& input, const QString& output,
+                                         double startTime, double endTime,
+                                         const QString& profileJson) {
+    const char* jsonArgs = guinea_mpeg_build_ffmpeg_command(
+        input.toUtf8().constData(),
+        output.toUtf8().constData(),
+        startTime, endTime,
+        profileJson.toUtf8().constData()
+    );
+    if (!jsonArgs) return {};
+    QStringList args;
+    QJsonDocument profDoc = QJsonDocument::fromJson(QByteArray(jsonArgs));
+    if (profDoc.isArray())
+        for (const auto& arg : profDoc.array())
+            args << arg.toString();
+    guinea_mpeg_free_string(jsonArgs);
+    return args;
+}
+
 QString GuineaMpegBackendExt::startTranscode(const QString& rawInput, const QString& rawOutput,
                                               double startTime, double endTime,
                                               const QString& profileJson) {
     QString input = QDir::cleanPath(rawInput);
     QString output = QDir::cleanPath(rawOutput);
-    if (m_currentTranscode) {
-        m_currentTranscode->kill();
-        m_currentTranscode->waitForFinished(3000);
-        m_currentTranscode->deleteLater();
-        m_currentTranscode = nullptr;
-    }
+    killTranscodeProcess(m_currentTranscode);
 
     setTranscodeOutput({});
     setTranscoding(true);
 
-    QStringList args;
     QJsonDocument doc = QJsonDocument::fromJson(profileJson.toUtf8());
-    if (doc.isArray())
-        for (const auto& arg : doc.array())
-            args << arg.toString();
-    else {
-        const char* jsonArgs = guinea_mpeg_build_ffmpeg_command(
-            input.toUtf8().constData(),
-            output.toUtf8().constData(),
-            startTime, endTime,
-            profileJson.toUtf8().constData()
-        );
-        if (!jsonArgs) {
-            setTranscodeOutput("Error: failed to build ffmpeg command from profile");
-            setTranscoding(false);
-            return "failed";
-        }
-        QJsonDocument profDoc = QJsonDocument::fromJson(QByteArray(jsonArgs));
-        if (profDoc.isArray())
-            for (const auto& arg : profDoc.array())
-                args << arg.toString();
-        guinea_mpeg_free_string(jsonArgs);
-        if (args.isEmpty()) {
-            setTranscodeOutput("Error: profile produced no ffmpeg arguments");
-            setTranscoding(false);
-            return "failed";
-        }
+    QStringList args = doc.isArray()
+        ? parseArgsFromArray(profileJson)
+        : buildArgsFromProfile(input, output, startTime, endTime, profileJson);
+    if (doc.isObject() && args.isEmpty()) {
+        setTranscodeOutput("Error: failed to build ffmpeg command from profile");
+        setTranscoding(false);
+        return "failed";
     }
+    if (args.isEmpty()) {
+        setTranscodeOutput("Error: profile produced no ffmpeg arguments");
+        setTranscoding(false);
+        return "failed";
+    }
+
     setTranscodeOutput(transcodeOutput() + "ffmpeg " + args.join(" ") + "\n\n");
 
     m_currentTranscode = new QProcess(this);
@@ -214,13 +235,9 @@ QString GuineaMpegBackendExt::startTranscode(const QString& rawInput, const QStr
 
 void GuineaMpegBackendExt::cancelTranscode() {
     if (!m_currentTranscode) return;
-    m_currentTranscode->disconnect();
-    m_currentTranscode->kill();
-    m_currentTranscode->waitForFinished(3000);
+    killTranscodeProcess(m_currentTranscode);
     setTranscodeOutput(transcodeOutput() + "\n--- Transcoding cancelled ---\n");
     setTranscoding(false);
-    m_currentTranscode->deleteLater();
-    m_currentTranscode = nullptr;
 }
 
 void GuineaMpegBackendExt::sendNotification(const QString& title, const QString& body) {
@@ -250,7 +267,8 @@ void GuineaMpegBackendExt::sendNotification(const QString& title, const QString&
 
 void GuineaMpegBackendExt::connectOutputCapture() {
     connect(m_currentTranscode, &QProcess::readyReadStandardError, this, [this]() {
-        setTranscodeOutput(transcodeOutput() + QString::fromUtf8(m_currentTranscode->readAllStandardError()));
+        if (m_currentTranscode)
+            setTranscodeOutput(transcodeOutput() + QString::fromUtf8(m_currentTranscode->readAllStandardError()));
     });
     connect(m_currentTranscode, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
             this, [this](int exitCode, QProcess::ExitStatus) {

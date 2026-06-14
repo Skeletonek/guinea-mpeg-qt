@@ -8,10 +8,11 @@ Item {
     property QtObject hostWindow: null
     property Item playerItem: null
 
-    property int _profileRevision: 0
+    property var _profileNames: []
 
     function refreshProfiles() {
-        _profileRevision++
+        var p = backend.availableProfiles()
+        try { _profileNames = JSON.parse(p) } catch(e) { _profileNames = [] }
     }
 
     signal openVideoClicked()
@@ -19,6 +20,28 @@ Item {
     signal browseOutputClicked()
     signal viewTranscodeClicked()
     signal aboutClicked()
+
+    function _toggleSelection(index, checked, selection) {
+        var arr = selection.slice()
+        var pos = arr.indexOf(index)
+        if (checked && pos < 0) arr.push(index)
+        else if (!checked && pos >= 0) arr.splice(pos, 1)
+        return arr
+    }
+
+    function _streamText(stream, index, type) {
+        if (type === "video") {
+            var fps = ""
+            if (stream.fps) {
+                var parts = String(stream.fps).split("/")
+                fps = parts.length === 2
+                    ? (parseInt(parts[0]) / parseInt(parts[1])).toFixed(1)
+                    : stream.fps
+            }
+            return stream.width + "x" + stream.height + " " + stream.codec + " " + fps + "fps"
+        }
+        return stream.language || "Stream " + (index + 1) + ": " + stream.codec
+    }
 
     Flickable {
         id: rightPanelFlickable
@@ -97,25 +120,10 @@ Item {
 
                     delegate: CheckBox {
                         checked: hostWindow ? hostWindow.selectedVideoIndices.indexOf(index) >= 0 : false
-                        text: {
-                            if (!hostWindow) return ""
-                            var s = hostWindow.videoStreams[index]
-                            var fps = ""
-                            if (s.fps) {
-                                var parts = String(s.fps).split("/")
-                                fps = parts.length === 2
-                                    ? (parseInt(parts[0]) / parseInt(parts[1])).toFixed(1)
-                                    : s.fps
-                            }
-                            return s.width + "x" + s.height + " " + s.codec + " " + fps + "fps"
-                        }
+                        text: hostWindow ? _streamText(hostWindow.videoStreams[index], index, "video") : ""
                         onClicked: {
                             if (!hostWindow) return
-                            var arr = hostWindow.selectedVideoIndices.slice()
-                            var pos = arr.indexOf(index)
-                            if (checked && pos < 0) arr.push(index)
-                            else if (!checked && pos >= 0) arr.splice(pos, 1)
-                            hostWindow.selectedVideoIndices = arr
+                            hostWindow.selectedVideoIndices = _toggleSelection(index, checked, hostWindow.selectedVideoIndices)
                         }
                     }
                 }
@@ -139,18 +147,10 @@ Item {
 
                     delegate: CheckBox {
                         checked: hostWindow ? hostWindow.selectedAudioIndices.indexOf(index) >= 0 : false
-                        text: {
-                            if (!hostWindow) return ""
-                            var s = hostWindow.audioStreams[index]
-                            return s.language || "Stream " + (index + 1) + ": " + s.codec
-                        }
+                        text: hostWindow ? _streamText(hostWindow.audioStreams[index], index, "audio") : ""
                         onClicked: {
                             if (!hostWindow) return
-                            var arr = hostWindow.selectedAudioIndices.slice()
-                            var pos = arr.indexOf(index)
-                            if (checked && pos < 0) arr.push(index)
-                            else if (!checked && pos >= 0) arr.splice(pos, 1)
-                            hostWindow.selectedAudioIndices = arr
+                            hostWindow.selectedAudioIndices = _toggleSelection(index, checked, hostWindow.selectedAudioIndices)
                         }
                     }
                 }
@@ -165,11 +165,7 @@ Item {
 
             ComboBox {
                 id: profileSelector
-                model: {
-                    _profileRevision
-                    var p = backend.availableProfiles()
-                    try { return JSON.parse(p) } catch(e) { return [] }
-                }
+                model: root._profileNames
                 onCurrentTextChanged: {
                     if (hostWindow) {
                         hostWindow.currentProfile = currentText

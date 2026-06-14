@@ -141,7 +141,7 @@ build_generic() {
     cmake --build "$build_dir"
 
     mkdir -p "$generic_dir"
-    cp "$build_dir/guinea-mpeg" "$generic_dir/"
+    cp "$build_dir/src/guinea-mpeg" "$generic_dir/"
     if [ -f "$cargo_dir/release/libguinea_mpeg_core.so" ]; then
         cp "$cargo_dir/release/libguinea_mpeg_core.so" "$generic_dir/"
     fi
@@ -192,7 +192,7 @@ build_in_docker() {
             cmake_opts='-DCMAKE_BUILD_TYPE=Release -DPACKAGE_TARGET=${target}'
             cmake -S /source -B /source/out/$build_dir_name \$cmake_opts
             cmake --build /source/out/$build_dir_name
-            cp /source/out/$build_dir_name/guinea-mpeg /source/out/$target/
+            cp /source/out/$build_dir_name/src/guinea-mpeg /source/out/$target/
             cp /source/out/$cargo_dir_name/release/libguinea_mpeg_core.so /source/out/$target/ || true
             $(if $DO_STRIP; then echo "strip /source/out/$target/guinea-mpeg 2>/dev/null || true; strip /source/out/$target/libguinea_mpeg_core.so 2>/dev/null || true"; fi)
             cp /source/default_profiles.toml /source/out/$target/

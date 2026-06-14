@@ -17,7 +17,7 @@ CMAKE_OPTS="-DCMAKE_BUILD_TYPE=Release -DPACKAGE_TARGET=appimage"
 cmake -S /source -B "$BUILD_DIR" $CMAKE_OPTS
 cmake --build "$BUILD_DIR"
 
-cp "$BUILD_DIR/guinea-mpeg" "$APPDIR/usr/bin/"
+cp "$BUILD_DIR/src/guinea-mpeg" "$APPDIR/usr/bin/"
 cp /source/default_profiles.toml "$APPDIR/usr/bin/"
 if [ -f "$CARGO_DIR/release/libguinea_mpeg_core.so" ]; then
     mkdir -p "$APPDIR/usr/lib"

@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Dialogs
-import "dialogs"
+import "Dialogs"
 import GuineaMpeg 1.0
 
 ApplicationWindow {
