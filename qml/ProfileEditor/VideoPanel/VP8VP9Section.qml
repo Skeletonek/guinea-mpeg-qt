@@ -15,9 +15,8 @@ Column {
 
     signal changed
 
-    WidgetHeader {
+    SectionHeader {
         text: "VP8/VP9"
-        topPadding: 4
     }
 
     LabeledRow {

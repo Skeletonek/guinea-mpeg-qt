@@ -15,14 +15,10 @@ Row {
     property string label: ""
     property int labelWidth: 100
     property color labelColor: Constants.colorPrimary
-    property bool labelBold: false
-    property int labelPixelSize: 14
     
     Label {
         text: root.label
-        color: root.labelColor
-        font.bold: root.labelBold
-        font.pixelSize: root.labelPixelSize
+        color: theme.textSecondary
         width: root.labelWidth
         verticalAlignment: Text.AlignVCenter
         visible: root.label !== ""

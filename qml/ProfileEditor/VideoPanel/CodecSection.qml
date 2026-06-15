@@ -24,10 +24,6 @@ Column {
     readonly property var codecLabels: Constants.codecLabels
     readonly property var codecKeys: Constants.codecKeys
 
-    WidgetHeader {
-        text: "Codec"
-    }
-
     LabeledRow {
         label: "Codec"
         labelWidth: 100

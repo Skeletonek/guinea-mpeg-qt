@@ -14,10 +14,6 @@ Column {
 
     signal changed
 
-    WidgetHeader {
-        text: "Rate control"
-    }
-
     LabeledRow {
         label: "Rate control"
         labelWidth: 100

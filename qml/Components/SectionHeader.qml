@@ -8,11 +8,8 @@ import "../Utils/Constants.js" as Constants
 Label {
     id: root
     
-    property string text: ""
-    property bool muted: false
-    
     text: root.text
-    color: root.muted ? theme.textMuted : theme.text
+    color: theme.textMuted
     font.bold: true
     font.pixelSize: 14
     topPadding: 4

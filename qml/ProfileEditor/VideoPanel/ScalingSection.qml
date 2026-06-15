@@ -13,11 +13,6 @@ Column {
 
     signal changed
 
-    WidgetHeader {
-        text: "Scaling"
-        topPadding: 4
-    }
-
     LabeledRow {
         label: "Resolution"
         labelWidth: 100

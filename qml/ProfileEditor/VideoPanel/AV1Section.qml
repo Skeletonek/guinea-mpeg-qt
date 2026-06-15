@@ -15,9 +15,8 @@ Column {
 
     signal changed
 
-    WidgetHeader {
+    SectionHeader {
         text: "AV1"
-        topPadding: 4
     }
 
     Grid {
