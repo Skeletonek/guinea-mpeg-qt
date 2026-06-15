@@ -3,7 +3,6 @@ import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 import "ProfileEditor"
 import "Dialogs"
-import "Utils/Centering.js" as Utils
 import "Utils/DataUtils.js" as DataUtils
 
 Rectangle {

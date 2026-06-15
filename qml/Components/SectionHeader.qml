@@ -1,6 +1,5 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
-import "../Utils/Constants.js" as Constants
 
 /**
  * Standard section header for grouping related form elements

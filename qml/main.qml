@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import QtQuick.Dialogs
 import "Dialogs"
 import "Utils/FormatUtils.js" as FormatUtils
 import "Utils/Constants.js" as Constants

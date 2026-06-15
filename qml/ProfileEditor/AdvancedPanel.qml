@@ -90,6 +90,6 @@ Column {
     }
 
     function setPreview(text) {
-        previewArea.text = text
+        root.previewText = text
     }
 }

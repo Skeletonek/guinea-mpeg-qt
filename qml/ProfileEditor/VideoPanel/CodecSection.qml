@@ -1,6 +1,5 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
-import QtQuick.Layouts 1.15
 import "../../Utils/Constants.js" as Constants
 import "../../Utils/DataUtils.js" as DataUtils
 import "../../Components"
@@ -134,9 +133,5 @@ Column {
             else
                 encoderCombo.editText = d.encoder
         }
-
-        var finalEnc = encoderCombo.currentText
     }
-
-
 }

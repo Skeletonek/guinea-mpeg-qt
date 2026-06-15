@@ -3,7 +3,6 @@
 // Sentinel values used throughout the application
 var SENTINEL_DEFAULT = "default"
 var SENTINEL_NATIVE = "native"
-var SENTINEL_SOURCE = "source"
 
 // Rate control types
 var rateControlKeys = ["crf", "vbr", "cbr"]
@@ -15,7 +14,6 @@ var codecLabels = ["H.264", "H.265/HEVC", "VP8", "VP9", "AV1"]
 
 // Audio codec definitions
 var audioCodecLabels = ["AAC", "Opus", "MP3", "FLAC", "Vorbis"]
-var audioCodecKeys = ["aac", "opus", "mp3", "flac", "vorbis"]
 
 // Resolution options
 var resOptions = ["native", "360p", "480p", "720p", "1080p", "1440p", "2160p"]
@@ -87,13 +85,7 @@ var colorInfo = "#2196f3"
 // Timeline colors
 var timelineSelectionColor = "#4a9eff"
 var timelineSelectionOpacity = 0.5
-var timelineStartHandleColor = "#4a9eff"
-var timelineEndHandleColor = "#ff6b4a"
 
 // Validation constants
 var crfMin = 0
 var crfMax = 63
-var audioChannelsMin = 0
-var audioChannelsMax = 8
-var audioSampleRateMin = 0
-var audioSampleRateMax = 192000

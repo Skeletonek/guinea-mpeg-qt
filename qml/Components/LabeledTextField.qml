@@ -1,7 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import "LabeledRow.qml"
-import "../Utils/Constants.js" as Constants
 
 /**
  * TextField with a label

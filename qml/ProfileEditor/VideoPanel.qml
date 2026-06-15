@@ -1,8 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
-import QtQuick.Layouts 1.15
 import "../Utils/Constants.js" as Constants
-import "../Utils/DataUtils.js" as DataUtils
 import "../Components"
 import "VideoPanel"
 
@@ -68,8 +66,6 @@ Column {
                 // Update codec-dependent sections when codec changes
                 if (presetTuneSection) {
                     presetTuneSection.currentCodecKey = root.codec
-                    presetTuneSection.rebuildPresetModel()
-                    presetTuneSection.rebuildTuneModel()
                 }
 
             }

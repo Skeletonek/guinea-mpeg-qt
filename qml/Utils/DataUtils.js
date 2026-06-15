@@ -39,16 +39,6 @@ function setComboText(combo, value, sentinel) {
 }
 
 /**
- * Gets the key value from an index-based array
- * @param {Array} keys - Array of key values
- * @param {ComboBox} combo - The ComboBox instance
- * @returns {string} The key at the current index
- */
-function indexValue(keys, combo) {
-    return keys[combo.currentIndex]
-}
-
-/**
  * Sets the combo box index based on key value
  * @param {Array} keys - Array of key values
  * @param {ComboBox} combo - The ComboBox instance
@@ -88,95 +78,4 @@ function buildProfileData() {
         }
     }
     return data
-}
-
-/**
- * Safely gets nested property with default fallback
- * @param {Object} obj - The object to query
- * @param {string} path - Dot-separated property path
- * @param {*} defaultValue - Default value if property doesn't exist
- * @returns {*} The property value or default
- */
-function getNestedProperty(obj, path, defaultValue) {
-    if (!obj || !path) return defaultValue
-    
-    var parts = path.split(".")
-    var current = obj
-    
-    for (var i = 0; i < parts.length; i++) {
-        if (current == null) return defaultValue
-        current = current[parts[i]]
-    }
-    
-    return current !== undefined ? current : defaultValue
-}
-
-/**
- * Checks if value is null, undefined, or empty string
- * @param {*} value - The value to check
- * @returns {boolean} True if value is empty
- */
-function isEmpty(value) {
-    return value == null || value === ""
-}
-
-/**
- * Converts value to integer if possible, otherwise returns null
- * @param {*} value - The value to convert
- * @returns {number|null} Integer value or null
- */
-function toIntOrNull(value) {
-    if (isEmpty(value)) return null
-    var num = parseInt(value)
-    return isNaN(num) ? null : num
-}
-
-/**
- * Converts value to float if possible, otherwise returns null
- * @param {*} value - The value to convert
- * @returns {number|null} Float value or null
- */
-function toFloatOrNull(value) {
-    if (isEmpty(value)) return null
-    var num = parseFloat(value)
-    return isNaN(num) ? null : num
-}
-
-/**
- * Creates a deep copy of an object
- * @param {Object} obj - The object to copy
- * @returns {Object} Deep copy of the object
- */
-function deepCopy(obj) {
-    if (obj == null || typeof obj !== "object") return obj
-    
-    if (Array.isArray(obj)) {
-        return obj.map(deepCopy)
-    }
-    
-    var copy = {}
-    for (var key in obj) {
-        if (obj.hasOwnProperty(key)) {
-            copy[key] = deepCopy(obj[key])
-        }
-    }
-    return copy
-}
-
-/**
- * Merges multiple objects into one (shallow merge)
- * @param {...Object} objects - Objects to merge
- * @returns {Object} Merged object
- */
-function mergeObjects() {
-    var result = {}
-    for (var i = 0; i < arguments.length; i++) {
-        var obj = arguments[i]
-        for (var key in obj) {
-            if (obj.hasOwnProperty(key)) {
-                result[key] = obj[key]
-            }
-        }
-    }
-    return result
 }
