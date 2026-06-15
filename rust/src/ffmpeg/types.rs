@@ -6,7 +6,6 @@ pub(crate) enum EncoderFamily {
     Vaapi,
     Amf,
     Vulkan,
-    VideoToolbox,
 }
 
 #[derive(Debug, Clone, serde::Serialize)]
@@ -16,6 +15,7 @@ pub(crate) struct EncoderCapabilities {
     pub(crate) pix_fmts: Option<Vec<String>>,
     pub(crate) uses_preset: bool,
     pub(crate) uses_tune: bool,
+    pub(crate) uses_compression_level: bool,
     pub(crate) crf_flag: String,
     pub(crate) vbr_flag: String,
     pub(crate) cbr_flag: String,

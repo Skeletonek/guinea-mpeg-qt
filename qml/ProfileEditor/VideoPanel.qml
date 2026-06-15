@@ -58,8 +58,6 @@ Column {
             id: codecSection
             width: parent.width
             _availableEncoders: root._availableEncoders
-            _codecAvailable: root._codecAvailable
-            _capOverrides: root._capOverrides
             loading: root.loading
             onChanged: root.changed()
             onCodecSelectionChanged: {
@@ -88,7 +86,6 @@ Column {
             id: presetTuneSection
             width: parent.width
             loading: root.loading
-            _capOverrides: root._capOverrides
             currentCodecKey: root.codec
             onChanged: root.changed()
         }
@@ -97,7 +94,6 @@ Column {
             id: pixelFormatSection
             width: parent.width
             loading: root.loading
-            _capOverrides: root._capOverrides
             onChanged: root.changed()
         }
 
@@ -129,6 +125,12 @@ Column {
         }
     }
 
+    on_CapOverridesChanged: {
+        codecSection._capOverrides = root._capOverrides
+        presetTuneSection._capOverrides = root._capOverrides
+        pixelFormatSection._capOverrides = root._capOverrides
+    }
+
     function loadAvailableEncoders() {
         var raw = backend.availableEncoders()
         if (raw && raw !== "null") {
@@ -155,12 +157,10 @@ Column {
 
     function updateChildModels() {
         if (presetTuneSection) {
-            presetTuneSection._capOverrides = root._capOverrides
             presetTuneSection.rebuildPresetModel()
             presetTuneSection.rebuildTuneModel()
         }
         if (pixelFormatSection) {
-            pixelFormatSection._capOverrides = root._capOverrides
             pixelFormatSection.rebuildPixfmtModel()
         }
     }

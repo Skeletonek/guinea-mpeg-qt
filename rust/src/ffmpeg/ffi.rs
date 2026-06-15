@@ -80,6 +80,9 @@ pub extern "C" fn guinea_mpeg_available_encoders() -> *mut c_char {
             continue;
         }
         let enc_name = parts[1].to_string();
+        if enc_name.ends_with("_v4l2m2m") || enc_name.ends_with("_videotoolbox") || enc_name.ends_with("_vulkan") {
+            continue;
+        }
         let codec = if let Some(start) = trimmed.rfind("(codec ") {
             let after = &trimmed[start + 7..];
             if let Some(end) = after.find(')') {

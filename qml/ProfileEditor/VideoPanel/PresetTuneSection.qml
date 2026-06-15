@@ -21,25 +21,25 @@ Column {
     }
 
     LabeledRow {
+        id: presetRow
         label: "Preset"
         labelWidth: 100
+        visible: root._capOverrides.uses_compression_level !== true
 
         ComboBox {
             id: presetCombo
             width: parent.width - 108
             editable: true
-            onCurrentIndexChanged: {
-                if (!root.loading) root.changed()
-            }
-            onEditTextChanged: {
-                if (!root.loading) root.changed()
-            }
+            onCurrentIndexChanged: if (!root.loading) root.changed()
+            onEditTextChanged: if (!root.loading) root.changed()
         }
     }
 
     LabeledRow {
+        id: tuneRow
         label: "Tune"
         labelWidth: 100
+        visible: root._capOverrides.uses_compression_level !== true
 
         ComboBox {
             id: tuneCombo
@@ -47,6 +47,21 @@ Column {
             editable: true
             onCurrentIndexChanged: if (!root.loading) root.changed()
             onEditTextChanged: if (!root.loading) root.changed()
+        }
+    }
+
+    LabeledRow {
+        id: compressionLevelRow
+        label: "Compression Level"
+        labelWidth: 100
+        visible: root._capOverrides.uses_compression_level === true
+
+        TextField {
+            id: compressionLevelField
+            width: parent.width - 108
+            onTextChanged: {
+                if (!root.loading) root.changed()
+            }
         }
     }
 
@@ -71,6 +86,13 @@ Column {
     }
 
     function getPresetTuneData() {
+        if (root._capOverrides.uses_compression_level === true) {
+            return {
+                preset: null,
+                tune: null,
+                compression_level: compressionLevelField.text || null
+            }
+        }
         return {
             preset: DataUtils.comboText(presetCombo, Constants.SENTINEL_DEFAULT),
             tune: DataUtils.comboText(tuneCombo, Constants.SENTINEL_DEFAULT)
@@ -80,5 +102,8 @@ Column {
     function setPresetTuneData(d) {
         DataUtils.setComboText(presetCombo, d.preset, Constants.SENTINEL_DEFAULT)
         DataUtils.setComboText(tuneCombo, d.tune, Constants.SENTINEL_DEFAULT)
+        if (d.compression_level !== undefined) {
+            compressionLevelField.text = d.compression_level || ""
+        }
     }
 }

@@ -22,6 +22,7 @@ pub struct VideoProfile {
     pub tile_columns: Option<u32>,
     pub enable_qm: Option<bool>,
     pub cpu_used: Option<i32>,
+    pub compression_level: Option<String>,
     #[serde(default = "default_audio_bitrate")]
     pub audio_bitrate: String,
     pub audio_channels: Option<u32>,

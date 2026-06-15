@@ -1,5 +1,5 @@
 use crate::config::VideoProfile;
-use crate::ffmpeg::{audio_codec_for_profile, encoder_capabilities, encoder_family, normalize_path, video_codec, EncoderFamily};
+use crate::ffmpeg::{audio_codec_for_profile, detect_vaapi_device, encoder_capabilities, encoder_family, normalize_path, video_codec, EncoderFamily};
 
 fn push_rc_flag(args: &mut Vec<String>, family: EncoderFamily, caps: &Option<super::EncoderCapabilities>, mode: &str) {
     if family == EncoderFamily::Vaapi {
@@ -99,14 +99,10 @@ fn add_rate_control(args: &mut Vec<String>, profile: &VideoProfile, enc: &str) {
     }
 }
 
-fn add_codec_specific(args: &mut Vec<String>, profile: &VideoProfile) {
+fn add_codec_specific(args: &mut Vec<String>, profile: &VideoProfile, enc: &str) {
+    let caps = encoder_capabilities(enc);
+
     match profile.codec.as_str() {
-        "h264" | "hevc" => {
-            if let Some(preset) = &profile.preset {
-                args.push("-preset".to_string());
-                args.push(preset.clone());
-            }
-        }
         "vp8" | "vp9" => {
             if let Some(cpu) = profile.cpu_used {
                 args.push("-cpu-used".to_string());
@@ -117,13 +113,22 @@ fn add_codec_specific(args: &mut Vec<String>, profile: &VideoProfile) {
                 args.push(preset.clone());
             }
         }
-        codec => {
+        _ => {
             if let Some(preset) = &profile.preset {
-                if codec != "av1" {
+                let can_preset = caps.as_ref()
+                    .map(|c| c.uses_preset)
+                    .unwrap_or(true);
+                if can_preset {
                     args.push("-preset".to_string());
                     args.push(preset.clone());
                 }
             }
+        }
+    }
+    if let Some(level) = &profile.compression_level {
+        if !level.is_empty() {
+            args.push("-compression_level".to_string());
+            args.push(level.clone());
         }
     }
     if let Some(pix_fmt) = &profile.pixel_format {
@@ -131,23 +136,20 @@ fn add_codec_specific(args: &mut Vec<String>, profile: &VideoProfile) {
         args.push(pix_fmt.clone());
     }
     if let Some(tune) = &profile.tune {
-        match profile.codec.as_str() {
-            "h264" | "hevc" | "av1" => {
-                args.push("-tune".to_string());
-                args.push(tune.clone());
-            }
-            "vp8" | "vp9" => {
-                if tune == "psnr" || tune == "ssim" {
-                    args.push("-tune".to_string());
-                    args.push(tune.clone());
-                }
-            }
-            _ => {}
+        let can_tune = match profile.codec.as_str() {
+            "vp8" | "vp9" => tune == "psnr" || tune == "ssim",
+            _ => caps.as_ref()
+                .map(|c| c.uses_tune)
+                .unwrap_or(true),
+        };
+        if can_tune {
+            args.push("-tune".to_string());
+            args.push(tune.clone());
         }
     }
 }
 
-fn add_filter_graph(args: &mut Vec<String>, profile: &VideoProfile) {
+fn add_filter_graph(args: &mut Vec<String>, profile: &VideoProfile, family: EncoderFamily) {
     let mut filter_parts = Vec::new();
     if let Some(fps) = profile.framerate {
         if fps > 0.0 {
@@ -160,6 +162,14 @@ fn add_filter_graph(args: &mut Vec<String>, profile: &VideoProfile) {
                 filter_parts.push(format!("scale=-2:{}", height));
             }
         }
+    }
+    if family == EncoderFamily::Vulkan {
+        filter_parts.insert(0, "format=nv12".to_string());
+        filter_parts.push("hwupload".to_string());
+    } else if !filter_parts.is_empty() && family != EncoderFamily::Software {
+        filter_parts.insert(0, "format=nv12".to_string());
+        filter_parts.insert(0, "hwdownload".to_string());
+        filter_parts.push("hwupload".to_string());
     }
     if !filter_parts.is_empty() {
         args.push("-vf".to_string());
@@ -221,6 +231,55 @@ pub(crate) fn build_command(
 ) -> Vec<String> {
     let mut args = Vec::new();
 
+    let video_enabled = profile.video_enabled.unwrap_or(true);
+
+    if video_enabled {
+        let enc = video_codec(profile);
+        let family = if profile.encoder.is_some() {
+            encoder_family(&enc)
+        } else {
+            EncoderFamily::Software
+        };
+
+        match family {
+            EncoderFamily::Vaapi => {
+                args.push("-hwaccel".to_string());
+                args.push("vaapi".to_string());
+                args.push("-hwaccel_output_format".to_string());
+                args.push("vaapi".to_string());
+                if let Some(dev) = detect_vaapi_device() {
+                    args.push("-vaapi_device".to_string());
+                    args.push(dev);
+                }
+            }
+            EncoderFamily::Nvenc => {
+                args.push("-hwaccel".to_string());
+                args.push("cuda".to_string());
+                args.push("-hwaccel_output_format".to_string());
+                args.push("cuda".to_string());
+            }
+            EncoderFamily::Qsv => {
+                args.push("-init_hw_device".to_string());
+                args.push("qsv=qsv".to_string());
+                args.push("-hwaccel".to_string());
+                args.push("qsv".to_string());
+                args.push("-hwaccel_output_format".to_string());
+                args.push("qsv".to_string());
+            }
+            EncoderFamily::Amf => {
+                args.push("-hwaccel".to_string());
+                args.push("amf".to_string());
+                args.push("-hwaccel_output_format".to_string());
+                args.push("amf".to_string());
+            }
+            //EncoderFamily::Vulkan => {
+            //    args.push("-init_hw_device".to_string());
+            //    args.push("vulkan".to_string());
+            //}
+            _ => {}
+        }
+    }
+
     if start_time > 0.0 {
         args.push("-ss".to_string());
         args.push(format!("{}", start_time));
@@ -235,14 +294,20 @@ pub(crate) fn build_command(
 
     add_stream_mapping(&mut args, profile);
 
-    if profile.video_enabled.unwrap_or(true) {
+    if video_enabled {
         let enc = video_codec(profile);
+        let family = if profile.encoder.is_some() {
+            encoder_family(&enc)
+        } else {
+            EncoderFamily::Software
+        };
+
         args.push("-c:v".to_string());
         args.push(enc.clone());
 
         add_rate_control(&mut args, profile, &enc);
-        add_codec_specific(&mut args, profile);
-        add_filter_graph(&mut args, profile);
+        add_codec_specific(&mut args, profile, &enc);
+        add_filter_graph(&mut args, profile, family);
         add_av1_params(&mut args, profile);
 
         for arg in &profile.extra_args {

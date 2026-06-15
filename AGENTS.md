@@ -21,7 +21,9 @@
 - `_loading` guard wraps model/list changes in save/delete/restore functions to prevent `onCurrentTextChanged` from triggering spurious `loadProfile` calls.
 - **Encoder ComboBox** model is explicitly set in `rebuildEncoderModel()` (no binding), called from codec handler AND `setData`. This avoids stale model issues when switching between same-codec profiles. `rebuildEncoderModel(forceDefault)` when called from `setData` to ensure default is used instead of previous encoder.
 - **Codec availability**: `_availableEncoders` contains only encoders detected from ffmpeg. Codecs with zero entries get `(unavailable)` suffix in the codec ComboBox delegate. Still selectable (profile may target another system).
+- **`_capOverrides` propagation**: `_capOverrides` is propagated from `VideoPanel` to child sections (CodecSection, PresetTuneSection, PixelFormatSection) via `on_CapOverridesChanged` signal handler with explicit JS assignment — NOT via QML `property: expression` binding. This avoids binding overwrites when children write to their own `_capOverrides` (e.g. CodecSection resets it on codec change). The `on_CapOverridesChanged` handler runs synchronously in the same call stack as `applyEncoderCapabilities`, ensuring no one-step-behind state.
 - **`applyEncoderCapabilities()`**: called on encoder selection change. Fetches JSON from `backend.encoderCapabilities(encName)`, parses preset/tune/pixfmt overrides, updates `_capOverrides`. Must NOT be guarded by `_loading` — needs to run during profile loading to properly set up models.
+- **`compression_level` for VAAPI**: VAAPI encoders use `-compression_level` instead of `-preset`/`-tune`. EncoderCapabilities has `uses_compression_level: bool`. When true, PresetTuneSection hides preset/tune ComboBoxes and shows a TextField for compression level. The `compression_level` field is emitted as `-compression_level <value>` in the ffmpeg command.
 - **Compatibility dialog**: `?` / ⓘ button opens a `Dialog` listing all detected encoders grouped by codec with counts.
 - **`_encodersForKey(codec)`**: direct lookup in `_availableEncoders` by codec key (keys match ffmpeg's codec naming: `"h264"`, `"hevc"`, `"vp8"`, `"vp9"`, `"av1"`).
 - **`_defaultEncoderForKey(codec)`**: returns software encoder for each codec: `libx264`/`libx265`/`libsvtav1`/`libvpx-vp9`/`libvpx`.
@@ -33,6 +35,8 @@
 - **`_setComboText(combo, value, sentinel)`**: first scans `combo.textAt(i)` to set `currentIndex` (matching items in the model stay in sync via `currentText`), falls back to `combo.editText = value` for custom values not in the model.
 
 ## QML Patterns
+- **Never break QML bindings with JS assignments**: `property: expression` (colon) creates a QML binding; `property = value` (equals) in JS **silently destroys the binding**. Debug with `QT_LOGGING_RULES="qt.qml.binding.removal.info=true"`.
+- **Propagate `var` properties via `on_PropertyNameChanged`**: Instead of `childProp: parent.prop` (which can be overwritten when the child also writes to it), use `on_PropertyNameChanged: child.prop = root.prop`. This is explicit, synchronous within the call stack, and avoids deferred binding evaluation. Used in `VideoPanel.qml` for `_capOverrides` and `_codecAvailable`.
 - IDs inside a `Component` are NOT accessible from outside it. The reverse works (parent scope IDs accessible from within Component).
 - `FileDialog.selectedFile` is a `file:///...` URL. Strip `file://` prefix only for C++ paths; QML `url` properties accept it directly.
 - `Q_PROPERTY` signals (`NOTIFY`) are the cleanest way to push streaming data (like ffmpeg output) from C++ to QML.

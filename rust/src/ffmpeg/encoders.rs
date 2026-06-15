@@ -15,8 +15,6 @@ pub(crate) fn encoder_family(encoder: &str) -> EncoderFamily {
         EncoderFamily::Amf
     } else if encoder.ends_with("_vulkan") {
         EncoderFamily::Vulkan
-    } else if encoder.ends_with("_videotoolbox") {
-        EncoderFamily::VideoToolbox
     } else {
         EncoderFamily::Software
     }
@@ -30,6 +28,7 @@ pub(crate) fn encoder_capabilities(encoder: &str) -> Option<EncoderCapabilities>
             pix_fmts: Some(vec!["yuv420p","nv12","p010le","yuv444p"].into_iter().map(String::from).collect()),
             uses_preset: true,
             uses_tune: true,
+            uses_compression_level: false,
             crf_flag: "-cq".into(),
             vbr_flag: "-b:v".into(),
             cbr_flag: "-b:v".into(),
@@ -41,6 +40,7 @@ pub(crate) fn encoder_capabilities(encoder: &str) -> Option<EncoderCapabilities>
             pix_fmts: Some(vec!["nv12","yuv420p","p010le"].into_iter().map(String::from).collect()),
             uses_preset: true,
             uses_tune: true,
+            uses_compression_level: false,
             crf_flag: "-global_quality".into(),
             vbr_flag: "-b:v".into(),
             cbr_flag: "-b:v".into(),
@@ -52,6 +52,7 @@ pub(crate) fn encoder_capabilities(encoder: &str) -> Option<EncoderCapabilities>
             pix_fmts: Some(vec!["nv12","vaapi_vld","p010le"].into_iter().map(String::from).collect()),
             uses_preset: false,
             uses_tune: false,
+            uses_compression_level: true,
             crf_flag: "-qp".into(),
             vbr_flag: "-b:v".into(),
             cbr_flag: "-b:v".into(),
@@ -63,6 +64,7 @@ pub(crate) fn encoder_capabilities(encoder: &str) -> Option<EncoderCapabilities>
             pix_fmts: Some(vec!["nv12","yuv420p"].into_iter().map(String::from).collect()),
             uses_preset: true,
             uses_tune: true,
+            uses_compression_level: false,
             crf_flag: "-quality".into(),
             vbr_flag: "-b:v".into(),
             cbr_flag: "-b:v".into(),
@@ -74,21 +76,11 @@ pub(crate) fn encoder_capabilities(encoder: &str) -> Option<EncoderCapabilities>
             pix_fmts: Some(vec!["yuv420p","nv12","gbrp10le"].into_iter().map(String::from).collect()),
             uses_preset: false,
             uses_tune: false,
+            uses_compression_level: false,
             crf_flag: "-crf".into(),
             vbr_flag: "-b:v".into(),
             cbr_flag: "-b:v".into(),
             rc_flag: None,
-        },
-        EncoderFamily::VideoToolbox => EncoderCapabilities {
-            presets: None,
-            tunes: None,
-            pix_fmts: Some(vec!["nv12","yuv420p"].into_iter().map(String::from).collect()),
-            uses_preset: false,
-            uses_tune: false,
-            crf_flag: "-quality".into(),
-            vbr_flag: "-b:v".into(),
-            cbr_flag: "-b:v".into(),
-            rc_flag: Some("-rc".into()),
         },
         EncoderFamily::Software => return None,
     })
@@ -102,5 +94,30 @@ pub(crate) fn software_video_codec(codec: &str) -> &str {
         "vp9" => "libvpx-vp9",
         "av1" => "libsvtav1",
         _ => "libx264",
+    }
+}
+
+pub(crate) fn detect_vaapi_device() -> Option<String> {
+    #[cfg(not(target_os = "linux"))]
+    return None;
+
+    #[cfg(target_os = "linux")]
+    {
+        let dir = std::path::Path::new("/dev/dri");
+        if !dir.is_dir() {
+            return None;
+        }
+        for entry in std::fs::read_dir(dir).ok()? {
+            let entry = entry.ok()?;
+            let name = entry.file_name();
+            let name = name.to_string_lossy();
+            if name.starts_with("renderD") {
+                let path = entry.path();
+                if std::fs::File::open(&path).is_ok() {
+                    return Some(path.to_string_lossy().to_string());
+                }
+            }
+        }
+        None
     }
 }

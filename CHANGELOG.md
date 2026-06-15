@@ -1,3 +1,9 @@
+### 0.6.2
+- Fix hardware encoding not working due to incorrect parameters
+- Removed Apple Video Toolbox and Linux Video4Linux2 Memory-to-Memory encoders
+- Temporarily disabled Vulkan-based encoders
+- Cleaned up QML codebase
+
 ### 0.6.1
 - Fixed wrong encoder being set up when loading Profile Editor
 - Fixed AV1 still being named SVT-AV1, despite adding support for other encoders
