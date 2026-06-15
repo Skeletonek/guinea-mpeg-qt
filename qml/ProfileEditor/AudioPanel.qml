@@ -1,6 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import "../Utils/Constants.js" as Constants
+import "../Components"
 
 Column {
     id: root
@@ -15,11 +16,9 @@ Column {
 
     readonly property alias audioEnabled: audioEnabledSwitch.checked
 
-    Rectangle {
+    WidgetHeader {
         width: parent.width
         height: 28
-        color: theme.widget
-        radius: 4
         Row {
             anchors.verticalCenter: parent.verticalCenter
             leftPadding: 6
@@ -44,20 +43,14 @@ Column {
         spacing: 8
         visible: audioEnabledSwitch.checked
 
-        Label {
-            id: audioCodecAutoLabel
+        LabeledRow {
             visible: videoEnabled
-            text: "Codec: Auto (" + ((currentCodecKey === "h264" || currentCodecKey === "hevc") ? "AAC" : "Opus") + ")"
-            color: theme.textDim
-            font.pixelSize: 12
+            labelWidth: parent.width
+            label: "Codec: Auto (" + ((currentCodecKey === "h264" || currentCodecKey === "hevc") ? "AAC" : "Opus") + ")"
         }
 
-        Label {
+        SectionHeader {
             text: "Codec"
-            color: theme.textMuted
-            font.bold: true
-            font.pixelSize: 14
-            topPadding: 4
             visible: !videoEnabled
         }
         ComboBox {
@@ -72,42 +65,29 @@ Column {
             width: parent.width
             spacing: 6
 
-            Row {
-                spacing: 8
-                width: parent.width
+            LabeledTextField {
+                id: audioBitrateField
+                label: "Bitrate"
+                labelWidth: 80
+                placeholderText: "128k"
                 visible: videoEnabled || audioCodecLabels[audioCodecCombo.currentIndex] !== "FLAC"
-                Label { text: "Bitrate"; color: theme.textSecondary; width: 80 }
-                    TextField {
-                        id: audioBitrateField
-                        width: parent.width - 88
-                        placeholderText: "128k"
-                        onTextChanged: if (!root.loading) root.changed()
-                        onEditingFinished: if (!root.loading) root.changed()
-                    }
+                onTextChanged: if (!root.loading) root.changed()
             }
-            Row {
-                spacing: 8
-                width: parent.width
-                Label { text: "Channels"; color: theme.textSecondary; width: 80 }
-                TextField {
-                    id: audioChannelsField
-                    width: parent.width - 88
-                    placeholderText: "2"
-                    validator: IntValidator { bottom: 0; top: 8 }
-                    onTextChanged: if (!root.loading) root.changed()
-                }
+            LabeledTextField {
+                id: audioChannelsField
+                label: "Channels"
+                labelWidth: 80
+                placeholderText: "2"
+                validator: IntValidator { bottom: 0; top: 8 }
+                onTextChanged: if (!root.loading) root.changed()
             }
-            Row {
-                spacing: 8
-                width: parent.width
-                Label { text: "Sample rate"; color: theme.textSecondary; width: 80 }
-                TextField {
-                    id: audioSrField
-                    width: parent.width - 88
-                    placeholderText: "48000"
-                    validator: IntValidator { bottom: 0; top: 192000 }
-                    onTextChanged: if (!root.loading) root.changed()
-                }
+            LabeledTextField {
+                id: audioSrField
+                label: "Sample rate"
+                labelWidth: 80
+                placeholderText: "48000"
+                validator: IntValidator { bottom: 0; top: 192000 }
+                onTextChanged: if (!root.loading) root.changed()
             }
         }
     }

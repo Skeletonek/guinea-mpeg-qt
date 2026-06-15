@@ -1,5 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
+import "../Components"
 
 Column {
     id: root
@@ -11,27 +12,12 @@ Column {
     signal changed
     signal extraArgsChanged
 
-    Rectangle {
-        width: parent.width
-        height: 28
-        color: theme.widget
-        radius: 4
-        Label {
-            anchors.verticalCenter: parent.verticalCenter
-            leftPadding: 6
-            text: "Advanced"
-            color: theme.text
-            font.bold: true
-            font.pixelSize: 14
-        }
+    WidgetHeader {
+        text: "Advanced"
     }
 
-    Label {
+    SectionHeader {
         text: "Extra FFmpeg arguments"
-        color: theme.textMuted
-        font.bold: true
-        font.pixelSize: 14
-        topPadding: 4
     }
     TextField {
         id: extraArgsField
@@ -49,12 +35,8 @@ Column {
         }
     }
 
-    Label {
+    SectionHeader {
         text: "FFmpeg Preview"
-        color: theme.textMuted
-        font.bold: true
-        font.pixelSize: 14
-        topPadding: 4
     }
 
     Rectangle {
