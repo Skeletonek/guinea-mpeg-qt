@@ -1,5 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
+import "Utils/FormatUtils.js" as FormatUtils
+import "Utils/Constants.js" as Constants
 
 Rectangle {
     id: root
@@ -19,8 +21,8 @@ Rectangle {
 
         Row {
             spacing: 10
-            Label { text: formatTime(startTime); width: 80; color: theme.text }
-            Label { text: formatTime(endTime); width: 80; color: theme.text }
+            Label { text: FormatUtils.formatTime(startTime); width: 80; color: theme.text }
+            Label { text: FormatUtils.formatTime(endTime); width: 80; color: theme.text }
         }
 
         Rectangle {
@@ -32,23 +34,23 @@ Rectangle {
 
             property double _ratio: videoDuration > 0 ? width / videoDuration : 1
 
-            Rectangle {
-                x: Math.max(0, Math.min(startTime * track._ratio, track.width))
-                width: Math.max(0, Math.min((endTime - startTime) * track._ratio, track.width - x))
-                height: parent.height
-                color: "#4a9eff"
-                opacity: 0.5
-                radius: 4
-            }
+             Rectangle {
+                 x: Math.max(0, Math.min(startTime * track._ratio, track.width))
+                 width: Math.max(0, Math.min((endTime - startTime) * track._ratio, track.width - x))
+                 height: parent.height
+                 color: Constants.timelineSelectionColor
+                 opacity: Constants.timelineSelectionOpacity
+                 radius: 4
+             }
 
-            Rectangle {
-                id: startHandle
-                x: Math.max(0, Math.min(startTime * track._ratio, track.width - width))
-                y: 0
-                width: 12
-                height: parent.height
-                color: "#4a9eff"
-                radius: 3
+             Rectangle {
+                 id: startHandle
+                 x: Math.max(0, Math.min(startTime * track._ratio, track.width - width))
+                 y: 0
+                 width: 12
+                 height: parent.height
+                 color: Constants.colorPrimary
+                 radius: 3
                 MouseArea {
                     anchors.fill: parent
                     drag.target: parent
@@ -70,14 +72,14 @@ Rectangle {
                 }
             }
 
-            Rectangle {
-                id: endHandle
-                x: Math.max(0, Math.min(endTime * track._ratio - width, track.width - width))
-                y: 0
-                width: 12
-                height: parent.height
-                color: "#ff6b4a"
-                radius: 3
+             Rectangle {
+                 id: endHandle
+                 x: Math.max(0, Math.min(endTime * track._ratio - width, track.width - width))
+                 y: 0
+                 width: 12
+                 height: parent.height
+                 color: Constants.colorSecondary
+                 radius: 3
                 MouseArea {
                     anchors.fill: parent
                     drag.target: parent
@@ -99,12 +101,5 @@ Rectangle {
                 }
             }
         }
-    }
-
-    function formatTime(ms) {
-        var s = Math.floor(ms / 1000)
-        var m = Math.floor(s / 60)
-        s = s % 60
-        return (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s
-    }
+     }
 }

@@ -1,6 +1,9 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import "Utils/FormatUtils.js" as FormatUtils
+import "Utils/DataUtils.js" as DataUtils
+import "Utils/Constants.js" as Constants
 
 Item {
     id: root
@@ -22,25 +25,11 @@ Item {
     signal aboutClicked()
 
     function _toggleSelection(index, checked, selection) {
-        var arr = selection.slice()
-        var pos = arr.indexOf(index)
-        if (checked && pos < 0) arr.push(index)
-        else if (!checked && pos >= 0) arr.splice(pos, 1)
-        return arr
+        return DataUtils.toggleSelection(index, checked, selection)
     }
 
     function _streamText(stream, index, type) {
-        if (type === "video") {
-            var fps = ""
-            if (stream.fps) {
-                var parts = String(stream.fps).split("/")
-                fps = parts.length === 2
-                    ? (parseInt(parts[0]) / parseInt(parts[1])).toFixed(1)
-                    : stream.fps
-            }
-            return stream.width + "x" + stream.height + " " + stream.codec + " " + fps + "fps"
-        }
-        return stream.language || "Stream " + (index + 1) + ": " + stream.codec
+        return FormatUtils.streamText(stream, index, type)
     }
 
     Flickable {

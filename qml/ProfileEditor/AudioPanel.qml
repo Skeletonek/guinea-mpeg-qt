@@ -1,11 +1,13 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
+import "../Utils/Constants.js" as Constants
+import "../Utils/DataUtils.js" as DataUtils
 
 Column {
     id: root
     spacing: 8
 
-    property var audioCodecLabels: ["AAC", "Opus", "MP3", "FLAC", "Vorbis"]
+    readonly property var audioCodecLabels: Constants.audioCodecLabels
     property bool videoEnabled: true
     property string currentCodecKey: "h264"
     property bool loading: false

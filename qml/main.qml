@@ -3,6 +3,8 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Dialogs
 import "Dialogs"
+import "Utils/FormatUtils.js" as FormatUtils
+import "Utils/Constants.js" as Constants
 import GuineaMpeg 1.0
 
 ApplicationWindow {
@@ -17,7 +19,7 @@ ApplicationWindow {
     property string currentVideoPath: ""
     property var currentVideoInfo: ({})
     property string currentProfile: "H.264 High"
-    property string currentCodec: "h264"
+    property string currentCodec: Constants.codecKeys[0]
     property int videoDuration: 0
     property int startTime: 0
     property int endTime: 0
@@ -174,11 +176,8 @@ ApplicationWindow {
         for (var a = 0; a < audioStreams.length; a++) ai.push(a)
         selectedAudioIndices = ai
 
-        var idx = filePath.lastIndexOf("/")
-        var name = idx >= 0 ? filePath.substring(idx + 1) : filePath
-        var parts = (info.fps || "0/1").split("/")
-        var fps = parts.length === 2 && Number(parts[1]) !== 0
-            ? (Number(parts[0]) / Number(parts[1])).toFixed(2) : "?"
+        var name = FormatUtils.getFilename(filePath)
+        var fps = FormatUtils.formatFps(info.fps || "0/1")
         videoInfoText = "File: " + name + "\n" +
                       "Duration: " + info.duration.toFixed(1) + "s\n" +
                       "Resolution: " + info.width + "x" + info.height + "\n" +
@@ -186,9 +185,8 @@ ApplicationWindow {
                       "Video: " + info.codec + "\n" +
                       "Audio: " + (info.audio_codec || "N/A")
 
-        var dot = name.lastIndexOf(".")
-        var base = dot >= 0 ? name.substring(0, dot) : name
-        var dir = idx >= 0 ? filePath.substring(0, idx + 1) : ""
+        var base = FormatUtils.getBaseFilename(name)
+        var dir = FormatUtils.getDirectory(filePath)
         var profileData = {}
         try { profileData = JSON.parse(backend.loadProfile(currentProfile)) } catch(e) {}
         appWindow.outputFilePath = dir + base + "_transcoded." + getExtensionForProfile(profileData)
@@ -196,25 +194,18 @@ ApplicationWindow {
 
     function getExtensionForProfile(d) {
         if (d.video_enabled !== false) {
-            if (d.codec === "h264") return "mp4"
-            return "webm"
+            return Constants.profileExtensions[d.codec] || "webm"
         }
-        switch (d.audio_codec) {
-            case "FLAC": return "flac"
-            case "MP3":  return "mp3"
-            case "AAC":  return "m4a"
-            case "Opus": return "opus"
-            case "Vorbis": return "ogg"
-        }
+        return Constants.audioExtensions[d.audio_codec] || "ogg"
     }
 
     function updateCodec() {
         var d
         try {
             d = JSON.parse(backend.loadProfile(currentProfile))
-            currentCodec = d.codec || "h264"
+            currentCodec = d.codec || Constants.codecKeys[0]
         } catch(e) {
-            currentCodec = "h264"
+            currentCodec = Constants.codecKeys[0]
         }
         var ext = getExtensionForProfile(d || {})
         var dot = appWindow.outputFilePath.lastIndexOf(".")

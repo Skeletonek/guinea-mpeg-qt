@@ -21,7 +21,24 @@ qt_add_resources(guinea-mpeg "app_qml"
         ${CMAKE_SOURCE_DIR}/qml/ProfileEditor/VideoPanel.qml
         ${CMAKE_SOURCE_DIR}/qml/ProfileEditor/AudioPanel.qml
         ${CMAKE_SOURCE_DIR}/qml/ProfileEditor/AdvancedPanel.qml
+        ${CMAKE_SOURCE_DIR}/qml/ProfileEditor/VideoPanel/CodecSection.qml
+        ${CMAKE_SOURCE_DIR}/qml/ProfileEditor/VideoPanel/RateControlSection.qml
+        ${CMAKE_SOURCE_DIR}/qml/ProfileEditor/VideoPanel/PresetTuneSection.qml
+        ${CMAKE_SOURCE_DIR}/qml/ProfileEditor/VideoPanel/PixelFormatSection.qml
+        ${CMAKE_SOURCE_DIR}/qml/ProfileEditor/VideoPanel/ScalingSection.qml
+        ${CMAKE_SOURCE_DIR}/qml/ProfileEditor/VideoPanel/AV1Section.qml
+        ${CMAKE_SOURCE_DIR}/qml/ProfileEditor/VideoPanel/VP8VP9Section.qml
         ${CMAKE_SOURCE_DIR}/qml/Utils/Centering.js
+        ${CMAKE_SOURCE_DIR}/qml/Utils/FormatUtils.js
+        ${CMAKE_SOURCE_DIR}/qml/Utils/DataUtils.js
+        ${CMAKE_SOURCE_DIR}/qml/Utils/Constants.js
+        ${CMAKE_SOURCE_DIR}/qml/Components/LabeledRow.qml
+        ${CMAKE_SOURCE_DIR}/qml/Components/LabeledComboBox.qml
+        ${CMAKE_SOURCE_DIR}/qml/Components/LabeledTextField.qml
+        ${CMAKE_SOURCE_DIR}/qml/Components/SwitchRow.qml
+        ${CMAKE_SOURCE_DIR}/qml/Components/SectionHeader.qml
+        ${CMAKE_SOURCE_DIR}/qml/Components/FormGroup.qml
+        ${CMAKE_SOURCE_DIR}/qml/Components/WidgetHeader.qml
         ${CMAKE_SOURCE_DIR}/media/images/lettuce.png
         ${CMAKE_SOURCE_DIR}/media/audio/guinea.wav
 )

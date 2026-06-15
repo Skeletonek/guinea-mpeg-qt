@@ -4,6 +4,7 @@ import QtQuick.Layouts 1.15
 import "ProfileEditor"
 import "Dialogs"
 import "Utils/Centering.js" as Utils
+import "Utils/DataUtils.js" as DataUtils
 
 Rectangle {
     id: root
@@ -165,14 +166,11 @@ Rectangle {
     }
 
     function buildCurrentData() {
-        var data = {}
-        var v = videoPanel.getData()
-        for (var k in v) data[k] = v[k]
-        var a = audioPanel.getData()
-        for (var k in a) data[k] = a[k]
-        var x = advancedPanel.getData()
-        for (var k in x) data[k] = x[k]
-        return data
+        return DataUtils.buildProfileData(
+            videoPanel.getData(),
+            audioPanel.getData(),
+            advancedPanel.getData()
+        )
     }
 
     function updatePreview() {

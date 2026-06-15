@@ -1,54 +1,35 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
+import "../Utils/Constants.js" as Constants
+import "../Utils/DataUtils.js" as DataUtils
+import "../Components"
+import "VideoPanel"
 
+/**
+ * Video Panel - Main container for video encoding settings
+ * Coordinates between codec-specific components and manages video enable/disable state
+ */
 Column {
     id: root
     spacing: 8
 
-    property var codecKeys: ["h264", "hevc", "vp8", "vp9", "av1"]
-    property var codecLabels: ["H.264", "H.265/HEVC", "VP8", "VP9", "AV1"]
-    property var resOptions: ["native", "360p", "480p", "720p", "1080p", "1440p", "2160p"]
-    property var fpsOptions: ["source", 20, 23.976, 25, 30, 40, 45, 50, 60]
-    property var pixfmtOptions: ["default", "yuv420p", "yuv422p", "yuv444p", "yuv420p10le", "yuv422p10le", "yuv444p10le", "nv12"]
     property var _availableEncoders: ({})
     property var _codecAvailable: []
-    property var _capOverrides: ({})  // {presets, tunes, pix_fmts} from encoder capabilities
-
-    // codec defaults for tunings
-    property var _tuneDefaults: {
-        "h264": ["film", "grain", "animation", "psnr", "ssim", "fastdecode", "zerolatency"],
-        "hevc": ["film", "grain", "animation", "psnr", "ssim", "fastdecode", "zerolatency"],
-        "vp8": ["psnr", "ssim", "good", "best"],
-        "vp9": ["psnr", "ssim", "good", "best"],
-        "av1": ["psnr", "ssim", "vmaf"]
-    }
-    property var _presetDefaults: {
-        "h264": ["ultrafast", "superfast", "veryfast", "faster", "fast", "medium", "slow", "slower", "veryslow", "placebo"],
-        "hevc": ["ultrafast", "superfast", "veryfast", "faster", "fast", "medium", "slow", "slower", "veryslow", "placebo"],
-        "vp8": ["good", "best", "realtime"],
-        "vp9": ["good", "best", "realtime"],
-        "av1": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13"]
-    }
-
-    property var rateControlLabels: ["CRF", "VBR", "CBR"]
-    property var rateControlKeys: ["crf", "vbr", "cbr"]
+    property var _capOverrides: ({})
     property bool loading: false
-    property var rateValidator: null
-
+    
     readonly property alias videoEnabled: videoEnabledSwitch.checked
-    readonly property string codec: codecKeys[codecCombo.currentIndex]
-
+    readonly property string codec: codecSection ? codecSection.codec : Constants.codecKeys[0]
+    
     signal changed
     signal openEncoderCompatDialog()
 
-    IntValidator { id: crfValidatorInst; bottom: 0; top: 63 }
-
-    Rectangle {
+    // Video enable/disable toggle
+    WidgetHeader {
         width: parent.width
         height: 28
-        color: theme.widget
-        radius: 4
+        
         Row {
             anchors.verticalCenter: parent.verticalCenter
             leftPadding: 6
@@ -68,460 +49,246 @@ Column {
         }
     }
 
+    // Codec-specific components (only visible when video is enabled)
     Column {
+        id: videoSettingsColumn
         width: parent.width
         spacing: 8
         visible: videoEnabledSwitch.checked
 
-        Label {
-            text: "Codec"
-            color: theme.textMuted
-            font.bold: true
-            font.pixelSize: 14
-        }
-        ComboBox {
-            id: codecCombo
-            model: root.codecLabels
+        // Codec and encoder selection
+        CodecSection {
+            id: codecSection
             width: parent.width
-            delegate: ItemDelegate {
-                text: modelData + (root._codecAvailable[index] ? "" : " (unavailable)")
-                enabled: root._codecAvailable[index]
-                opacity: root._codecAvailable[index] ? 1.0 : 0.4
-                palette.text: enabled ? theme.text : theme.textDim
-            }
-            onCurrentIndexChanged: {
-                if (!root._codecAvailable[currentIndex]) return
-                root._capOverrides = {}
-                rebuildPresetModel()
-                rebuildTuneModel()
-                rebuildPixfmtModel()
-                pixfmtCombo.currentIndex = 0
-                rebuildEncoderModel()
-                if (!root.loading) root.changed()
-            }
-        }
-
-        Row {
-            spacing: 8
-            width: parent.width
-            Label {
-                text: "Encoder"
-                color: theme.textSecondary
-                width: 100
-                verticalAlignment: Text.AlignVCenter
-            }
-            Button {
-                id: compatInfoBtn
-                width: 32
-                height: 32
-                text: "?"
-                font.bold: true
-                font.pixelSize: 15
-                onClicked: root.openEncoderCompatDialog()
-                ToolTip.visible: hovered
-                ToolTip.text: "Show available encoders"
-            }
-            ComboBox {
-                id: encoderCombo
-                width: parent.width - 100 - compatInfoBtn.width - 2 * parent.spacing
-                editable: true
-                // Model set explicitly by rebuildEncoderModel (no binding)
-                onCurrentIndexChanged: {
-                    applyEncoderCapabilities(encoderCombo.currentText)
-                    if (!root.loading) root.changed()
+            _availableEncoders: root._availableEncoders
+            _codecAvailable: root._codecAvailable
+            _capOverrides: root._capOverrides
+            loading: root.loading
+            onChanged: root.changed()
+            onCodecSelectionChanged: {
+                // Update codec-dependent sections when codec changes
+                if (presetTuneSection) {
+                    presetTuneSection.currentCodecKey = root.codec
+                    presetTuneSection.rebuildPresetModel()
+                    presetTuneSection.rebuildTuneModel()
                 }
-                onEditTextChanged: {
-                    if (!root.loading) root.changed()
+                if (av1Section) {
+                    av1Section.codecKey = root.codec
+                }
+                if (vp8vp9Section) {
+                    vp8vp9Section.codecKey = root.codec
                 }
             }
+            onOpenEncoderCompatDialog: root.openEncoderCompatDialog()
+            onEncoderSelectionChanged: root.applyEncoderCapabilities(encName)
         }
 
-        Label {
-            text: "Rate control"
-            color: theme.textMuted
-            font.bold: true
-            font.pixelSize: 14
-        }
-        Row {
-            spacing: 8
+        // Rate control (CRF/VBR/CBR)
+        RateControlSection {
+            id: rateControlSection
             width: parent.width
-            ComboBox {
-                id: rateControlCombo
-                model: rateControlLabels
-                width: 100
-                onCurrentIndexChanged: {
-                    root.rateValidator = rateControlKeys[currentIndex] === "crf" ? crfValidatorInst : null
-                    if (!root.loading) root.changed()
-                }
-            }
-            TextField {
-                id: rateValueField
-                width: parent.width - rateControlCombo.width - parent.spacing
-                placeholderText: rateControlKeys[rateControlCombo.currentIndex] === "crf" ? "CRF value (e.g. 18)" : "Bitrate (e.g. 2M)"
-                validator: root.rateValidator
-                onTextChanged: if (!root.loading) root.changed()
-                onEditingFinished: if (!root.loading) root.changed()
-            }
+            loading: root.loading
+            onChanged: root.changed()
         }
 
-        Row {
-            spacing: 8
+        // Preset and Tune
+        PresetTuneSection {
+            id: presetTuneSection
             width: parent.width
-            Label { text: "Preset"; color: theme.textSecondary; width: 100 }
-            ComboBox {
-                id: presetCombo
-                width: parent.width - 108
-                editable: true
-                // model set explicitly by rebuildPresetModel (no binding)
-                onCurrentIndexChanged: {
-                    if (!root.loading) root.changed()
-                }
-                onEditTextChanged: {
-                    if (!root.loading) root.changed()
-                }
-            }
+            loading: root.loading
+            _capOverrides: root._capOverrides
+            currentCodecKey: root.codec
+            onChanged: root.changed()
         }
 
-        Row {
-            spacing: 8
+        // Pixel format
+        PixelFormatSection {
+            id: pixelFormatSection
             width: parent.width
-            Label { text: "Tune"; color: theme.textSecondary; width: 100 }
-            ComboBox {
-                id: tuneCombo
-                width: parent.width - 108
-                editable: true
-                // model set explicitly by rebuildTuneModel (no binding)
-                onCurrentIndexChanged: if (!root.loading) root.changed()
-                onEditTextChanged: if (!root.loading) root.changed()
-            }
+            loading: root.loading
+            _capOverrides: root._capOverrides
+            onChanged: root.changed()
         }
 
-        Row {
-            spacing: 8
+        // Scaling (resolution and framerate)
+        ScalingSection {
+            id: scalingSection
             width: parent.width
-            Label { text: "Pixel fmt"; color: theme.textSecondary; width: 100 }
-            ComboBox {
-                id: pixfmtCombo
-                width: parent.width - 108
-                editable: true
-                // model set explicitly by rebuildPixfmtModel (no binding)
-                onCurrentIndexChanged: if (!root.loading) root.changed()
-                onEditTextChanged: if (!root.loading) root.changed()
-            }
+            loading: root.loading
+            onChanged: root.changed()
         }
 
-        Label {
-            text: "Scaling"
-            color: theme.textMuted
-            font.bold: true
-            font.pixelSize: 14
-            topPadding: 4
-        }
-        Row {
-            spacing: 8
+        // AV1-specific settings
+        AV1Section {
+            id: av1Section
             width: parent.width
-            Label { text: "Resolution"; color: theme.textSecondary; width: 100 }
-            ComboBox {
-                id: resCombo
-                model: resOptions
-                width: parent.width - 108
-                onCurrentIndexChanged: if (!root.loading) root.changed()
-                onActivated: if (!root.loading) root.changed()
-            }
-        }
-        Row {
-            spacing: 8
-            width: parent.width
-            Label { text: "Framerate"; color: theme.textSecondary; width: 100 }
-            ComboBox {
-                id: fpsCombo
-                model: fpsOptions
-                width: parent.width - 108
-                editable: true
-                validator: DoubleValidator { bottom: 0; top: 120 }
-                onCurrentIndexChanged: if (!root.loading) root.changed()
-                onEditTextChanged: if (!root.loading) root.changed()
-            }
+            codecKey: root.codec
+            loading: root.loading
+            onChanged: root.changed()
         }
 
-        Column {
+        // VP8/VP9-specific settings
+        VP8VP9Section {
+            id: vp8vp9Section
             width: parent.width
-            visible: codecKeys[codecCombo.currentIndex] === "av1"
-            spacing: 6
-            Label {
-                text: "AV1"
-                color: theme.textMuted
-                font.bold: true
-                font.pixelSize: 14
-                topPadding: 4
-            }
-            Grid {
-                columns: 4
-                columnSpacing: 8
-                rowSpacing: 6
-                width: parent.width
-                Label { text: "Tile rows"; color: theme.textSecondary }
-                TextField {
-                    id: tileRowsField
-                    width: 60
-                    placeholderText: "2"
-                    validator: IntValidator { bottom: 0; top: 8 }
-                    onTextChanged: if (!root.loading) root.changed()
-                }
-                Label { text: "Tile cols"; color: theme.textSecondary }
-                TextField {
-                    id: tileColsField
-                    width: 60
-                    placeholderText: "3"
-                    validator: IntValidator { bottom: 0; top: 8 }
-                    onTextChanged: if (!root.loading) root.changed()
-                }
-            }
-            CheckBox {
-                id: enableQmCheck
-                text: "Enable Quantization Matrix"
-                onCheckedChanged: if (!root.loading) root.changed()
-            }
-        }
-
-        Column {
-            width: parent.width
-            visible: { var c = codecKeys[codecCombo.currentIndex]; return c === "vp8" || c === "vp9" }
-            spacing: 6
-            Label {
-                text: "VP8/VP9"
-                color: theme.textMuted
-                font.bold: true
-                font.pixelSize: 14
-                topPadding: 4
-            }
-            Row {
-                spacing: 8
-                width: parent.width
-                Label { text: "CPU used"; color: theme.textSecondary; width: 100 }
-                ComboBox {
-                    id: cpuUsedCombo
-                    width: parent.width - 108
-                    editable: true
-                    model: ["default", "0", "1", "2", "3", "4", "5"]
-                    onCurrentIndexChanged: if (!root.loading) root.changed()
-                    onEditTextChanged: if (!root.loading) root.changed()
-                }
-            }
+            codecKey: root.codec
+            loading: root.loading
+            onChanged: root.changed()
         }
     }
 
-    function rebuildPresetModel() {
-        var codec = codecKeys[codecCombo.currentIndex]
-        var list = (root._capOverrides.presets || root._presetDefaults[codec] || []).slice()
-        list.unshift("default")
-        var prev = presetCombo.currentText
-        presetCombo.model = list
-        var idx = list.indexOf(prev)
-        presetCombo.currentIndex = idx >= 0 ? idx : 0
+    /**
+     * Load available encoders from backend
+     */
+    function loadAvailableEncoders() {
+        var raw = backend.availableEncoders()
+        if (raw && raw !== "null") {
+            root._availableEncoders = JSON.parse(raw)
+        }
+        root.rebuildCodecItems()
     }
 
-    function rebuildTuneModel() {
-        var codec = codecKeys[codecCombo.currentIndex]
-        var tunes = (root._capOverrides.tunes || root._tuneDefaults[codec] || []).slice()
-        tunes.unshift("default")
-        var prev = tuneCombo.currentText
-        tuneCombo.model = tunes
-        var idx = tunes.indexOf(prev)
-        tuneCombo.currentIndex = idx >= 0 ? idx : 0
-    }
-
-    function rebuildPixfmtModel() {
-        var list = root._capOverrides.pix_fmts
-            ? root._capOverrides.pix_fmts.slice()
-            : root.pixfmtOptions.slice()
-        if (list.indexOf("default") < 0)
-            list.unshift("default")
-        var prev = pixfmtCombo.currentText
-        pixfmtCombo.model = list
-        var idx = list.indexOf(prev)
-        pixfmtCombo.currentIndex = idx >= 0 ? idx : 0
-    }
-
+    /**
+     * Apply encoder capabilities for a specific encoder
+     */
     function applyEncoderCapabilities(encName) {
         if (!encName) {
             root._capOverrides = {}
-            rebuildPresetModel()
-            rebuildTuneModel()
-            rebuildPixfmtModel()
+            root.updateChildModels()
             return
         }
         var raw = backend.encoderCapabilities(encName)
         if (!raw || raw === "null") {
             root._capOverrides = {}
-            rebuildPresetModel()
-            rebuildTuneModel()
-            rebuildPixfmtModel()
+            root.updateChildModels()
             return
         }
         root._capOverrides = JSON.parse(raw)
-        rebuildPresetModel()
-        rebuildTuneModel()
-        rebuildPixfmtModel()
+        root.updateChildModels()
+    }
+
+    /**
+     * Update models in child components when capabilities change
+     */
+    function updateChildModels() {
+        if (presetTuneSection) {
+            presetTuneSection._capOverrides = root._capOverrides
+            presetTuneSection.rebuildPresetModel()
+            presetTuneSection.rebuildTuneModel()
+        }
+        if (pixelFormatSection) {
+            pixelFormatSection._capOverrides = root._capOverrides
+            pixelFormatSection.rebuildPixfmtModel()
+        }
+    }
+
+    /**
+     * Rebuilds codec availability items
+     */
+    function rebuildCodecItems() {
+        if (codecSection) {
+            var avail = []
+            for (var i = 0; i < Constants.codecKeys.length; i++) {
+                avail.push(root._encodersForKey(Constants.codecKeys[i]).length > 0)
+            }
+            root._codecAvailable = avail
+            codecSection._codecAvailable = root._codecAvailable
+            codecSection.rebuildCodecItems()
+        }
     }
 
     function _encodersForKey(key) {
         return root._availableEncoders[key] || []
     }
 
-    function _defaultEncoderForKey(key) {
-        var map = {
-            "h264": "libx264",
-            "hevc": "libx265",
-            "vp8": "libvpx",
-            "vp9": "libvpx-vp9",
-            "av1": "libsvtav1"
-        }
-        return map[key] || "libx264"
-    }
-
-    function rebuildEncoderModel(forceDefault) {
-        var codec = codecKeys[codecCombo.currentIndex]
-        var encs = root._encodersForKey(codec)
-        var prev = encoderCombo.currentText
-        encoderCombo.model = encs
-        if (encs.length === 0) {
-            encoderCombo.currentIndex = -1
-            return
-        }
-        if (!forceDefault && prev && encs.indexOf(prev) >= 0) {
-            encoderCombo.currentIndex = encs.indexOf(prev)
-            return
-        }
-        var defEnc = root._defaultEncoderForKey(codec)
-        var ei = encs.indexOf(defEnc)
-        encoderCombo.currentIndex = ei >= 0 ? ei : 0
-    }
-
-    function _comboText(combo, sentinel) {
-        return (combo.currentText && combo.currentText !== sentinel) ? combo.currentText : null
-    }
-
-    function _setComboText(combo, value, sentinel) {
-        if (value == null || value === sentinel || value === "") {
-            combo.currentIndex = 0
-            return
-        }
-        if (typeof combo.textAt === "function") {
-            for (var i = 0; i < combo.count; i++) {
-                if (combo.textAt(i) === value) {
-                    combo.currentIndex = i
-                    return
-                }
-            }
-        }
-        combo.editText = value
-    }
-
-    function _indexValue(keys, combo) {
-        return keys[combo.currentIndex]
-    }
-
-    function _setIndex(keys, combo, value) {
-        var idx = keys.indexOf(value)
-        combo.currentIndex = idx >= 0 ? idx : 0
-    }
-
+    /**
+     * Collects data from all sections and returns combined video profile data
+     */
     function getData() {
-        var rcKey = _indexValue(rateControlKeys, rateControlCombo)
-        var cpuUsedTmp = _comboText(cpuUsedCombo, "default")
         var data = {
-            codec: _indexValue(codecKeys, codecCombo),
             video_enabled: videoEnabledSwitch.checked,
-            rate_control: rcKey,
-            encoder: encoderCombo.currentText || null,
-            preset: _comboText(presetCombo, "default"),
-            tune: _comboText(tuneCombo, "default"),
-            pixel_format: _comboText(pixfmtCombo, "default"),
-            resolution: _comboText(resCombo, "native"),
-            framerate: fpsCombo.currentIndex === 0 ? null : parseFloat(fpsCombo.currentText),
-            tile_rows: tileRowsField.text ? parseInt(tileRowsField.text) : null,
-            tile_columns: tileColsField.text ? parseInt(tileColsField.text) : null,
-            enable_qm: enableQmCheck.checked ? true : null,
-            cpu_used: cpuUsedTmp ? parseInt(cpuUsedTmp) : null
+            codec: root.codec
         }
-        if (rcKey === "crf") {
-            data.crf = rateValueField.text ? parseInt(rateValueField.text) : null
-            data.bitrate = null
-        } else {
-            data.crf = null
-            data.bitrate = rateValueField.text || null
+        
+        if (codecSection) {
+            var codecData = codecSection.getCodecData()
+            data.codec = codecData.codec
+            data.encoder = codecData.encoder
         }
+        
+        // Merge data from all sections
+        if (rateControlSection) {
+            var rcData = rateControlSection.getRateControlData()
+            for (var k in rcData) data[k] = rcData[k]
+        }
+        
+        if (presetTuneSection) {
+            var ptData = presetTuneSection.getPresetTuneData()
+            for (var k in ptData) data[k] = ptData[k]
+        }
+        
+        if (pixelFormatSection) {
+            var pfData = pixelFormatSection.getPixelFormatData()
+            for (var k in pfData) data[k] = pfData[k]
+        }
+        
+        if (scalingSection) {
+            var scData = scalingSection.getScalingData()
+            for (var k in scData) data[k] = scData[k]
+        }
+        
+        if (av1Section) {
+            var av1Data = av1Section.getAV1Data()
+            for (var k in av1Data) data[k] = av1Data[k]
+        }
+        
+        if (vp8vp9Section) {
+            var vp8vp9Data = vp8vp9Section.getVP8VP9Data()
+            for (var k in vp8vp9Data) data[k] = vp8vp9Data[k]
+        }
+        
         return data
     }
 
+    /**
+     * Distributes profile data to all sections
+     */
     function setData(d) {
-        _setIndex(codecKeys, codecCombo, d.codec)
-
         videoEnabledSwitch.checked = d.video_enabled !== false
-
-        _setIndex(rateControlKeys, rateControlCombo, d.rate_control)
-        root.rateValidator = rateControlKeys[rateControlCombo.currentIndex] === "crf" ? crfValidatorInst : null
-
-        if (rateControlKeys[rateControlCombo.currentIndex] === "crf") {
-            rateValueField.text = d.crf != null ? String(d.crf) : ""
-        } else {
-            rateValueField.text = d.bitrate || ""
+        
+        if (codecSection) {
+            codecSection.setCodecData({
+                codec: d.codec,
+                encoder: d.encoder
+            })
         }
-
-        _setIndex(resOptions, resCombo, d.resolution)
-
-        if (d.framerate != null) {
-            var fi = fpsOptions.indexOf(d.framerate)
-            if (fi >= 0) fpsCombo.currentIndex = fi
-            else fpsCombo.editText = String(d.framerate)
-        } else {
-            fpsCombo.currentIndex = 0
+        
+        if (rateControlSection) {
+            rateControlSection.setRateControlData(d)
         }
-
-        tileRowsField.text = d.tile_rows != null ? String(d.tile_rows) : ""
-        tileColsField.text = d.tile_columns != null ? String(d.tile_columns) : ""
-        enableQmCheck.checked = d.enable_qm === true
-
-        _setComboText(cpuUsedCombo, d.cpu_used != null ? String(d.cpu_used) : null, "default")
-
-        rebuildEncoderModel(true)
-        if (d.encoder) {
-            var encs = root._encodersForKey(d.codec)
-            var ei = encs.indexOf(d.encoder)
-            if (ei >= 0)
-                encoderCombo.currentIndex = ei
-            else
-                encoderCombo.editText = d.encoder
+        
+        if (presetTuneSection) {
+            presetTuneSection.setPresetTuneData(d)
         }
-
-        // apply capabilities for the final encoder (profile's encoder, or default from rebuildEncoderModel)
-        var finalEnc = encoderCombo.currentText
-        applyEncoderCapabilities(finalEnc)
-
-        rebuildTuneModel()
-        _setComboText(presetCombo, d.preset, "default")
-        _setComboText(tuneCombo, d.tune, "default")
-        _setComboText(pixfmtCombo, d.pixel_format, "default")
-    }
-
-    function rebuildCodecItems() {
-        var avail = []
-        for (var i = 0; i < root.codecKeys.length; i++) {
-            avail.push(root._encodersForKey(root.codecKeys[i]).length > 0)
+        
+        if (pixelFormatSection) {
+            pixelFormatSection.setPixelFormatData(d)
         }
-        root._codecAvailable = avail
+        
+        if (scalingSection) {
+            scalingSection.setScalingData(d)
+        }
+        
+        if (av1Section) {
+            av1Section.setAV1Data(d)
+        }
+        
+        if (vp8vp9Section) {
+            vp8vp9Section.setVP8VP9Data(d)
+        }
     }
 
     Component.onCompleted: {
-        var raw = backend.availableEncoders()
-        if (raw && raw !== "null") {
-            root._availableEncoders = JSON.parse(raw)
-        }
-        rebuildCodecItems()
-        rebuildPresetModel()
-        rebuildTuneModel()
-        rebuildPixfmtModel()
-        rebuildEncoderModel()
+        root.loadAvailableEncoders()
     }
 }

@@ -121,6 +121,7 @@ int main(int argc, char *argv[])
     buildInfo["copyright"] = QString(buildInfo["author"].toString() + " " + QString(__DATE__).right(4));
 
     QQmlApplicationEngine engine;
+    engine.addImportPath("qrc:/qml");
 
     qmlRegisterType<GuineaMpegBackendExt>("GuineaMpeg", 1, 0, "GuineaMpegBackendExt");
     qmlRegisterType<MpvItem>("GuineaMpeg", 1, 0, "MpvItem");

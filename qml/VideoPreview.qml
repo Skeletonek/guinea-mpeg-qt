@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import GuineaMpeg 1.0
+import "Utils/FormatUtils.js" as FormatUtils
 
 Rectangle {
     id: root
@@ -67,7 +68,7 @@ Rectangle {
             }
 
             Label {
-                text: formatTime(player.position) + " / " + formatTime(player.duration)
+                text: FormatUtils.formatTime(player.position) + " / " + FormatUtils.formatTime(player.duration)
                 color: theme.text
                 verticalAlignment: Text.AlignVCenter
                 Layout.fillHeight: true
@@ -97,15 +98,8 @@ Rectangle {
                 Layout.fillHeight: true
             }
         }
-    }
+     }
 
-    function pause() { player.pause() }
-    function play() { player.play() }
-
-    function formatTime(ms) {
-        var s = Math.floor(ms / 1000)
-        var m = Math.floor(s / 60)
-        s = s % 60
-        return (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s
-    }
+     function pause() { player.pause() }
+     function play() { player.play() }
 }

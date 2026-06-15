@@ -1,0 +1,47 @@
+import QtQuick 2.15
+import QtQuick.Controls 2.15
+import "../../Utils/Constants.js" as Constants
+import "../../Utils/DataUtils.js" as DataUtils
+import "../../Components"
+
+Column {
+    id: root
+    width: parent.width
+    visible: codecKey === "vp8" || codecKey === "vp9"
+    spacing: 6
+
+    property string codecKey: ""
+    property bool loading: false
+
+    signal changed
+
+    WidgetHeader {
+        text: "VP8/VP9"
+        topPadding: 4
+    }
+
+    LabeledRow {
+        label: "CPU used"
+        labelWidth: 100
+
+        ComboBox {
+            id: cpuUsedCombo
+            width: parent.width - 108
+            editable: true
+            model: Constants.vp8Vp9CpuUsedOptions
+            onCurrentIndexChanged: if (!root.loading) root.changed()
+            onEditTextChanged: if (!root.loading) root.changed()
+        }
+    }
+
+    function getVP8VP9Data() {
+        var cpuUsedTmp = DataUtils.comboText(cpuUsedCombo, Constants.SENTINEL_DEFAULT)
+        return {
+            cpu_used: cpuUsedTmp ? parseInt(cpuUsedTmp) : null
+        }
+    }
+
+    function setVP8VP9Data(d) {
+        DataUtils.setComboText(cpuUsedCombo, d.cpu_used != null ? String(d.cpu_used) : null, Constants.SENTINEL_DEFAULT)
+    }
+}
