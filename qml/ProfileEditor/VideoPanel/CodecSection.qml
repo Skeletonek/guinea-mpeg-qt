@@ -11,13 +11,11 @@ Column {
 
     property var _availableEncoders: ({})
     property var _codecAvailable: []
-    property var _capOverrides: ({})
     property bool loading: false
 
     signal changed
     signal openEncoderCompatDialog
     signal encoderSelectionChanged(string encName)
-    signal codecSelectionChanged
 
     readonly property var codec: Constants.codecKeys[codecCombo.currentIndex]
     readonly property var codecLabels: Constants.codecLabels
@@ -25,12 +23,10 @@ Column {
 
     LabeledRow {
         label: "Codec"
-        labelWidth: 100
-
         ComboBox {
             id: codecCombo
             model: root.codecLabels
-            width: parent.width - root.spacing - 100
+            width: parent.width - root.spacing - 130
             delegate: ItemDelegate {
                 text: modelData + (root._codecAvailable[index] ? "" : " (unavailable)")
                 enabled: root._codecAvailable[index]
@@ -38,24 +34,21 @@ Column {
                 palette.text: enabled ? theme.text : theme.textDim
             }
             onCurrentIndexChanged: {
-                if (!root._codecAvailable[currentIndex]) return
-                root._capOverrides = {}
-                rebuildEncoderModel()
-                if (!root.loading) {
-                    root.changed()
-                    root.codecSelectionChanged()
+                if (!root._codecAvailable[currentIndex]) {
+                    root.encoderSelectionChanged("")
+                    return
                 }
+                rebuildEncoderModel()
+                root.encoderSelectionChanged(root._currentEncoderText())
             }
         }
     }
 
     LabeledRow {
         label: "Encoder"
-        labelWidth: 100
-
         Row {
             spacing: 8
-            width: parent.width - 100 - root.spacing
+            width: parent.width - 130 - root.spacing
 
             Button {
                 id: compatInfoBtn
@@ -74,11 +67,13 @@ Column {
                 width: parent.width - compatInfoBtn.width - root.spacing
                 editable: true
                 onCurrentIndexChanged: {
-                    root.encoderSelectionChanged(encoderCombo.currentText)
-                    if (!root.loading) root.changed()
+                    root.encoderSelectionChanged(root._currentEncoderText())
                 }
                 onEditTextChanged: {
                     if (!root.loading) root.changed()
+                }
+                onAccepted: {
+                    root.encoderSelectionChanged(root._currentEncoderText())
                 }
             }
         }
@@ -96,10 +91,19 @@ Column {
         return root._availableEncoders[key] || []
     }
 
+    function _currentEncoderText() {
+        var idx = encoderCombo.currentIndex
+        if (idx >= 0 && typeof encoderCombo.textAt === "function") {
+            var text = encoderCombo.textAt(idx)
+            if (text) return text
+        }
+        return encoderCombo.currentText || ""
+    }
+
     function rebuildEncoderModel(forceDefault) {
         var codec = Constants.codecKeys[codecCombo.currentIndex]
         var encs = root._encodersForKey(codec)
-        var prev = encoderCombo.currentText
+        var prev = root._currentEncoderText()
         encoderCombo.model = encs
         if (encs.length === 0) {
             encoderCombo.currentIndex = -1
@@ -117,8 +121,13 @@ Column {
     function getCodecData() {
         return {
             codec: Constants.codecKeys[codecCombo.currentIndex],
-            encoder: encoderCombo.currentText || null
+            encoder: root._currentEncoderText() || null
         }
+    }
+
+    function getCurrentEncoder() {
+        var text = root._currentEncoderText()
+        return text || null
     }
 
     function setCodecData(d) {

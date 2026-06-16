@@ -15,12 +15,10 @@ Column {
 
     LabeledRow {
         label: "Resolution"
-        labelWidth: 100
-
         ComboBox {
             id: resCombo
             model: Constants.resOptions
-            width: parent.width - 108
+            width: parent.width - 138
             onCurrentIndexChanged: if (!root.loading) root.changed()
             onActivated: if (!root.loading) root.changed()
         }
@@ -28,12 +26,10 @@ Column {
 
     LabeledRow {
         label: "Framerate"
-        labelWidth: 100
-
         ComboBox {
             id: fpsCombo
             model: Constants.fpsOptions
-            width: parent.width - 108
+            width: parent.width - 138
             editable: true
             validator: DoubleValidator { bottom: 0; top: 120 }
             onCurrentIndexChanged: if (!root.loading) root.changed()

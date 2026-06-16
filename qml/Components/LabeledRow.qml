@@ -12,7 +12,7 @@ Row {
     width: parent.width
     
     property string label: ""
-    property int labelWidth: 100
+    property int labelWidth: 130
     property color labelColor: Constants.colorPrimary
     
     Label {

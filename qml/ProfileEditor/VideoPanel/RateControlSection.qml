@@ -16,11 +16,9 @@ Column {
 
     LabeledRow {
         label: "Rate control"
-        labelWidth: 100
-
         Row {
             spacing: 8
-            width: parent.width - 100 - root.spacing
+            width: parent.width - 130 - root.spacing
 
             ComboBox {
                 id: rateControlCombo

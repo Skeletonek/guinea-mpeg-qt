@@ -68,7 +68,6 @@ Column {
             LabeledTextField {
                 id: audioBitrateField
                 label: "Bitrate"
-                labelWidth: 80
                 placeholderText: "128k"
                 visible: videoEnabled || audioCodecLabels[audioCodecCombo.currentIndex] !== "FLAC"
                 onTextChanged: if (!root.loading) root.changed()
@@ -76,7 +75,6 @@ Column {
             LabeledTextField {
                 id: audioChannelsField
                 label: "Channels"
-                labelWidth: 80
                 placeholderText: "2"
                 validator: IntValidator { bottom: 0; top: 8 }
                 onTextChanged: if (!root.loading) root.changed()
@@ -84,7 +82,6 @@ Column {
             LabeledTextField {
                 id: audioSrField
                 label: "Sample rate"
-                labelWidth: 80
                 placeholderText: "48000"
                 validator: IntValidator { bottom: 0; top: 192000 }
                 onTextChanged: if (!root.loading) root.changed()

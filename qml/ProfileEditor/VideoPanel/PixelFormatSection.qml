@@ -16,20 +16,19 @@ Column {
 
     LabeledRow {
         label: "Pixel fmt"
-        labelWidth: 100
-
         ComboBox {
             id: pixfmtCombo
-            width: parent.width - 108
+            width: parent.width - 138
             editable: true
             onCurrentIndexChanged: if (!root.loading) root.changed()
             onEditTextChanged: if (!root.loading) root.changed()
         }
     }
 
-    function rebuildPixfmtModel() {
-        var list = root._capOverrides.pix_fmts
-            ? root._capOverrides.pix_fmts.slice()
+    function rebuildPixfmtModel(caps) {
+        caps = caps || root._capOverrides
+        var list = caps.pix_fmts
+            ? caps.pix_fmts.slice()
             : Constants.pixfmtOptions.slice()
         if (list.indexOf(Constants.SENTINEL_DEFAULT) < 0)
             list.unshift(Constants.SENTINEL_DEFAULT)

@@ -10,7 +10,7 @@ Column {
 
     property var _availableEncoders: ({})
     property var _codecAvailable: []
-    property var _capOverrides: ({})
+
     property bool loading: false
     
     readonly property alias videoEnabled: videoEnabledSwitch.checked
@@ -60,15 +60,8 @@ Column {
             _availableEncoders: root._availableEncoders
             loading: root.loading
             onChanged: root.changed()
-            onCodecSelectionChanged: {
-                // Update codec-dependent sections when codec changes
-                if (presetTuneSection) {
-                    presetTuneSection.currentCodecKey = root.codec
-                }
-
-            }
             onOpenEncoderCompatDialog: root.openEncoderCompatDialog()
-            onEncoderSelectionChanged: function(encName) { root.applyEncoderCapabilities(encName) }
+            onEncoderSelectionChanged: function(encName) { root.refreshAll(encName) }
         }
 
         SectionHeader {
@@ -86,7 +79,6 @@ Column {
             id: presetTuneSection
             width: parent.width
             loading: root.loading
-            currentCodecKey: root.codec
             onChanged: root.changed()
         }
 
@@ -125,10 +117,8 @@ Column {
         }
     }
 
-    on_CapOverridesChanged: {
-        codecSection._capOverrides = root._capOverrides
-        presetTuneSection._capOverrides = root._capOverrides
-        pixelFormatSection._capOverrides = root._capOverrides
+    onCodecChanged: {
+        presetTuneSection.currentCodecKey = root.codec
     }
 
     function loadAvailableEncoders() {
@@ -139,30 +129,19 @@ Column {
         root.rebuildCodecItems()
     }
 
-    function applyEncoderCapabilities(encName) {
-        if (!encName) {
-            root._capOverrides = {}
-            root.updateChildModels()
-            return
+    function refreshAll(encName) {
+        if (encName === undefined) encName = codecSection.getCurrentEncoder()
+        var caps = {}
+        if (encName) {
+            var raw = backend.encoderCapabilities(encName)
+            if (raw && raw !== "null") caps = JSON.parse(raw)
         }
-        var raw = backend.encoderCapabilities(encName)
-        if (!raw || raw === "null") {
-            root._capOverrides = {}
-            root.updateChildModels()
-            return
-        }
-        root._capOverrides = JSON.parse(raw)
-        root.updateChildModels()
-    }
-
-    function updateChildModels() {
-        if (presetTuneSection) {
-            presetTuneSection.rebuildPresetModel()
-            presetTuneSection.rebuildTuneModel()
-        }
-        if (pixelFormatSection) {
-            pixelFormatSection.rebuildPixfmtModel()
-        }
+        presetTuneSection._capOverrides = caps
+        pixelFormatSection._capOverrides = caps
+        presetTuneSection.rebuildPresetModel(caps)
+        presetTuneSection.rebuildTuneModel(caps)
+        pixelFormatSection.rebuildPixfmtModel(caps)
+        root.changed()
     }
 
     function rebuildCodecItems() {
@@ -235,6 +214,7 @@ Column {
                 vp8vp9Section.setVP8VP9Data(d)
             }
         }
+        root.refreshAll()
     }
 
     Component.onCompleted: {

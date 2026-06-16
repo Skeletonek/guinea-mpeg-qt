@@ -13,8 +13,11 @@ Rectangle {
 
     property bool _loading: false
     property var _defaultNames: []
-    property bool _isDefaultProfile: _defaultNames.indexOf(profileName) >= 0
+    property string _loadedProfileName: ""
+    property bool _isDefaultProfile: _defaultNames.indexOf(_loadedProfileName) >= 0
     property var _profileNames: []
+
+    onProfileNameChanged: _loadedProfileName = profileName
 
     Timer {
         id: notifyTimer
@@ -77,7 +80,7 @@ Rectangle {
                     displayText: currentIndex < 0 ? "New profile" : currentText
                     onCurrentTextChanged: {
                         if (_loading) return
-                        if (currentText && currentText !== profileName)
+                        if (currentText && currentText !== _loadedProfileName)
                             loadProfile(currentText)
                     }
                 }
@@ -95,7 +98,7 @@ Rectangle {
 
                 Button {
                     text: _isDefaultProfile ? "Restore" : "Delete"
-                    visible: profileName !== ""
+                    visible: _loadedProfileName !== ""
                     onClicked: _isDefaultProfile ? restoreSingleProfile() : deleteDialog.open()
                 }
 
@@ -188,7 +191,7 @@ Rectangle {
     }
 
     function resetToNew() {
-        profileName = ""
+        _loadedProfileName = ""
         profileNameField.text = ""
         profileNameField.placeholderText = "Enter profile name..."
         profileSelector.currentIndex = -1
@@ -223,7 +226,7 @@ Rectangle {
             _loading = false
             return
         }
-        profileName = name
+        _loadedProfileName = name
         profileNameField.text = name
 
         videoPanel.setData(d)
@@ -265,7 +268,7 @@ Rectangle {
 
     DeleteProfileDialog {
         id: deleteDialog
-        profileName: root.profileName
+        profileName: root._loadedProfileName
         onDeleteRequested: deleteCurrent()
     }
 
@@ -301,14 +304,14 @@ Rectangle {
         _defaultNames = JSON.parse(backend.defaultProfileNames())
         _loading = true
         _profileNames = JSON.parse(backend.availableProfiles())
-        profileName = name
+        _loadedProfileName = name
         profileSelector.currentIndex = _profileNames.indexOf(name)
         _loading = false
         showNotification("Profile \"" + name + "\" saved", theme.accent)
     }
 
     function deleteCurrent() {
-        var deletedName = profileName
+        var deletedName = _loadedProfileName
         backend.deleteProfile(deletedName)
         _loading = true
         _profileNames = JSON.parse(backend.availableProfiles())
@@ -321,7 +324,7 @@ Rectangle {
     }
 
     function restoreSingleProfile() {
-        var restoredName = profileName
+        var restoredName = _loadedProfileName
         backend.deleteProfile(restoredName)
         _loading = true
         _profileNames = JSON.parse(backend.availableProfiles())

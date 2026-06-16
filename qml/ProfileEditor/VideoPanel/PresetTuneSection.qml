@@ -15,20 +15,14 @@ Column {
 
     signal changed
 
-    onCurrentCodecKeyChanged: {
-        rebuildPresetModel()
-        rebuildTuneModel()
-    }
-
     LabeledRow {
         id: presetRow
         label: "Preset"
-        labelWidth: 100
         visible: root._capOverrides.uses_compression_level !== true
 
         ComboBox {
             id: presetCombo
-            width: parent.width - 108
+            width: parent.width - 138
             editable: true
             onCurrentIndexChanged: if (!root.loading) root.changed()
             onEditTextChanged: if (!root.loading) root.changed()
@@ -38,12 +32,11 @@ Column {
     LabeledRow {
         id: tuneRow
         label: "Tune"
-        labelWidth: 100
         visible: root._capOverrides.uses_compression_level !== true
 
         ComboBox {
             id: tuneCombo
-            width: parent.width - 108
+            width: parent.width - 138
             editable: true
             onCurrentIndexChanged: if (!root.loading) root.changed()
             onEditTextChanged: if (!root.loading) root.changed()
@@ -53,21 +46,21 @@ Column {
     LabeledRow {
         id: compressionLevelRow
         label: "Compression Level"
-        labelWidth: 100
         visible: root._capOverrides.uses_compression_level === true
 
         TextField {
             id: compressionLevelField
-            width: parent.width - 108
+            width: parent.width - 138
             onTextChanged: {
                 if (!root.loading) root.changed()
             }
         }
     }
 
-    function rebuildPresetModel() {
+    function rebuildPresetModel(caps) {
+        caps = caps || root._capOverrides
         var codec = root.currentCodecKey
-        var list = (root._capOverrides.presets || Constants.presetDefaults[codec] || []).slice()
+        var list = (caps.presets || Constants.presetDefaults[codec] || []).slice()
         list.unshift(Constants.SENTINEL_DEFAULT)
         var prev = presetCombo.currentText
         presetCombo.model = list
@@ -75,9 +68,10 @@ Column {
         presetCombo.currentIndex = idx >= 0 ? idx : 0
     }
 
-    function rebuildTuneModel() {
+    function rebuildTuneModel(caps) {
+        caps = caps || root._capOverrides
         var codec = root.currentCodecKey
-        var tunes = (root._capOverrides.tunes || Constants.tuneDefaults[codec] || []).slice()
+        var tunes = (caps.tunes || Constants.tuneDefaults[codec] || []).slice()
         tunes.unshift(Constants.SENTINEL_DEFAULT)
         var prev = tuneCombo.currentText
         tuneCombo.model = tunes

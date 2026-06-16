@@ -21,11 +21,9 @@ Column {
 
     LabeledRow {
         label: "CPU used"
-        labelWidth: 100
-
         ComboBox {
             id: cpuUsedCombo
-            width: parent.width - 108
+            width: parent.width - 138
             editable: true
             model: Constants.vp8Vp9CpuUsedOptions
             onCurrentIndexChanged: if (!root.loading) root.changed()

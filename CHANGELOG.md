@@ -1,4 +1,5 @@
 ### 0.6.2
+- Added Compression Level option for VA-API based encoders
 - Fix hardware encoding not working due to incorrect parameters
 - Removed Apple Video Toolbox and Linux Video4Linux2 Memory-to-Memory encoders
 - Temporarily disabled Vulkan-based encoders
