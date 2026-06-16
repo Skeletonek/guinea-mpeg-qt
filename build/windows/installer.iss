@@ -7,7 +7,7 @@
 #define MyAppExeName "guinea-mpeg.exe"
 
 #ifndef AppVersion
-    #define AppVersion "0.6.1"
+    #define AppVersion "0.6.2"
 #endif
 
 #ifndef SourceDir
