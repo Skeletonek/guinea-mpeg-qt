@@ -1,4 +1,4 @@
-FROM fedora:latest
+FROM fedora:43
 
 RUN dnf install -y \
     gcc-c++ \

@@ -264,30 +264,30 @@ stage_package() {
 DEB_DEPS=(
     --depends "ffmpeg"
     --depends "libmpv2"
-    --depends "libqt6quickcontrols2-6"
-    --depends "libqt6quick6"
-    --depends "libqt6widgets6"
-    --depends "libqt6gui6"
-    --depends "libqt6qml6"
-    --depends "libqt6opengl6"
-    --depends "qml6-module-qtquick-controls"
-    --depends "qml6-module-qtquick-layouts"
-    --depends "qml6-module-qtquick-dialogs"
-    --depends "qml6-module-qtmultimedia"
+    --depends "libqt6quickcontrols2-6 (>= 6.8.0)"
+    --depends "libqt6quick6 (>= 6.8.0)"
+    --depends "libqt6widgets6 (>= 6.8.0)"
+    --depends "libqt6gui6 (>= 6.8.0)"
+    --depends "libqt6qml6 (>= 6.8.0)"
+    --depends "libqt6opengl6 (>= 6.8.0)"
+    --depends "qml6-module-qtquick-controls (>= 6.8.0)"
+    --depends "qml6-module-qtquick-layouts (>= 6.8.0)"
+    --depends "qml6-module-qtquick-dialogs (>= 6.8.0)"
+    --depends "qml6-module-qtmultimedia (>= 6.8.0)"
 )
 RPM_DEPS=(
     --depends "mpv-libs"
-    --depends "qt6-qtquickcontrols2"
-    --depends "qt6-qtdeclarative"
-    --depends "qt6-qtbase-gui"
-    --depends "qt6-qtmultimedia"
+    --depends "qt6-qtquickcontrols2 >= 6.10.0-1"
+    --depends "qt6-qtdeclarative >= 6.10.0-1"
+    --depends "qt6-qtbase-gui >= 6.10.0-1"
+    --depends "qt6-qtmultimedia >= 6.10.0-1"
 )
 PACMAN_DEPS=(
     --depends "ffmpeg"
     --depends "mpv"
-    --depends "qt6-base"
-    --depends "qt6-declarative"
-    --depends "qt6-multimedia"
+    --depends "qt6-base>=6.11.0-1"
+    --depends "qt6-declarative>=6.11.0-1"
+    --depends "qt6-multimedia>=6.11.0-1"
 )
 
 FPM_BASE=(
