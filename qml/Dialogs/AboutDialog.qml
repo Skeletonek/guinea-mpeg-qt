@@ -145,7 +145,16 @@ Dialog {
         }
 
         Label { text: "Version: " + buildInfo.version; color: theme.text }
-        Label { text: "Author: " + buildInfo.author; color: theme.text }
+        Label {
+            text: "Author: " + buildInfo.author
+            color: theme.text
+
+            MouseArea {
+                anchors.fill: parent
+                cursorShape: Qt.PointingHandCursor
+                onClicked: Qt.openUrlExternally("https://www.skeletonek.com/")
+            }
+        }
         Label { text: "License: " + buildInfo.license; color: theme.text }
         Label { text: "OS name: " + buildInfo.distroName; color: theme.text }
         Label { text: "Package: " + buildInfo.packageTarget; color: theme.textMuted; font.pixelSize: 11 }
