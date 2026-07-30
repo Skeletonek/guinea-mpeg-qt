@@ -144,21 +144,40 @@ Dialog {
             Layout.bottomMargin: 4
         }
 
-        Label { text: "Version: " + buildInfo.version; color: theme.text }
-        Label {
-            text: "Author: " + buildInfo.author
-            color: theme.text
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: 12
 
-            MouseArea {
-                anchors.fill: parent
-                cursorShape: Qt.PointingHandCursor
-                onClicked: Qt.openUrlExternally("https://www.skeletonek.com/")
+            ColumnLayout {
+                spacing: 6
+
+                Label { text: "Version: " + buildInfo.version; color: theme.text }
+                Label {
+                    text: "Author: " + buildInfo.author
+                    color: theme.text
+
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: Qt.openUrlExternally("https://www.skeletonek.com/")
+                    }
+                }
+                Label { text: "License: " + buildInfo.license; color: theme.text }
+                Label { text: "OS name: " + buildInfo.distroName; color: theme.text }
+                Label { text: "Package: " + buildInfo.packageTarget; color: theme.textMuted; font.pixelSize: 11 }
+                Label { text: "Build: " + buildInfo.buildDate; color: theme.textMuted; font.pixelSize: 11 }
+                Label { text: "Copyright © " + buildInfo.copyright; color: theme.textMuted; font.pixelSize: 11 }
+            }
+
+            Item { Layout.fillWidth: true }
+
+            Image {
+                source: "/media/logo/skeletonek.jpg"
+                sourceSize.width: 80
+                sourceSize.height: 80
+                fillMode: Image.PreserveAspectFit
+                Layout.alignment: Qt.AlignTop
             }
         }
-        Label { text: "License: " + buildInfo.license; color: theme.text }
-        Label { text: "OS name: " + buildInfo.distroName; color: theme.text }
-        Label { text: "Package: " + buildInfo.packageTarget; color: theme.textMuted; font.pixelSize: 11 }
-        Label { text: "Build: " + buildInfo.buildDate; color: theme.textMuted; font.pixelSize: 11 }
-        Label { text: "Copyright © " + buildInfo.copyright; color: theme.textMuted; font.pixelSize: 11 }
     }
 }
