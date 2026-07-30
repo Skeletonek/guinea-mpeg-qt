@@ -15,7 +15,7 @@ Column {
     signal changed
 
     LabeledRow {
-        label: "Rate control"
+        label: qsTr("Rate control")
         Row {
             spacing: 8
             width: parent.width - 130 - root.spacing
@@ -34,7 +34,7 @@ Column {
                 id: rateValueField
                 width: parent.width - rateControlCombo.width - root.spacing
                 placeholderText: Constants.rateControlKeys[rateControlCombo.currentIndex] === "crf"
-                    ? "CRF value (e.g. 18)" : "Bitrate (e.g. 2M)"
+                    ? qsTr("CRF value (e.g. 18)") : qsTr("Bitrate (e.g. 2M)")
                 validator: root.rateValidator
                 onTextChanged: if (!root.loading) root.changed()
                 onEditingFinished: if (!root.loading) root.changed()

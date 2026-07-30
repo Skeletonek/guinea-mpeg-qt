@@ -51,7 +51,7 @@ Rectangle {
             spacing: 16
 
             Label {
-                text: "Profile Editor"
+                text: qsTr("Profile Editor")
                 font.bold: true
                 font.pixelSize: 20
                 color: theme.text
@@ -62,12 +62,12 @@ Rectangle {
                 width: parent.width
 
                 Button {
-                    text: "\u2190 Back"
+                    text: qsTr("\u2190 Back")
                     onClicked: back()
                 }
 
                 Label {
-                    text: "Profile:"
+                    text: qsTr("Profile:")
                     color: theme.textSecondary
                     font.pixelSize: 14
                     verticalAlignment: Text.AlignVCenter
@@ -77,7 +77,7 @@ Rectangle {
                     id: profileSelector
                     Layout.preferredWidth: 300
                     model: root._profileNames
-                    displayText: currentIndex < 0 ? "New profile" : currentText
+                    displayText: currentIndex < 0 ? qsTr("New profile") : currentText
                     onCurrentTextChanged: {
                         if (_loading) return
                         if (currentText && currentText !== _loadedProfileName)
@@ -86,18 +86,18 @@ Rectangle {
                 }
 
                 Button {
-                    text: "+ New"
+                    text: qsTr("+ New")
                     onClicked: resetToNew()
                 }
 
                 Button {
-                    text: "Save"
+                    text: qsTr("Save")
                     highlighted: true
                     onClicked: saveCurrent()
                 }
 
                 Button {
-                    text: _isDefaultProfile ? "Restore" : "Delete"
+                    text: _isDefaultProfile ? qsTr("Restore") : qsTr("Delete")
                     visible: _loadedProfileName !== ""
                     onClicked: _isDefaultProfile ? restoreSingleProfile() : deleteDialog.open()
                 }
@@ -116,13 +116,13 @@ Rectangle {
                 Item { Layout.fillWidth: true }
 
                 Button {
-                    text: "Restore Defaults"
+                    text: qsTr("Restore Defaults")
                     onClicked: restoreDialog.open()
                 }
             }
 
             Label {
-                text: "Profile name"
+                text: qsTr("Profile name")
                 color: theme.textMuted
                 font.bold: true
                 font.pixelSize: 14
@@ -130,7 +130,7 @@ Rectangle {
             TextField {
                 id: profileNameField
                 width: parent.width
-                placeholderText: "Enter profile name..."
+                placeholderText: qsTr("Enter profile name...")
             }
 
             Rectangle { width: parent.width; height: 1; color: theme.textDim }
@@ -187,7 +187,7 @@ Rectangle {
                 return
             }
         }
-        advancedPanel.setPreview("Failed to generate preview")
+        advancedPanel.setPreview(qsTr("Failed to generate preview"))
     }
 
     function resetToNew() {
@@ -295,7 +295,7 @@ Rectangle {
     function saveCurrent() {
         var name = profileNameField.text.trim()
         if (!name) {
-            profileNameField.placeholderText = "Name is required!"
+            profileNameField.placeholderText = qsTr("Name is required!")
             return
         }
         var data = buildCurrentData()
@@ -307,7 +307,7 @@ Rectangle {
         _loadedProfileName = name
         profileSelector.currentIndex = _profileNames.indexOf(name)
         _loading = false
-        showNotification("Profile \"" + name + "\" saved", theme.accent)
+        showNotification(qsTr("Profile \"%1\" saved").arg(name), theme.accent)
     }
 
     function deleteCurrent() {
@@ -320,7 +320,7 @@ Rectangle {
         else
             resetToNew()
         _loading = false
-        showNotification("Profile \"" + deletedName + "\" deleted", "#e66")
+        showNotification(qsTr("Profile \"%1\" deleted").arg(deletedName), "#e66")
     }
 
     function restoreSingleProfile() {
@@ -330,7 +330,7 @@ Rectangle {
         _profileNames = JSON.parse(backend.availableProfiles())
         loadProfile(restoredName)
         _loading = false
-        showNotification("Profile \"" + restoredName + "\" restored to defaults", theme.accent)
+        showNotification(qsTr("Profile \"%1\" restored to defaults").arg(restoredName), theme.accent)
     }
 
     Component.onCompleted: {

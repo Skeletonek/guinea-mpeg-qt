@@ -43,3 +43,8 @@ qt_add_resources(guinea-mpeg "app_qml"
         ${CMAKE_SOURCE_DIR}/media/images/lettuce.png
         ${CMAKE_SOURCE_DIR}/media/audio/guinea.wav
 )
+
+qt_add_translations(guinea-mpeg
+    TS_FILES
+        ${CMAKE_SOURCE_DIR}/translations/guinea-mpeg_pl_PL.ts
+)

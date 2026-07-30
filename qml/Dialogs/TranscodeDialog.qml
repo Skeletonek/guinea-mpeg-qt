@@ -57,7 +57,7 @@ Dialog {
             spacing: 4
 
             Label {
-                text: backend.transcoding ? "Transcoding..." : "Transcoding Complete"
+                text: backend.transcoding ? qsTr("Transcoding...") : qsTr("Transcoding Complete")
                 color: theme.textHeader
                 font.bold: true
                 elide: Text.ElideRight
@@ -168,14 +168,14 @@ Dialog {
             Layout.fillWidth: true
 
             Label {
-                text: backend.transcoding ? "ffmpeg is running..." : "Done. You can close this window."
+                text: backend.transcoding ? qsTr("ffmpeg is running...") : qsTr("Done. You can close this window.")
                 color: backend.transcoding ? theme.textSecondary : theme.accent
             }
 
             Item { Layout.fillWidth: true }
 
             Button {
-                text: "Cancel"
+                text: qsTr("Cancel")
                 visible: backend.transcoding
                 onClicked: backend.cancelTranscode()
             }

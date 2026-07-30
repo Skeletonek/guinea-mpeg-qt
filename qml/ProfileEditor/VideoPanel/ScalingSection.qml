@@ -14,7 +14,7 @@ Column {
     signal changed
 
     LabeledRow {
-        label: "Resolution"
+        label: qsTr("Resolution")
         ComboBox {
             id: resCombo
             model: Constants.resOptions
@@ -25,7 +25,7 @@ Column {
     }
 
     LabeledRow {
-        label: "Framerate"
+        label: qsTr("Framerate")
         ComboBox {
             id: fpsCombo
             model: Constants.fpsOptions

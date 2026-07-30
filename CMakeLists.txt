@@ -16,7 +16,7 @@ if(UNIX)
     include(GNUInstallDirs)
 endif()
 
-find_package(Qt6 6.5 REQUIRED COMPONENTS Quick QuickControls2 Widgets Multimedia)
+find_package(Qt6 6.5 REQUIRED COMPONENTS Quick QuickControls2 Widgets Multimedia LinguistTools)
 if(UNIX AND NOT APPLE)
     find_package(Qt6 6.5 REQUIRED COMPONENTS DBus)
 endif()

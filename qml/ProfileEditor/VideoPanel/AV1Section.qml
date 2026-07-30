@@ -15,7 +15,7 @@ Column {
     signal changed
 
     SectionHeader {
-        text: "AV1"
+        text: qsTr("AV1")
     }
 
     Grid {
@@ -24,19 +24,19 @@ Column {
         rowSpacing: 6
         width: parent.width
 
-        Label { text: "Tile rows"; color: theme.textSecondary }
+        Label { text: qsTr("Tile rows"); color: theme.textSecondary }
         TextField {
             id: tileRowsField
             width: 60
-            placeholderText: "2"
+            placeholderText: qsTr("2")
             validator: IntValidator { bottom: 0; top: 8 }
             onTextChanged: if (!root.loading) root.changed()
         }
-        Label { text: "Tile cols"; color: theme.textSecondary }
+        Label { text: qsTr("Tile cols"); color: theme.textSecondary }
         TextField {
             id: tileColsField
             width: 60
-            placeholderText: "3"
+            placeholderText: qsTr("3")
             validator: IntValidator { bottom: 0; top: 8 }
             onTextChanged: if (!root.loading) root.changed()
         }
@@ -44,7 +44,7 @@ Column {
 
     CheckBox {
         id: enableQmCheck
-        text: "Enable Quantization Matrix"
+        text: qsTr("Enable Quantization Matrix")
         onCheckedChanged: if (!root.loading) root.changed()
     }
 

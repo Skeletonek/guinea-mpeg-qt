@@ -4,7 +4,7 @@ import "../Utils/Centering.js" as Utils
 
 Dialog {
     id: root
-    title: "Restore Default Profiles"
+    title: qsTr("Restore Default Profiles")
     standardButtons: Dialog.Yes | Dialog.No
     width: 400
     padding: 0
@@ -19,9 +19,7 @@ Dialog {
         id: msg
         anchors.fill: parent
         anchors.margins: 16
-        text: "This will reset all built-in profiles to their original settings.\n\n" +
-              "Custom profiles you created will not be affected.\n\n" +
-              "Continue?"
+        text: qsTr("This will reset all built-in profiles to their original settings.\n\nCustom profiles you created will not be affected.\n\nContinue?")
         color: theme.text
         wrapMode: Text.WordWrap
     }

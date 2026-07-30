@@ -28,7 +28,7 @@ Rectangle {
 
     Text {
         anchors.centerIn: parent
-        text: "No video loaded"
+        text: qsTr("No video loaded")
         color: theme.text
         visible: !root.hasVideo
         font.pixelSize: 18

@@ -4,7 +4,7 @@ import "../Utils/Centering.js" as Utils
 
 Dialog {
     id: root
-    title: "Delete Profile"
+    title: qsTr("Delete Profile")
     standardButtons: Dialog.Yes | Dialog.No
     width: 380
     padding: 0
@@ -20,7 +20,7 @@ Dialog {
         id: delMsg
         anchors.fill: parent
         anchors.margins: 16
-        text: "Delete profile \"" + root.profileName + "\"?\n\nThis cannot be undone."
+        text: qsTr("Delete profile \"%1\"?\n\nThis cannot be undone.").arg(root.profileName)
         color: theme.text
         wrapMode: Text.WordWrap
     }

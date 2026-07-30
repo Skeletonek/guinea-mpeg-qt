@@ -13,7 +13,7 @@ ApplicationWindow {
     minimumWidth: 1024
     minimumHeight: 768
     visible: true
-    title: "GuineaMPEG - FFmpeg Frontend"
+    title: qsTr("GuineaMPEG - FFmpeg Frontend")
 
     property string currentVideoPath: ""
     property var currentVideoInfo: ({})
@@ -22,7 +22,7 @@ ApplicationWindow {
     property int videoDuration: 0
     property int startTime: 0
     property int endTime: 0
-    property string videoInfoText: "Load a video file to see information"
+    property string videoInfoText: qsTr("Load a video file to see information")
     property string outputFilePath: ""
     property bool settingTimeline: false
     property url videoSource: ""
@@ -177,12 +177,8 @@ ApplicationWindow {
 
         var name = FormatUtils.getFilename(filePath)
         var fps = FormatUtils.formatFps(info.fps || "0/1")
-        videoInfoText = "File: " + name + "\n" +
-                      "Duration: " + info.duration.toFixed(1) + "s\n" +
-                      "Resolution: " + info.width + "x" + info.height + "\n" +
-                      "FPS: " + fps + "\n" +
-                      "Video: " + info.codec + "\n" +
-                      "Audio: " + (info.audio_codec || "N/A")
+        videoInfoText = qsTr("File: %1\nDuration: %2s\nResolution: %3x%4\nFPS: %5\nVideo: %6\nAudio: %7")
+            .arg(name).arg(info.duration.toFixed(1)).arg(info.width).arg(info.height).arg(fps).arg(info.codec).arg(info.audio_codec || "N/A")
 
         var base = FormatUtils.getBaseFilename(name)
         var dir = FormatUtils.getDirectory(filePath)
@@ -213,7 +209,7 @@ ApplicationWindow {
 
     function startTranscoding() {
         if (appWindow.outputFilePath === "") {
-            videoInfoText = "Please set an output file path first"
+            videoInfoText = qsTr("Please set an output file path first")
             return
         }
         var profile = JSON.parse(backend.loadProfile(currentProfile))

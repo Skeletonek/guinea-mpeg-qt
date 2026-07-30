@@ -24,7 +24,7 @@ Column {
             leftPadding: 6
             spacing: 8
             Label {
-                text: "Audio"
+                text: qsTr("Audio")
                 color: theme.text
                 font.bold: true
                 font.pixelSize: 14
@@ -46,11 +46,11 @@ Column {
         LabeledRow {
             visible: videoEnabled
             labelWidth: parent.width
-            label: "Codec: Auto (" + ((currentCodecKey === "h264" || currentCodecKey === "hevc") ? "AAC" : "Opus") + ")"
+            label: qsTr("Codec: Auto (%1)").arg((currentCodecKey === "h264" || currentCodecKey === "hevc") ? "AAC" : "Opus")
         }
 
         SectionHeader {
-            text: "Codec"
+            text: qsTr("Codec")
             visible: !videoEnabled
         }
         ComboBox {
@@ -67,22 +67,22 @@ Column {
 
             LabeledTextField {
                 id: audioBitrateField
-                label: "Bitrate"
-                placeholderText: "128k"
+                label: qsTr("Bitrate")
+                placeholderText: qsTr("128k")
                 visible: videoEnabled || audioCodecLabels[audioCodecCombo.currentIndex] !== "FLAC"
                 onTextChanged: if (!root.loading) root.changed()
             }
             LabeledTextField {
                 id: audioChannelsField
-                label: "Channels"
-                placeholderText: "2"
+                label: qsTr("Channels")
+                placeholderText: qsTr("2")
                 validator: IntValidator { bottom: 0; top: 8 }
                 onTextChanged: if (!root.loading) root.changed()
             }
             LabeledTextField {
                 id: audioSrField
-                label: "Sample rate"
-                placeholderText: "48000"
+                label: qsTr("Sample rate")
+                placeholderText: qsTr("48000")
                 validator: IntValidator { bottom: 0; top: 192000 }
                 onTextChanged: if (!root.loading) root.changed()
             }

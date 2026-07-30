@@ -15,7 +15,7 @@ Column {
     signal changed
 
     LabeledRow {
-        label: "Pixel fmt"
+        label: qsTr("Pixel fmt")
         ComboBox {
             id: pixfmtCombo
             width: parent.width - 138

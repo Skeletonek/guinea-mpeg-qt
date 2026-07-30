@@ -52,20 +52,20 @@ Item {
             width: rightPanelFlickable.width - (vbar.visible ? vbar.width : 0)
 
             Label {
-                text: "Input File"
+                text: qsTr("Input File")
                 font.bold: true
                 font.pixelSize: 16
                 color: theme.text
             }
 
             Button {
-                text: "Open Video..."
+                text: qsTr("Open Video...")
                 onClicked: root.openVideoClicked()
                 width: parent.width
             }
 
             Label {
-                text: "Video Information"
+                text: qsTr("Video Information")
                 font.bold: true
                 font.pixelSize: 16
                 color: theme.text
@@ -83,7 +83,7 @@ Item {
             }
 
             Label {
-                text: "Stream Selection"
+                text: qsTr("Stream Selection")
                 font.bold: true
                 font.pixelSize: 16
                 color: theme.text
@@ -92,7 +92,7 @@ Item {
             }
 
             Label {
-                text: "Video"
+                text: qsTr("Video")
                 color: theme.textMuted
                 font.bold: true
                 font.pixelSize: 14
@@ -119,7 +119,7 @@ Item {
             }
 
             Label {
-                text: "Audio"
+                text: qsTr("Audio")
                 color: theme.textMuted
                 font.bold: true
                 font.pixelSize: 14
@@ -146,7 +146,7 @@ Item {
             }
 
             Label {
-                text: "Transcoding Profile"
+                text: qsTr("Transcoding Profile")
                 font.bold: true
                 font.pixelSize: 16
                 color: theme.text
@@ -165,13 +165,13 @@ Item {
             }
 
             Button {
-                text: "Profile Editor"
+                text: qsTr("Profile Editor")
                 onClicked: root.profileEditorClicked()
                 width: parent.width
             }
 
             Label {
-                text: "Timeline Selection"
+                text: qsTr("Timeline Selection")
                 font.bold: true
                 font.pixelSize: 16
                 color: theme.text
@@ -198,7 +198,7 @@ Item {
             }
 
             Label {
-                text: "Output File"
+                text: qsTr("Output File")
                 font.bold: true
                 font.pixelSize: 14
                 color: theme.text
@@ -211,7 +211,7 @@ Item {
                 TextField {
                     id: outputPathField
                     text: hostWindow ? hostWindow.outputFilePath : ""
-                    placeholderText: "Output path..."
+                    placeholderText: qsTr("Output path...")
                     onTextChanged: {
                         if (hostWindow) hostWindow.outputFilePath = text
                     }
@@ -227,7 +227,7 @@ Item {
             }
 
             Button {
-                text: "Start Transcoding"
+                text: qsTr("Start Transcoding")
                 enabled: hostWindow && hostWindow.currentVideoPath !== "" && hostWindow.endTime > hostWindow.startTime
                 onClicked: {
                     if (playerItem) playerItem.pause()
@@ -237,7 +237,7 @@ Item {
             }
 
             Label {
-                text: "Transcoding in progress... (click to view)"
+                text: qsTr("Transcoding in progress... (click to view)")
                 color: theme.accent
                 visible: backend.transcoding
                 width: parent.width

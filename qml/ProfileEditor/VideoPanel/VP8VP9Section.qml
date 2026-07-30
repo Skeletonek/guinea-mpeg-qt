@@ -16,11 +16,11 @@ Column {
     signal changed
 
     SectionHeader {
-        text: "VP8/VP9"
+        text: qsTr("VP8/VP9")
     }
 
     LabeledRow {
-        label: "CPU used"
+        label: qsTr("CPU used")
         ComboBox {
             id: cpuUsedCombo
             width: parent.width - 138

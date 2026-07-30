@@ -17,7 +17,7 @@ Column {
 
     LabeledRow {
         id: presetRow
-        label: "Preset"
+        label: qsTr("Preset")
         visible: root._capOverrides.uses_compression_level !== true
 
         ComboBox {
@@ -31,7 +31,7 @@ Column {
 
     LabeledRow {
         id: tuneRow
-        label: "Tune"
+        label: qsTr("Tune")
         visible: root._capOverrides.uses_compression_level !== true
 
         ComboBox {
@@ -45,7 +45,7 @@ Column {
 
     LabeledRow {
         id: compressionLevelRow
-        label: "Compression Level"
+        label: qsTr("Compression Level")
         visible: root._capOverrides.uses_compression_level === true
 
         TextField {

@@ -215,12 +215,12 @@ QString GuineaMpegBackendExt::startTranscode(const QString& rawInput, const QStr
         ? parseArgsFromArray(profileJson)
         : buildArgsFromProfile(input, output, startTime, endTime, profileJson);
     if (doc.isObject() && args.isEmpty()) {
-        setTranscodeOutput("Error: failed to build ffmpeg command from profile");
+        setTranscodeOutput(tr("Error: failed to build ffmpeg command from profile"));
         setTranscoding(false);
         return "failed";
     }
     if (args.isEmpty()) {
-        setTranscodeOutput("Error: profile produced no ffmpeg arguments");
+        setTranscodeOutput(tr("Error: profile produced no ffmpeg arguments"));
         setTranscoding(false);
         return "failed";
     }
@@ -236,7 +236,7 @@ QString GuineaMpegBackendExt::startTranscode(const QString& rawInput, const QStr
 void GuineaMpegBackendExt::cancelTranscode() {
     if (!m_currentTranscode) return;
     killTranscodeProcess(m_currentTranscode);
-    setTranscodeOutput(transcodeOutput() + "\n--- Transcoding cancelled ---\n");
+    setTranscodeOutput(transcodeOutput() + tr("\n--- Transcoding cancelled ---\n"));
     setTranscoding(false);
 }
 
@@ -273,14 +273,13 @@ void GuineaMpegBackendExt::connectOutputCapture() {
     connect(m_currentTranscode, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
             this, [this](int exitCode, QProcess::ExitStatus) {
         if (exitCode == 0)
-            setTranscodeOutput(transcodeOutput() + "\n--- Transcoding finished: SUCCESS ---\n");
+            setTranscodeOutput(transcodeOutput() + tr("\n--- Transcoding finished: SUCCESS ---\n"));
         else
-            setTranscodeOutput(transcodeOutput() + "\n--- Transcoding finished: FAILED (exit code "
-                + QString::number(exitCode) + ") ---\n");
+            setTranscodeOutput(transcodeOutput() + tr("\n--- Transcoding finished: FAILED (exit code %1) ---\n").arg(exitCode));
         sendNotification(
-            exitCode == 0 ? "Transcoding Complete" : "Transcoding Failed",
-            exitCode == 0 ? "Your video has been transcoded successfully."
-                          : "Transcoding exited with code " + QString::number(exitCode)
+            exitCode == 0 ? tr("Transcoding Complete") : tr("Transcoding Failed"),
+            exitCode == 0 ? tr("Your video has been transcoded successfully.")
+                          : tr("Transcoding exited with code %1").arg(exitCode)
         );
         emit transcodeFinished(exitCode == 0);
         setTranscoding(false);

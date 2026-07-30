@@ -4,7 +4,7 @@ import "../Utils/Centering.js" as Utils
 
 Dialog {
     id: root
-    title: "Available Encoders"
+    title: qsTr("Available Encoders")
     standardButtons: Dialog.Ok
     width: 360
     padding: 0

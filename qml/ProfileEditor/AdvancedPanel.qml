@@ -7,24 +7,24 @@ Column {
     spacing: 8
 
     property bool loading: false
-    property string previewText: "Adjust settings above to see the ffmpeg command preview..."
+    property string previewText: qsTr("Adjust settings above to see the ffmpeg command preview...")
 
     signal changed
     signal extraArgsChanged
 
     WidgetHeader {
-        text: "Advanced"
+        text: qsTr("Advanced")
     }
 
     SectionHeader {
-        text: "Extra FFmpeg arguments"
+        text: qsTr("Extra FFmpeg arguments")
     }
     TextField {
         id: extraArgsField
         width: parent.width
         font.family: "monospace"
         font.pixelSize: 11
-        placeholderText: "-row-mt 1 -tiles 2x2"
+        placeholderText: qsTr("-row-mt 1 -tiles 2x2")
         onTextChanged: {
             if (!root.loading) root.extraArgsChanged()
             if (!root.loading) root.changed()
@@ -36,7 +36,7 @@ Column {
     }
 
     SectionHeader {
-        text: "FFmpeg Preview"
+        text: qsTr("FFmpeg Preview")
     }
 
     Rectangle {

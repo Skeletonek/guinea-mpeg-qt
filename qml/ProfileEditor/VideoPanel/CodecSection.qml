@@ -22,13 +22,13 @@ Column {
     readonly property var codecKeys: Constants.codecKeys
 
     LabeledRow {
-        label: "Codec"
+        label: qsTr("Codec")
         ComboBox {
             id: codecCombo
             model: root.codecLabels
             width: parent.width - root.spacing - 130
             delegate: ItemDelegate {
-                text: modelData + (root._codecAvailable[index] ? "" : " (unavailable)")
+                text: modelData + (root._codecAvailable[index] ? "" : " " + qsTr("(unavailable)"))
                 enabled: root._codecAvailable[index]
                 opacity: root._codecAvailable[index] ? 1.0 : 0.4
                 palette.text: enabled ? theme.text : theme.textDim
@@ -45,7 +45,7 @@ Column {
     }
 
     LabeledRow {
-        label: "Encoder"
+        label: qsTr("Encoder")
         Row {
             spacing: 8
             width: parent.width - 130 - root.spacing
@@ -54,12 +54,12 @@ Column {
                 id: compatInfoBtn
                 width: 32
                 height: 32
-                text: "?"
+                text: qsTr("?")
                 font.bold: true
                 font.pixelSize: 15
                 onClicked: root.openEncoderCompatDialog()
                 ToolTip.visible: hovered
-                ToolTip.text: "Show available encoders"
+                ToolTip.text: qsTr("Show available encoders")
             }
 
             ComboBox {

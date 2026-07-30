@@ -30,7 +30,7 @@ Column {
             leftPadding: 6
             spacing: 8
             Label {
-                text: "Video"
+                text: qsTr("Video")
                 color: theme.text
                 font.bold: true
                 font.pixelSize: 14
@@ -51,7 +51,7 @@ Column {
         visible: videoEnabledSwitch.checked
 
         SectionHeader {
-            text: "Codec"
+            text: qsTr("Codec")
         }
 
         CodecSection {
@@ -65,7 +65,7 @@ Column {
         }
 
         SectionHeader {
-            text: "Rate control"
+            text: qsTr("Rate control")
         }
 
         RateControlSection {
@@ -90,7 +90,7 @@ Column {
         }
 
         SectionHeader {
-            text: "Scaling"
+            text: qsTr("Scaling")
         }
 
         ScalingSection {

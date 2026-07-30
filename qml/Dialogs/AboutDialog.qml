@@ -4,9 +4,9 @@ import QtQuick.Layouts
 import QtMultimedia
 import "../Utils/Centering.js" as Utils
 
-Dialog {
-    id: root
-    title: "About GuineaMPEG"
+    Dialog {
+        id: root
+        title: qsTr("About GuineaMPEG")
     standardButtons: Dialog.Ok
     width: 380
     padding: 0
@@ -118,7 +118,7 @@ Dialog {
             spacing: 12
             ColumnLayout {
                 Label { text: "GuineaMPEG"; font.pixelSize: 20; font.bold: true; color: theme.text }
-                Label { text: "FFmpeg Frontend with Rust Core"; color: theme.textSecondary; font.pixelSize: 12 }
+                Label { text: qsTr("FFmpeg Frontend with Rust Core"); color: theme.textSecondary; font.pixelSize: 12 }
             }
             Item { Layout.fillWidth: true }
             Item {
@@ -151,9 +151,9 @@ Dialog {
             ColumnLayout {
                 spacing: 6
 
-                Label { text: "Version: " + buildInfo.version; color: theme.text }
+                Label { text: qsTr("Version: %1").arg(buildInfo.version); color: theme.text }
                 Label {
-                    text: "Author: " + buildInfo.author
+                    text: qsTr("Author: %1").arg(buildInfo.author)
                     color: theme.text
 
                     MouseArea {
@@ -162,11 +162,11 @@ Dialog {
                         onClicked: Qt.openUrlExternally("https://www.skeletonek.com/")
                     }
                 }
-                Label { text: "License: " + buildInfo.license; color: theme.text }
-                Label { text: "OS name: " + buildInfo.distroName; color: theme.text }
-                Label { text: "Package: " + buildInfo.packageTarget; color: theme.textMuted; font.pixelSize: 11 }
-                Label { text: "Build: " + buildInfo.buildDate; color: theme.textMuted; font.pixelSize: 11 }
-                Label { text: "Copyright © " + buildInfo.copyright; color: theme.textMuted; font.pixelSize: 11 }
+                Label { text: qsTr("License: %1").arg(buildInfo.license); color: theme.text }
+                Label { text: qsTr("OS name: %1").arg(buildInfo.distroName); color: theme.text }
+                Label { text: qsTr("Package: %1").arg(buildInfo.packageTarget); color: theme.textMuted; font.pixelSize: 11 }
+                Label { text: qsTr("Build: %1").arg(buildInfo.buildDate); color: theme.textMuted; font.pixelSize: 11 }
+                Label { text: qsTr("Copyright © %1").arg(buildInfo.copyright); color: theme.textMuted; font.pixelSize: 11 }
             }
 
             Item { Layout.fillWidth: true }

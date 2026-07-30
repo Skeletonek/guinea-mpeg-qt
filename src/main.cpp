@@ -6,6 +6,8 @@
 #include <QSGRendererInterface>
 #include <QPalette>
 #include <QStyleHints>
+#include <QTranslator>
+#include <QLocale>
 
 #include <clocale>
 #include "mpvitem.h"
@@ -28,6 +30,10 @@ int main(int argc, char *argv[])
     app.setWindowIcon(QIcon::fromTheme("guinea-mpeg"));
 #endif
     std::setlocale(LC_NUMERIC, "C");
+
+    QTranslator translator;
+    if (translator.load(QLocale(), "guinea-mpeg", "_", ":/i18n/qml"))
+        app.installTranslator(&translator);
 
     bool useFusion = false;
 #ifdef Q_OS_WIN
