@@ -221,6 +221,7 @@ ApplicationWindow {
             profile.video_stream_indices = selectedVideoIndices
         if (selectedAudioIndices.length > 0)
             profile.audio_stream_indices = selectedAudioIndices
+        transcodeDialog.targetFps = profile.framerate || 0
         backend.startTranscode(currentVideoPath, appWindow.outputFilePath,
                                     startTime / 1000.0, endTime / 1000.0,
                                     JSON.stringify(profile))

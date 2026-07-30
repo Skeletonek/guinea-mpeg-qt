@@ -12,6 +12,39 @@ Dialog {
     background: Rectangle { color: theme.bg }
 
     property QtObject appWindow: null
+    property double targetFps: 0
+
+    property int _lastOutputLen: 0
+    property double _progress: 0.0
+    property double _totalFrames: 0
+
+    function parseFps(fpsStr) {
+        if (!fpsStr || fpsStr === "0/1") return 0
+        var parts = fpsStr.split("/")
+        if (parts.length === 2)
+            return parseFloat(parts[0]) / parseFloat(parts[1])
+        return parseFloat(fpsStr) || 0
+    }
+
+    function parseProgress() {
+        var fullText = backend.transcodeOutput
+        var newText = fullText.slice(_lastOutputLen)
+        _lastOutputLen = fullText.length
+
+        var re = /frame=\s*(\d+)/g
+        var match, lastMatch
+        while ((match = re.exec(newText)) !== null)
+            lastMatch = match
+
+        if (!lastMatch) return
+
+        var frame = parseInt(lastMatch[1])
+        if (_totalFrames > 0) {
+            var p = Math.min(frame / _totalFrames, 1.0)
+            if (p > _progress)
+                _progress = p
+        }
+    }
 
     header: Rectangle {
         height: 36
@@ -33,7 +66,7 @@ Dialog {
             Item { Layout.fillWidth: true }
 
             Button {
-                text: "✕"
+                text: "\u2715"
                 flat: true
                 implicitWidth: 28
                 implicitHeight: 28
@@ -45,6 +78,20 @@ Dialog {
     onAboutToShow: {
         x = (appWindow.width - width) / 2
         y = (appWindow.height - height) / 2
+        _lastOutputLen = 0
+        _progress = 0.0
+        var sourceFps = parseFps(appWindow.currentVideoInfo.fps || "")
+        var fps = targetFps > 0 ? targetFps : sourceFps
+        var durationSec = (appWindow.endTime - appWindow.startTime) / 1000.0
+        _totalFrames = fps > 0 ? Math.round(fps * durationSec) : 0
+    }
+
+    Connections {
+        target: backend
+
+        function onTranscodeOutputUpdated() {
+            parseProgress()
+        }
     }
 
     ColumnLayout {
@@ -94,6 +141,26 @@ Dialog {
                     selectByMouse: true
                     textFormat: TextEdit.PlainText
                 }
+            }
+        }
+
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: 8
+
+            ProgressBar {
+                id: progressBar
+                Layout.fillWidth: true
+                from: 0.0
+                to: 1.0
+                value: _progress
+            }
+
+            Label {
+                text: Math.round(_progress * 100) + "%"
+                color: theme.text
+                font.pixelSize: 12
+                horizontalAlignment: Text.AlignRight
             }
         }
 
