@@ -1,3 +1,10 @@
+### 0.7.0
+- Added support for translations based on system locale
+- Added Polish language
+- Added progress bar to transcoding dialog
+- Added author logo to about app
+- Author label is clickable and opens author's website
+
 ### 0.6.2
 - Added Compression Level option for VA-API based encoders
 - Fix hardware encoding not working due to incorrect parameters
