@@ -37,6 +37,7 @@ const char* guinea_mpeg_encoder_capabilities(const char* encoder_name);
 /* Mpv backend: returns opaque handle for C++ render context setup */
 void* guinea_mpeg_mpv_create(void);
 bool  guinea_mpeg_mpv_available(void);
+const char* guinea_mpeg_mpv_version(void);
 void  guinea_mpeg_mpv_destroy(void* handle);
 void* guinea_mpeg_mpv_raw_handle(void* handle);
 

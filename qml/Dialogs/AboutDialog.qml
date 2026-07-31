@@ -8,7 +8,7 @@ import "../Utils/Centering.js" as Utils
         id: root
         title: qsTr("About GuineaMPEG")
     standardButtons: Dialog.Ok
-    width: 380
+    width: 430
     padding: 0
     implicitHeight: implicitHeaderHeight + mainLayout.implicitHeight + implicitFooterHeight + 24
 
@@ -179,5 +179,17 @@ import "../Utils/Centering.js" as Utils
                 Layout.alignment: Qt.AlignTop
             }
         }
+
+        Rectangle {
+            Layout.fillWidth: true
+            height: 1
+            color: theme.widgetBorder
+            Layout.topMargin: 4
+            Layout.bottomMargin: 4
+        }
+
+        Label { text: qsTr("Qt: %1").arg(buildInfo.qtVersion); color: theme.textMuted; font.pixelSize: 11 }
+        Label { text: ffmpegVersion; color: theme.textMuted; font.pixelSize: 11; wrapMode: Text.Wrap; Layout.fillWidth: true }
+        Label { text: mpvVersion; color: theme.textMuted; font.pixelSize: 11; wrapMode: Text.Wrap; Layout.fillWidth: true }
     }
 }

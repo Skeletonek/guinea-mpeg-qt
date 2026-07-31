@@ -32,6 +32,7 @@ public:
     Q_INVOKABLE QVariantMap getVideoInfo(const QString& rawPath);
     Q_INVOKABLE bool ffmpegAvailable();
     Q_INVOKABLE QString getFfmpegVersion();
+    Q_INVOKABLE QString getMpvVersion();
     Q_INVOKABLE QString generatePreview(const QString& rawPath, qint64 timeMs);
     Q_INVOKABLE QString generateCommandPreview(const QString& json);
     Q_INVOKABLE QString availableEncoders();

@@ -117,6 +117,30 @@ pub extern "C" fn guinea_mpeg_mpv_available() -> bool {
 }
 
 #[no_mangle]
+pub extern "C" fn guinea_mpeg_mpv_version() -> *mut c_char {
+    let handle = unsafe { mpv_create() };
+    if handle.is_null() {
+        return std::ptr::null_mut();
+    }
+    if unsafe { mpv_initialize(handle) } != 0 {
+        unsafe { mpv_terminate_destroy(handle) };
+        return std::ptr::null_mut();
+    }
+    let result = unsafe {
+        let prop = mpv_get_property_string(handle, CString::new("mpv-version").unwrap().as_ptr());
+        if prop.is_null() {
+            std::ptr::null_mut()
+        } else {
+            let s = CStr::from_ptr(prop).to_str().unwrap_or("").to_string();
+            mpv_free(prop as *mut c_void);
+            CString::new(s).unwrap_or_default().into_raw()
+        }
+    };
+    unsafe { mpv_terminate_destroy(handle) };
+    result
+}
+
+#[no_mangle]
 pub extern "C" fn guinea_mpeg_mpv_raw_handle(ptr: *mut c_void) -> *mut c_void {
     if ptr.is_null() {
         return std::ptr::null_mut();

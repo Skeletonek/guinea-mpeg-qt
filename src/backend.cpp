@@ -153,6 +153,14 @@ QString GuineaMpegBackendExt::getFfmpegVersion() {
     return result;
 }
 
+QString GuineaMpegBackendExt::getMpvVersion() {
+    const char* ver = guinea_mpeg_mpv_version();
+    if (!ver) return {};
+    QString result = QString::fromUtf8(ver);
+    guinea_mpeg_free_string(ver);
+    return result;
+}
+
 QString GuineaMpegBackendExt::generatePreview(const QString& rawPath, qint64 timeMs) {
     const char* path = guinea_mpeg_generate_preview(rawPath.toUtf8().constData(), (long long)timeMs);
     if (!path) return {};

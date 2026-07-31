@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     qt6-base-dev \
     qt6-multimedia-dev \
     qt6-declarative-dev \
+    qt6-tools-dev \
     qml6-module-qtmultimedia \
     libqt6svg6 \
     libgl1-mesa-dev \

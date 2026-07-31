@@ -2,6 +2,7 @@
 - Added support for translations based on system locale
 - Added Polish language
 - Added progress bar to transcoding dialog
+- Added qt, mpv, ffmpeg version info to about app dialog
 - Added author logo to about app
 - Author label is clickable and opens author's website
 

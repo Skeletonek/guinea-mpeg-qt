@@ -124,6 +124,7 @@ int main(int argc, char *argv[])
     buildInfo["buildDate"] = __DATE__ " " __TIME__;
     buildInfo["packageTarget"] = PACKAGE_TARGET;
     buildInfo["distroName"] = QSysInfo::prettyProductName();
+    buildInfo["qtVersion"] = qVersion();
     buildInfo["copyright"] = QString(buildInfo["author"].toString() + " " + QString(__DATE__).right(4));
 
     QQmlApplicationEngine engine;
@@ -136,6 +137,7 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("ffmpegAvailable", QVariant(backend->ffmpegAvailable()));
     engine.rootContext()->setContextProperty("ffmpegVersion", QVariant(backend->getFfmpegVersion()));
     engine.rootContext()->setContextProperty("mpvAvailable", QVariant(guinea_mpeg_mpv_available()));
+    engine.rootContext()->setContextProperty("mpvVersion", QVariant(backend->getMpvVersion()));
     engine.rootContext()->setContextProperty("buildInfo", QVariant(buildInfo));
     engine.rootContext()->setContextProperty("theme", QVariant(theme));
 

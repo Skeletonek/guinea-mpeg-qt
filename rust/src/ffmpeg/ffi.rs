@@ -16,8 +16,8 @@ pub extern "C" fn guinea_mpeg_ffmpeg_available() -> bool {
 pub extern "C" fn guinea_mpeg_ffmpeg_version() -> *mut c_char {
     match run_cmd("ffmpeg", &["-version"]) {
         Some(out) => {
-            let line = out.lines().next().unwrap_or("").to_string();
-            to_c_string(line)
+            let lines: Vec<String> = out.lines().take(2).map(|l| l.to_string()).collect();
+            to_c_string(lines.join("\n"))
         }
         None => std::ptr::null_mut(),
     }

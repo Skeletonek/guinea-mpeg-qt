@@ -11,4 +11,5 @@ RUN pacman -Syu --noconfirm && \
     qt6-base \
     qt6-multimedia \
     qt6-declarative \
+    qt6-tools \
     && pacman -Scc --noconfirm
