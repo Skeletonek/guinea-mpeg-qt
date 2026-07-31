@@ -24,7 +24,7 @@ Column {
         width: parent.width
         font.family: "monospace"
         font.pixelSize: 11
-        placeholderText: qsTr("-row-mt 1 -tiles 2x2")
+        placeholderText: "-row-mt 1 -tiles 2x2"
         onTextChanged: {
             if (!root.loading) root.extraArgsChanged()
             if (!root.loading) root.changed()

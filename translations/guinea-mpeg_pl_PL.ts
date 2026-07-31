@@ -14,19 +14,9 @@
         <translation>Wiersze kafelków</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/VideoPanel/AV1Section.qml" line="31"/>
-        <source>2</source>
-        <translation>2</translation>
-    </message>
-    <message>
         <location filename="../qml/ProfileEditor/VideoPanel/AV1Section.qml" line="35"/>
         <source>Tile cols</source>
         <translation>Kolumny kafelków</translation>
-    </message>
-    <message>
-        <location filename="../qml/ProfileEditor/VideoPanel/AV1Section.qml" line="39"/>
-        <source>3</source>
-        <translation>3</translation>
     </message>
     <message>
         <location filename="../qml/ProfileEditor/VideoPanel/AV1Section.qml" line="47"/>
@@ -44,7 +34,7 @@
     <message>
         <location filename="../qml/Dialogs/AboutDialog.qml" line="121"/>
         <source>FFmpeg Frontend with Rust Core</source>
-        <translation>Frontend FFmpeg z rdzeniem w Ruście</translation>
+        <translation>Frontend FFmpeg z rdzeniem w Rust</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/AboutDialog.qml" line="154"/>
@@ -100,11 +90,6 @@
         <translation>Dodatkowe argumenty FFmpeg</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/AdvancedPanel.qml" line="27"/>
-        <source>-row-mt 1 -tiles 2x2</source>
-        <translation>-row-mt 1 -tiles 2x2</translation>
-    </message>
-    <message>
         <location filename="../qml/ProfileEditor/AdvancedPanel.qml" line="39"/>
         <source>FFmpeg Preview</source>
         <translation>Podgląd FFmpeg</translation>
@@ -133,29 +118,14 @@
         <translation>Bitrate</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="71"/>
-        <source>128k</source>
-        <translation>128k</translation>
-    </message>
-    <message>
         <location filename="../qml/ProfileEditor/AudioPanel.qml" line="77"/>
         <source>Channels</source>
         <translation>Kanały</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="78"/>
-        <source>2</source>
-        <translation>2</translation>
-    </message>
-    <message>
         <location filename="../qml/ProfileEditor/AudioPanel.qml" line="84"/>
         <source>Sample rate</source>
         <translation>Częstotliwość próbkowania</translation>
-    </message>
-    <message>
-        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="85"/>
-        <source>48000</source>
-        <translation>48000</translation>
     </message>
 </context>
 <context>
@@ -174,11 +144,6 @@
         <location filename="../qml/ProfileEditor/VideoPanel/CodecSection.qml" line="48"/>
         <source>Encoder</source>
         <translation>Encoder</translation>
-    </message>
-    <message>
-        <location filename="../qml/ProfileEditor/VideoPanel/CodecSection.qml" line="57"/>
-        <source>?</source>
-        <translation>?</translation>
     </message>
     <message>
         <location filename="../qml/ProfileEditor/VideoPanel/CodecSection.qml" line="62"/>
@@ -613,11 +578,6 @@ Kontynuować?</translation>
 <context>
     <name>VP8VP9Section</name>
     <message>
-        <location filename="../qml/ProfileEditor/VideoPanel/VP8VP9Section.qml" line="19"/>
-        <source>VP8/VP9</source>
-        <translation>VP8/VP9</translation>
-    </message>
-    <message>
         <location filename="../qml/ProfileEditor/VideoPanel/VP8VP9Section.qml" line="23"/>
         <source>CPU used</source>
         <translation>Użycie CPU</translation>
@@ -656,11 +616,6 @@ Kontynuować?</translation>
 </context>
 <context>
     <name>main</name>
-    <message>
-        <location filename="../qml/main.qml" line="16"/>
-        <source>GuineaMPEG - FFmpeg Frontend</source>
-        <translation>GuineaMPEG - Frontend FFmpeg</translation>
-    </message>
     <message>
         <location filename="../qml/main.qml" line="25"/>
         <source>Load a video file to see information</source>

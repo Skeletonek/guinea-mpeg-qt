@@ -28,7 +28,7 @@ Column {
         TextField {
             id: tileRowsField
             width: 60
-            placeholderText: qsTr("2")
+            placeholderText: "2"
             validator: IntValidator { bottom: 0; top: 8 }
             onTextChanged: if (!root.loading) root.changed()
         }
@@ -36,7 +36,7 @@ Column {
         TextField {
             id: tileColsField
             width: 60
-            placeholderText: qsTr("3")
+            placeholderText: "3"
             validator: IntValidator { bottom: 0; top: 8 }
             onTextChanged: if (!root.loading) root.changed()
         }

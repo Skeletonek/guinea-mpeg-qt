@@ -68,21 +68,21 @@ Column {
             LabeledTextField {
                 id: audioBitrateField
                 label: qsTr("Bitrate")
-                placeholderText: qsTr("128k")
+                placeholderText: "128k"
                 visible: videoEnabled || audioCodecLabels[audioCodecCombo.currentIndex] !== "FLAC"
                 onTextChanged: if (!root.loading) root.changed()
             }
             LabeledTextField {
                 id: audioChannelsField
                 label: qsTr("Channels")
-                placeholderText: qsTr("2")
+                placeholderText: "2"
                 validator: IntValidator { bottom: 0; top: 8 }
                 onTextChanged: if (!root.loading) root.changed()
             }
             LabeledTextField {
                 id: audioSrField
                 label: qsTr("Sample rate")
-                placeholderText: qsTr("48000")
+                placeholderText: "48000"
                 validator: IntValidator { bottom: 0; top: 192000 }
                 onTextChanged: if (!root.loading) root.changed()
             }

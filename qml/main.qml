@@ -13,7 +13,7 @@ ApplicationWindow {
     minimumWidth: 1024
     minimumHeight: 768
     visible: true
-    title: qsTr("GuineaMPEG - FFmpeg Frontend")
+    title: "GuineaMPEG"
 
     property string currentVideoPath: ""
     property var currentVideoInfo: ({})

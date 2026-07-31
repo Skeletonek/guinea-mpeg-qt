@@ -16,7 +16,7 @@ Column {
     signal changed
 
     SectionHeader {
-        text: qsTr("VP8/VP9")
+        text: "VP8/VP9"
     }
 
     LabeledRow {

@@ -54,7 +54,7 @@ Column {
                 id: compatInfoBtn
                 width: 32
                 height: 32
-                text: qsTr("?")
+                text: "?"
                 font.bold: true
                 font.pixelSize: 15
                 onClicked: root.openEncoderCompatDialog()
