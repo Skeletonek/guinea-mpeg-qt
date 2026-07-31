@@ -55,6 +55,19 @@ pub extern "C" fn guinea_mpeg_delete_profile(name: *const c_char) -> bool {
 }
 
 #[no_mangle]
+pub extern "C" fn guinea_mpeg_get_options() -> *mut c_char {
+    let opts = crate::config::get_options();
+    to_json(&opts)
+}
+
+#[no_mangle]
+pub extern "C" fn guinea_mpeg_set_option(key: *const c_char, value: *const c_char) -> bool {
+    let k = unsafe { from_cstr(key) };
+    let v = unsafe { from_cstr(value) };
+    crate::config::set_option(k, v).is_ok()
+}
+
+#[no_mangle]
 pub extern "C" fn guinea_mpeg_free_string(s: *mut c_char) {
     if !s.is_null() {
         unsafe {

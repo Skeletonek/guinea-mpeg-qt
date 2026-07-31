@@ -79,7 +79,10 @@ Rectangle {
                 to: 100
                 value: player.volume
                 Layout.preferredWidth: 60
-                onMoved: player.volume = value
+                onMoved: {
+                    player.volume = value
+                    backend.setOption("previewVolume", value)
+                }
                 Layout.fillHeight: true
             }
 

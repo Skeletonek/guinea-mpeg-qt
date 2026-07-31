@@ -188,7 +188,7 @@ import "../Utils/Centering.js" as Utils
             Layout.bottomMargin: 4
         }
 
-        Label { text: qsTr("Qt: %1").arg(buildInfo.qtVersion); color: theme.textMuted; font.pixelSize: 11 }
+        Label { text: "Qt: %1".arg(buildInfo.qtVersion); color: theme.textMuted; font.pixelSize: 11 }
         Label { text: ffmpegVersion; color: theme.textMuted; font.pixelSize: 11; wrapMode: Text.Wrap; Layout.fillWidth: true }
         Label { text: mpvVersion; color: theme.textMuted; font.pixelSize: 11; wrapMode: Text.Wrap; Layout.fillWidth: true }
     }

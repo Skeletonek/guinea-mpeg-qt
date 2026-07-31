@@ -1,7 +1,18 @@
 ### 0.7.0
 - Added support for translations based on system locale
 - Added Polish language
+- Added German language
+- Added Russian language
+- Added French language
+- Added Italian language
+- Added Spanish language
+- Added Czech language
+- Added Silesian language
+- Added options panel
+- Added switching application theme
 - Added progress bar to transcoding dialog
+- Added option to change MPV hardware acceleration settings
+- Added remembering preview volume settings
 - Added qt, mpv, ffmpeg version info to about app dialog
 - Added author logo to about app
 - Author label is clickable and opens author's website

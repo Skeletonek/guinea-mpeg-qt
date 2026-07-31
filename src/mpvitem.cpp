@@ -93,6 +93,7 @@ MpvItem::MpvItem()
     }
 
     m_mpv = static_cast<mpv_handle*>(guinea_mpeg_mpv_raw_handle(m_backend));
+    m_volume = guinea_mpeg_mpv_volume(m_backend);
 
     mpv_set_wakeup_callback(m_mpv, wakeup, this);
     connect(this, &MpvItem::onMpvEvents, this, &MpvItem::handleMpvEvents);

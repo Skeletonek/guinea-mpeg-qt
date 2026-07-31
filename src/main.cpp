@@ -17,10 +17,21 @@
 #include <QIcon>
 #include <QUrl>
 #include <QSysInfo>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 #ifdef Q_OS_WIN
 #include <windows.h>
 #endif
+
+static QJsonObject readAppOptions()
+{
+    const char* json = guinea_mpeg_get_options();
+    if (!json) return {};
+    QJsonObject opts = QJsonDocument::fromJson(QByteArray(json)).object();
+    guinea_mpeg_free_string(json);
+    return opts;
+}
 
 int main(int argc, char *argv[])
 {
@@ -31,15 +42,64 @@ int main(int argc, char *argv[])
 #endif
     std::setlocale(LC_NUMERIC, "C");
 
-    QTranslator translator;
-    if (translator.load(QLocale(), "guinea-mpeg", "_", ":/i18n/qml"))
-        app.installTranslator(&translator);
+    QJsonObject appOptions = readAppOptions();
 
-    bool useFusion = false;
+    QString language = appOptions.value("language").toString(QStringLiteral("system"));
+    QTranslator translator;
+    if (language == "system" || language.isEmpty()) {
+        if (translator.load(QLocale(), "guinea-mpeg", "_", ":/i18n/qml"))
+            app.installTranslator(&translator);
+    } else if (language != "en") {
+        if (translator.load(QLocale(language), "guinea-mpeg", "_", ":/i18n/qml"))
+            app.installTranslator(&translator);
+    }
+
+    QString themeOption = appOptions.value("theme").toString(QStringLiteral("system"));
+    bool forcedTheme = (themeOption == "dark" || themeOption == "light");
+
+    auto makeDarkPalette = []() {
+        QPalette p;
+        p.setColor(QPalette::Window, QColor(53, 53, 53));
+        p.setColor(QPalette::WindowText, QColor(220, 220, 220));
+        p.setColor(QPalette::Base, QColor(42, 42, 42));
+        p.setColor(QPalette::AlternateBase, QColor(66, 66, 66));
+        p.setColor(QPalette::ToolTipBase, QColor(53, 53, 53));
+        p.setColor(QPalette::ToolTipText, QColor(220, 220, 220));
+        p.setColor(QPalette::Text, QColor(220, 220, 220));
+        p.setColor(QPalette::Button, QColor(53, 53, 53));
+        p.setColor(QPalette::ButtonText, QColor(220, 220, 220));
+        p.setColor(QPalette::BrightText, QColor(255, 0, 0));
+        p.setColor(QPalette::Link, QColor(42, 130, 218));
+        p.setColor(QPalette::Highlight, QColor(42, 130, 218));
+        p.setColor(QPalette::HighlightedText, QColor(220, 220, 220));
+        p.setColor(QPalette::Mid, QColor(80, 80, 80));
+        return p;
+    };
+    auto makeLightPalette = []() {
+        QPalette p;
+        p.setColor(QPalette::Window, QColor(240, 240, 240));
+        p.setColor(QPalette::WindowText, QColor(0, 0, 0));
+        p.setColor(QPalette::Base, QColor(255, 255, 255));
+        p.setColor(QPalette::AlternateBase, QColor(245, 245, 245));
+        p.setColor(QPalette::ToolTipBase, QColor(255, 255, 220));
+        p.setColor(QPalette::ToolTipText, QColor(0, 0, 0));
+        p.setColor(QPalette::Text, QColor(0, 0, 0));
+        p.setColor(QPalette::Button, QColor(225, 225, 225));
+        p.setColor(QPalette::ButtonText, QColor(0, 0, 0));
+        p.setColor(QPalette::BrightText, QColor(255, 0, 0));
+        p.setColor(QPalette::Link, QColor(0, 120, 215));
+        p.setColor(QPalette::Highlight, QColor(0, 120, 215));
+        p.setColor(QPalette::HighlightedText, QColor(255, 255, 255));
+        p.setColor(QPalette::Mid, QColor(190, 190, 190));
+        return p;
+    };
+
+    bool useFusion = forcedTheme;
 #ifdef Q_OS_WIN
     // Find bundled ffmpeg/ffprobe
     QByteArray appDir = QCoreApplication::applicationDirPath().toUtf8();
     SetEnvironmentVariableA("PATH", (appDir + ";" + qgetenv("PATH")).constData());
+    // Windows: always Fusion (native QML style forbids background overrides)
     useFusion = true;
 #else
     if (QStringLiteral(PACKAGE_TARGET) == "appimage")
@@ -50,29 +110,21 @@ int main(int argc, char *argv[])
 
     if (useFusion) {
         QQuickStyle::setStyle("Fusion");
+        if (forcedTheme) {
+            darkTheme = (themeOption == "dark");
+            app.setPalette(darkTheme ? makeDarkPalette() : makeLightPalette());
+        } else {
 #ifdef Q_OS_WIN
-        // Windows: always force dark palette (Fusion in light mode looks wrong)
-        QPalette darkPal;
-        darkPal.setColor(QPalette::Window, QColor(53, 53, 53));
-        darkPal.setColor(QPalette::WindowText, QColor(220, 220, 220));
-        darkPal.setColor(QPalette::Base, QColor(42, 42, 42));
-        darkPal.setColor(QPalette::AlternateBase, QColor(66, 66, 66));
-        darkPal.setColor(QPalette::ToolTipBase, QColor(53, 53, 53));
-        darkPal.setColor(QPalette::ToolTipText, QColor(220, 220, 220));
-        darkPal.setColor(QPalette::Text, QColor(220, 220, 220));
-        darkPal.setColor(QPalette::Button, QColor(53, 53, 53));
-        darkPal.setColor(QPalette::ButtonText, QColor(220, 220, 220));
-        darkPal.setColor(QPalette::BrightText, QColor(255, 0, 0));
-        darkPal.setColor(QPalette::Link, QColor(42, 130, 218));
-        darkPal.setColor(QPalette::Highlight, QColor(42, 130, 218));
-        darkPal.setColor(QPalette::HighlightedText, QColor(220, 220, 220));
-        darkPal.setColor(QPalette::Mid, QColor(80, 80, 80));
-        app.setPalette(darkPal);
-        darkTheme = true;
+            // Windows: force dark palette (Fusion in light mode looks wrong)
+            app.setPalette(makeDarkPalette());
+            darkTheme = true;
 #else
-        // AppImage: respect system theme
-        darkTheme = QApplication::styleHints()->colorScheme() == Qt::ColorScheme::Dark;
+            // AppImage: respect system theme
+            darkTheme = QApplication::styleHints()->colorScheme() == Qt::ColorScheme::Dark;
+            if (darkTheme)
+                app.setPalette(makeDarkPalette());
 #endif
+        }
     } else {
         // Native Linux: respect system theme
         darkTheme = QApplication::styleHints()->colorScheme() == Qt::ColorScheme::Dark;

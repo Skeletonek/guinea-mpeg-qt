@@ -95,6 +95,18 @@ bool GuineaMpegBackendExt::restoreDefaultProfiles() {
     return guinea_mpeg_restore_defaults();
 }
 
+QString GuineaMpegBackendExt::getOptions() {
+    const char* json = guinea_mpeg_get_options();
+    if (!json) return "{}";
+    QString result = QString::fromUtf8(json);
+    guinea_mpeg_free_string(json);
+    return result;
+}
+
+bool GuineaMpegBackendExt::setOption(const QString& key, const QString& value) {
+    return guinea_mpeg_set_option(key.toUtf8().constData(), value.toUtf8().constData());
+}
+
 QVariantMap GuineaMpegBackendExt::getVideoInfo(const QString& rawPath) {
     const char* json = guinea_mpeg_video_info(rawPath.toUtf8().constData());
     QVariantMap info;

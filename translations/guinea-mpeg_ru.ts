@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.1" language="pl_PL" sourcelanguage="en">
+<TS version="2.1" language="ru" sourcelanguage="en">
 <context>
     <name>AV1Section</name>
     <message>
@@ -11,17 +11,17 @@
     <message>
         <location filename="../qml/ProfileEditor/VideoPanel/AV1Section.qml" line="27"/>
         <source>Tile rows</source>
-        <translation>Wiersze kafelków</translation>
+        <translation>Строки тайлов</translation>
     </message>
     <message>
         <location filename="../qml/ProfileEditor/VideoPanel/AV1Section.qml" line="35"/>
         <source>Tile cols</source>
-        <translation>Kolumny kafelków</translation>
+        <translation>Столбцы тайлов</translation>
     </message>
     <message>
         <location filename="../qml/ProfileEditor/VideoPanel/AV1Section.qml" line="47"/>
         <source>Enable Quantization Matrix</source>
-        <translation>Włącz macierz kwantyzacji</translation>
+        <translation>Включить матрицу квантования</translation>
     </message>
 </context>
 <context>
@@ -29,42 +29,42 @@
     <message>
         <location filename="../qml/Dialogs/AboutDialog.qml" line="9"/>
         <source>About GuineaMPEG</source>
-        <translation>O programie GuineaMPEG</translation>
+        <translation>О программе GuineaMPEG</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/AboutDialog.qml" line="121"/>
         <source>FFmpeg Frontend with Rust Core</source>
-        <translation>Frontend FFmpeg z rdzeniem w Rust</translation>
+        <translation>FFmpeg-фронтенд с ядром на Rust</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/AboutDialog.qml" line="154"/>
         <source>Version: %1</source>
-        <translation>Wersja: %1</translation>
+        <translation>Версия: %1</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/AboutDialog.qml" line="156"/>
         <source>Author: %1</source>
-        <translation>Autor: %1</translation>
+        <translation>Автор: %1</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/AboutDialog.qml" line="165"/>
         <source>License: %1</source>
-        <translation>Licencja: %1</translation>
+        <translation>Лицензия: %1</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/AboutDialog.qml" line="166"/>
         <source>OS name: %1</source>
-        <translation>System: %1</translation>
+        <translation>ОС: %1</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/AboutDialog.qml" line="167"/>
         <source>Package: %1</source>
-        <translation>Pakiet: %1</translation>
+        <translation>Пакет: %1</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/AboutDialog.qml" line="168"/>
         <source>Build: %1</source>
-        <translation>Kompilacja: %1</translation>
+        <translation>Сборка: %1</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/AboutDialog.qml" line="169"/>
@@ -77,22 +77,22 @@
     <message>
         <location filename="../qml/ProfileEditor/AdvancedPanel.qml" line="10"/>
         <source>Adjust settings above to see the ffmpeg command preview...</source>
-        <translation>Dostosuj ustawienia powyżej, aby zobaczyć podgląd polecenia ffmpeg...</translation>
+        <translation>Измените настройки выше, чтобы увидеть предпросмотр команды ffmpeg...</translation>
     </message>
     <message>
         <location filename="../qml/ProfileEditor/AdvancedPanel.qml" line="16"/>
         <source>Advanced</source>
-        <translation>Zaawansowane</translation>
+        <translation>Дополнительно</translation>
     </message>
     <message>
         <location filename="../qml/ProfileEditor/AdvancedPanel.qml" line="20"/>
         <source>Extra FFmpeg arguments</source>
-        <translation>Dodatkowe argumenty FFmpeg</translation>
+        <translation>Дополнительные аргументы FFmpeg</translation>
     </message>
     <message>
         <location filename="../qml/ProfileEditor/AdvancedPanel.qml" line="39"/>
         <source>FFmpeg Preview</source>
-        <translation>Podgląd FFmpeg</translation>
+        <translation>Предпросмотр FFmpeg</translation>
     </message>
 </context>
 <context>
@@ -100,32 +100,32 @@
     <message>
         <location filename="../qml/ProfileEditor/AudioPanel.qml" line="27"/>
         <source>Audio</source>
-        <translation>Audio</translation>
+        <translation>Аудио</translation>
     </message>
     <message>
         <location filename="../qml/ProfileEditor/AudioPanel.qml" line="49"/>
         <source>Codec: Auto (%1)</source>
-        <translation>Kodek: Auto (%1)</translation>
+        <translation>Кодек: Авто (%1)</translation>
     </message>
     <message>
         <location filename="../qml/ProfileEditor/AudioPanel.qml" line="53"/>
         <source>Codec</source>
-        <translation>Kodek</translation>
+        <translation>Кодек</translation>
     </message>
     <message>
         <location filename="../qml/ProfileEditor/AudioPanel.qml" line="70"/>
         <source>Bitrate</source>
-        <translation>Bitrate</translation>
+        <translation>Битрейт</translation>
     </message>
     <message>
         <location filename="../qml/ProfileEditor/AudioPanel.qml" line="77"/>
         <source>Channels</source>
-        <translation>Kanały</translation>
+        <translation>Каналы</translation>
     </message>
     <message>
         <location filename="../qml/ProfileEditor/AudioPanel.qml" line="84"/>
         <source>Sample rate</source>
-        <translation>Częstotliwość próbkowania</translation>
+        <translation>Частота дискретизации</translation>
     </message>
 </context>
 <context>
@@ -133,22 +133,22 @@
     <message>
         <location filename="../qml/ProfileEditor/VideoPanel/CodecSection.qml" line="25"/>
         <source>Codec</source>
-        <translation>Kodek</translation>
+        <translation>Кодек</translation>
     </message>
     <message>
         <location filename="../qml/ProfileEditor/VideoPanel/CodecSection.qml" line="31"/>
         <source>(unavailable)</source>
-        <translation>(niedostępny)</translation>
+        <translation>(недоступно)</translation>
     </message>
     <message>
         <location filename="../qml/ProfileEditor/VideoPanel/CodecSection.qml" line="48"/>
         <source>Encoder</source>
-        <translation>Encoder</translation>
+        <translation>Кодировщик</translation>
     </message>
     <message>
         <location filename="../qml/ProfileEditor/VideoPanel/CodecSection.qml" line="62"/>
         <source>Show available encoders</source>
-        <translation>Pokaż dostępne encodery</translation>
+        <translation>Показать доступные кодировщики</translation>
     </message>
 </context>
 <context>
@@ -156,67 +156,67 @@
     <message>
         <location filename="../qml/ControlsPanel.qml" line="56"/>
         <source>Input File</source>
-        <translation>Plik wejściowy</translation>
+        <translation>Входной файл</translation>
     </message>
     <message>
         <location filename="../qml/ControlsPanel.qml" line="63"/>
         <source>Open Video...</source>
-        <translation>Otwórz wideo...</translation>
+        <translation>Открыть видео...</translation>
     </message>
     <message>
         <location filename="../qml/ControlsPanel.qml" line="69"/>
         <source>Video Information</source>
-        <translation>Informacje o wideo</translation>
+        <translation>Информация о видео</translation>
     </message>
     <message>
         <location filename="../qml/ControlsPanel.qml" line="87"/>
         <source>Stream Selection</source>
-        <translation>Wybór strumienia</translation>
+        <translation>Выбор потока</translation>
     </message>
     <message>
         <location filename="../qml/ControlsPanel.qml" line="96"/>
         <source>Video</source>
-        <translation>Wideo</translation>
+        <translation>Видео</translation>
     </message>
     <message>
         <location filename="../qml/ControlsPanel.qml" line="123"/>
         <source>Audio</source>
-        <translation>Audio</translation>
+        <translation>Аудио</translation>
     </message>
     <message>
         <location filename="../qml/ControlsPanel.qml" line="150"/>
         <source>Transcoding Profile</source>
-        <translation>Profil transkodowania</translation>
+        <translation>Профиль транскодирования</translation>
     </message>
     <message>
         <location filename="../qml/ControlsPanel.qml" line="169"/>
         <source>Profile Editor</source>
-        <translation>Edytor profili</translation>
+        <translation>Редактор профилей</translation>
     </message>
     <message>
         <location filename="../qml/ControlsPanel.qml" line="175"/>
         <source>Timeline Selection</source>
-        <translation>Wybór osi czasu</translation>
+        <translation>Выбор таймлайна</translation>
     </message>
     <message>
         <location filename="../qml/ControlsPanel.qml" line="202"/>
         <source>Output File</source>
-        <translation>Plik wyjściowy</translation>
+        <translation>Выходной файл</translation>
     </message>
     <message>
         <location filename="../qml/ControlsPanel.qml" line="215"/>
         <source>Output path...</source>
-        <translation>Ścieżka wyjściowa...</translation>
+        <translation>Путь вывода...</translation>
     </message>
     <message>
         <location filename="../qml/ControlsPanel.qml" line="231"/>
         <source>Start Transcoding</source>
-        <translation>Rozpocznij transkodowanie</translation>
+        <translation>Начать транскодирование</translation>
     </message>
     <message>
         <location filename="../qml/ControlsPanel.qml" line="241"/>
         <source>Transcoding in progress... (click to view)</source>
-        <translation>Transkodowanie w toku... (kliknij, aby zobaczyć)</translation>
+        <translation>Транскодирование выполняется... (нажмите, чтобы просмотреть)</translation>
     </message>
 </context>
 <context>
@@ -224,16 +224,16 @@
     <message>
         <location filename="../qml/Dialogs/DeleteProfileDialog.qml" line="7"/>
         <source>Delete Profile</source>
-        <translation>Usuń profil</translation>
+        <translation>Удалить профиль</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/DeleteProfileDialog.qml" line="23"/>
         <source>Delete profile &quot;%1&quot;?
 
 This cannot be undone.</source>
-        <translation>Usunąć profil &quot;%1&quot;?
+        <translation>Удалить профиль «%1»?
 
-Tej operacji nie można cofnąć.</translation>
+Это действие нельзя отменить.</translation>
     </message>
 </context>
 <context>
@@ -241,7 +241,7 @@ Tej operacji nie można cofnąć.</translation>
     <message>
         <location filename="../qml/Dialogs/EncoderCompatDialog.qml" line="7"/>
         <source>Available Encoders</source>
-        <translation>Dostępne encodery</translation>
+        <translation>Доступные кодировщики</translation>
     </message>
 </context>
 <context>
@@ -249,12 +249,12 @@ Tej operacji nie można cofnąć.</translation>
     <message>
         <location filename="../qml/Dialogs/FfmpegWarningDialog.qml" line="6"/>
         <source>FFmpeg Not Found</source>
-        <translation>Nie znaleziono FFmpeg</translation>
+        <translation>FFmpeg не найден</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/FfmpegWarningDialog.qml" line="16"/>
         <source>ffmpeg was not found on your system.</source>
-        <translation>Nie znaleziono programu ffmpeg w systemie.</translation>
+        <translation>ffmpeg не найден в вашей системе.</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/FfmpegWarningDialog.qml" line="21"/>
@@ -264,9 +264,9 @@ Install it with your package manager, e.g.:
   sudo pacman -S ffmpeg    (Arch Linux)
   sudo apt install ffmpeg  (Debian/Ubuntu)
   sudo dnf install ffmpeg  (Fedora)</source>
-        <translation>GuineaMPEG wymaga ffmpeg do transkodowania wideo.
+        <translation>GuineaMPEG требует ffmpeg для транскодирования видео.
 
-Zainstaluj go za pomocą menedżera pakietów, np.:
+Установите его через ваш менеджер пакетов, например:
   sudo pacman -S ffmpeg    (Arch Linux)
   sudo apt install ffmpeg  (Debian/Ubuntu)
   sudo dnf install ffmpeg  (Fedora)</translation>
@@ -277,12 +277,12 @@ Zainstaluj go za pomocą menedżera pakietów, np.:
     <message>
         <location filename="../qml/Dialogs/FileOpenDialog.qml" line="6"/>
         <source>Select Video File</source>
-        <translation>Wybierz plik wideo</translation>
+        <translation>Выберите видеофайл</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/FileOpenDialog.qml" line="7"/>
         <source>Media files (*.mp4 *.mkv *.avi *.mov *.webm *.mp3 *.flac *.ogg *.opus *.wav *.aac *.m4a *.wma)</source>
-        <translation>Pliki multimedialne (*.mp4 *.mkv *.avi *.mov *.webm *.mp3 *.flac *.ogg *.opus *.wav *.aac *.m4a *.wma)</translation>
+        <translation>Медиафайлы (*.mp4 *.mkv *.avi *.mov *.webm *.mp3 *.flac *.ogg *.opus *.wav *.aac *.m4a *.wma)</translation>
     </message>
 </context>
 <context>
@@ -290,63 +290,12 @@ Zainstaluj go za pomocą menedżera pakietów, np.:
     <message>
         <location filename="../qml/Dialogs/FileSaveDialog.qml" line="6"/>
         <source>Save Transcoded Video As</source>
-        <translation>Zapisz transkodowane wideo jako</translation>
+        <translation>Сохранить транскодированное видео как</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/FileSaveDialog.qml" line="7"/>
         <source>Save</source>
-        <translation>Zapisz</translation>
-    </message>
-</context>
-<context>
-    <name>GuineaMpegBackendExt</name>
-    <message>
-        <source>Error: failed to build ffmpeg command from profile</source>
-        <translation type="vanished">Błąd: nie udało się zbudować polecenia ffmpeg z profilu</translation>
-    </message>
-    <message>
-        <source>Error: profile produced no ffmpeg arguments</source>
-        <translation type="vanished">Błąd: profil nie wygenerował argumentów ffmpeg</translation>
-    </message>
-    <message>
-        <source>
---- Transcoding cancelled ---
-</source>
-        <translation type="vanished">
---- Transkodowanie anulowane ---
-</translation>
-    </message>
-    <message>
-        <source>
---- Transcoding finished: SUCCESS ---
-</source>
-        <translation type="vanished">
---- Transkodowanie zakończone: SUKCES ---
-</translation>
-    </message>
-    <message>
-        <source>
---- Transcoding finished: FAILED (exit code %1) ---
-</source>
-        <translation type="vanished">
---- Transkodowanie zakończone: NIEUDANE (kod wyjścia %1) ---
-</translation>
-    </message>
-    <message>
-        <source>Transcoding Complete</source>
-        <translation type="vanished">Transkodowanie zakończone</translation>
-    </message>
-    <message>
-        <source>Transcoding Failed</source>
-        <translation type="vanished">Transkodowanie nieudane</translation>
-    </message>
-    <message>
-        <source>Your video has been transcoded successfully.</source>
-        <translation type="vanished">Twoje wideo zostało pomyślnie transkodowane.</translation>
-    </message>
-    <message>
-        <source>Transcoding exited with code %1</source>
-        <translation type="vanished">Transkodowanie zakończyło się kodem %1</translation>
+        <translation>Сохранить</translation>
     </message>
 </context>
 <context>
@@ -354,12 +303,12 @@ Zainstaluj go za pomocą menedżera pakietów, np.:
     <message>
         <location filename="../qml/Dialogs/MpvWarningDialog.qml" line="6"/>
         <source>MPV Video Backend Not Available</source>
-        <translation>Backend wideo MPV niedostępny</translation>
+        <translation>Видеобэкенд MPV недоступен</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/MpvWarningDialog.qml" line="16"/>
         <source>The MPV video player backend could not be initialized.</source>
-        <translation>Nie można zainicjować backendu odtwarzacza MPV.</translation>
+        <translation>Не удалось инициализировать бэкенд видеоплеера MPV.</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/MpvWarningDialog.qml" line="21"/>
@@ -369,9 +318,9 @@ Install it with your package manager, e.g.:
   sudo pacman -S mpv    (Arch Linux)
   sudo apt install libmpv-dev  (Debian/Ubuntu)
   sudo dnf install mpv-libs  (Fedora)</source>
-        <translation>GuineaMPEG wymaga libmpv do podglądu wideo.
+        <translation>GuineaMPEG требует libmpv для предпросмотра видео.
 
-Zainstaluj go za pomocą menedżera pakietów, np.:
+Установите его через ваш менеджер пакетов, например:
   sudo pacman -S mpv    (Arch Linux)
   sudo apt install libmpv-dev  (Debian/Ubuntu)
   sudo dnf install mpv-libs  (Fedora)</translation>
@@ -382,57 +331,57 @@ Zainstaluj go za pomocą menedżera pakietów, np.:
     <message>
         <location filename="../qml/Dialogs/OptionsDialog.qml" line="8"/>
         <source>Options</source>
-        <translation>Opcje</translation>
+        <translation>Параметры</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/OptionsDialog.qml" line="46"/>
         <source>General</source>
-        <translation>Ogólne</translation>
+        <translation>Общие</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/OptionsDialog.qml" line="48"/>
         <source>Language</source>
-        <translation>Język</translation>
+        <translation>Язык</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/OptionsDialog.qml" line="53"/>
         <source>System default</source>
-        <translation>Domyślny systemowy</translation>
+        <translation>По умолчанию системы</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/OptionsDialog.qml" line="65"/>
         <source>Qt theme</source>
-        <translation>Motyw Qt</translation>
+        <translation>Тема Qt</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/OptionsDialog.qml" line="70"/>
         <source>System</source>
-        <translation>System</translation>
+        <translation>Система</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/OptionsDialog.qml" line="71"/>
         <source>Dark</source>
-        <translation>Ciemny</translation>
+        <translation>Тёмная</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/OptionsDialog.qml" line="72"/>
         <source>Light</source>
-        <translation>Jasny</translation>
+        <translation>Светлая</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/OptionsDialog.qml" line="82"/>
         <source>Hardware acceleration</source>
-        <translation>Akceleracja sprzętowa</translation>
+        <translation>Аппаратное ускорение</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/OptionsDialog.qml" line="89"/>
         <source>Off</source>
-        <translation>Wyłączony</translation>
+        <translation>Выкл</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/OptionsDialog.qml" line="106"/>
         <source>Some settings take effect on the next launch.</source>
-        <translation>Niektóre ustawienia zostaną zastosowane po ponownym uruchomieniu.</translation>
+        <translation>Некоторые настройки вступят в силу после следующего запуска.</translation>
     </message>
 </context>
 <context>
@@ -440,7 +389,7 @@ Zainstaluj go za pomocą menedżera pakietów, np.:
     <message>
         <location filename="../qml/ProfileEditor/VideoPanel/PixelFormatSection.qml" line="18"/>
         <source>Pixel fmt</source>
-        <translation>Format piksela</translation>
+        <translation>Формат пикселей</translation>
     </message>
 </context>
 <context>
@@ -448,7 +397,7 @@ Zainstaluj go za pomocą menedżera pakietów, np.:
     <message>
         <location filename="../qml/ProfileEditor/VideoPanel/PresetTuneSection.qml" line="20"/>
         <source>Preset</source>
-        <translation>Preset</translation>
+        <translation>Пресет</translation>
     </message>
     <message>
         <location filename="../qml/ProfileEditor/VideoPanel/PresetTuneSection.qml" line="34"/>
@@ -458,7 +407,7 @@ Zainstaluj go za pomocą menedżera pakietów, np.:
     <message>
         <location filename="../qml/ProfileEditor/VideoPanel/PresetTuneSection.qml" line="48"/>
         <source>Compression Level</source>
-        <translation>Poziom kompresji</translation>
+        <translation>Уровень сжатия</translation>
     </message>
 </context>
 <context>
@@ -466,82 +415,82 @@ Zainstaluj go za pomocą menedżera pakietów, np.:
     <message>
         <location filename="../qml/ProfileEditor.qml" line="54"/>
         <source>Profile Editor</source>
-        <translation>Edytor profili</translation>
+        <translation>Редактор профилей</translation>
     </message>
     <message>
         <location filename="../qml/ProfileEditor.qml" line="65"/>
         <source>← Back</source>
-        <translation>← Wstecz</translation>
+        <translation>← Назад</translation>
     </message>
     <message>
         <location filename="../qml/ProfileEditor.qml" line="70"/>
         <source>Profile:</source>
-        <translation>Profil:</translation>
+        <translation>Профиль:</translation>
     </message>
     <message>
         <location filename="../qml/ProfileEditor.qml" line="80"/>
         <source>New profile</source>
-        <translation>Nowy profil</translation>
+        <translation>Новый профиль</translation>
     </message>
     <message>
         <location filename="../qml/ProfileEditor.qml" line="89"/>
         <source>+ New</source>
-        <translation>+ Nowy</translation>
+        <translation>+ Новый</translation>
     </message>
     <message>
         <location filename="../qml/ProfileEditor.qml" line="94"/>
         <source>Save</source>
-        <translation>Zapisz</translation>
+        <translation>Сохранить</translation>
     </message>
     <message>
         <location filename="../qml/ProfileEditor.qml" line="100"/>
         <source>Restore</source>
-        <translation>Przywróć</translation>
+        <translation>Восстановить</translation>
     </message>
     <message>
         <location filename="../qml/ProfileEditor.qml" line="100"/>
         <source>Delete</source>
-        <translation>Usuń</translation>
+        <translation>Удалить</translation>
     </message>
     <message>
         <location filename="../qml/ProfileEditor.qml" line="119"/>
         <source>Restore Defaults</source>
-        <translation>Przywróć domyślne</translation>
+        <translation>Восстановить по умолчанию</translation>
     </message>
     <message>
         <location filename="../qml/ProfileEditor.qml" line="125"/>
         <source>Profile name</source>
-        <translation>Nazwa profilu</translation>
+        <translation>Имя профиля</translation>
     </message>
     <message>
         <location filename="../qml/ProfileEditor.qml" line="133"/>
         <source>Enter profile name...</source>
-        <translation>Wpisz nazwę profilu...</translation>
+        <translation>Введите имя профиля...</translation>
     </message>
     <message>
         <location filename="../qml/ProfileEditor.qml" line="190"/>
         <source>Failed to generate preview</source>
-        <translation>Nie udało się wygenerować podglądu</translation>
+        <translation>Не удалось сгенерировать предпросмотр</translation>
     </message>
     <message>
         <location filename="../qml/ProfileEditor.qml" line="298"/>
         <source>Name is required!</source>
-        <translation>Nazwa jest wymagana!</translation>
+        <translation>Имя обязательно!</translation>
     </message>
     <message>
         <location filename="../qml/ProfileEditor.qml" line="310"/>
         <source>Profile &quot;%1&quot; saved</source>
-        <translation>Profil &quot;%1&quot; zapisany</translation>
+        <translation>Профиль «%1» сохранён</translation>
     </message>
     <message>
         <location filename="../qml/ProfileEditor.qml" line="323"/>
         <source>Profile &quot;%1&quot; deleted</source>
-        <translation>Profil &quot;%1&quot; usunięty</translation>
+        <translation>Профиль «%1» удалён</translation>
     </message>
     <message>
         <location filename="../qml/ProfileEditor.qml" line="333"/>
         <source>Profile &quot;%1&quot; restored to defaults</source>
-        <translation>Profil &quot;%1&quot; przywrócono do domyślnych</translation>
+        <translation>Профиль «%1» восстановлен к значениям по умолчанию</translation>
     </message>
 </context>
 <context>
@@ -549,17 +498,17 @@ Zainstaluj go za pomocą menedżera pakietów, np.:
     <message>
         <location filename="../qml/ProfileEditor/VideoPanel/RateControlSection.qml" line="18"/>
         <source>Rate control</source>
-        <translation>Kontrola przepływności</translation>
+        <translation>Управление битрейтом</translation>
     </message>
     <message>
         <location filename="../qml/ProfileEditor/VideoPanel/RateControlSection.qml" line="37"/>
         <source>CRF value (e.g. 18)</source>
-        <translation>Wartość CRF (np. 18)</translation>
+        <translation>Значение CRF (например, 18)</translation>
     </message>
     <message>
         <location filename="../qml/ProfileEditor/VideoPanel/RateControlSection.qml" line="37"/>
         <source>Bitrate (e.g. 2M)</source>
-        <translation>Bitrate (np. 2M)</translation>
+        <translation>Битрейт (например, 2M)</translation>
     </message>
 </context>
 <context>
@@ -567,7 +516,7 @@ Zainstaluj go za pomocą menedżera pakietów, np.:
     <message>
         <location filename="../qml/Dialogs/RestoreDefaultsDialog.qml" line="7"/>
         <source>Restore Default Profiles</source>
-        <translation>Przywróć domyślne profile</translation>
+        <translation>Восстановить профили по умолчанию</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/RestoreDefaultsDialog.qml" line="22"/>
@@ -576,11 +525,11 @@ Zainstaluj go za pomocą menedżera pakietów, np.:
 Custom profiles you created will not be affected.
 
 Continue?</source>
-        <translation>Spowoduje to zresetowanie wszystkich wbudowanych profili do oryginalnych ustawień.
+        <translation>Это сбросит все встроенные профили к исходным настройкам.
 
-Utworzone przez Ciebie profile niestandardowe nie zostaną naruszone.
+Созданные вами пользовательские профили не будут затронуты.
 
-Kontynuować?</translation>
+Продолжить?</translation>
     </message>
 </context>
 <context>
@@ -588,12 +537,12 @@ Kontynuować?</translation>
     <message>
         <location filename="../qml/ProfileEditor/VideoPanel/ScalingSection.qml" line="17"/>
         <source>Resolution</source>
-        <translation>Rozdzielczość</translation>
+        <translation>Разрешение</translation>
     </message>
     <message>
         <location filename="../qml/ProfileEditor/VideoPanel/ScalingSection.qml" line="28"/>
         <source>Framerate</source>
-        <translation>Liczba klatek na sekundę</translation>
+        <translation>Частота кадров</translation>
     </message>
 </context>
 <context>
@@ -601,27 +550,27 @@ Kontynuować?</translation>
     <message>
         <location filename="../qml/Dialogs/TranscodeDialog.qml" line="60"/>
         <source>Transcoding...</source>
-        <translation>Transkodowanie...</translation>
+        <translation>Транскодирование...</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/TranscodeDialog.qml" line="60"/>
         <source>Transcoding Complete</source>
-        <translation>Transkodowanie zakończone</translation>
+        <translation>Транскодирование завершено</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/TranscodeDialog.qml" line="171"/>
         <source>ffmpeg is running...</source>
-        <translation>ffmpeg jest uruchomiony...</translation>
+        <translation>ffmpeg выполняется...</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/TranscodeDialog.qml" line="171"/>
         <source>Done. You can close this window.</source>
-        <translation>Gotowe. Możesz zamknąć to okno.</translation>
+        <translation>Готово. Это окно можно закрыть.</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/TranscodeDialog.qml" line="178"/>
         <source>Cancel</source>
-        <translation>Anuluj</translation>
+        <translation>Отмена</translation>
     </message>
 </context>
 <context>
@@ -629,7 +578,7 @@ Kontynuować?</translation>
     <message>
         <location filename="../qml/ProfileEditor/VideoPanel/VP8VP9Section.qml" line="23"/>
         <source>CPU used</source>
-        <translation>Użycie CPU</translation>
+        <translation>Использование CPU</translation>
     </message>
 </context>
 <context>
@@ -637,22 +586,22 @@ Kontynuować?</translation>
     <message>
         <location filename="../qml/ProfileEditor/VideoPanel.qml" line="33"/>
         <source>Video</source>
-        <translation>Wideo</translation>
+        <translation>Видео</translation>
     </message>
     <message>
         <location filename="../qml/ProfileEditor/VideoPanel.qml" line="54"/>
         <source>Codec</source>
-        <translation>Kodek</translation>
+        <translation>Кодек</translation>
     </message>
     <message>
         <location filename="../qml/ProfileEditor/VideoPanel.qml" line="68"/>
         <source>Rate control</source>
-        <translation>Kontrola przepływności</translation>
+        <translation>Управление битрейтом</translation>
     </message>
     <message>
         <location filename="../qml/ProfileEditor/VideoPanel.qml" line="93"/>
         <source>Scaling</source>
-        <translation>Skalowanie</translation>
+        <translation>Масштабирование</translation>
     </message>
 </context>
 <context>
@@ -660,7 +609,7 @@ Kontynuować?</translation>
     <message>
         <location filename="../qml/VideoPreview.qml" line="31"/>
         <source>No video loaded</source>
-        <translation>Nie załadowano wideo</translation>
+        <translation>Видео не загружено</translation>
     </message>
 </context>
 <context>
@@ -668,7 +617,7 @@ Kontynuować?</translation>
     <message>
         <location filename="../qml/main.qml" line="25"/>
         <source>Load a video file to see information</source>
-        <translation>Załaduj plik wideo, aby zobaczyć informacje</translation>
+        <translation>Загрузите видеофайл, чтобы увидеть информацию</translation>
     </message>
     <message>
         <location filename="../qml/main.qml" line="185"/>
@@ -678,17 +627,17 @@ Resolution: %3x%4
 FPS: %5
 Video: %6
 Audio: %7</source>
-        <translation>Plik: %1
-Czas trwania: %2s
-Rozdzielczość: %3x%4
+        <translation>Файл: %1
+Длительность: %2с
+Разрешение: %3x%4
 FPS: %5
-Wideo: %6
-Audio: %7</translation>
+Видео: %6
+Аудио: %7</translation>
     </message>
     <message>
         <location filename="../qml/main.qml" line="217"/>
         <source>Please set an output file path first</source>
-        <translation>Najpierw ustaw ścieżkę pliku wyjściowego</translation>
+        <translation>Сначала укажите путь выходного файла</translation>
     </message>
 </context>
 </TS>

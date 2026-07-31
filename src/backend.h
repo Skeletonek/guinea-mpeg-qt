@@ -29,6 +29,9 @@ public:
     Q_INVOKABLE bool deleteProfile(const QString& name);
     Q_INVOKABLE bool restoreDefaultProfiles();
 
+    Q_INVOKABLE QString getOptions();
+    Q_INVOKABLE bool setOption(const QString& key, const QString& value);
+
     Q_INVOKABLE QVariantMap getVideoInfo(const QString& rawPath);
     Q_INVOKABLE bool ffmpegAvailable();
     Q_INVOKABLE QString getFfmpegVersion();

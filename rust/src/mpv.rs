@@ -74,11 +74,13 @@ pub extern "C" fn guinea_mpeg_mpv_create() -> *mut c_void {
         return std::ptr::null_mut();
     }
 
+    let opts = crate::config::get_options();
+
     set_opt(handle, "vo", "libmpv");
     set_opt(handle, "keep-open", "yes");
-    set_opt(handle, "volume", "100");
+    set_opt(handle, "volume", &opts.preview_volume.to_string());
     set_opt(handle, "cache", "yes");
-    set_opt(handle, "hwdec", "auto-copy");
+    set_opt(handle, "hwdec", &opts.hwdec);
 
     unsafe { mpv_initialize(handle) };
 
@@ -212,6 +214,23 @@ pub extern "C" fn guinea_mpeg_mpv_set_volume(ptr: *mut c_void, vol: i32) {
     if !ptr.is_null() {
         backend_from_ptr(ptr).set_string("volume", &vol.max(0).min(100).to_string());
     }
+}
+
+#[no_mangle]
+pub extern "C" fn guinea_mpeg_mpv_volume(ptr: *mut c_void) -> i32 {
+    if ptr.is_null() {
+        return 0;
+    }
+    let mut vol: f64 = 0.0;
+    unsafe {
+        mpv_get_property(
+            backend_from_ptr(ptr).handle,
+            CString::new("volume").unwrap().as_ptr(),
+            FORMAT_DOUBLE,
+            &mut vol as *mut _ as *mut c_void,
+        );
+    }
+    vol as i32
 }
 
 #[no_mangle]

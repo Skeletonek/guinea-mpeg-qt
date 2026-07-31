@@ -15,6 +15,10 @@ bool        guinea_mpeg_delete_profile(const char* name);
 bool        guinea_mpeg_restore_defaults(void);
 void        guinea_mpeg_free_string(const char* s);
 
+/* App options: returns JSON of [options], free with guinea_mpeg_free_string */
+const char* guinea_mpeg_get_options(void);
+bool        guinea_mpeg_set_option(const char* key, const char* value);
+
 bool        guinea_mpeg_ffmpeg_available(void);
 const char* guinea_mpeg_ffmpeg_version(void);
 const char* guinea_mpeg_video_info(const char* path);
@@ -47,6 +51,7 @@ void  guinea_mpeg_mpv_pause(void* handle);
 void  guinea_mpeg_mpv_stop(void* handle);
 void  guinea_mpeg_mpv_seek(void* handle, int pos_ms);
 void  guinea_mpeg_mpv_set_volume(void* handle, int vol);
+int   guinea_mpeg_mpv_volume(void* handle);
 
 /* Returns bitmask: 1=position, 2=duration, 4=playing */
 int   guinea_mpeg_mpv_process_events(void* handle);

@@ -22,6 +22,7 @@ Item {
     signal profileEditorClicked()
     signal browseOutputClicked()
     signal viewTranscodeClicked()
+    signal settingsClicked()
     signal aboutClicked()
 
     function _toggleSelection(index, checked, selection) {
@@ -249,6 +250,21 @@ Item {
                 }
             }
         }
+    }
+
+    Button {
+        id: settingsButton
+        anchors.left: parent.left
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 8
+        width: 48
+        height: 48
+        icon.name: "preferences-system-symbolic"
+        icon.source: "/media/icons/settings.png"
+        icon.width: 32
+        icon.height: 32
+        display: Button.IconOnly
+        onClicked: root.settingsClicked()
     }
 
     Button {

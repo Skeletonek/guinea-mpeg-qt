@@ -6,10 +6,12 @@ qt_add_resources(guinea-mpeg "app_qml"
         ${CMAKE_SOURCE_DIR}/media/logo/logo.png
         ${CMAKE_SOURCE_DIR}/media/logo/skeletonek.jpg
         ${CMAKE_SOURCE_DIR}/media/icons/info.png
+        ${CMAKE_SOURCE_DIR}/media/icons/settings.png
         ${CMAKE_SOURCE_DIR}/qml/TimelineControl.qml
         ${CMAKE_SOURCE_DIR}/qml/ProfileEditor.qml
         ${CMAKE_SOURCE_DIR}/qml/VideoPreview.qml
         ${CMAKE_SOURCE_DIR}/qml/Dialogs/AboutDialog.qml
+        ${CMAKE_SOURCE_DIR}/qml/Dialogs/OptionsDialog.qml
         ${CMAKE_SOURCE_DIR}/qml/Dialogs/DeleteProfileDialog.qml
         ${CMAKE_SOURCE_DIR}/qml/Dialogs/FfmpegWarningDialog.qml
         ${CMAKE_SOURCE_DIR}/qml/Dialogs/FileOpenDialog.qml
@@ -46,5 +48,12 @@ qt_add_resources(guinea-mpeg "app_qml"
 
 qt_add_translations(guinea-mpeg
     TS_FILES
+        ${CMAKE_SOURCE_DIR}/translations/guinea-mpeg_cs.ts
+        ${CMAKE_SOURCE_DIR}/translations/guinea-mpeg_de.ts
+        ${CMAKE_SOURCE_DIR}/translations/guinea-mpeg_es.ts
+        ${CMAKE_SOURCE_DIR}/translations/guinea-mpeg_fr.ts
+        ${CMAKE_SOURCE_DIR}/translations/guinea-mpeg_it.ts
+        ${CMAKE_SOURCE_DIR}/translations/guinea-mpeg_ru.ts
+        ${CMAKE_SOURCE_DIR}/translations/guinea-mpeg_szl.ts
         ${CMAKE_SOURCE_DIR}/translations/guinea-mpeg_pl_PL.ts
 )

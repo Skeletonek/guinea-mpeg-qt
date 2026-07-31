@@ -44,8 +44,59 @@ fn default_audio_bitrate() -> String {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppOptions {
+    #[serde(default = "default_language")]
+    pub language: String,
+    #[serde(default = "default_theme")]
+    pub theme: String,
+    #[serde(default = "default_hwdec")]
+    pub hwdec: String,
+    #[serde(default = "default_preview_volume")]
+    pub preview_volume: f64,
+}
+
+fn default_language() -> String {
+    "system".into()
+}
+
+fn default_theme() -> String {
+    "system".into()
+}
+
+fn default_hwdec() -> String {
+    "auto-copy".into()
+}
+
+fn default_preview_volume() -> f64 {
+    100.0
+}
+
+impl Default for AppOptions {
+    fn default() -> Self {
+        Self {
+            language: default_language(),
+            theme: default_theme(),
+            hwdec: default_hwdec(),
+            preview_volume: default_preview_volume(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct AppConfig {
+    #[serde(default)]
     profiles: Vec<VideoProfile>,
+    #[serde(default)]
+    options: AppOptions,
+}
+
+impl Default for AppConfig {
+    fn default() -> Self {
+        Self {
+            profiles: Vec::new(),
+            options: AppOptions::default(),
+        }
+    }
 }
 
 fn user_config_path() -> PathBuf {
@@ -75,57 +126,62 @@ fn dirs_or_fallback() -> PathBuf {
     dirs::config_dir().unwrap_or_else(|| PathBuf::from("."))
 }
 
-fn load_profiles_from_file(path: &Path) -> Vec<VideoProfile> {
-    let content = std::fs::read_to_string(path).unwrap_or_default();
-
-    let mut profiles: Vec<VideoProfile>;
-
-    #[derive(Deserialize)]
-    struct VecConfig {
-        profiles: Vec<VideoProfile>,
-    }
-    if let Ok(cfg) = toml::from_str::<VecConfig>(&content) {
-        profiles = cfg.profiles;
-    } else {
-        #[derive(Deserialize)]
-        struct MapConfig {
-            profiles: HashMap<String, VideoProfile>,
-        }
-        if let Ok(cfg) = toml::from_str::<MapConfig>(&content) {
-            profiles = cfg.profiles.into_values().collect();
-        } else {
-            return Vec::new();
-        }
-    }
-
+fn migrate_codec_key(profiles: &mut [VideoProfile]) {
     // migrate old "svtav1" codec key to "av1"
-    for p in &mut profiles {
+    for p in profiles {
         if p.codec == "svtav1" {
             p.codec = "av1".to_string();
         }
     }
-
-    profiles
 }
 
-fn load_defaults() -> Vec<VideoProfile> {
-    load_profiles_from_file(&defaults_path())
+fn load_config_from_file(path: &Path) -> AppConfig {
+    let content = std::fs::read_to_string(path).unwrap_or_default();
+
+    // Canonical format: [[profiles]] array + optional [options] table
+    if let Ok(mut cfg) = toml::from_str::<AppConfig>(&content) {
+        migrate_codec_key(&mut cfg.profiles);
+        return cfg;
+    }
+
+    // Legacy format: [profiles."name"] map (options default)
+    #[derive(Deserialize)]
+    struct MapConfig {
+        profiles: HashMap<String, VideoProfile>,
+    }
+    if let Ok(cfg) = toml::from_str::<MapConfig>(&content) {
+        let mut profiles: Vec<VideoProfile> = cfg.profiles.into_values().collect();
+        migrate_codec_key(&mut profiles);
+        return AppConfig {
+            profiles,
+            options: AppOptions::default(),
+        };
+    }
+
+    AppConfig::default()
 }
 
-fn load_user_config() -> Vec<VideoProfile> {
-    load_profiles_from_file(&user_config_path())
+fn load_defaults() -> AppConfig {
+    load_config_from_file(&defaults_path())
+}
+
+fn load_user_config() -> AppConfig {
+    load_config_from_file(&user_config_path())
 }
 
 fn merge_configs() -> AppConfig {
+    let defaults = load_defaults();
+    let user = load_user_config();
     let mut map: HashMap<String, VideoProfile> = HashMap::new();
-    for p in load_defaults() {
+    for p in defaults.profiles {
         map.insert(p.name.clone(), p);
     }
-    for p in load_user_config() {
+    for p in user.profiles {
         map.insert(p.name.clone(), p);
     }
     AppConfig {
         profiles: map.into_values().collect(),
+        options: user.options,
     }
 }
 
@@ -140,7 +196,7 @@ fn set_config(config: AppConfig) {
 }
 
 pub fn default_profile_names() -> Vec<String> {
-    let mut names = load_defaults().into_iter().map(|p| p.name.clone()).collect::<Vec<_>>();
+    let mut names = load_defaults().profiles.into_iter().map(|p| p.name.clone()).collect::<Vec<_>>();
     names.sort();
     names
 }
@@ -160,36 +216,57 @@ pub fn load_profile(name: &str) -> Option<VideoProfile> {
 pub fn save_profile(name: &str, json: &str) -> anyhow::Result<()> {
     let mut profile: VideoProfile = serde_json::from_str(json)?;
     profile.name = name.to_string();
-    let mut user_profiles = load_user_config();
-    if let Some(pos) = user_profiles.iter().position(|p| p.name == name) {
-        user_profiles[pos] = profile;
+    let mut cfg = load_user_config();
+    if let Some(pos) = cfg.profiles.iter().position(|p| p.name == name) {
+        cfg.profiles[pos] = profile;
     } else {
-        user_profiles.push(profile);
+        cfg.profiles.push(profile);
     }
-    save_user_config(&AppConfig {
-        profiles: user_profiles,
-    })?;
+    save_user_config(&cfg)?;
     set_config(merge_configs());
     Ok(())
 }
 
 pub fn restore_defaults() -> anyhow::Result<()> {
-    let default_names: Vec<String> = load_defaults().into_iter().map(|p| p.name.clone()).collect();
-    let mut user_profiles = load_user_config();
-    user_profiles.retain(|p| !default_names.contains(&p.name));
-    save_user_config(&AppConfig {
-        profiles: user_profiles,
-    })?;
+    let default_names: Vec<String> = load_defaults()
+        .profiles
+        .into_iter()
+        .map(|p| p.name.clone())
+        .collect();
+    let mut cfg = load_user_config();
+    cfg.profiles.retain(|p| !default_names.contains(&p.name));
+    save_user_config(&cfg)?;
     set_config(merge_configs());
     Ok(())
 }
 
 pub fn delete_profile(name: &str) -> anyhow::Result<()> {
-    let mut user_profiles = load_user_config();
-    user_profiles.retain(|p| p.name != name);
-    save_user_config(&AppConfig {
-        profiles: user_profiles,
-    })?;
+    let mut cfg = load_user_config();
+    cfg.profiles.retain(|p| p.name != name);
+    save_user_config(&cfg)?;
+    set_config(merge_configs());
+    Ok(())
+}
+
+pub fn get_options() -> AppOptions {
+    get_config().options
+}
+
+pub fn set_option(key: &str, value: &str) -> anyhow::Result<()> {
+    let mut cfg = load_user_config();
+    match key {
+        "language" => cfg.options.language = value.to_string(),
+        "theme" => cfg.options.theme = value.to_string(),
+        "hwdec" => cfg.options.hwdec = value.to_string(),
+        "previewVolume" => {
+            let v: f64 = value
+                .parse()
+                .map_err(|_| anyhow::anyhow!("invalid numeric value"))?;
+            cfg.options.preview_volume = v.clamp(0.0, 100.0);
+        }
+        _ => return Err(anyhow::anyhow!("unknown option key")),
+    }
+    save_user_config(&cfg)?;
     set_config(merge_configs());
     Ok(())
 }

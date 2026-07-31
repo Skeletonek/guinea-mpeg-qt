@@ -113,6 +113,7 @@ ApplicationWindow {
                             saveDialog.open()
                         }
                         onViewTranscodeClicked: transcodeDialog.open()
+                        onSettingsClicked: optionsDialog.open()
                         onAboutClicked: aboutDialog.open()
                     }
                 }
@@ -140,6 +141,10 @@ ApplicationWindow {
 
     AboutDialog {
         id: aboutDialog
+    }
+
+    OptionsDialog {
+        id: optionsDialog
     }
 
     TranscodeDialog {
