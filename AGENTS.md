@@ -1,146 +1,104 @@
 # Agent Knowledge Base
 
 ## Architecture
-- Rust compiled as `cdylib` (`libguinea_mpeg_core.so`) linked dynamically at runtime. Rust exports plain `extern "C"` functions — no CXX, no CXX-Qt, no code generation.
-- C header `rust/include/guinea_mpeg_core.h` declares all FFI functions. CMake adds `rust/include/` as an include path.
-- Profile management lives in `rust/src/config.rs` (serde + toml). `rust/src/backend.rs` wraps it in `extern "C"` functions.
-- mpv handle creation/destruction/commands/event-property-caching lives in `rust/src/mpv.rs`, exposed via `extern "C"` functions. Raw `*mut c_void` is passed through FFI.
-- `GuineaMpegBackendExt` (`src/backend.h`, `src/backend.cpp`) is a plain `QObject` (no generated base class). Profile and ffmpeg invokables call Rust `extern "C"` functions. Only transcode process lifecycle (start/kill/capture output) is pure C++/Qt (needs QProcess signals for real-time streaming to QML).
-- `MpvItem` (QQuickFramebufferObject) owns a `void* m_backend` pointer from `guinea_mpeg_mpv_create()`. Gets raw `mpv_handle*` via `guinea_mpeg_mpv_raw_handle()` for render context creation and wakeup callback. Delegates all mpv commands to Rust `extern "C"` functions.
-- Event processing: mpv wakeup callback → Qt signal → `handleMpvEvents()` calls `guinea_mpeg_mpv_process_events()` → emits Qt signals based on returned bitmask (1=position, 2=duration, 4=playing).
-- `MpvRenderer` stays in C++ (QQuickFramebufferObject::Renderer cannot be in Rust). Creates `mpv_render_context*` from the raw handle.
+- Qt Quick app with a Rust core: UI is QML, C++ glue in `src/`, business logic in Rust compiled as a `cdylib` (`libguinea_mpeg_core.so`) shipped beside the binary.
+- FFI: Rust exports plain `extern "C"` functions declared in `rust/include/guinea_mpeg_core.h` (added to include path). Raw `*mut c_void` crosses the boundary; Rust `const char*` results MUST be freed with `guinea_mpeg_free_string()`. No CXX/CXX-Qt/codegen.
+- C++ registers `GuineaMpegBackendExt` and `MpvItem` into QML namespace `GuineaMpeg 1.0`; `backend` is also a root context property. QML consumes Rust data as JSON strings parsed in JS.
+- CMake: Qt6 (Quick, QuickControls2, Widgets, Multimedia, DBus on Linux) + `pkg_check_modules(MPV REQUIRED mpv)` + cargo. Rust `libmpv2-sys` provides the mpv FFI; CMake's MPV pkg supplies only C++ headers (render API) — linker dedupes, no conflict. Windows finds mpv via `build/windows/.mpv-dev` or `MPV_DIR`.
 
-## Profile Editor Patterns
-- Profile selector `ComboBox` uses `property var _profileNames` as model (via `model: root._profileNames` binding) instead of direct `model` assignment. Update `_profileNames` to trigger model refresh; avoids Qt internal ComboBox index-reset issues.
-- Notification label sits in the toolbar `RowLayout` between Delete and Restore Defaults buttons. Uses `visible: false` to collapse, with a two-timer sequence: 3s fade via `opacity`, then 350ms delay before `visible = false` so the fade animation completes.
-- `Flickable` wrapping the editor has `ScrollBar.vertical` with `policy: ScrollBar.AsNeeded`.
-- Tune, Pixel fmt, and Preset fields use editable ComboBoxes. "default" sentinel at index 0 means `null` (omitted from ffmpeg command). The Encoder ComboBox has NO sentinel — it lists only real encoders detected from ffmpeg.
-- Preset ComboBox model is codec-aware: H.264/H.265 lists `ultrafast..placebo`, VP8/VP9 lists `good/best/realtime`, SVT-AV1 lists `0..13`. When an encoder with capabilities is selected, the model is overridden by the encoder's supported presets (e.g. NVENC → p1-p7). Changing codec resets preset to "default" if the old value isn't in the new model.
-- VP8/VP9 have a dedicated section (like SVT-AV1's tile section) with a `-cpu-used` selector (0–5). `cpu_used` emitted as integer; Rust emits `-cpu-used <N>` and `-deadline <preset>` instead of `-preset` for vp8/vp9 codecs.
-- Scaling section uses Row-based layout (Label width 100px + ComboBox fills rest) matching Preset/Tune/Pixel fmt rows, replacing the old Grid layout.
-- `_loading` guard wraps model/list changes in save/delete/restore functions to prevent `onCurrentTextChanged` from triggering spurious `loadProfile` calls.
-- **Encoder ComboBox** model is explicitly set in `rebuildEncoderModel()` (no binding), called from codec handler AND `setData`. This avoids stale model issues when switching between same-codec profiles. `rebuildEncoderModel(forceDefault)` when called from `setData` to ensure default is used instead of previous encoder.
-- **Codec availability**: `_availableEncoders` contains only encoders detected from ffmpeg. Codecs with zero entries get `(unavailable)` suffix in the codec ComboBox delegate. Still selectable (profile may target another system).
-- **`_capOverrides` propagation**: `_capOverrides` is propagated from `VideoPanel` to child sections (CodecSection, PresetTuneSection, PixelFormatSection) via `on_CapOverridesChanged` signal handler with explicit JS assignment — NOT via QML `property: expression` binding. This avoids binding overwrites when children write to their own `_capOverrides` (e.g. CodecSection resets it on codec change). The `on_CapOverridesChanged` handler runs synchronously in the same call stack as `applyEncoderCapabilities`, ensuring no one-step-behind state.
-- **`applyEncoderCapabilities()`**: called on encoder selection change. Fetches JSON from `backend.encoderCapabilities(encName)`, parses preset/tune/pixfmt overrides, updates `_capOverrides`. Must NOT be guarded by `_loading` — needs to run during profile loading to properly set up models.
-- **`compression_level` for VAAPI**: VAAPI encoders use `-compression_level` instead of `-preset`/`-tune`. EncoderCapabilities has `uses_compression_level: bool`. When true, PresetTuneSection hides preset/tune ComboBoxes and shows a TextField for compression level. The `compression_level` field is emitted as `-compression_level <value>` in the ffmpeg command.
-- **Compatibility dialog**: `?` / ⓘ button opens a `Dialog` listing all detected encoders grouped by codec with counts.
-- **`_encodersForKey(codec)`**: direct lookup in `_availableEncoders` by codec key (keys match ffmpeg's codec naming: `"h264"`, `"hevc"`, `"vp8"`, `"vp9"`, `"av1"`).
-- **`_defaultEncoderForKey(codec)`**: returns software encoder for each codec: `libx264`/`libx265`/`libsvtav1`/`libvpx-vp9`/`libvpx`.
-- **`setData` behavior**: always calls `rebuildEncoderModel(true)` to refresh model and set default, then `if (d.encoder)` overrides if profile has explicit encoder. When no `encoder` field, `rebuildEncoderModel(true)` already sets the default (no need for separate `else` branch).
-- **Pixfmt model** always prepends `"default"` at index 0 even when encoder capabilities override the list.
-- **`_currentEncoderText()` pattern**: When reading the encoder name from the encoder ComboBox in signal handlers (`onCurrentIndexChanged`, `onAccepted`), use `_currentEncoderText()` instead of `encoderCombo.currentText`. `currentText` may return the OLD value in the narrow window between `currentIndex` update and `currentText` propagation. `_currentEncoderText()` reads `textAt(currentIndex)` first, falling back to `currentText`. This fixes the one-step-behind bug where encoder-dependent settings (preset/tune/pixfmt/compression level, rate control) reflected the previous encoder.
-- **`Component.onCompleted`** in ProfileEditor.qml: set `_loading = true` before `_profileNames = [...]` to suppress `onCurrentTextChanged` → `loadProfile` spurious call on initial population. `loadProfile` and `_loading = false` are deferred via `Qt.callLater` so child `Component.onCompleted` handlers (which set up combo models) fire first.
-- **Previews**: `loadProfile` generates the initial preview from source profile data directly (`backend.generateCommandPreview(JSON.stringify(d))`) instead of reading back from combos — avoids timing issues during model population. Interactive changes after load read from combos via `updatePreview()`.
-- **`_comboText(combo, sentinel)`**: reads `combo.currentText`, returns it if non-empty and not equal to sentinel, otherwise `null` (omitted from preview).
-- **`_setComboText(combo, value, sentinel)`**: first scans `combo.textAt(i)` to set `currentIndex` (matching items in the model stay in sync via `currentText`), falls back to `combo.editText = value` for custom values not in the model.
+## Project Structure
+```
+.
+├── src/                       # C++ (QObject glue + renderer)
+│   ├── main.cpp               # app setup, theme, context properties, QML load
+│   ├── backend.{h,cpp}        # GuineaMpegBackendExt — profile/ffmpeg/mpv info to QML
+│   └── mpvitem.{h,cpp}        # MpvItem (QQuickFramebufferObject) + MpvRenderer
+├── qml/
+│   ├── main.qml               # ApplicationWindow, StackView, loadVideo/startTranscoding
+│   ├── VideoPreview.qml       # wraps MpvItem
+│   ├── TimelineControl.qml    # trim handles (start/end time)
+│   ├── ControlsPanel.qml      # right sidebar
+│   ├── ProfileEditor.qml      # + ProfileEditor/{VideoPanel,AudioPanel,AdvancedPanel}.qml
+│   ├── ProfileEditor/VideoPanel/   # Codec, PresetTune, PixelFormat, RateControl, Scaling, AV1, VP8VP9 sections
+│   ├── Components/            # reusable controls (LabeledComboBox, SwitchRow, FormGroup, ...)
+│   ├── Dialogs/               # Transcode, Options, About, EncoderCompat, warnings, ...
+│   └── Utils/                 # Constants.js, DataUtils.js, FormatUtils.js, Centering.js
+├── rust/
+│   ├── Cargo.toml             # canonical version source
+│   ├── include/guinea_mpeg_core.h
+│   └── src/
+│       ├── lib.rs
+│       ├── backend.rs         # extern "C" wrappers for config
+│       ├── config.rs          # profile load/save/merge (TOML)
+│       ├── mpv.rs             # mpv handle lifecycle, commands, property cache
+│       └── ffmpeg/            # args.rs, encoders.rs, codecs.rs, ffi.rs, types.rs, util.rs
+├── build/                     # build scripts + Dockerfiles
+├── translations/              # guinea-mpeg_<locale>.ts
+├── default_profiles.toml
+├── CMakeLists.txt
+└── .gitlab-ci.yml             # dind package jobs + GitLab release on tags
+```
 
-## QML Patterns
-- **Never break QML bindings with JS assignments**: `property: expression` (colon) creates a QML binding; `property = value` (equals) in JS **silently destroys the binding**. Debug with `QT_LOGGING_RULES="qt.qml.binding.removal.info=true"`.
-- **Propagate `var` properties via `on_PropertyNameChanged`**: Instead of `childProp: parent.prop` (which can be overwritten when the child also writes to it), use `on_PropertyNameChanged: child.prop = root.prop`. This is explicit, synchronous within the call stack, and avoids deferred binding evaluation. Used in `VideoPanel.qml` for `_capOverrides` and `_codecAvailable`.
-- IDs inside a `Component` are NOT accessible from outside it. The reverse works (parent scope IDs accessible from within Component).
-- `FileDialog.selectedFile` is a `file:///...` URL. Strip `file://` prefix only for C++ paths; QML `url` properties accept it directly.
-- `Q_PROPERTY` signals (`NOTIFY`) are the cleanest way to push streaming data (like ffmpeg output) from C++ to QML.
-- `StackView.onActivated` on a page fires every time it becomes the current item — useful for refreshing data after popping back.
-- Use `encodeURI()` on the file path when constructing `file://` URLs in QML (handles spaces/special chars).
-- Directory imports (`import "dialogs"`, `import "../"`) are required to make QML types in subdirectories or parent directories discoverable. Types in the same directory are auto-discovered, but types in different directories need explicit `import`.
-- Avoid property names that collide with parent scope IDs — `appWindow: appWindow` creates a binding loop because the property name and the id are the same. Use a different name like `hostWindow: appWindow`.
-- Dialog components (AboutDialog, TranscodeDialog, etc.) use `property QtObject appWindow: null` to receive a reference to the ApplicationWindow, giving them access to its methods and state. Set via `appWindow: appWindow` in main.qml (no binding loop here since the property is on a different object).
-- `Dialog` height: use `implicitHeight: implicitHeaderHeight + layout.implicitHeight + implicitFooterHeight + margins` for auto-sizing instead of hardcoded values.
-- Auto-height dialog: set `padding: 0` and use `anchors.fill: parent` with `anchors.margins` on the inner layout to avoid double-padding with the dialog's default padding.
-- Center a `Dialog` via `onOpened: centerInParent()` calling a function that sets `x` and `y` using `parent.width/height`.
-- `QQuickStyle::setStyle("Fusion")` is required to customize control backgrounds on Windows (native QML style forbids background overrides).
-- `QPalette` dark/light colors are set on `QApplication` but may be ignored by the native QML style; Fusion QML style respects them.
-- Use `Flickable` instead of `ScrollView` when you never want a scrollbar to reserve space — `ScrollBar.vertical.policy: ScrollBar.AlwaysOff` still reserves space in some QQC2 styles.
-- `DropArea` handles drag & drop: read `drop.urls[0]` as string, strip `file://` prefix, call load function.
-- Icon-only buttons: use `icon.name` (Freedesktop icon names like `help-about-symbolic`), `display: Button.IconOnly`, set `width`/`height` to a fixed square size.
+## Key Components
+### `GuineaMpegBackendExt` (src/backend.{h,cpp})
+Plain `QObject`. Profile CRUD, options, video info, encoder detection/capabilities, ffmpeg command preview — all call Rust FFI. Transcode is the exception: `startTranscode()` builds args via `guinea_mpeg_build_ffmpeg_command()` then runs a real `QProcess` (QML needs `QProcess` signals to stream output live). Kills the previous process before starting a new one. Exposes `transcodeOutput` and `transcoding` as `Q_PROPERTY` + `transcodeFinished(bool)`.
 
-## TimelineControl Patterns
-- Handle x positions MUST be clamped to `[0, track.width - handle.width]` with `Math.max(0, Math.min(x, track.width - width))` to keep handles within the clickable area.
-- Do NOT use `clip: true` on the timeline root — it clips MouseArea events, making handles unclickable.
-- Programmatic changes to `startTime`/`endTime` (e.g. on file load) MUST be guarded with a flag to prevent `onStartTimeChanged`/`onEndTimeChanged` handlers from seeking the player.
+### `MpvItem` + `MpvRenderer` (src/mpvitem.{h,cpp})
+- `MpvItem` (QQuickFramebufferObject) owns `void* m_backend` from `guinea_mpeg_mpv_create()`; gets raw `mpv_handle*` via `guinea_mpeg_mpv_raw_handle()` for render context + wakeup. All mpv commands delegate to Rust.
+- Event flow: mpv wakeup callback → Qt `onMpvEvents` signal → `handleMpvEvents()` → `guinea_mpeg_mpv_process_events()` bitmask → Qt signals (1=position, 2=duration, 4=playing).
+- `MpvRenderer` stays in C++ (Renderer cannot be in Rust). Creates `mpv_render_context*` from the raw handle.
 
-## Transcoding Output
-- ffmpeg writes progress to stderr, not stdout.
-- Capture via `QProcess::readyReadStandardError` in C++.
-- Expose to QML as `Q_PROPERTY(QString transcodeOutput NOTIFY transcodeOutputUpdated)`.
-- Track current QProcess; kill old one if user starts another transcode.
-- Audio stream copy (`-c:a copy`) works for MP4/MKV but NOT for WebM — use `libopus` for `.webm` output.
+### Rust
+- `config.rs` — `[[profiles]]` TOML; falls back to legacy `HashMap`, migrates `"svtav1"`→`"av1"`. User config overlays defaults by `p.name`.
+- `mpv.rs` — options set on create: `vo=libmpv`, `keep-open=yes`, `cache=yes`.
+- `ffmpeg/` — `args.rs` (`build_command()`, rate control per encoder family), `encoders.rs` (`encoder_family()`, software defaults), `ffi.rs` (`ffmpeg -hide_banner -encoders` parsing), `types.rs` (`EncoderCapabilities`).
 
-## Profile Config (Rust)
-- `AppConfig.profiles` is `Vec<VideoProfile>` (matches TOML `[[profiles]]` array format).
-- `load_profiles_from_file()` tries `Vec` format first, falls back to legacy `HashMap` (`[profiles."name"]`) for backwards compat. Also migrates old `"svtav1"` codec key to `"av1"`.
-- `save_user_config()` writes in `[[profiles]]` format (the canonical form).
-- Merging: defaults loaded first, then user config overlays by `p.name`. Same name = user profile wins.
-- `cpu_used: Option<i32>` stores VP8/VP9 `-cpu-used` value (0–5). Used only for vp8/vp9 codecs; Rust emits `-deadline <preset>` instead of `-preset` for these codecs.
-- `encoder: Option<String>` stores explicit encoder name (e.g. `"libx264"`, `"h264_nvenc"`). `None` means auto-select default software encoder at runtime.
+## Common Mistakes & Solutions
+### QML
+- Never overwrite a bound property with `property = value` in JS — it **silently destroys the binding**. Debug with `QT_LOGGING_RULES="qt.qml.binding.removal.info=true"`.
+- Propagate `var` props parent→child via `on_PropertyNameChanged` handlers (synchronous JS assignment), NOT `childProp: parent.prop` bindings — children that write their own value overwrite the binding. Example: `_capOverrides` in VideoPanel → sections.
+- Encoder ComboBox one-step-behind bug: in `onCurrentIndexChanged`/`onAccepted` read the encoder via `_currentEncoderText()` (uses `textAt(currentIndex)`), never `combo.currentText` — it can lag one index change.
+- `_loading` guard around model/list updates suppresses spurious `onCurrentTextChanged` → `loadProfile`. Set before populating combos in `Component.onCompleted`; defer `loadProfile` with `Qt.callLater` so child `Component.onCompleted` handlers run first.
+- `Keys.onPressed` only works on `Item` — attach to a focused child `Item` (e.g. `keyCatcher`), never `Dialog`/`Popup`.
+- `FileDialog.selectedFile` is a `file://` URL — strip prefix only for C++ paths; build `file://` URLs with `encodeURI()` for spaces/special chars.
+- Avoid property names colliding with parent scope IDs (`appWindow: appWindow` → binding loop; rename to `hostWindow`).
+- Prefer `Flickable` over `ScrollView` when a scrollbar must not reserve space.
+- QML exit 255 with no stderr: rerun with `QT_FORCE_STDERR_LOGGING=1`.
 
-## FFmpeg & Encoder Capabilities (Rust)
-- `rust/src/ffmpeg/` module (split across `args.rs`, `codecs.rs`, `encoders.rs`, `ffi.rs`, `types.rs`, `util.rs`) handles ffmpeg subprocess launch, encoder detection, command building.
-- `encoder_family()` (in `encoders.rs`) maps encoder name suffix to `EncoderFamily`: `Software`, `Nvenc`, `Qsv`, `Vaapi`, `Amf`, `Vulkan`, `VideoToolbox`.
-- `EncoderCapabilities` struct (in `types.rs`) stores per-family overrides: `presets`, `tunes`, `pix_fmts` lists; `crf_name` (`-crf`/`-cq`/`-global_quality`/`-qp`/`-quality`); `cbr_flag_name`/`vbr_flag_name`; `uses_preset`/`uses_tune` booleans; `append_rate_control` flag.
-- `software_video_codec()` (in `encoders.rs`) returns `libx264`/`libx265`/`libsvtav1`/`libvpx-vp9`/`libvpx`.
-- `build_command()` (in `args.rs`) translates rate control per encoder family:
-  - CRF → `-crf` (Software), `-cq` (NVENC), `-global_quality` (QSV), `-qp` (VAAPI/AMF), `-quality` (VideoToolbox), `-qp` (Vulkan)
-  - CBR → adds `-rc cbr` (NVENC/QSV/AMF), `-rc_mode CBR` (VAAPI), `-b:v <bitrate>` with `-b:v <minrate>=<maxrate>=<bufsize>` for CBR mode
-  - VBR → adds `-rc vbr` (NVENC/QSV/AMF), `-rc_mode VBR` (VAAPI)
-  - NVENC: CRF+CBR → `-rc vbr` + `-cq <crf>` + `-b:v <bitrate>` + `-maxrate <bitrate>`
-- VP8/VP9: emits `-deadline <preset>` + `-cpu-used <N>`, no `-preset` flag.
-- `guinea_mpeg_available_encoders()` (in `ffi.rs`) runs `ffmpeg -hide_banner -encoders`, parses lines like `....V libx264  H.264... (codec h264)`, groups by codec key, returns JSON.
-- `guinea_mpeg_encoder_capabilities(name)` (in `ffi.rs`) looks up encoder family for a given encoder name, returns JSON or `null` for software encoders.
-- Encoder detection and capabilities are exposed to QML via `GuineaMpegBackendExt::availableEncoders()` and `encoderCapabilities()`.
+### MPV
+- **Must** `setMirrorVertically(true)` on MpvItem AND pass `MPV_RENDER_PARAM_FLIP_Y = 1` — mpv renders upside-down into the FBO.
+- `MPV_RENDER_PARAM_OPENGL_FBO` requires the full `mpv_opengl_fbo` struct (`fbo`, `w`, `h`, `internal_format`), not just an int.
+- Defer `loadfile` until `mpv_render_context*` exists: `setSource()` stores `m_pendingSource`; `MpvRenderer` ctor calls `loadPendingSource()` via `QMetaObject::invokeMethod`. `m_renderReady` gates immediate vs deferred load.
+- `setlocale(LC_NUMERIC, "C")` after `QApplication` (it overrides the locale).
+
+### Transcoding
+- ffmpeg writes progress to **stderr**, not stdout — capture with `QProcess::readyReadStandardError`.
+- `-c:a copy` works for MP4/MKV but NOT WebM — use `libopus` for `.webm`.
+
+### TimelineControl
+- Clamp handle x to `[0, track.width - width]`; never `clip: true` on the root (kills MouseArea events); guard programmatic `startTime`/`endTime` changes (e.g. on file load) so handlers don't seek the player.
+
+### Encoder handling (ProfileEditor)
+- VP8/VP9: emit `-deadline <preset>` + `-cpu-used <N>`, never `-preset`.
+- Encoder ComboBox model is set in `rebuildEncoderModel()` (no binding) to avoid stale models when switching same-codec profiles; forced to default when loading via `setData`.
+- Editable ComboBoxes (preset/tune/pixfmt) use a `"default"` sentinel at index 0 = `null` (omitted from ffmpeg command). Pixfmt always prepends the sentinel even when encoder capabilities override the list.
+- `applyEncoderCapabilities()` must NOT be `_loading`-guarded (needs to run during profile load).
+- Preset model is codec-aware (H.264/H.265 `ultrafast..placebo`, VP8/VP9 `good/best/realtime`, SVT-AV1 `0..13`), overridden by the encoder's own preset list when present.
+- VAAPI encoders use `-compression_level` instead of `-preset`/`-tune` (`EncoderCapabilities.uses_compression_level`).
 
 ## Build
-- Always use `build/linux-build.sh` to build (not manual cmake). The script uses `out/.build-generic/` as the build directory.
-- `build/linux-build.sh --clean` to rebuild from scratch.
-- Rust builds automatically via cargo.
-- `crate-type = ["cdylib"]` in `rust/Cargo.toml`.
-- No `--whole-archive` needed — plain `extern "C"` symbols are found by the linker without static initializer tricks.
-- No CXX/CXX-Qt generated code or discovery. C header at `rust/include/guinea_mpeg_core.h` is included via `target_include_directories`.
-- CMake requires `pkg_check_modules(MPV REQUIRED mpv)` for libmpv (needed by C++ mpvitem.cpp for render context).
+- Always use `build/linux-build.sh`, never manual cmake. Rust builds automatically via cargo.
+- Flags: `--clean` (removes `out/` + `rust/target/`), `--package <deb,rpm,pacman,flatpak,appimage,generic,all>`, `--no-build`, `--version X.Y.Z` (delegates to `update-version.sh`), `--release`.
+- Default (no flags): configure + build to `out/generic/`. `--no-build` + `--package appimage` is an error (needs fresh in-Docker build).
+- `crate-type = ["cdylib"]`; plain `extern "C"` symbols link without `--whole-archive`.
+- deb/rpm/pacman: Docker builds (`build/docker/*.Dockerfile`) then fpm packaging; `stage_package()` runs `patchelf --add-rpath '$ORIGIN/../lib/$PKGNAME'` so the binary finds the Rust `.so`.
+- flatpak: host `flatpak-builder`, SDK `org.kde.Platform//6.10`.
 
-## Build & Packaging (Linux)
-- `build/linux-build.sh` — builds the project and optionally produces packages.
-- Flags: `--clean`, `--package <list>`, `--no-build`, `--version X.Y.Z`, `--help`.
-- Default (no flags): cmake configure + build to `out/generic/` (no archive).
-- `--clean` removes `out/` and `rust/target/` before building.
-- `--package` accepts comma-separated: `deb`, `rpm`, `pacman`, `flatpak`, `appimage`, `generic`, `all`.
-- `--no-build` skips building; errors if combined with `--package appimage`.
-- `--version` delegates to `update-version.sh`, then continues.
-- Output dirs: `out/generic/`, `out/deb/`, `out/rpm/`, `out/pacman/`, `out/flatpak/`, `out/appimage/`.
-- Per-target cargo build dirs: `out/.build-{target}/` + `out/.cargo-{target}/` (auto-cleaned after pack).
-- Rust is built as a shared library (`.so` shipped alongside the binary).
-- Docker-based builds (deb, rpm, pacman, appimage) use `build/docker/*.Dockerfile` with `build_in_docker()`.
-- `--package generic` creates a flat `.tar.gz` (no `usr/` prefix, no version subdir).
-- `--package flatpak` uses host `flatpak-builder` (not Docker), SDK `org.kde.Platform//6.10`.
-- Version canonical source: `rust/Cargo.toml`.
-- Flatpak post-install: installs SVG to `hicolor/scalable/apps/` + 256×256 PNG fallback.
-- AppImage: `AppRun` is a symlink to the binary; `patchelf` sets ELF interpreter to bundled `ld-linux-x86-64.so.2`.
-- CI pipeline: `.gitlab-ci.yml` — `package` stage with dind-based jobs + GitLab release on tags.
-- Deb/rpm/pacman: `stage_package()` runs `patchelf --add-rpath '$ORIGIN/../lib/$PKGNAME'` on the binary so it finds the Rust `.so` in `/usr/lib/<pkg>/`.
-
-## Runtime
-- Qt version: 6.11.0 on Arch Linux x86_64, KDE Plasma 6, Wayland, AMD GPU; 6.11.1 on Windows 11 x86_64, MSVC 2022, Fusion QML style.
-- When QML fails with exit 255 but no error message on stderr, use `QT_FORCE_STDERR_LOGGING=1` to force QML engine errors to the terminal.
-- Dark mode detection reads Windows registry `HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize\AppsUseLightTheme`. A `theme` context property with color keys is exported to QML.
-- OS name / distro detection uses `QSysInfo::prettyProductName()` on all platforms — no manual `/etc/os-release` parsing.
-
-## Konami Code Easter Egg (AboutDialog)
-- Trigger: ↑↑↓↓←→←→BA typed while About window is open. One-shot per app run (`easterEggActivated` guard).
-- Keyboard capture: `Keys.onPressed` on a child `Item` (`keyCatcher`) with `focus: true`. `forceActiveFocus()` is called in `onOpened` to ensure focus. Must NOT be attached to `Dialog`/`Popup` directly — QML rejects `Keys` on non-Item types.
-- `event.accepted = false` is set so keys propagate to other controls (OK button etc.).
-- Lettuce: declared inline inside an `overlay` Item (`anchors.fill: parent`, `z: 999`) with `visible: false` initially. Toggled on spawn — avoids `createObject`/`Component` which caused scene graph parenting issues with QQC2 Popup.
-- Drag via `MouseArea.drag.target: parent`. Drop detection via manual AABB intersection using `mapToItem(guineaPigItem, 0, 0)` + coordinate math — `Qt.rect().intersects()` is NOT available in QML runtime. `DropArea` was unreliable with Popup child items.
-- `onCanceled: hideLettuce()` on the MouseArea handles drags aborted when the mouse leaves the dialog area (popup cancels the mouse grab).
-- Audio: `SoundEffect` from `QtMultimedia`. Requires WAV (PCM s16le) — OGG Vorbis is not decodable by `QSoundEffect` even with the FFmpeg backend. `Qt6::Multimedia` is a required CMake dependency.
-
-## MPV Integration Notes
-- `MpvItem` (QQuickFramebufferObject) wraps libmpv via Rust's `extern "C"` backend (`void* m_backend`). The raw `mpv_handle*` is extracted from Rust for render context + wakeup setup.
-- Bitmask from `guinea_mpeg_mpv_process_events()`: 1=position, 2=duration, 4=playing.
-- **Must** `setMirrorVertically(true)` on MpvItem AND `MPV_RENDER_PARAM_FLIP_Y = 1` — mpv renders upside-down into FBO, Qt flips on display.
-- `MPV_RENDER_PARAM_OPENGL_FBO` requires full `mpv_opengl_fbo` struct (`fbo`, `w`, `h`, `internal_format`), not just an `int`.
-- Options (set by Rust on create): `vo=libmpv`, `keep-open=yes`, `cache=yes`.
-- `setlocale(LC_NUMERIC, "C")` after `QApplication` (QApplication overrides locale).
-- `loadfile` MUST be deferred until `mpv_render_context*` exists — `setSource()` stores URL in `m_pendingSource`, and `MpvRenderer` constructor calls `loadPendingSource()` via `QMetaObject::invokeMethod` after creating the render context.
-- `m_renderReady` flag on MpvItem, set by renderer constructor, guards whether `setSource` can load immediately or must defer.
-- Rust's `libmpv2-sys` crate provides mpv FFI. CMake also links `PkgConfig::MPV` for C++ mpv header includes (render context API). Linker deduplicates, no conflict.
+## Translations
+- `.ts` sources live in `translations/`, listed in `qml/CMakeLists.txt` via `qt_add_translations` (compiled into `:/i18n/qml/`; `main.cpp` loads them).
+- Update the source strings (add/modify `qsTr()` etc.) and refresh all `.ts` files:
+  ```
+  ./build/update-translations.sh     # runs cmake target guinea_mpeg_lupdate
+  ```
+- Then translate the new `<translation>` entries in each `translations/guinea-mpeg_<locale>.ts` (Linguist or by hand). `.qm` compilation happens during the normal build.
+- Add a new locale: create `translations/guinea-mpeg_<locale>.ts` (via lupdate) and append it to the `TS_FILES` list in `qml/CMakeLists.txt`.
