@@ -1,6 +1,7 @@
 #include <QApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <QQmlEngine>
 #include <QQuickStyle>
 #include <QQuickWindow>
 #include <QSGRendererInterface>
@@ -14,6 +15,7 @@
 #include "backend.h"
 #include "guinea_mpeg_core.h"
 #include <QDir>
+#include <QFileInfo>
 #include <QIcon>
 #include <QUrl>
 #include <QSysInfo>
@@ -31,6 +33,40 @@ static QJsonObject readAppOptions()
     QJsonObject opts = QJsonDocument::fromJson(QByteArray(json)).object();
     guinea_mpeg_free_string(json);
     return opts;
+}
+
+static QStringList availableQmlStyles()
+{
+    static const QStringList candidates = {
+        QStringLiteral("Fusion"),
+        QStringLiteral("Universal"),
+        QStringLiteral("Material"),
+        QStringLiteral("Windows"),
+        QStringLiteral("Imagine"),
+        QStringLiteral("FluentWinUI3")
+    };
+
+    QStringList styles;
+    QQmlEngine probe;
+    const QStringList importPaths = probe.importPathList();
+    for (const QString& style : candidates) {
+        for (const QString& p : importPaths) {
+            if (QFileInfo::exists(p + QLatin1String("/QtQuick/Controls/") + style + QLatin1String("/qmldir"))) {
+                styles << style;
+                break;
+            }
+        }
+    }
+#ifdef Q_OS_LINUX
+    // Breeze is shipped outside QtQuick/Controls (org.kde.desktop).
+    for (const QString& p : importPaths) {
+        if (QFileInfo::exists(p + QLatin1String("/org/kde/desktop/qmldir"))) {
+            styles << QStringLiteral("org.kde.desktop");
+            break;
+        }
+    }
+#endif
+    return styles;
 }
 
 int main(int argc, char *argv[])
@@ -55,80 +91,24 @@ int main(int argc, char *argv[])
     }
 
     QString themeOption = appOptions.value("theme").toString(QStringLiteral("system"));
-    bool forcedTheme = (themeOption == "dark" || themeOption == "light");
 
-    auto makeDarkPalette = []() {
-        QPalette p;
-        p.setColor(QPalette::Window, QColor(53, 53, 53));
-        p.setColor(QPalette::WindowText, QColor(220, 220, 220));
-        p.setColor(QPalette::Base, QColor(42, 42, 42));
-        p.setColor(QPalette::AlternateBase, QColor(66, 66, 66));
-        p.setColor(QPalette::ToolTipBase, QColor(53, 53, 53));
-        p.setColor(QPalette::ToolTipText, QColor(220, 220, 220));
-        p.setColor(QPalette::Text, QColor(220, 220, 220));
-        p.setColor(QPalette::Button, QColor(53, 53, 53));
-        p.setColor(QPalette::ButtonText, QColor(220, 220, 220));
-        p.setColor(QPalette::BrightText, QColor(255, 0, 0));
-        p.setColor(QPalette::Link, QColor(42, 130, 218));
-        p.setColor(QPalette::Highlight, QColor(42, 130, 218));
-        p.setColor(QPalette::HighlightedText, QColor(220, 220, 220));
-        p.setColor(QPalette::Mid, QColor(80, 80, 80));
-        return p;
-    };
-    auto makeLightPalette = []() {
-        QPalette p;
-        p.setColor(QPalette::Window, QColor(240, 240, 240));
-        p.setColor(QPalette::WindowText, QColor(0, 0, 0));
-        p.setColor(QPalette::Base, QColor(255, 255, 255));
-        p.setColor(QPalette::AlternateBase, QColor(245, 245, 245));
-        p.setColor(QPalette::ToolTipBase, QColor(255, 255, 220));
-        p.setColor(QPalette::ToolTipText, QColor(0, 0, 0));
-        p.setColor(QPalette::Text, QColor(0, 0, 0));
-        p.setColor(QPalette::Button, QColor(225, 225, 225));
-        p.setColor(QPalette::ButtonText, QColor(0, 0, 0));
-        p.setColor(QPalette::BrightText, QColor(255, 0, 0));
-        p.setColor(QPalette::Link, QColor(0, 120, 215));
-        p.setColor(QPalette::Highlight, QColor(0, 120, 215));
-        p.setColor(QPalette::HighlightedText, QColor(255, 255, 255));
-        p.setColor(QPalette::Mid, QColor(190, 190, 190));
-        return p;
-    };
-
-    bool useFusion = forcedTheme;
 #ifdef Q_OS_WIN
     // Find bundled ffmpeg/ffprobe
     QByteArray appDir = QCoreApplication::applicationDirPath().toUtf8();
     SetEnvironmentVariableA("PATH", (appDir + ";" + qgetenv("PATH")).constData());
-    // Windows: always Fusion (native QML style forbids background overrides)
-    useFusion = true;
-#else
-    if (QStringLiteral(PACKAGE_TARGET) == "appimage")
-        useFusion = true;
 #endif
 
-    bool darkTheme = false;
+    // Qt Quick Controls style selection (like QT_QUICK_CONTROLS_STYLE).
+    // The color scheme itself always follows the system; only the style is
+    // user-selectable.
+    QStringList availableStyles = availableQmlStyles();
 
-    if (useFusion) {
-        QQuickStyle::setStyle("Fusion");
-        if (forcedTheme) {
-            darkTheme = (themeOption == "dark");
-            app.setPalette(darkTheme ? makeDarkPalette() : makeLightPalette());
-        } else {
-#ifdef Q_OS_WIN
-            // Windows: force dark palette (Fusion in light mode looks wrong)
-            app.setPalette(makeDarkPalette());
-            darkTheme = true;
-#else
-            // AppImage: respect system theme
-            darkTheme = QApplication::styleHints()->colorScheme() == Qt::ColorScheme::Dark;
-            if (darkTheme)
-                app.setPalette(makeDarkPalette());
-#endif
-        }
-    } else {
-        // Native Linux: respect system theme
-        darkTheme = QApplication::styleHints()->colorScheme() == Qt::ColorScheme::Dark;
-    }
+    if (themeOption != QLatin1String("system") && !availableStyles.contains(themeOption))
+        themeOption = QStringLiteral("system");
+    if (themeOption != QLatin1String("system"))
+        QQuickStyle::setStyle(themeOption);
+
+    bool darkTheme = QApplication::styleHints()->colorScheme() == Qt::ColorScheme::Dark;
 
     QVariantMap theme;
     {
@@ -192,6 +172,7 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("mpvVersion", QVariant(backend->getMpvVersion()));
     engine.rootContext()->setContextProperty("buildInfo", QVariant(buildInfo));
     engine.rootContext()->setContextProperty("theme", QVariant(theme));
+    engine.rootContext()->setContextProperty("availableStyles", QVariant(availableStyles));
 
     QString initialFilePath;
     auto args = app.arguments();

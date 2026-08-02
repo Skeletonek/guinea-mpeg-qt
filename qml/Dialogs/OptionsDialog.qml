@@ -69,17 +69,23 @@ Dialog {
             }
         }
 
-        Label { text: qsTr("Qt theme"); color: theme.textMuted }
+        Label { text: qsTr("Qt Quick Controls style"); color: theme.textMuted }
         ComboBox {
             id: themeCombo
             Layout.fillWidth: true
-            model: [
-                { text: qsTr("System"), value: "system" },
-                { text: qsTr("Dark"), value: "dark" },
-                { text: qsTr("Light"), value: "light" }
-            ]
             textRole: "text"
             valueRole: "value"
+            Component.onCompleted: {
+                var out = [{ text: qsTr("System"), value: "system" }]
+                var styles = availableStyles
+                for (var i = 0; i < styles.length; i++) {
+                    var value = styles[i]
+                    var text = value
+                    if (value === "org.kde.desktop") text = "Breeze"
+                    out.push({ text: text, value: value })
+                }
+                themeCombo.model = out
+            }
             onActivated: function(index) {
                 var v = model[index].value
                 if (backend.setOption("theme", v)) root.restartRequired = true
