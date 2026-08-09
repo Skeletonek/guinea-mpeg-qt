@@ -5,7 +5,7 @@ import "../Utils/UpdateUtils.js" as UpdateUtils
 
 Rectangle {
     id: root
-    height: 48
+    implicitHeight: 96
     visible: updateAvailable && !dismissed
     color: theme.widget
     border.color: theme.widgetBorder
@@ -68,26 +68,50 @@ Rectangle {
             radius: 2
         }
 
-        Text {
-            text: qsTr("A new version of GuineaMPEG is available (v%1)").arg(root.latestVersion)
-            color: theme.text
-            font.pixelSize: 13
-            verticalAlignment: Text.AlignVCenter
+        ColumnLayout {
             Layout.fillWidth: true
-            elide: Text.ElideRight
-        }
+            Layout.fillHeight: true
+            spacing: 8
 
-        Button {
-            text: qsTr("Update")
-            onClicked: {
-                if (root.updateUrl !== "")
-                    Qt.openUrlExternally(root.updateUrl)
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 2
+
+                Text {
+                    text: qsTr("A new version of GuineaMPEG is available")
+                    color: theme.text
+                    font.pixelSize: 13
+                    Layout.fillWidth: true
+                    elide: Text.ElideRight
+                }
+
+                Text {
+                    text: "%1 → %2".arg(buildInfo.version).arg(root.latestVersion)
+                    color: theme.accent
+                    font.pixelSize: 13
+                    font.bold: true
+                    Layout.fillWidth: true
+                    elide: Text.ElideRight
+                }
             }
-        }
 
-        Button {
-            text: qsTr("Close")
-            onClicked: root.dismissed = true
+            RowLayout {
+                Layout.alignment: Qt.AlignRight
+                spacing: 8
+
+                Button {
+                    text: qsTr("Update")
+                    onClicked: {
+                        if (root.updateUrl !== "")
+                            Qt.openUrlExternally(root.updateUrl)
+                    }
+                }
+
+                Button {
+                    text: qsTr("Close")
+                    onClicked: root.dismissed = true
+                }
+            }
         }
     }
 }

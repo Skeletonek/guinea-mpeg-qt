@@ -84,23 +84,9 @@ ApplicationWindow {
                     z: 100
                 }
 
-                UpdateBanner {
-                    id: updateBanner
-                    anchors.top: parent.top
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.topMargin: 10
-                    anchors.leftMargin: 10
-                    anchors.rightMargin: 10
-                    z: 90
-                }
-
                 Row {
                     anchors.fill: parent
-                    anchors.leftMargin: 10
-                    anchors.rightMargin: 10
-                    anchors.bottomMargin: 10
-                    anchors.topMargin: 10 + (updateBanner.visible ? updateBanner.height + 10 : 0)
+                    anchors.margins: 10
                     spacing: 10
 
                     VideoPreview {

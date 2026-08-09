@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import "Components"
 import "Utils/FormatUtils.js" as FormatUtils
 import "Utils/DataUtils.js" as DataUtils
 import "Utils/Constants.js" as Constants
@@ -36,7 +37,7 @@ Item {
     Flickable {
         id: rightPanelFlickable
         anchors.top: parent.top
-        anchors.bottom: aboutButton.top
+        anchors.bottom: updateBanner.visible ? updateBanner.top : aboutButton.top
         anchors.bottomMargin: 4
         width: parent.width
         contentHeight: column.height
@@ -250,6 +251,16 @@ Item {
                 }
             }
         }
+    }
+
+    UpdateBanner {
+        id: updateBanner
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: settingsButton.top
+        anchors.bottomMargin: 8
+        height: visible ? implicitHeight : 0
+        z: 10
     }
 
     Button {
