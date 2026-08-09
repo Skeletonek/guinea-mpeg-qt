@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import "Components"
 import "Dialogs"
 import "Utils/FormatUtils.js" as FormatUtils
 import "Utils/Constants.js" as Constants
@@ -83,9 +84,23 @@ ApplicationWindow {
                     z: 100
                 }
 
+                UpdateBanner {
+                    id: updateBanner
+                    anchors.top: parent.top
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.topMargin: 10
+                    anchors.leftMargin: 10
+                    anchors.rightMargin: 10
+                    z: 90
+                }
+
                 Row {
                     anchors.fill: parent
-                    anchors.margins: 10
+                    anchors.leftMargin: 10
+                    anchors.rightMargin: 10
+                    anchors.bottomMargin: 10
+                    anchors.topMargin: 10 + (updateBanner.visible ? updateBanner.height + 10 : 0)
                     spacing: 10
 
                     VideoPreview {

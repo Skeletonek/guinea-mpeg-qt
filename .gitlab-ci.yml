@@ -123,4 +123,3 @@ release:
   artifacts:
     paths:
       - changelog.md
-    expire_in: 1 year

@@ -1,3 +1,6 @@
+# Secrets / env files
+*.env
+
 # Build output
 out/
 rust/target/

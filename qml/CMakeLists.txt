@@ -35,6 +35,7 @@ qt_add_resources(guinea-mpeg "app_qml"
         ${CMAKE_SOURCE_DIR}/qml/Utils/FormatUtils.js
         ${CMAKE_SOURCE_DIR}/qml/Utils/DataUtils.js
         ${CMAKE_SOURCE_DIR}/qml/Utils/Constants.js
+        ${CMAKE_SOURCE_DIR}/qml/Utils/UpdateUtils.js
         ${CMAKE_SOURCE_DIR}/qml/Components/LabeledRow.qml
         ${CMAKE_SOURCE_DIR}/qml/Components/LabeledComboBox.qml
         ${CMAKE_SOURCE_DIR}/qml/Components/LabeledTextField.qml
@@ -42,6 +43,7 @@ qt_add_resources(guinea-mpeg "app_qml"
         ${CMAKE_SOURCE_DIR}/qml/Components/SectionHeader.qml
         ${CMAKE_SOURCE_DIR}/qml/Components/FormGroup.qml
         ${CMAKE_SOURCE_DIR}/qml/Components/WidgetHeader.qml
+        ${CMAKE_SOURCE_DIR}/qml/Components/UpdateBanner.qml
         ${CMAKE_SOURCE_DIR}/media/images/lettuce.png
         ${CMAKE_SOURCE_DIR}/media/audio/guinea.wav
 )

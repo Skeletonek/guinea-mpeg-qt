@@ -53,6 +53,8 @@ pub struct AppOptions {
     pub hwdec: String,
     #[serde(default = "default_preview_volume")]
     pub preview_volume: f64,
+    #[serde(default = "default_check_for_updates")]
+    pub check_for_updates: bool,
 }
 
 fn default_language() -> String {
@@ -71,6 +73,10 @@ fn default_preview_volume() -> f64 {
     100.0
 }
 
+fn default_check_for_updates() -> bool {
+    true
+}
+
 impl Default for AppOptions {
     fn default() -> Self {
         Self {
@@ -78,6 +84,7 @@ impl Default for AppOptions {
             theme: default_theme(),
             hwdec: default_hwdec(),
             preview_volume: default_preview_volume(),
+            check_for_updates: default_check_for_updates(),
         }
     }
 }
@@ -263,6 +270,12 @@ pub fn set_option(key: &str, value: &str) -> anyhow::Result<()> {
                 .parse()
                 .map_err(|_| anyhow::anyhow!("invalid numeric value"))?;
             cfg.options.preview_volume = v.clamp(0.0, 100.0);
+        }
+        "checkForUpdates" => {
+            let v: bool = value
+                .parse()
+                .map_err(|_| anyhow::anyhow!("invalid boolean value"))?;
+            cfg.options.check_for_updates = v;
         }
         _ => return Err(anyhow::anyhow!("unknown option key")),
     }

@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import "../Utils/Centering.js" as Utils
+import "../Components"
 
 Dialog {
     id: root
@@ -13,6 +14,7 @@ Dialog {
     standardButtons: Dialog.Close
 
     property bool restartRequired: false
+    property bool _loadingOptions: false
 
     Component.onCompleted: Utils.centerInParent(root)
     onOpened: {
@@ -31,9 +33,12 @@ Dialog {
     function loadOptions() {
         var opts = {}
         try { opts = JSON.parse(backend.getOptions()) } catch(e) {}
+        _loadingOptions = true
         languageCombo.currentIndex = _indexOfValue(languageCombo, opts.language || "system")
         themeCombo.currentIndex = _indexOfValue(themeCombo, opts.theme || "system")
         hwdecCombo.currentIndex = _indexOfValue(hwdecCombo, opts.hwdec || "auto-copy")
+        checkForUpdatesSwitch.checked = opts.checkForUpdates !== false
+        _loadingOptions = false
     }
 
     ColumnLayout {
@@ -122,6 +127,19 @@ Dialog {
             Layout.fillWidth: true
             Layout.topMargin: 4
             visible: root.restartRequired
+        }
+
+        Label { text: qsTr("Updates"); font.bold: true; font.pixelSize: 14; color: theme.text; Layout.topMargin: 6 }
+
+        SwitchRow {
+            id: checkForUpdatesSwitch
+            label: qsTr("Check for updates on startup")
+            labelWidth: 200
+            checked: true
+            onCheckedChanged: {
+                if (root._loadingOptions) return
+                backend.setOption("checkForUpdates", String(checked))
+            }
         }
     }
 }
