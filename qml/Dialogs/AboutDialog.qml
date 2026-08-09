@@ -8,6 +8,16 @@ import "../Utils/Centering.js" as Utils
         id: root
         title: qsTr("About GuineaMPEG")
     standardButtons: Dialog.Ok
+    footer: DialogButtonBox {
+        Button {
+            text: qsTr("Copy")
+            onClicked: {
+                backend.copyToClipboard(technicalInfo())
+            }
+        }
+        onAccepted: root.accept()
+        onRejected: root.reject()
+    }
     width: 430
     padding: 0
     implicitHeight: implicitHeaderHeight + mainLayout.implicitHeight + implicitFooterHeight + 24
@@ -191,5 +201,21 @@ import "../Utils/Centering.js" as Utils
         Label { text: "Qt: %1".arg(buildInfo.qtVersion); color: theme.textMuted; font.pixelSize: 11 }
         Label { text: ffmpegVersion; color: theme.textMuted; font.pixelSize: 11; wrapMode: Text.Wrap; Layout.fillWidth: true }
         Label { text: mpvVersion; color: theme.textMuted; font.pixelSize: 11; wrapMode: Text.Wrap; Layout.fillWidth: true }
+
+        Item { Layout.fillHeight: true }
+    }
+
+    function technicalInfo() {
+        var lines = []
+        lines.push("GuineaMPEG " + buildInfo.version)
+        lines.push("Author: " + buildInfo.author)
+        lines.push("License: " + buildInfo.license)
+        lines.push("OS: " + buildInfo.distroName)
+        lines.push("Package: " + buildInfo.packageTarget)
+        lines.push("Build: " + buildInfo.buildDate)
+        lines.push("Qt: " + buildInfo.qtVersion)
+        lines.push("FFmpeg: " + ffmpegVersion)
+        lines.push("mpv: " + mpvVersion)
+        return lines.join("\n")
     }
 }

@@ -27,39 +27,44 @@
         <translation>À propos de GuineaMPEG</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/AboutDialog.qml" line="121"/>
+        <location filename="../qml/Dialogs/AboutDialog.qml" line="131"/>
         <source>FFmpeg Frontend with Rust Core</source>
         <translation>Frontend FFmpeg avec noyau Rust</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/AboutDialog.qml" line="154"/>
+        <location filename="../qml/Dialogs/AboutDialog.qml" line="164"/>
         <source>Version: %1</source>
         <translation>Version : %1</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/AboutDialog.qml" line="156"/>
+        <location filename="../qml/Dialogs/AboutDialog.qml" line="166"/>
         <source>Author: %1</source>
         <translation>Auteur : %1</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/AboutDialog.qml" line="165"/>
+        <location filename="../qml/Dialogs/AboutDialog.qml" line="175"/>
         <source>License: %1</source>
         <translation>Licence : %1</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/AboutDialog.qml" line="166"/>
+        <location filename="../qml/Dialogs/AboutDialog.qml" line="176"/>
         <source>OS name: %1</source>
         <translation>Système : %1</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/AboutDialog.qml" line="167"/>
+        <location filename="../qml/Dialogs/AboutDialog.qml" line="177"/>
         <source>Package: %1</source>
         <translation>Paquet : %1</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/AboutDialog.qml" line="168"/>
+        <location filename="../qml/Dialogs/AboutDialog.qml" line="178"/>
         <source>Build: %1</source>
         <translation>Build : %1</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/AboutDialog.qml" line="13"/>
+        <source>Copy</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -291,17 +296,17 @@ Installez-le avec votre gestionnaire de paquets, par ex. :
 <context>
     <name>GuineaMpegBackendExt</name>
     <message>
-        <location filename="../src/backend.cpp" line="239"/>
+        <location filename="../src/backend.cpp" line="246"/>
         <source>Error: failed to build ffmpeg command from profile</source>
         <translation>Erreur : impossible de créer la commande ffmpeg à partir du profil</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="244"/>
+        <location filename="../src/backend.cpp" line="251"/>
         <source>Error: profile produced no ffmpeg arguments</source>
         <translation>Erreur : le profil n&apos;a produit aucun argument ffmpeg</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="260"/>
+        <location filename="../src/backend.cpp" line="267"/>
         <source>
 --- Transcoding cancelled ---
 </source>
@@ -310,7 +315,7 @@ Installez-le avec votre gestionnaire de paquets, par ex. :
 </translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="297"/>
+        <location filename="../src/backend.cpp" line="304"/>
         <source>
 --- Transcoding finished: SUCCESS ---
 </source>
@@ -319,7 +324,7 @@ Installez-le avec votre gestionnaire de paquets, par ex. :
 </translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="299"/>
+        <location filename="../src/backend.cpp" line="306"/>
         <source>
 --- Transcoding finished: FAILED (exit code %1) ---
 </source>
@@ -328,22 +333,22 @@ Installez-le avec votre gestionnaire de paquets, par ex. :
 </translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="301"/>
+        <location filename="../src/backend.cpp" line="308"/>
         <source>Transcoding Complete</source>
         <translation>Transcodage terminé</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="301"/>
+        <location filename="../src/backend.cpp" line="308"/>
         <source>Transcoding Failed</source>
         <translation>Échec du transcodage</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="302"/>
+        <location filename="../src/backend.cpp" line="309"/>
         <source>Your video has been transcoded successfully.</source>
         <translation>Votre vidéo a été transcodée avec succès.</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="303"/>
+        <location filename="../src/backend.cpp" line="310"/>
         <source>Transcoding exited with code %1</source>
         <translation>Le transcodage s&apos;est terminé avec le code %1</translation>
     </message>

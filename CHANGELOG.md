@@ -1,3 +1,11 @@
+### 0.8.0
+- Change theming to QtQuickControls style changer
+- Added updated checker
+- Added copy button in AboutDialog for bug reporting
+- Fixed audio streams name not being captured properly
+- Fixed system name being "KDE Flatpak Runtime" in Flatpak version, instead of real system name
+- Updated translations
+
 ### 0.7.0
 - Added support for translations based on system locale
 - Added Polish language

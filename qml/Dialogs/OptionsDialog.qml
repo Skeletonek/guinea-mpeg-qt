@@ -134,7 +134,6 @@ Dialog {
         SwitchRow {
             id: checkForUpdatesSwitch
             label: qsTr("Check for updates on startup")
-            labelWidth: 200
             checked: true
             onCheckedChanged: {
                 if (root._loadingOptions) return

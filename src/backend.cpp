@@ -1,5 +1,7 @@
 #include "backend.h"
 #include "guinea_mpeg_core.h"
+#include <QGuiApplication>
+#include <QClipboard>
 #include <QDir>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -77,6 +79,11 @@ QString GuineaMpegBackendExt::encoderCapabilities(const QString& encoderName) {
     QString json = QString::fromUtf8(result);
     guinea_mpeg_free_string(result);
     return json;
+}
+
+void GuineaMpegBackendExt::copyToClipboard(const QString& text) {
+    if (auto* cb = QGuiApplication::clipboard())
+        cb->setText(text);
 }
 
 QString GuineaMpegBackendExt::generateCommandPreview(const QString& json) {

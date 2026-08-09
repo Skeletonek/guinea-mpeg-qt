@@ -10,9 +10,9 @@ import GuineaMpeg 1.0
 ApplicationWindow {
     id: appWindow
     width: 1024
-    height: 768
-    minimumWidth: 1024
-    minimumHeight: 768
+    height: 800
+    minimumWidth: 900
+    minimumHeight: 700
     visible: true
     title: "GuineaMPEG"
 
