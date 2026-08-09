@@ -15,6 +15,7 @@
 #include "backend.h"
 #include "guinea_mpeg_core.h"
 #include <QDir>
+#include <QFile>
 #include <QFileInfo>
 #include <QIcon>
 #include <QUrl>
@@ -149,13 +150,41 @@ int main(int argc, char *argv[])
 
     QQuickWindow::setGraphicsApi(QSGRendererInterface::OpenGL);
 
+    static auto osReleasePretty = [](const QString& path) {
+        QFile f(path);
+        if (!f.open(QIODevice::ReadOnly))
+            return QString();
+        while (!f.atEnd()) {
+            QString line = QString::fromUtf8(f.readLine()).trimmed();
+            if (!line.startsWith("PRETTY_NAME="))
+                continue;
+            QString val = line.mid(12).trimmed();
+            if (val.size() >= 2 && val.startsWith('"') && val.endsWith('"'))
+                val = val.mid(1, val.size() - 2);
+            return val;
+        }
+        return QString();
+    };
+
+    static auto hostOsName = [] {
+        const bool isFlatpak = QStringLiteral(PACKAGE_TARGET) == QStringLiteral("flatpak");
+        QString name;
+        if (isFlatpak)
+            name = osReleasePretty(QStringLiteral("/run/host/etc/os-release"));
+        if (name.isEmpty())
+            name = osReleasePretty(QStringLiteral("/etc/os-release"));
+        if (!name.isEmpty())
+            return name;
+        return QSysInfo::prettyProductName();
+    };
+
     QVariantMap buildInfo;
     buildInfo["author"] = "Skeletonek";
     buildInfo["license"] = "BSD 3-Clause";
     buildInfo["version"] = PROJECT_VERSION_FULL;
     buildInfo["buildDate"] = __DATE__ " " __TIME__;
     buildInfo["packageTarget"] = PACKAGE_TARGET;
-    buildInfo["distroName"] = QSysInfo::prettyProductName();
+    buildInfo["distroName"] = hostOsName();
     buildInfo["qtVersion"] = qVersion();
     buildInfo["copyright"] = QString(buildInfo["author"].toString() + " " + QString(__DATE__).right(4));
 
