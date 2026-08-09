@@ -48,6 +48,13 @@ qt_add_resources(guinea-mpeg "app_qml"
         ${CMAKE_SOURCE_DIR}/media/audio/guinea.wav
 )
 
+option(GUINEA_LUPDATE_NO_OBSOLETE "Pass -no-obsolete to lupdate (drop obsolete/vanished entries)" OFF)
+
+set(_lupdate_no_obsolete)
+if(GUINEA_LUPDATE_NO_OBSOLETE)
+    set(_lupdate_no_obsolete LUPDATE_OPTIONS -no-obsolete)
+endif()
+
 qt_add_translations(guinea-mpeg
     TS_FILES
         ${CMAKE_SOURCE_DIR}/translations/guinea-mpeg_cs.ts
@@ -58,4 +65,5 @@ qt_add_translations(guinea-mpeg
         ${CMAKE_SOURCE_DIR}/translations/guinea-mpeg_ru.ts
         ${CMAKE_SOURCE_DIR}/translations/guinea-mpeg_szl.ts
         ${CMAKE_SOURCE_DIR}/translations/guinea-mpeg_pl_PL.ts
+    ${_lupdate_no_obsolete}
 )

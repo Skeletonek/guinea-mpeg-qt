@@ -166,7 +166,7 @@ import "../Utils/Centering.js" as Utils
                 Label { text: qsTr("OS name: %1").arg(buildInfo.distroName); color: theme.text }
                 Label { text: qsTr("Package: %1").arg(buildInfo.packageTarget); color: theme.textMuted; font.pixelSize: 11 }
                 Label { text: qsTr("Build: %1").arg(buildInfo.buildDate); color: theme.textMuted; font.pixelSize: 11 }
-                Label { text: qsTr("Copyright © %1").arg(buildInfo.copyright); color: theme.textMuted; font.pixelSize: 11 }
+                Label { text: "Copyright © " + buildInfo.copyright; color: theme.textMuted; font.pixelSize: 11 }
             }
 
             Item { Layout.fillWidth: true }

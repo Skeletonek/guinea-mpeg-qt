@@ -15,7 +15,7 @@ Column {
     signal changed
 
     SectionHeader {
-        text: qsTr("AV1")
+        text: "AV1"
     }
 
     Grid {

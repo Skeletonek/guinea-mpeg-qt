@@ -1,13 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.1" language="ru" sourcelanguage="en">
+<TS version="2.1" language="ru_RU" sourcelanguage="en_US">
 <context>
     <name>AV1Section</name>
-    <message>
-        <location filename="../qml/ProfileEditor/VideoPanel/AV1Section.qml" line="18"/>
-        <source>AV1</source>
-        <translation>AV1</translation>
-    </message>
     <message>
         <location filename="../qml/ProfileEditor/VideoPanel/AV1Section.qml" line="27"/>
         <source>Tile rows</source>
@@ -65,11 +60,6 @@
         <location filename="../qml/Dialogs/AboutDialog.qml" line="168"/>
         <source>Build: %1</source>
         <translation>Сборка: %1</translation>
-    </message>
-    <message>
-        <location filename="../qml/Dialogs/AboutDialog.qml" line="169"/>
-        <source>Copyright © %1</source>
-        <translation>Copyright © %1</translation>
     </message>
 </context>
 <context>
@@ -154,67 +144,67 @@
 <context>
     <name>ControlsPanel</name>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="56"/>
+        <location filename="../qml/ControlsPanel.qml" line="57"/>
         <source>Input File</source>
         <translation>Входной файл</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="63"/>
+        <location filename="../qml/ControlsPanel.qml" line="64"/>
         <source>Open Video...</source>
         <translation>Открыть видео...</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="69"/>
+        <location filename="../qml/ControlsPanel.qml" line="70"/>
         <source>Video Information</source>
         <translation>Информация о видео</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="87"/>
+        <location filename="../qml/ControlsPanel.qml" line="88"/>
         <source>Stream Selection</source>
         <translation>Выбор потока</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="96"/>
+        <location filename="../qml/ControlsPanel.qml" line="97"/>
         <source>Video</source>
         <translation>Видео</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="123"/>
+        <location filename="../qml/ControlsPanel.qml" line="124"/>
         <source>Audio</source>
         <translation>Аудио</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="150"/>
+        <location filename="../qml/ControlsPanel.qml" line="151"/>
         <source>Transcoding Profile</source>
         <translation>Профиль транскодирования</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="169"/>
+        <location filename="../qml/ControlsPanel.qml" line="170"/>
         <source>Profile Editor</source>
         <translation>Редактор профилей</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="175"/>
+        <location filename="../qml/ControlsPanel.qml" line="176"/>
         <source>Timeline Selection</source>
         <translation>Выбор таймлайна</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="202"/>
+        <location filename="../qml/ControlsPanel.qml" line="203"/>
         <source>Output File</source>
         <translation>Выходной файл</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="215"/>
+        <location filename="../qml/ControlsPanel.qml" line="216"/>
         <source>Output path...</source>
         <translation>Путь вывода...</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="231"/>
+        <location filename="../qml/ControlsPanel.qml" line="232"/>
         <source>Start Transcoding</source>
         <translation>Начать транскодирование</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="241"/>
+        <location filename="../qml/ControlsPanel.qml" line="242"/>
         <source>Transcoding in progress... (click to view)</source>
         <translation>Транскодирование выполняется... (нажмите, чтобы просмотреть)</translation>
     </message>
@@ -299,6 +289,66 @@ Install it with your package manager, e.g.:
     </message>
 </context>
 <context>
+    <name>GuineaMpegBackendExt</name>
+    <message>
+        <location filename="../src/backend.cpp" line="239"/>
+        <source>Error: failed to build ffmpeg command from profile</source>
+        <translation>Ошибка: не удалось построить команду ffmpeg из профиля</translation>
+    </message>
+    <message>
+        <location filename="../src/backend.cpp" line="244"/>
+        <source>Error: profile produced no ffmpeg arguments</source>
+        <translation>Ошибка: профиль не создал аргументов ffmpeg</translation>
+    </message>
+    <message>
+        <location filename="../src/backend.cpp" line="260"/>
+        <source>
+--- Transcoding cancelled ---
+</source>
+        <translation>
+--- Транскодирование отменено ---
+</translation>
+    </message>
+    <message>
+        <location filename="../src/backend.cpp" line="297"/>
+        <source>
+--- Transcoding finished: SUCCESS ---
+</source>
+        <translation>
+--- Транскодирование завершено: УСПЕХ ---
+</translation>
+    </message>
+    <message>
+        <location filename="../src/backend.cpp" line="299"/>
+        <source>
+--- Transcoding finished: FAILED (exit code %1) ---
+</source>
+        <translation>
+--- Транскодирование завершено: ОШИБКА (код выхода %1) ---
+</translation>
+    </message>
+    <message>
+        <location filename="../src/backend.cpp" line="301"/>
+        <source>Transcoding Complete</source>
+        <translation>Транскодирование завершено</translation>
+    </message>
+    <message>
+        <location filename="../src/backend.cpp" line="301"/>
+        <source>Transcoding Failed</source>
+        <translation>Транскодирование не удалось</translation>
+    </message>
+    <message>
+        <location filename="../src/backend.cpp" line="302"/>
+        <source>Your video has been transcoded successfully.</source>
+        <translation>Ваше видео было успешно транскодировано.</translation>
+    </message>
+    <message>
+        <location filename="../src/backend.cpp" line="303"/>
+        <source>Transcoding exited with code %1</source>
+        <translation>Транскодирование завершилось с кодом %1</translation>
+    </message>
+</context>
+<context>
     <name>MpvWarningDialog</name>
     <message>
         <location filename="../qml/Dialogs/MpvWarningDialog.qml" line="6"/>
@@ -329,57 +379,57 @@ Install it with your package manager, e.g.:
 <context>
     <name>OptionsDialog</name>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="8"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="9"/>
         <source>Options</source>
         <translation>Параметры</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="46"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="51"/>
         <source>General</source>
         <translation>Общие</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="48"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="53"/>
         <source>Language</source>
         <translation>Язык</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="53"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="58"/>
         <source>System default</source>
         <translation>По умолчанию системы</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="65"/>
-        <source>Qt theme</source>
-        <translation>Тема Qt</translation>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="77"/>
+        <source>Qt Quick Controls style</source>
+        <translation>Стиль Qt Quick Controls</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="70"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="132"/>
+        <source>Updates</source>
+        <translation>Обновления</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="136"/>
+        <source>Check for updates on startup</source>
+        <translation>Проверять обновления при запуске</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="84"/>
         <source>System</source>
         <translation>Система</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="71"/>
-        <source>Dark</source>
-        <translation>Тёмная</translation>
-    </message>
-    <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="72"/>
-        <source>Light</source>
-        <translation>Светлая</translation>
-    </message>
-    <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="82"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="100"/>
         <source>Hardware acceleration</source>
         <translation>Аппаратное ускорение</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="89"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="107"/>
         <source>Off</source>
         <translation>Выкл</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="106"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="124"/>
         <source>Some settings take effect on the next launch.</source>
         <translation>Некоторые настройки вступят в силу после следующего запуска.</translation>
     </message>
@@ -574,6 +624,24 @@ Continue?</source>
     </message>
 </context>
 <context>
+    <name>UpdateBanner</name>
+    <message>
+        <location filename="../qml/Components/UpdateBanner.qml" line="81"/>
+        <source>A new version of GuineaMPEG is available</source>
+        <translation>Доступна новая версия GuineaMPEG</translation>
+    </message>
+    <message>
+        <location filename="../qml/Components/UpdateBanner.qml" line="103"/>
+        <source>Update</source>
+        <translation>Обновить</translation>
+    </message>
+    <message>
+        <location filename="../qml/Components/UpdateBanner.qml" line="111"/>
+        <source>Close</source>
+        <translation>Закрыть</translation>
+    </message>
+</context>
+<context>
     <name>VP8VP9Section</name>
     <message>
         <location filename="../qml/ProfileEditor/VideoPanel/VP8VP9Section.qml" line="23"/>
@@ -615,12 +683,12 @@ Continue?</source>
 <context>
     <name>main</name>
     <message>
-        <location filename="../qml/main.qml" line="25"/>
+        <location filename="../qml/main.qml" line="26"/>
         <source>Load a video file to see information</source>
         <translation>Загрузите видеофайл, чтобы увидеть информацию</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="185"/>
+        <location filename="../qml/main.qml" line="186"/>
         <source>File: %1
 Duration: %2s
 Resolution: %3x%4
@@ -635,7 +703,7 @@ FPS: %5
 Аудио: %7</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="217"/>
+        <location filename="../qml/main.qml" line="218"/>
         <source>Please set an output file path first</source>
         <translation>Сначала укажите путь выходного файла</translation>
     </message>
