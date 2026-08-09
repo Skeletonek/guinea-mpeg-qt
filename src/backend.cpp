@@ -142,6 +142,7 @@ QVariantMap GuineaMpegBackendExt::getVideoInfo(const QString& rawPath) {
                 as["channels"] = stream["channels"].toInt();
                 as["sample_rate"] = stream["sample_rate"].toString();
                 as["language"] = stream["tags"].toObject()["language"].toString();
+                as["title"] = stream["tags"].toObject()["title"].toString();
                 audioStreams.append(as);
             }
         }

@@ -30,7 +30,7 @@ function streamText(stream, index, type) {
         }
         return stream.width + "x" + stream.height + " " + stream.codec + " " + fps + "fps"
     }
-    return stream.language || "Stream " + (index + 1) + ": " + stream.codec
+    return stream.title || stream.language || "Stream " + (index + 1) + ": " + stream.codec
 }
 
 /**
