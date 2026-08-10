@@ -11,6 +11,7 @@
 #include <QLocale>
 
 #include <clocale>
+#include <ranges>
 #include "mpvitem.h"
 #include "backend.h"
 #include "guinea_mpeg_core.h"
@@ -48,7 +49,7 @@ static QStringList availableQmlStyles()
     };
 
     QStringList styles;
-    QQmlEngine probe;
+    const QQmlEngine probe;
     const QStringList importPaths = probe.importPathList();
     for (const QString& style : candidates) {
         for (const QString& p : importPaths) {
@@ -186,7 +187,8 @@ int main(int argc, char *argv[])
     buildInfo["packageTarget"] = PACKAGE_TARGET;
     buildInfo["distroName"] = hostOsName();
     buildInfo["qtVersion"] = qVersion();
-    buildInfo["copyright"] = QString(buildInfo["author"].toString() + " " + QString(__DATE__).right(4));
+    buildInfo["copyright"] = buildInfo["author"].toString() + QStringLiteral(" ")
+        + QString::fromLatin1(__DATE__).right(4);
 
     QQmlApplicationEngine engine;
     engine.addImportPath("qrc:/qml");
@@ -195,18 +197,17 @@ int main(int argc, char *argv[])
     qmlRegisterType<MpvItem>("GuineaMpeg", 1, 0, "MpvItem");
     auto backend = new GuineaMpegBackendExt(&app);
     engine.rootContext()->setContextProperty("backend", backend);
-    engine.rootContext()->setContextProperty("ffmpegAvailable", QVariant(backend->ffmpegAvailable()));
-    engine.rootContext()->setContextProperty("ffmpegVersion", QVariant(backend->getFfmpegVersion()));
-    engine.rootContext()->setContextProperty("mpvAvailable", QVariant(guinea_mpeg_mpv_available()));
-    engine.rootContext()->setContextProperty("mpvVersion", QVariant(backend->getMpvVersion()));
-    engine.rootContext()->setContextProperty("buildInfo", QVariant(buildInfo));
-    engine.rootContext()->setContextProperty("theme", QVariant(theme));
-    engine.rootContext()->setContextProperty("availableStyles", QVariant(availableStyles));
+    engine.rootContext()->setContextProperty("ffmpegAvailable", backend->ffmpegAvailable());
+    engine.rootContext()->setContextProperty("ffmpegVersion", backend->getFfmpegVersion());
+    engine.rootContext()->setContextProperty("mpvAvailable", guinea_mpeg_mpv_available());
+    engine.rootContext()->setContextProperty("mpvVersion", backend->getMpvVersion());
+    engine.rootContext()->setContextProperty("buildInfo", buildInfo);
+    engine.rootContext()->setContextProperty("theme", theme);
+    engine.rootContext()->setContextProperty("availableStyles", availableStyles);
 
     QString initialFilePath;
-    auto args = app.arguments();
-    for (int i = 1; i < args.size(); ++i) {
-        const auto& a = args[i];
+    const auto args = app.arguments();
+    for (const QString& a : args | std::views::drop(1)) {
         if (a.startsWith("@@") || a.startsWith('-'))
             continue;
         QString path = QUrl(a).toLocalFile();

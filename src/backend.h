@@ -4,6 +4,8 @@
 #include <QProcess>
 #include <QString>
 #include <QVariantMap>
+
+#include <memory>
 #ifdef Q_OS_WIN
 #include <QSystemTrayIcon>
 #endif
@@ -52,12 +54,13 @@ signals:
     void transcodeFinished(bool success);
 
 private:
-    void connectOutputCapture();
+    void connectOutputCapture(QProcess* proc);
+    void appendTranscodeOutput(const QString& chunk);
     void sendNotification(const QString& title, const QString& body);
 
     QString m_transcodeOutput;
     bool m_transcoding = false;
-    QProcess* m_currentTranscode = nullptr;
+    std::unique_ptr<QProcess> m_currentTranscode;
 #ifdef Q_OS_WIN
     QSystemTrayIcon* m_trayIcon = nullptr;
 #endif

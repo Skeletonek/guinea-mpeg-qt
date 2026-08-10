@@ -15,6 +15,55 @@
 #include <QIcon>
 #endif
 
+namespace {
+
+QString takeRustString(const char* s, const QString& fallback = QString())
+{
+    if (!s) return fallback;
+    QString result = QString::fromUtf8(s);
+    guinea_mpeg_free_string(s);
+    return result;
+}
+
+QStringList jsonArgsToStringList(const QByteArray& json)
+{
+    QStringList args;
+    QJsonDocument doc = QJsonDocument::fromJson(json);
+    if (doc.isArray())
+        for (const auto& arg : doc.array())
+            args << arg.toString();
+    return args;
+}
+
+double jsonDouble(const QJsonValue& v, double fallback = 0.0)
+{
+    if (v.isDouble()) return v.toDouble();
+    if (v.isString()) return v.toString().toDouble();
+    return fallback;
+}
+
+qint64 jsonInt64(const QJsonValue& v)
+{
+    if (v.isDouble()) return static_cast<qint64>(v.toDouble());
+    if (v.isString()) {
+        bool ok = false;
+        const qint64 r = v.toString().toLongLong(&ok);
+        if (ok) return r;
+    }
+    return 0;
+}
+
+void killTranscodeProcess(std::unique_ptr<QProcess>& proc)
+{
+    if (!proc) return;
+    proc->disconnect();
+    proc->kill();
+    proc->waitForFinished(3000);
+    proc.reset();
+}
+
+} // namespace
+
 GuineaMpegBackendExt::GuineaMpegBackendExt(QObject* parent)
     : QObject(parent) {
 #ifdef Q_OS_WIN
@@ -24,10 +73,7 @@ GuineaMpegBackendExt::GuineaMpegBackendExt(QObject* parent)
 }
 
 GuineaMpegBackendExt::~GuineaMpegBackendExt() {
-    if (m_currentTranscode) {
-        m_currentTranscode->kill();
-        m_currentTranscode->waitForFinished(3000);
-    }
+    killTranscodeProcess(m_currentTranscode);
 }
 
 void GuineaMpegBackendExt::setTranscodeOutput(const QString& v) {
@@ -41,24 +87,15 @@ void GuineaMpegBackendExt::setTranscoding(bool v) {
 }
 
 QString GuineaMpegBackendExt::defaultProfileNames() {
-    const char* json = guinea_mpeg_default_profile_names();
-    QString result = QString::fromUtf8(json);
-    guinea_mpeg_free_string(json);
-    return result;
+    return takeRustString(guinea_mpeg_default_profile_names());
 }
 
 QString GuineaMpegBackendExt::availableProfiles() {
-    const char* json = guinea_mpeg_available_profiles();
-    QString result = QString::fromUtf8(json);
-    guinea_mpeg_free_string(json);
-    return result;
+    return takeRustString(guinea_mpeg_available_profiles());
 }
 
 QString GuineaMpegBackendExt::loadProfile(const QString& name) {
-    const char* json = guinea_mpeg_load_profile(name.toUtf8().constData());
-    QString result = QString::fromUtf8(json);
-    guinea_mpeg_free_string(json);
-    return result;
+    return takeRustString(guinea_mpeg_load_profile(name.toUtf8().constData()));
 }
 
 bool GuineaMpegBackendExt::saveProfile(const QString& name, const QString& json) {
@@ -66,19 +103,12 @@ bool GuineaMpegBackendExt::saveProfile(const QString& name, const QString& json)
 }
 
 QString GuineaMpegBackendExt::availableEncoders() {
-    const char* result = guinea_mpeg_available_encoders();
-    if (!result) return "null";
-    QString json = QString::fromUtf8(result);
-    guinea_mpeg_free_string(result);
-    return json;
+    return takeRustString(guinea_mpeg_available_encoders(), QStringLiteral("null"));
 }
 
 QString GuineaMpegBackendExt::encoderCapabilities(const QString& encoderName) {
-    const char* result = guinea_mpeg_encoder_capabilities(encoderName.toUtf8().constData());
-    if (!result) return "null";
-    QString json = QString::fromUtf8(result);
-    guinea_mpeg_free_string(result);
-    return json;
+    return takeRustString(guinea_mpeg_encoder_capabilities(encoderName.toUtf8().constData()),
+                          QStringLiteral("null"));
 }
 
 void GuineaMpegBackendExt::copyToClipboard(const QString& text) {
@@ -87,11 +117,7 @@ void GuineaMpegBackendExt::copyToClipboard(const QString& text) {
 }
 
 QString GuineaMpegBackendExt::generateCommandPreview(const QString& json) {
-    const char* result = guinea_mpeg_preview_command(json.toUtf8().constData());
-    if (!result) return {};
-    QString preview = QString::fromUtf8(result);
-    guinea_mpeg_free_string(result);
-    return preview;
+    return takeRustString(guinea_mpeg_preview_command(json.toUtf8().constData()));
 }
 
 bool GuineaMpegBackendExt::deleteProfile(const QString& name) {
@@ -103,11 +129,7 @@ bool GuineaMpegBackendExt::restoreDefaultProfiles() {
 }
 
 QString GuineaMpegBackendExt::getOptions() {
-    const char* json = guinea_mpeg_get_options();
-    if (!json) return "{}";
-    QString result = QString::fromUtf8(json);
-    guinea_mpeg_free_string(json);
-    return result;
+    return takeRustString(guinea_mpeg_get_options(), QStringLiteral("{}"));
 }
 
 bool GuineaMpegBackendExt::setOption(const QString& key, const QString& value) {
@@ -117,47 +139,56 @@ bool GuineaMpegBackendExt::setOption(const QString& key, const QString& value) {
 QVariantMap GuineaMpegBackendExt::getVideoInfo(const QString& rawPath) {
     const char* json = guinea_mpeg_video_info(rawPath.toUtf8().constData());
     QVariantMap info;
-    if (json) {
-        QJsonObject root = QJsonDocument::fromJson(QByteArray(json)).object();
-        info["duration"] = root["format"].toObject()["duration"].toString().toDouble();
-        QVariantList videoStreams;
-        QVariantList audioStreams;
-        int videoTypeIdx = 0;
-        int audioTypeIdx = 0;
-        for (const auto& s : root["streams"].toArray()) {
-            QJsonObject stream = s.toObject();
-            QString type = stream["codec_type"].toString();
-            if (type == "video") {
+    if (!json) {
+        info["duration"] = 0.0;
+        return info;
+    }
+
+    const QJsonObject root = QJsonDocument::fromJson(QByteArray(json)).object();
+    guinea_mpeg_free_string(json);
+
+    info["duration"] = jsonDouble(root["format"].toObject()["duration"]);
+
+    QVariantList videoStreams;
+    QVariantList audioStreams;
+    int videoTypeIdx = 0;
+    int audioTypeIdx = 0;
+
+    const QJsonArray streams = root["streams"].toArray();
+    for (const auto& s : streams) {
+        const QJsonObject stream = s.toObject();
+        const QString type = stream["codec_type"].toString();
+        if (type == "video") {
+            if (!info.contains("codec")) {
                 info["width"] = stream["width"].toInt();
                 info["height"] = stream["height"].toInt();
                 info["codec"] = stream["codec_name"].toString();
                 info["fps"] = stream["r_frame_rate"].toString();
-                info["bitrate"] = (qint64)stream["bit_rate"].toString().toULongLong();
-                QVariantMap vs;
-                vs["index"] = videoTypeIdx++;
-                vs["codec"] = stream["codec_name"].toString();
-                vs["width"] = stream["width"].toInt();
-                vs["height"] = stream["height"].toInt();
-                vs["fps"] = stream["r_frame_rate"].toString();
-                videoStreams.append(vs);
-            } else if (type == "audio") {
-                if (!info.contains("audio_codec"))
-                    info["audio_codec"] = stream["codec_name"].toString();
-                QVariantMap as;
-                as["index"] = audioTypeIdx++;
-                as["codec"] = stream["codec_name"].toString();
-                as["channels"] = stream["channels"].toInt();
-                as["sample_rate"] = stream["sample_rate"].toString();
-                as["language"] = stream["tags"].toObject()["language"].toString();
-                as["title"] = stream["tags"].toObject()["title"].toString();
-                audioStreams.append(as);
+                info["bitrate"] = jsonInt64(stream["bit_rate"]);
             }
+            QVariantMap vs;
+            vs["index"] = videoTypeIdx++;
+            vs["codec"] = stream["codec_name"].toString();
+            vs["width"] = stream["width"].toInt();
+            vs["height"] = stream["height"].toInt();
+            vs["fps"] = stream["r_frame_rate"].toString();
+            videoStreams.append(vs);
+        } else if (type == "audio") {
+            if (!info.contains("audio_codec"))
+                info["audio_codec"] = stream["codec_name"].toString();
+            const QJsonObject tags = stream["tags"].toObject();
+            QVariantMap as;
+            as["index"] = audioTypeIdx++;
+            as["codec"] = stream["codec_name"].toString();
+            as["channels"] = stream["channels"].toInt();
+            as["sample_rate"] = stream["sample_rate"].toString();
+            as["language"] = tags["language"].toString();
+            as["title"] = tags["title"].toString();
+            audioStreams.append(as);
         }
-        info["video_streams"] = videoStreams;
-        info["audio_streams"] = audioStreams;
-        guinea_mpeg_free_string(json);
-    } else
-        info["duration"] = 0.0;
+    }
+    info["video_streams"] = videoStreams;
+    info["audio_streams"] = audioStreams;
     return info;
 }
 
@@ -166,47 +197,15 @@ bool GuineaMpegBackendExt::ffmpegAvailable() {
 }
 
 QString GuineaMpegBackendExt::getFfmpegVersion() {
-    const char* ver = guinea_mpeg_ffmpeg_version();
-    if (!ver) return {};
-    QString result = QString::fromUtf8(ver);
-    guinea_mpeg_free_string(ver);
-    return result;
+    return takeRustString(guinea_mpeg_ffmpeg_version());
 }
 
 QString GuineaMpegBackendExt::getMpvVersion() {
-    const char* ver = guinea_mpeg_mpv_version();
-    if (!ver) return {};
-    QString result = QString::fromUtf8(ver);
-    guinea_mpeg_free_string(ver);
-    return result;
+    return takeRustString(guinea_mpeg_mpv_version());
 }
 
 QString GuineaMpegBackendExt::generatePreview(const QString& rawPath, qint64 timeMs) {
-    const char* path = guinea_mpeg_generate_preview(rawPath.toUtf8().constData(), (long long)timeMs);
-    if (!path) return {};
-    QString result = QString::fromUtf8(path);
-    guinea_mpeg_free_string(path);
-    return result;
-}
-
-static void killTranscodeProcess(QProcess*& proc) {
-    if (!proc) return;
-    proc->disconnect();
-    proc->kill();
-    proc->waitForFinished(3000);
-    if (proc) {
-        proc->deleteLater();
-        proc = nullptr;
-    }
-}
-
-static QStringList parseArgsFromArray(const QString& json) {
-    QStringList args;
-    QJsonDocument doc = QJsonDocument::fromJson(json.toUtf8());
-    if (doc.isArray())
-        for (const auto& arg : doc.array())
-            args << arg.toString();
-    return args;
+    return takeRustString(guinea_mpeg_generate_preview(rawPath.toUtf8().constData(), (long long)timeMs));
 }
 
 static QStringList buildArgsFromProfile(const QString& input, const QString& output,
@@ -219,11 +218,7 @@ static QStringList buildArgsFromProfile(const QString& input, const QString& out
         profileJson.toUtf8().constData()
     );
     if (!jsonArgs) return {};
-    QStringList args;
-    QJsonDocument profDoc = QJsonDocument::fromJson(QByteArray(jsonArgs));
-    if (profDoc.isArray())
-        for (const auto& arg : profDoc.array())
-            args << arg.toString();
+    QStringList args = jsonArgsToStringList(QByteArray(jsonArgs));
     guinea_mpeg_free_string(jsonArgs);
     return args;
 }
@@ -240,7 +235,7 @@ QString GuineaMpegBackendExt::startTranscode(const QString& rawInput, const QStr
 
     QJsonDocument doc = QJsonDocument::fromJson(profileJson.toUtf8());
     QStringList args = doc.isArray()
-        ? parseArgsFromArray(profileJson)
+        ? jsonArgsToStringList(profileJson.toUtf8())
         : buildArgsFromProfile(input, output, startTime, endTime, profileJson);
     if (doc.isObject() && args.isEmpty()) {
         setTranscodeOutput(tr("Error: failed to build ffmpeg command from profile"));
@@ -253,10 +248,10 @@ QString GuineaMpegBackendExt::startTranscode(const QString& rawInput, const QStr
         return "failed";
     }
 
-    setTranscodeOutput(transcodeOutput() + "ffmpeg " + args.join(" ") + "\n\n");
+    appendTranscodeOutput("ffmpeg " + args.join(" ") + "\n\n");
 
-    m_currentTranscode = new QProcess(this);
-    connectOutputCapture();
+    m_currentTranscode = std::make_unique<QProcess>();
+    connectOutputCapture(m_currentTranscode.get());
     m_currentTranscode->start("ffmpeg", args);
     return "started";
 }
@@ -264,7 +259,7 @@ QString GuineaMpegBackendExt::startTranscode(const QString& rawInput, const QStr
 void GuineaMpegBackendExt::cancelTranscode() {
     if (!m_currentTranscode) return;
     killTranscodeProcess(m_currentTranscode);
-    setTranscodeOutput(transcodeOutput() + tr("\n--- Transcoding cancelled ---\n"));
+    appendTranscodeOutput(tr("\n--- Transcoding cancelled ---\n"));
     setTranscoding(false);
 }
 
@@ -293,17 +288,22 @@ void GuineaMpegBackendExt::sendNotification(const QString& title, const QString&
 #endif
 }
 
-void GuineaMpegBackendExt::connectOutputCapture() {
-    connect(m_currentTranscode, &QProcess::readyReadStandardError, this, [this]() {
-        if (m_currentTranscode)
-            setTranscodeOutput(transcodeOutput() + QString::fromUtf8(m_currentTranscode->readAllStandardError()));
+void GuineaMpegBackendExt::appendTranscodeOutput(const QString& chunk) {
+    if (chunk.isEmpty()) return;
+    m_transcodeOutput.reserve(m_transcodeOutput.size() + chunk.size());
+    m_transcodeOutput += chunk;
+    emit transcodeOutputUpdated();
+}
+
+void GuineaMpegBackendExt::connectOutputCapture(QProcess* proc) {
+    connect(proc, &QProcess::readyReadStandardError, this, [this, proc]() {
+        appendTranscodeOutput(QString::fromUtf8(proc->readAllStandardError()));
     });
-    connect(m_currentTranscode, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
-            this, [this](int exitCode, QProcess::ExitStatus) {
+    connect(proc, &QProcess::finished, this, [this, proc](int exitCode, QProcess::ExitStatus) {
         if (exitCode == 0)
-            setTranscodeOutput(transcodeOutput() + tr("\n--- Transcoding finished: SUCCESS ---\n"));
+            appendTranscodeOutput(tr("\n--- Transcoding finished: SUCCESS ---\n"));
         else
-            setTranscodeOutput(transcodeOutput() + tr("\n--- Transcoding finished: FAILED (exit code %1) ---\n").arg(exitCode));
+            appendTranscodeOutput(tr("\n--- Transcoding finished: FAILED (exit code %1) ---\n").arg(exitCode));
         sendNotification(
             exitCode == 0 ? tr("Transcoding Complete") : tr("Transcoding Failed"),
             exitCode == 0 ? tr("Your video has been transcoded successfully.")
@@ -311,7 +311,8 @@ void GuineaMpegBackendExt::connectOutputCapture() {
         );
         emit transcodeFinished(exitCode == 0);
         setTranscoding(false);
-        m_currentTranscode->deleteLater();
-        m_currentTranscode = nullptr;
+        proc->deleteLater();
+        if (m_currentTranscode.get() == proc)
+            m_currentTranscode.release();
     });
 }

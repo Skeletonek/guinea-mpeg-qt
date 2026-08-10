@@ -8,12 +8,14 @@
 #include <QQuickWindow>
 #include <QDebug>
 
+#include <algorithm>
+
 MpvRenderer::MpvRenderer(MpvItem* item)
     : m_item(item)
 {
     initializeOpenGLFunctions();
 
-    mpv_opengl_init_params gl_init{ getProcAddr, nullptr };
+    mpv_opengl_init_params gl_init{ .get_proc_address = getProcAddr, .get_proc_address_ctx = nullptr };
     mpv_render_param params[] = {
         { MPV_RENDER_PARAM_API_TYPE, const_cast<char*>(MPV_RENDER_API_TYPE_OPENGL) },
         { MPV_RENDER_PARAM_OPENGL_INIT_PARAMS, &gl_init },
@@ -46,16 +48,17 @@ void MpvRenderer::render()
     if (!m_renderCtx)
         return;
 
-    QSize sz = framebufferObject()->size();
+    QOpenGLFramebufferObject* fbo = framebufferObject();
+    const QSize sz = fbo->size();
     glViewport(0, 0, sz.width(), sz.height());
     glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT);
 
     mpv_opengl_fbo mpfbo{
-        static_cast<int>(framebufferObject()->handle()),
-        sz.width(),
-        sz.height(),
-        0
+        .fbo = static_cast<int>(fbo->handle()),
+        .w = sz.width(),
+        .h = sz.height(),
+        .internal_format = 0
     };
     int flip = 1;
     mpv_render_param params[] = {
@@ -73,7 +76,7 @@ void MpvRenderer::synchronize(QQuickFramebufferObject*)
 
 void* MpvRenderer::getProcAddr(void*, const char* name)
 {
-    return (void*)QOpenGLContext::currentContext()->getProcAddress(name);
+    return reinterpret_cast<void*>(QOpenGLContext::currentContext()->getProcAddress(name));
 }
 
 void MpvItem::onUpdate(void* ctx)
@@ -183,7 +186,7 @@ void MpvItem::setVolume(qreal vol)
 {
     m_volume = vol;
     if (m_backend) {
-        int v = qBound(0, (int)(vol), 100);
+        const int v = std::clamp(static_cast<int>(vol), 0, 100);
         guinea_mpeg_mpv_set_volume(m_backend, v);
     }
     emit volumeChanged();
