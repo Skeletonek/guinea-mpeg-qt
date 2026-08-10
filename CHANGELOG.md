@@ -12,6 +12,7 @@
 - Fixed source fps settings showing up as "0" in FPS combobox
 - Fixed debug build on Windows
 - Fixed transcoding notification not working on Windows
+- Fixed color themes not working properly on Windows
 - Bump CXX standard to C++20
 - Cleaned up C++ codebase
 - Updated translations
