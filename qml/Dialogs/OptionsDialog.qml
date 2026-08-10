@@ -15,6 +15,7 @@ Dialog {
 
     property bool restartRequired: false
     property bool _loadingOptions: false
+    property string _loadedColorScheme: "system"
 
     Component.onCompleted: Utils.centerInParent(root)
     onOpened: {
@@ -30,15 +31,26 @@ Dialog {
         return 0
     }
 
+    // In release builds some styles render dark controls with black text, so
+    // their color scheme is locked to Light (see main.cpp).
+    function _updateColorSchemeLock() {
+        var locked = colorSchemeLockedStyles.indexOf(themeCombo.model[themeCombo.currentIndex].value) >= 0
+        colorSchemeCombo.enabled = !locked
+        colorSchemeCombo.currentIndex = _indexOfValue(colorSchemeCombo, locked ? "light" : root._loadedColorScheme)
+    }
+
     function loadOptions() {
         var opts = {}
         try { opts = JSON.parse(backend.getOptions()) } catch(e) {}
         _loadingOptions = true
         languageCombo.currentIndex = _indexOfValue(languageCombo, opts.language || "system")
         themeCombo.currentIndex = _indexOfValue(themeCombo, opts.theme || "system")
+        root._loadedColorScheme = opts.color_scheme || "system"
+        colorSchemeCombo.currentIndex = _indexOfValue(colorSchemeCombo, root._loadedColorScheme)
         hwdecCombo.currentIndex = _indexOfValue(hwdecCombo, opts.hwdec || "auto-copy")
-        checkForUpdatesSwitch.checked = opts.checkForUpdates !== false
+        checkForUpdatesSwitch.checked = opts.check_for_updates !== false
         _loadingOptions = false
+        _updateColorSchemeLock()
     }
 
     ColumnLayout {
@@ -94,6 +106,24 @@ Dialog {
             onActivated: function(index) {
                 var v = model[index].value
                 if (backend.setOption("theme", v)) root.restartRequired = true
+                _updateColorSchemeLock()
+            }
+        }
+
+        Label { text: qsTr("Color scheme"); color: theme.textMuted }
+        ComboBox {
+            id: colorSchemeCombo
+            Layout.fillWidth: true
+            model: [
+                { text: qsTr("System default"), value: "system" },
+                { text: qsTr("Dark"), value: "dark" },
+                { text: qsTr("Light"), value: "light" }
+            ]
+            textRole: "text"
+            valueRole: "value"
+            onActivated: function(index) {
+                var v = model[index].value
+                if (backend.setOption("colorScheme", v)) root.restartRequired = true
             }
         }
 

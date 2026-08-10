@@ -1,7 +1,7 @@
 ### 0.8.0
 - Added support for GIF output format
 - Added support for animated WebP output format
-- Change theming to QtQuickControls style changer
+- Added QtQuickControls style change
 - Added updated checker
 - Added copy button in AboutDialog for bug reporting
 - Added additional information for development builds

@@ -71,6 +71,46 @@ static QStringList availableQmlStyles()
     return styles;
 }
 
+static QPalette makeDarkPalette()
+{
+    QPalette p;
+    p.setColor(QPalette::Window, QColor(53, 53, 53));
+    p.setColor(QPalette::WindowText, QColor(220, 220, 220));
+    p.setColor(QPalette::Base, QColor(42, 42, 42));
+    p.setColor(QPalette::AlternateBase, QColor(66, 66, 66));
+    p.setColor(QPalette::ToolTipBase, QColor(53, 53, 53));
+    p.setColor(QPalette::ToolTipText, QColor(220, 220, 220));
+    p.setColor(QPalette::Text, QColor(220, 220, 220));
+    p.setColor(QPalette::Button, QColor(53, 53, 53));
+    p.setColor(QPalette::ButtonText, QColor(220, 220, 220));
+    p.setColor(QPalette::BrightText, QColor(255, 0, 0));
+    p.setColor(QPalette::Link, QColor(42, 130, 218));
+    p.setColor(QPalette::Highlight, QColor(42, 130, 218));
+    p.setColor(QPalette::HighlightedText, QColor(220, 220, 220));
+    p.setColor(QPalette::Mid, QColor(80, 80, 80));
+    return p;
+}
+
+static QPalette makeLightPalette()
+{
+    QPalette p;
+    p.setColor(QPalette::Window, QColor(240, 240, 240));
+    p.setColor(QPalette::WindowText, QColor(0, 0, 0));
+    p.setColor(QPalette::Base, QColor(255, 255, 255));
+    p.setColor(QPalette::AlternateBase, QColor(245, 245, 245));
+    p.setColor(QPalette::ToolTipBase, QColor(255, 255, 220));
+    p.setColor(QPalette::ToolTipText, QColor(0, 0, 0));
+    p.setColor(QPalette::Text, QColor(0, 0, 0));
+    p.setColor(QPalette::Button, QColor(225, 225, 225));
+    p.setColor(QPalette::ButtonText, QColor(0, 0, 0));
+    p.setColor(QPalette::BrightText, QColor(255, 0, 0));
+    p.setColor(QPalette::Link, QColor(0, 120, 215));
+    p.setColor(QPalette::Highlight, QColor(0, 120, 215));
+    p.setColor(QPalette::HighlightedText, QColor(255, 255, 255));
+    p.setColor(QPalette::Mid, QColor(190, 190, 190));
+    return p;
+}
+
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
@@ -93,6 +133,7 @@ int main(int argc, char *argv[])
     }
 
     QString themeOption = appOptions.value("theme").toString(QStringLiteral("system"));
+    QString colorSchemeOption = appOptions.value("color_scheme").toString(QStringLiteral("system"));
 
 #ifdef Q_OS_WIN
     // Find bundled ffmpeg/ffprobe
@@ -101,16 +142,48 @@ int main(int argc, char *argv[])
 #endif
 
     // Qt Quick Controls style selection (like QT_QUICK_CONTROLS_STYLE).
-    // The color scheme itself always follows the system; only the style is
-    // user-selectable.
     QStringList availableStyles = availableQmlStyles();
 
     if (themeOption != QLatin1String("system") && !availableStyles.contains(themeOption))
         themeOption = QStringLiteral("system");
     if (themeOption != QLatin1String("system"))
         QQuickStyle::setStyle(themeOption);
+#ifdef Q_OS_WIN
+    else
+        // Windows: default to Fusion, the "Windows" style does not support a
+        // forced color scheme (and defaults to light on Win10).
+        QQuickStyle::setStyle(QStringLiteral("Fusion"));
+#endif
 
-    bool darkTheme = QApplication::styleHints()->colorScheme() == Qt::ColorScheme::Dark;
+    // Release builds: Material, Universal and Imagine render dark controls with
+    // black text in dark/system schemes, so lock them to the light variant.
+    // Debug builds allow the full combination (see AGENTS.md).
+    QStringList colorSchemeLockedStyles;
+#ifdef QT_NO_DEBUG
+    colorSchemeLockedStyles = {
+        QStringLiteral("Material"),
+        QStringLiteral("Universal"),
+        QStringLiteral("Imagine")
+    };
+#endif
+    if (colorSchemeLockedStyles.contains(themeOption))
+        colorSchemeOption = QStringLiteral("light");
+
+    // Color scheme: follows the system unless the user forces dark/light.
+    // QQuickStyle::setColorScheme() is missing in some Qt builds, so drive the
+    // scheme through QStyleHints, which Qt Quick Controls styles follow.
+    bool darkTheme;
+    if (colorSchemeOption == QLatin1String("dark")) {
+        app.setPalette(makeDarkPalette());
+        QApplication::styleHints()->setColorScheme(Qt::ColorScheme::Dark);
+        darkTheme = true;
+    } else if (colorSchemeOption == QLatin1String("light")) {
+        app.setPalette(makeLightPalette());
+        QApplication::styleHints()->setColorScheme(Qt::ColorScheme::Light);
+        darkTheme = false;
+    } else {
+        darkTheme = QApplication::styleHints()->colorScheme() == Qt::ColorScheme::Dark;
+    }
 
     QVariantMap theme;
     {
@@ -210,6 +283,7 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("buildInfo", buildInfo);
     engine.rootContext()->setContextProperty("theme", theme);
     engine.rootContext()->setContextProperty("availableStyles", availableStyles);
+    engine.rootContext()->setContextProperty("colorSchemeLockedStyles", colorSchemeLockedStyles);
 
     QString initialFilePath;
     const auto args = app.arguments();

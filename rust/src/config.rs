@@ -51,6 +51,8 @@ pub struct AppOptions {
     pub language: String,
     #[serde(default = "default_theme")]
     pub theme: String,
+    #[serde(default = "default_color_scheme")]
+    pub color_scheme: String,
     #[serde(default = "default_hwdec")]
     pub hwdec: String,
     #[serde(default = "default_preview_volume")]
@@ -64,6 +66,10 @@ fn default_language() -> String {
 }
 
 fn default_theme() -> String {
+    "system".into()
+}
+
+fn default_color_scheme() -> String {
     "system".into()
 }
 
@@ -84,6 +90,7 @@ impl Default for AppOptions {
         Self {
             language: default_language(),
             theme: default_theme(),
+            color_scheme: default_color_scheme(),
             hwdec: default_hwdec(),
             preview_volume: default_preview_volume(),
             check_for_updates: default_check_for_updates(),
@@ -266,6 +273,7 @@ pub fn set_option(key: &str, value: &str) -> anyhow::Result<()> {
     match key {
         "language" => cfg.options.language = value.to_string(),
         "theme" => cfg.options.theme = value.to_string(),
+        "colorScheme" => cfg.options.color_scheme = value.to_string(),
         "hwdec" => cfg.options.hwdec = value.to_string(),
         "previewVolume" => {
             let v: f64 = value
