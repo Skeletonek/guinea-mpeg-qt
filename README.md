@@ -6,7 +6,7 @@ A modern FFmpeg transcoding GUI with a Rust core library dynamically linked via 
 
 - **Video Preview with Playback**: Load any video via embedded libmpv
 - **Timeline Selection**: Drag start/end handles to select a segment for transcoding
-- **Transcoding Profiles**: Built-in profiles for H.264, H.265/HEVC, VP9, and AV1
+- **Transcoding Profiles**: Built-in profiles for H.264, H.265/HEVC, VP9, AV1, GIF, and WebP
 - **Hardware Encoding**: Runtime detection of NVENC, QSV, VAAPI, AMF, Vulkan encoders via ffmpeg
 - **Profile Editor**: Create, edit, and delete profiles in-app; per-encoder preset/tune/pixfmt filtering
 - **Live Transcode Output**: Non-modal dialog showing real-time ffmpeg stderr output with autoscroll
@@ -17,11 +17,12 @@ A modern FFmpeg transcoding GUI with a Rust core library dynamically linked via 
 
 ### Linux
 - CMake 3.16+
+- GCC 10+ (C++20 required)
 - Rust 1.56+ (use your distro's `cargo`/`rustc` packages)
 - Qt 6.5+ (tested on 6.11.0)
 - libmpv (development headers, `pkg-config` findable)
 - OpenGL / GLX development headers
-- FFmpeg + ffprobe (runtime, for transcoding — with SVT-AV1, libx264, libvpx(-vp9), libopus for full profile support)
+- FFmpeg + ffprobe (runtime, for transcoding — with SVT-AV1, libx264, libvpx(-vp9), libwebp, libopus for full profile support)
 
 ### Windows
 - CMake 3.16+
@@ -149,7 +150,7 @@ A GitLab CI pipeline (`.gitlab-ci.yml`) builds and releases all packages on tag 
 
 - `rust/` — Rust core library: `backend.rs` (profile management FFI), `config.rs` (TOML profile config), `ffmpeg/` (ffmpeg subprocess calls and command building — `args.rs`, `encoders.rs`, `codecs.rs`, `ffi.rs`, `types.rs`, `util.rs`), `mpv.rs` (mpv handle/events/commands)
 - `rust/include/guinea_mpeg_core.h` — Hand-written C header declaring all `extern "C"` FFI functions
-- `qml/` — Qt Quick QML UI: main window (`main.qml`), video preview (`VideoPreview.qml`), control panel (`ControlsPanel.qml`), timeline handles (`TimelineControl.qml`), profile editor (`ProfileEditor.qml` + sub-panels in `ProfileEditor/`), and `dialogs/` subdirectory for modal dialogs
+- `qml/` — Qt Quick QML UI: main window (`main.qml`), video preview (`VideoPreview.qml`), control panel (`ControlsPanel.qml`), timeline handles (`TimelineControl.qml`), profile editor (`ProfileEditor.qml` + sub-panels in `ProfileEditor/`), and `Dialogs/` subdirectory for modal dialogs
 - `src/main.cpp` — Qt C++ entry point, `GuineaMpegBackendExt` class with `Q_INVOKABLE` methods
 - `src/backend.h` / `src/backend.cpp` — Plain `QObject` wrapping Rust `extern "C"` calls; only transcode QProcess lifecycle stays in C++
 - `src/mpvitem.h` / `src/mpvitem.cpp` — `MpvItem` (QQuickFramebufferObject) + `MpvRenderer` delegating mpv commands to Rust via `extern "C"`
@@ -175,3 +176,5 @@ User profiles merge over defaults (same name = user override).
 | AV1 High | libsvtav1 | CRF 28, preset 6, VMAF tune, native res, tiles 2x3 |
 | AV1 Medium | libsvtav1 | CRF 35, preset 6, VMAF tune, 720p, tiles 1x2 |
 | AV1 Low | libsvtav1 | CRF 42, preset 6, VMAF tune, 720p |
+| Animated GIF | gif | 480p, 10 fps, quality 75, loop |
+| Animated WebP | libwebp_anim | 480p, 10 fps, quality 75, loop |

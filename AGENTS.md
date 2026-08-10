@@ -19,7 +19,7 @@
 │   ├── TimelineControl.qml    # trim handles (start/end time)
 │   ├── ControlsPanel.qml      # right sidebar
 │   ├── ProfileEditor.qml      # + ProfileEditor/{VideoPanel,AudioPanel,AdvancedPanel}.qml
-│   ├── ProfileEditor/VideoPanel/   # Codec, PresetTune, PixelFormat, RateControl, Scaling, AV1, VP8VP9 sections
+│   ├── ProfileEditor/VideoPanel/   # Codec, PresetTune, PixelFormat, RateControl, Scaling, Animated, AV1, VP8VP9 sections
 │   ├── Components/            # reusable controls (LabeledComboBox, SwitchRow, FormGroup, ...)
 │   ├── Dialogs/               # Transcode, Options, About, EncoderCompat, warnings, ...
 │   └── Utils/                 # Constants.js, DataUtils.js, FormatUtils.js, Centering.js
