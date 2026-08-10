@@ -29,6 +29,8 @@ pub struct VideoProfile {
     pub audio_sample_rate: Option<u32>,
     #[serde(default)]
     pub extra_args: Vec<String>,
+    pub quality: Option<u32>,
+    pub loop_enabled: Option<bool>,
     pub video_enabled: Option<bool>,
     pub audio_enabled: Option<bool>,
     pub audio_codec: Option<String>,

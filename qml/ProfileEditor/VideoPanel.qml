@@ -17,6 +17,7 @@ Column {
     readonly property string codec: codecSection ? codecSection.codec : Constants.codecKeys[0]
     readonly property var codecLabels: codecSection ? codecSection.codecLabels : []
     readonly property var codecKeys: codecSection ? codecSection.codecKeys : []
+    readonly property bool _isAnimated: codec === "gif" || codec === "webp"
     
     signal changed
     signal openEncoderCompatDialog()
@@ -71,6 +72,7 @@ Column {
         RateControlSection {
             id: rateControlSection
             width: parent.width
+            visible: !root._isAnimated
             loading: root.loading
             onChanged: root.changed()
         }
@@ -78,6 +80,7 @@ Column {
         PresetTuneSection {
             id: presetTuneSection
             width: parent.width
+            visible: !root._isAnimated
             loading: root.loading
             onChanged: root.changed()
         }
@@ -85,6 +88,7 @@ Column {
         PixelFormatSection {
             id: pixelFormatSection
             width: parent.width
+            visible: !root._isAnimated
             loading: root.loading
             onChanged: root.changed()
         }
@@ -96,6 +100,14 @@ Column {
         ScalingSection {
             id: scalingSection
             width: parent.width
+            loading: root.loading
+            onChanged: root.changed()
+        }
+
+        AnimatedSection {
+            id: animatedSection
+            width: parent.width
+            codecKey: root.codec
             loading: root.loading
             onChanged: root.changed()
         }
@@ -172,14 +184,20 @@ Column {
             var codecData = codecSection.getCodecData()
             data.codec = codecData.codec
             data.encoder = codecData.encoder
-            var rcData = rateControlSection.getRateControlData()
-            for (var k in rcData) data[k] = rcData[k]
-            var ptData = presetTuneSection.getPresetTuneData()
-            for (var k in ptData) data[k] = ptData[k]
-            var pfData = pixelFormatSection.getPixelFormatData()
-            for (var k in pfData) data[k] = pfData[k]
+            if (!root._isAnimated) {
+                var rcData = rateControlSection.getRateControlData()
+                for (var k in rcData) data[k] = rcData[k]
+                var ptData = presetTuneSection.getPresetTuneData()
+                for (var k in ptData) data[k] = ptData[k]
+                var pfData = pixelFormatSection.getPixelFormatData()
+                for (var k in pfData) data[k] = pfData[k]
+            }
             var scData = scalingSection.getScalingData()
             for (var k in scData) data[k] = scData[k]
+            if (animatedSection && root._isAnimated) {
+                var animData = animatedSection.getAnimatedData()
+                for (var k in animData) data[k] = animData[k]
+            }
             if (av1Section) {
                 var av1Data = av1Section.getAV1Data()
                 for (var k in av1Data) data[k] = av1Data[k]
@@ -207,6 +225,9 @@ Column {
             presetTuneSection.setPresetTuneData(d)
             pixelFormatSection.setPixelFormatData(d)
             scalingSection.setScalingData(d)
+            if (animatedSection) {
+                animatedSection.setAnimatedData(d)
+            }
             if (av1Section) {
                 av1Section.setAV1Data(d)
             }

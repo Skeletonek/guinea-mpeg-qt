@@ -149,6 +149,19 @@ fn add_codec_specific(args: &mut Vec<String>, profile: &VideoProfile, enc: &str)
     }
 }
 
+fn is_animated_codec(codec: &str) -> bool {
+    codec == "gif" || codec == "webp"
+}
+
+fn resolution_scale(res: &str) -> Option<String> {
+    if let Some(height) = res.strip_suffix('p') {
+        if height != "native" {
+            return Some(format!("scale=-2:{}", height));
+        }
+    }
+    None
+}
+
 fn add_filter_graph(args: &mut Vec<String>, profile: &VideoProfile, family: EncoderFamily) {
     let mut filter_parts = Vec::new();
     if let Some(fps) = profile.framerate {
@@ -157,10 +170,8 @@ fn add_filter_graph(args: &mut Vec<String>, profile: &VideoProfile, family: Enco
         }
     }
     if let Some(res) = &profile.resolution {
-        if let Some(height) = res.strip_suffix('p') {
-            if height != "native" {
-                filter_parts.push(format!("scale=-2:{}", height));
-            }
+        if let Some(scale) = resolution_scale(res) {
+            filter_parts.push(scale);
         }
     }
     if family == EncoderFamily::Vulkan {
@@ -219,6 +230,46 @@ fn add_av1_params(args: &mut Vec<String>, profile: &VideoProfile) {
     if !svt.is_empty() {
         args.push("-svtav1-params".to_string());
         args.push(svt.join(":"));
+    }
+}
+
+fn add_animation_params(args: &mut Vec<String>, profile: &VideoProfile) {
+    let q = profile.quality.unwrap_or(75).clamp(0, 100);
+    let looping = profile.loop_enabled.unwrap_or(true);
+
+    let mut parts: Vec<String> = Vec::new();
+    if let Some(fps) = profile.framerate {
+        if fps > 0.0 {
+            parts.push(format!("fps={}", fps));
+        }
+    }
+    if let Some(res) = &profile.resolution {
+        if let Some(scale) = resolution_scale(res) {
+            parts.push(scale);
+        }
+    }
+
+    if profile.codec == "gif" {
+        let colors = (((q as f32 / 100.0) * 256.0).round() as u32).clamp(2, 256);
+        parts.push(format!(
+            "split[s0][s1];[s0]palettegen=max_colors={}[p];[s1][p]paletteuse=dither=bayer:bayer_scale=5",
+            colors
+        ));
+        if !parts.is_empty() {
+            args.push("-vf".to_string());
+            args.push(parts.join(","));
+        }
+        args.push("-loop".to_string());
+        args.push(if looping { "0" } else { "-1" }.to_string());
+    } else {
+        if !parts.is_empty() {
+            args.push("-vf".to_string());
+            args.push(parts.join(","));
+        }
+        args.push("-quality".to_string());
+        args.push(q.to_string());
+        args.push("-loop".to_string());
+        args.push(if looping { "0" } else { "1" }.to_string());
     }
 }
 
@@ -305,17 +356,21 @@ pub(crate) fn build_command(
         args.push("-c:v".to_string());
         args.push(enc.clone());
 
-        add_rate_control(&mut args, profile, &enc);
-        add_codec_specific(&mut args, profile, &enc);
-        add_filter_graph(&mut args, profile, family);
-        add_av1_params(&mut args, profile);
+        if is_animated_codec(&profile.codec) {
+            add_animation_params(&mut args, profile);
+        } else {
+            add_rate_control(&mut args, profile, &enc);
+            add_codec_specific(&mut args, profile, &enc);
+            add_filter_graph(&mut args, profile, family);
+            add_av1_params(&mut args, profile);
+        }
 
         for arg in &profile.extra_args {
             args.push(arg.clone());
         }
     }
 
-    if !profile.audio_enabled.unwrap_or(true) {
+    if is_animated_codec(&profile.codec) || !profile.audio_enabled.unwrap_or(true) {
         args.push("-an".to_string());
     } else {
         args.push("-c:a".to_string());

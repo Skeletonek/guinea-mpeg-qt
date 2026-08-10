@@ -31,6 +31,7 @@ qt_add_resources(guinea-mpeg "app_qml"
         ${CMAKE_SOURCE_DIR}/qml/ProfileEditor/VideoPanel/ScalingSection.qml
         ${CMAKE_SOURCE_DIR}/qml/ProfileEditor/VideoPanel/AV1Section.qml
         ${CMAKE_SOURCE_DIR}/qml/ProfileEditor/VideoPanel/VP8VP9Section.qml
+        ${CMAKE_SOURCE_DIR}/qml/ProfileEditor/VideoPanel/AnimatedSection.qml
         ${CMAKE_SOURCE_DIR}/qml/Utils/Centering.js
         ${CMAKE_SOURCE_DIR}/qml/Utils/FormatUtils.js
         ${CMAKE_SOURCE_DIR}/qml/Utils/DataUtils.js

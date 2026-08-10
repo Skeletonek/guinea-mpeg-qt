@@ -6,7 +6,7 @@ import "../Utils/UpdateUtils.js" as UpdateUtils
 Rectangle {
     id: root
     implicitHeight: 96
-    visible: updateAvailable && !dismissed
+    visible: buildInfo.debugBuild ? !dismissed : (updateAvailable && !dismissed)
     color: theme.widget
     border.color: theme.widgetBorder
     border.width: 1
@@ -19,6 +19,7 @@ Rectangle {
     property bool dismissed: false
 
     Component.onCompleted: {
+        if (buildInfo.debugBuild === true) return
         var opts = {}
         try { opts = JSON.parse(backend.getOptions()) } catch(e) {}
         if (opts.checkForUpdates === false) return
@@ -78,7 +79,8 @@ Rectangle {
                 spacing: 2
 
                 Text {
-                    text: qsTr("A new version of GuineaMPEG is available")
+                    text: buildInfo.debugBuild ? qsTr("Development build of GuineaMPEG")
+                                               : qsTr("A new version of GuineaMPEG is available")
                     color: theme.text
                     font.pixelSize: 13
                     Layout.fillWidth: true
@@ -86,7 +88,8 @@ Rectangle {
                 }
 
                 Text {
-                    text: "%1 → %2".arg(buildInfo.version).arg(root.latestVersion)
+                    text: buildInfo.debugBuild ? buildInfo.buildDate
+                                               : "%1 → %2".arg(buildInfo.version).arg(root.latestVersion)
                     color: theme.accent
                     font.pixelSize: 13
                     font.bold: true
@@ -101,6 +104,7 @@ Rectangle {
 
                 Button {
                     text: qsTr("Update")
+                    visible: !buildInfo.debugBuild
                     onClicked: {
                         if (root.updateUrl !== "")
                             Qt.openUrlExternally(root.updateUrl)

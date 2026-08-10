@@ -120,3 +120,23 @@ pixel_format = "yuv420p"
 audio_bitrate = "128k"
 audio_channels = 2
 audio_sample_rate = 48000
+
+[[profiles]]
+name = "Animated GIF"
+codec = "gif"
+encoder = "gif"
+resolution = "480p"
+framerate = 10.0
+quality = 75
+loop_enabled = true
+audio_enabled = false
+
+[[profiles]]
+name = "Animated WebP"
+codec = "webp"
+encoder = "libwebp"
+resolution = "480p"
+framerate = 10.0
+quality = 75
+loop_enabled = true
+audio_enabled = false

@@ -187,6 +187,11 @@ int main(int argc, char *argv[])
     buildInfo["packageTarget"] = PACKAGE_TARGET;
     buildInfo["distroName"] = hostOsName();
     buildInfo["qtVersion"] = qVersion();
+#ifdef QT_NO_DEBUG
+    buildInfo["debugBuild"] = false;
+#else
+    buildInfo["debugBuild"] = true;
+#endif
     buildInfo["copyright"] = buildInfo["author"].toString() + QStringLiteral(" ")
         + QString::fromLatin1(__DATE__).right(4);
 

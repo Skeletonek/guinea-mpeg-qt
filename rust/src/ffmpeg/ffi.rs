@@ -90,6 +90,8 @@ pub extern "C" fn guinea_mpeg_available_encoders() -> *mut c_char {
             } else {
                 continue;
             }
+        } else if enc_name == "gif" {
+            "gif".to_string()
         } else {
             continue;
         };

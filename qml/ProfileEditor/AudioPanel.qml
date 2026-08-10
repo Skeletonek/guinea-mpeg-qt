@@ -12,6 +12,8 @@ Column {
     property string currentCodecKey: "h264"
     property bool loading: false
 
+    readonly property bool audioForbidden: currentCodecKey === "gif" || currentCodecKey === "webp"
+
     signal changed
 
     readonly property alias audioEnabled: audioEnabledSwitch.checked
@@ -33,15 +35,24 @@ Column {
             Switch {
                 id: audioEnabledSwitch
                 checked: true
+                enabled: !audioForbidden
                 onCheckedChanged: if (!root.loading) root.changed()
             }
         }
     }
 
+    Label {
+        width: parent.width
+        text: qsTr("Audio is not supported for GIF/WebP output.")
+        color: theme.textSecondary
+        wrapMode: Text.WordWrap
+        visible: audioForbidden
+    }
+
     Column {
         width: parent.width
         spacing: 8
-        visible: audioEnabledSwitch.checked
+        visible: audioEnabledSwitch.checked && !audioForbidden
 
         LabeledRow {
             visible: videoEnabled
@@ -94,7 +105,7 @@ Column {
         var audioCodec = (!videoEnabled && audioEnabledSwitch.checked && idx >= 0)
             ? audioCodecLabels[idx] : null
         var data = {
-            audio_enabled: audioEnabledSwitch.checked,
+            audio_enabled: audioForbidden ? false : audioEnabledSwitch.checked,
             audio_bitrate: audioCodec === "FLAC" ? "" : (audioBitrateField.text || "128k"),
             audio_channels: audioChannelsField.text ? parseInt(audioChannelsField.text) : null,
             audio_sample_rate: audioSrField.text ? parseInt(audioSrField.text) : null,
@@ -104,7 +115,7 @@ Column {
     }
 
     function setData(d) {
-        audioEnabledSwitch.checked = d.audio_enabled !== false
+        audioEnabledSwitch.checked = audioForbidden ? false : (d.audio_enabled !== false)
         audioChannelsField.text = d.audio_channels != null ? String(d.audio_channels) : ""
         audioSrField.text = d.audio_sample_rate != null ? String(d.audio_sample_rate) : ""
 

@@ -9,8 +9,8 @@ var rateControlKeys = ["crf", "vbr", "cbr"]
 var rateControlLabels = ["CRF", "VBR", "CBR"]
 
 // Video codec definitions
-var codecKeys = ["h264", "hevc", "vp8", "vp9", "av1"]
-var codecLabels = ["H.264", "H.265/HEVC", "VP8", "VP9", "AV1"]
+var codecKeys = ["h264", "hevc", "vp8", "vp9", "av1", "gif", "webp"]
+var codecLabels = ["H.264", "H.265/HEVC", "VP8", "VP9", "AV1", "GIF", "WebP"]
 
 // Audio codec definitions
 var audioCodecLabels = ["AAC", "Opus", "MP3", "FLAC", "Vorbis"]
@@ -33,7 +33,9 @@ var defaultEncoders = {
     "hevc": "libx265", 
     "vp8": "libvpx",
     "vp9": "libvpx-vp9",
-    "av1": "libsvtav1"
+    "av1": "libsvtav1",
+    "gif": "gif",
+    "webp": "libwebp"
 }
 
 // Tune defaults for each codec
@@ -63,7 +65,9 @@ var profileExtensions = {
     "hevc": "mp4",
     "vp8": "webm",
     "vp9": "webm", 
-    "av1": "webm"
+    "av1": "webm",
+    "gif": "gif",
+    "webp": "webp"
 }
 
 // Audio file extensions
