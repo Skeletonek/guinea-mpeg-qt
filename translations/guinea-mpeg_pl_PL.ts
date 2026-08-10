@@ -64,7 +64,7 @@
     <message>
         <location filename="../qml/Dialogs/AboutDialog.qml" line="13"/>
         <source>Copy</source>
-        <translation type="unfinished"></translation>
+        <translation>Kopiuj</translation>
     </message>
 </context>
 <context>
@@ -91,34 +91,52 @@
     </message>
 </context>
 <context>
+    <name>AnimatedSection</name>
+    <message>
+        <location filename="../qml/ProfileEditor/VideoPanel/AnimatedSection.qml" line="23"/>
+        <source>Quality</source>
+        <translation>Jakość</translation>
+    </message>
+    <message>
+        <location filename="../qml/ProfileEditor/VideoPanel/AnimatedSection.qml" line="30"/>
+        <source>Loop</source>
+        <translation>Zapętlij</translation>
+    </message>
+</context>
+<context>
     <name>AudioPanel</name>
     <message>
-        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="27"/>
+        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="29"/>
         <source>Audio</source>
         <translation>Audio</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="49"/>
+        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="46"/>
+        <source>Audio is not supported for GIF/WebP output.</source>
+        <translation>Audio nie jest obsługiwane dla wyjścia GIF/WebP.</translation>
+    </message>
+    <message>
+        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="60"/>
         <source>Codec: Auto (%1)</source>
         <translation>Kodek: Auto (%1)</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="53"/>
+        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="64"/>
         <source>Codec</source>
         <translation>Kodek</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="70"/>
+        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="81"/>
         <source>Bitrate</source>
         <translation>Bitrate</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="77"/>
+        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="88"/>
         <source>Channels</source>
         <translation>Kanały</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="84"/>
+        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="95"/>
         <source>Sample rate</source>
         <translation>Częstotliwość próbkowania</translation>
     </message>
@@ -296,17 +314,17 @@ Zainstaluj go za pomocą menedżera pakietów, np.:
 <context>
     <name>GuineaMpegBackendExt</name>
     <message>
-        <location filename="../src/backend.cpp" line="246"/>
+        <location filename="../src/backend.cpp" line="241"/>
         <source>Error: failed to build ffmpeg command from profile</source>
         <translation>Błąd: nie udało się zbudować polecenia ffmpeg z profilu</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="251"/>
+        <location filename="../src/backend.cpp" line="246"/>
         <source>Error: profile produced no ffmpeg arguments</source>
         <translation>Błąd: profil nie wygenerował argumentów ffmpeg</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="267"/>
+        <location filename="../src/backend.cpp" line="262"/>
         <source>
 --- Transcoding cancelled ---
 </source>
@@ -631,17 +649,17 @@ Kontynuować?</translation>
 <context>
     <name>UpdateBanner</name>
     <message>
-        <location filename="../qml/Components/UpdateBanner.qml" line="81"/>
+        <location filename="../qml/Components/UpdateBanner.qml" line="84"/>
         <source>A new version of GuineaMPEG is available</source>
         <translation>Dostępna jest nowa wersja GuineaMPEG</translation>
     </message>
     <message>
-        <location filename="../qml/Components/UpdateBanner.qml" line="103"/>
+        <location filename="../qml/Components/UpdateBanner.qml" line="107"/>
         <source>Update</source>
         <translation>Aktualizuj</translation>
     </message>
     <message>
-        <location filename="../qml/Components/UpdateBanner.qml" line="111"/>
+        <location filename="../qml/Components/UpdateBanner.qml" line="115"/>
         <source>Close</source>
         <translation>Zamknij</translation>
     </message>
@@ -657,22 +675,22 @@ Kontynuować?</translation>
 <context>
     <name>VideoPanel</name>
     <message>
-        <location filename="../qml/ProfileEditor/VideoPanel.qml" line="33"/>
+        <location filename="../qml/ProfileEditor/VideoPanel.qml" line="34"/>
         <source>Video</source>
         <translation>Wideo</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/VideoPanel.qml" line="54"/>
+        <location filename="../qml/ProfileEditor/VideoPanel.qml" line="55"/>
         <source>Codec</source>
         <translation>Kodek</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/VideoPanel.qml" line="68"/>
+        <location filename="../qml/ProfileEditor/VideoPanel.qml" line="69"/>
         <source>Rate control</source>
         <translation>Kontrola przepływności</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/VideoPanel.qml" line="93"/>
+        <location filename="../qml/ProfileEditor/VideoPanel.qml" line="97"/>
         <source>Scaling</source>
         <translation>Skalowanie</translation>
     </message>

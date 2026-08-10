@@ -15,7 +15,7 @@ Column {
     signal changed
 
     SectionHeader {
-        text: qsTr("Animated")
+        text: "GIF/WebP"
     }
 
     LabeledTextField {
