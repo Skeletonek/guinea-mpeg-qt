@@ -26,6 +26,7 @@
 
 #ifdef Q_OS_WIN
 #include <windows.h>
+#include <winreg.h>
 #endif
 
 static QJsonObject readAppOptions()
@@ -111,6 +112,26 @@ static QPalette makeLightPalette()
     return p;
 }
 
+static Qt::ColorScheme detectSystemColorScheme()
+{
+    Qt::ColorScheme scheme = QApplication::styleHints()->colorScheme();
+#ifdef Q_OS_WIN
+    if (scheme == Qt::ColorScheme::Unknown) {
+        // Fallback: read Windows "apps use light theme" registry value.
+        DWORD value = 1;
+        DWORD size = sizeof(value);
+        if (RegGetValueW(HKEY_CURRENT_USER,
+                         L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+                         L"AppsUseLightTheme",
+                         RRF_RT_REG_DWORD, nullptr, &value, &size) == ERROR_SUCCESS)
+            scheme = value ? Qt::ColorScheme::Light : Qt::ColorScheme::Dark;
+    }
+#endif
+    if (scheme == Qt::ColorScheme::Unknown)
+        scheme = Qt::ColorScheme::Light;
+    return scheme;
+}
+
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
@@ -169,21 +190,23 @@ int main(int argc, char *argv[])
     if (colorSchemeLockedStyles.contains(themeOption))
         colorSchemeOption = QStringLiteral("light");
 
-    // Color scheme: follows the system unless the user forces dark/light.
-    // QQuickStyle::setColorScheme() is missing in some Qt builds, so drive the
-    // scheme through QStyleHints, which Qt Quick Controls styles follow.
-    bool darkTheme;
-    if (colorSchemeOption == QLatin1String("dark")) {
-        app.setPalette(makeDarkPalette());
-        QApplication::styleHints()->setColorScheme(Qt::ColorScheme::Dark);
-        darkTheme = true;
-    } else if (colorSchemeOption == QLatin1String("light")) {
-        app.setPalette(makeLightPalette());
-        QApplication::styleHints()->setColorScheme(Qt::ColorScheme::Light);
-        darkTheme = false;
-    } else {
-        darkTheme = QApplication::styleHints()->colorScheme() == Qt::ColorScheme::Dark;
-    }
+    // Color scheme: resolve the effective scheme up front (system is detected
+    // from the OS), then force our own palette and QStyleHints scheme so custom
+    // widgets and Qt Quick Controls never mix light and dark.
+    Qt::ColorScheme effectiveScheme = Qt::ColorScheme::Light;
+    if (colorSchemeOption == QLatin1String("dark"))
+        effectiveScheme = Qt::ColorScheme::Dark;
+    else if (colorSchemeOption == QLatin1String("light"))
+        effectiveScheme = Qt::ColorScheme::Light;
+    else
+        effectiveScheme = detectSystemColorScheme();
+
+    const bool darkTheme = effectiveScheme == Qt::ColorScheme::Dark;
+    app.setPalette(darkTheme ? makeDarkPalette() : makeLightPalette());
+    // QStyleHints::setColorScheme() was added in Qt 6.8.
+#if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)
+    QApplication::styleHints()->setColorScheme(effectiveScheme);
+#endif
 
     QVariantMap theme;
     {

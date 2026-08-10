@@ -10,6 +10,8 @@
 - Fixed elements overlapping labels in some languages
 - Fixed not being able to set custom FPS values
 - Fixed source fps settings showing up as "0" in FPS combobox
+- Fixed debug build on Windows
+- Fixed transcoding notification not working on Windows
 - Bump CXX standard to C++20
 - Cleaned up C++ codebase
 - Updated translations

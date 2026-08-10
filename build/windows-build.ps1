@@ -11,7 +11,7 @@
     Create portable ZIP and InnoSetup installer after building.
 
 .PARAMETER Config
-    Build configuration: Release (default) or RelWithDebInfo.
+    Build configuration: Debug (default), Release or RelWithDebInfo.
 
 .PARAMETER OutputDir
     Output directory (default: out/windows).
@@ -23,13 +23,19 @@
     Remove output directory and Rust build artifacts before building.
 
 .PARAMETER Release
-    Strip debug info from the final binary for a release build (smaller size).
+    Shortcut for -Config Release. Debug is the default configuration.
 
 .EXAMPLE
     .\build\windows-build.ps1
 
 .EXAMPLE
+    .\build\windows-build.ps1 -Release
+
+.EXAMPLE
     .\build\windows-build.ps1 -Config RelWithDebInfo
+
+.EXAMPLE
+    .\build\windows-build.ps1 -Config Debug -Console
 
 .EXAMPLE
     .\build\windows-build.ps1 -Package
@@ -37,8 +43,8 @@
 
 param(
     [switch]$Package,
-    [ValidateSet("Release", "RelWithDebInfo")]
-    [string]$Config = "Release",
+    [ValidateSet("Debug", "Release", "RelWithDebInfo")]
+    [string]$Config = "Debug",
     [string]$OutputDir = (Join-Path (Join-Path (Join-Path $PSScriptRoot "..") "out") "windows"),
     [string]$QtDir = "",
     [switch]$Clean,
@@ -46,6 +52,12 @@ param(
     [switch]$Release,
     [switch]$Help
 )
+
+# -Release is a shortcut for -Config Release; -Package always builds a release
+# configuration. An explicit -Config wins over both.
+if (-not $PSBoundParameters.ContainsKey('Config')) {
+    $Config = if ($Release -or $Package) { "Release" } else { "Debug" }
+}
 
 if ($Help) {
     Write-Host @"
@@ -63,17 +75,19 @@ Usage:
   .\build\windows-build.ps1 [options]
 
 Options:
-  -Config <type>     Build config: Release (default) or RelWithDebInfo
+  -Config <type>     Build config: Debug (default), Release or RelWithDebInfo
   -OutputDir <path>  Output directory (default: out/windows)
   -QtDir <path>      Qt installation dir (auto-detected if omitted)
   -Clean             Remove output dir and Rust artifacts before building
-  -Release           Strip debug info from the binary
+  -Release           Shortcut for -Config Release
   -Console           Keep a console window attached (useful for debugging)
-  -Package           Create portable ZIP and InnoSetup installer
+  -Package           Create portable ZIP and InnoSetup installer (release build)
   -Help              Show this help message
 
 Examples:
   .\build\windows-build.ps1
+  .\build\windows-build.ps1 -Release
+  .\build\windows-build.ps1 -Config Debug -Console
   .\build\windows-build.ps1 -Config RelWithDebInfo -Console
   .\build\windows-build.ps1 -Package -Clean
 "@
@@ -88,7 +102,7 @@ Write-Host "=== GuineaMPEG Windows Build ===" -ForegroundColor Cyan
 Write-Host "Project root: $ProjectRoot" -ForegroundColor Gray
 Write-Host "Configuration: $Config" -ForegroundColor Gray
 Write-Host "Output dir: $OutputDir" -ForegroundColor Gray
-Write-Host "Release: $(if ($Release) { 'Yes' } else { 'No' })" -ForegroundColor Gray
+Write-Host "Release: $(if ($Config -eq 'Release') { 'Yes' } else { 'No' })" -ForegroundColor Gray
 
 # ---- Check prerequisites ----
 function Test-Command($Name) {
@@ -287,8 +301,8 @@ if (-not (Test-Path $ExePath)) {
 }
 Write-Host "Build complete: $ExePath" -ForegroundColor Green
 
-# ---- Strip debug info (Release mode) ----
-if ($Release -or $Package) {
+# ---- Strip debug info (release builds only) ----
+if (($Release -or $Package) -and $Config -ne "Debug") {
     Write-Host "=== Stripping debug info ===" -ForegroundColor Cyan
     $stripTool = if (Get-Command "strip" -ErrorAction SilentlyContinue) { "strip" }
         elseif (Get-Command "llvm-strip" -ErrorAction SilentlyContinue) { "llvm-strip" }
@@ -308,8 +322,9 @@ if ($Release -or $Package) {
 # ---- Step 4: Deploy Qt DLLs ----
 Write-Host "=== Step 4/6: Deploying Qt DLLs ===" -ForegroundColor Cyan
 $Windeployqt = Join-Path (Join-Path $QtDir "bin") "windeployqt.exe"
+$DeployType = if ($Config -eq "Debug") { "--debug" } else { "--release" }
 if (Test-Path $Windeployqt) {
-    & $Windeployqt $ExePath --qmldir (Join-Path $ProjectRoot "qml") --release --no-compiler-runtime
+    & $Windeployqt $ExePath --qmldir (Join-Path $ProjectRoot "qml") $DeployType --no-compiler-runtime
     if ($LASTEXITCODE -ne 0) {
         Write-Warning "windeployqt returned exit code $LASTEXITCODE"
     }

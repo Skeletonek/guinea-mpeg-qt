@@ -69,6 +69,8 @@ GuineaMpegBackendExt::GuineaMpegBackendExt(QObject* parent)
 #ifdef Q_OS_WIN
     m_trayIcon = new QSystemTrayIcon(this);
     m_trayIcon->setIcon(QIcon(QStringLiteral(":/media/logo/logo.png")));
+    // showMessage() needs a visible tray icon to post native Win10/11 toasts.
+    m_trayIcon->show();
 #endif
 }
 
