@@ -173,8 +173,8 @@
     </message>
     <message>
         <location filename="../qml/ControlsPanel.qml" line="64"/>
-        <source>Open Video...</source>
-        <translation>Video öffnen...</translation>
+        <source>Open File...</source>
+        <translation>Datei öffnen...</translation>
     </message>
     <message>
         <location filename="../qml/ControlsPanel.qml" line="70"/>

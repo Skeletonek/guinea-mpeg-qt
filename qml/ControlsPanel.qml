@@ -61,7 +61,7 @@ Item {
             }
 
             Button {
-                text: qsTr("Open Video...")
+                text: qsTr("Open File...")
                 onClicked: root.openVideoClicked()
                 width: parent.width
             }
