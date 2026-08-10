@@ -11,7 +11,7 @@ FileDialog {
     onAccepted: {
         var path = String(root.selectedFile)
         if (path.startsWith("file://"))
-            path = path.substring(7)
+            path = decodeURIComponent(path.substring(7))
         appWindow.loadVideo(path, root.selectedFile)
     }
 }

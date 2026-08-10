@@ -73,15 +73,23 @@ Item {
                 color: theme.text
             }
 
-            TextArea {
-                id: videoInfoDisplay
-                readOnly: true
-                text: hostWindow ? hostWindow.videoInfoText : ""
-                wrapMode: TextArea.Wrap
-                implicitHeight: Math.max(contentHeight, 120)
+            Flickable {
+                id: videoInfoScroll
                 width: parent.width
-                color: theme.text
-                background: Rectangle { color: theme.bg }
+                height: Math.max(Math.min(videoInfoDisplay.contentHeight, 160), 120)
+                contentHeight: videoInfoDisplay.contentHeight
+                clip: true
+                ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
+
+                TextEdit {
+                    id: videoInfoDisplay
+                    readOnly: true
+                    text: hostWindow ? hostWindow.videoInfoText : ""
+                    wrapMode: TextEdit.Wrap
+                    width: videoInfoScroll.width
+                    color: theme.text
+                    textFormat: TextEdit.PlainText
+                }
             }
 
             Label {

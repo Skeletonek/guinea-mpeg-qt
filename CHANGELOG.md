@@ -1,3 +1,9 @@
+### 0.8.1
+- Fixed system color theme on Linux
+- Fixed incorrect file handling with filenames containing '\[' and '\]'
+- Fixed Video Information not expanding on bigger file names
+- Update missing translations
+
 ### 0.8.0
 - Added support for GIF output format
 - Added support for animated WebP output format

@@ -182,52 +182,52 @@
         <translation>Informations vidéo</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="88"/>
+        <location filename="../qml/ControlsPanel.qml" line="96"/>
         <source>Stream Selection</source>
         <translation>Sélection du flux</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="97"/>
+        <location filename="../qml/ControlsPanel.qml" line="105"/>
         <source>Video</source>
         <translation>Vidéo</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="124"/>
+        <location filename="../qml/ControlsPanel.qml" line="132"/>
         <source>Audio</source>
         <translation>Audio</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="151"/>
+        <location filename="../qml/ControlsPanel.qml" line="159"/>
         <source>Transcoding Profile</source>
         <translation>Profil de transcodage</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="170"/>
+        <location filename="../qml/ControlsPanel.qml" line="178"/>
         <source>Profile Editor</source>
         <translation>Éditeur de profils</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="176"/>
+        <location filename="../qml/ControlsPanel.qml" line="184"/>
         <source>Timeline Selection</source>
         <translation>Sélection de la timeline</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="203"/>
+        <location filename="../qml/ControlsPanel.qml" line="211"/>
         <source>Output File</source>
         <translation>Fichier de sortie</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="216"/>
+        <location filename="../qml/ControlsPanel.qml" line="224"/>
         <source>Output path...</source>
         <translation>Chemin de sortie...</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="232"/>
+        <location filename="../qml/ControlsPanel.qml" line="240"/>
         <source>Start Transcoding</source>
         <translation>Démarrer le transcodage</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="242"/>
+        <location filename="../qml/ControlsPanel.qml" line="250"/>
         <source>Transcoding in progress... (click to view)</source>
         <translation>Transcodage en cours... (cliquez pour voir)</translation>
     </message>
@@ -314,17 +314,17 @@ Installez-le avec votre gestionnaire de paquets, par ex. :
 <context>
     <name>GuineaMpegBackendExt</name>
     <message>
-        <location filename="../src/backend.cpp" line="241"/>
+        <location filename="../src/backend.cpp" line="243"/>
         <source>Error: failed to build ffmpeg command from profile</source>
         <translation>Erreur : impossible de créer la commande ffmpeg à partir du profil</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="246"/>
+        <location filename="../src/backend.cpp" line="248"/>
         <source>Error: profile produced no ffmpeg arguments</source>
         <translation>Erreur : le profil n&apos;a produit aucun argument ffmpeg</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="262"/>
+        <location filename="../src/backend.cpp" line="264"/>
         <source>
 --- Transcoding cancelled ---
 </source>
@@ -333,7 +333,7 @@ Installez-le avec votre gestionnaire de paquets, par ex. :
 </translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="304"/>
+        <location filename="../src/backend.cpp" line="306"/>
         <source>
 --- Transcoding finished: SUCCESS ---
 </source>
@@ -342,7 +342,7 @@ Installez-le avec votre gestionnaire de paquets, par ex. :
 </translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="306"/>
+        <location filename="../src/backend.cpp" line="308"/>
         <source>
 --- Transcoding finished: FAILED (exit code %1) ---
 </source>
@@ -351,22 +351,22 @@ Installez-le avec votre gestionnaire de paquets, par ex. :
 </translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="308"/>
+        <location filename="../src/backend.cpp" line="310"/>
         <source>Transcoding Complete</source>
         <translation>Transcodage terminé</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="308"/>
+        <location filename="../src/backend.cpp" line="310"/>
         <source>Transcoding Failed</source>
         <translation>Échec du transcodage</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="309"/>
+        <location filename="../src/backend.cpp" line="311"/>
         <source>Your video has been transcoded successfully.</source>
         <translation>Votre vidéo a été transcodée avec succès.</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="310"/>
+        <location filename="../src/backend.cpp" line="312"/>
         <source>Transcoding exited with code %1</source>
         <translation>Le transcodage s&apos;est terminé avec le code %1</translation>
     </message>
@@ -407,52 +407,68 @@ Installez-le avec votre gestionnaire de paquets, par ex. :
         <translation>Options</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="51"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="63"/>
         <source>General</source>
         <translation>Général</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="53"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="65"/>
         <source>Language</source>
         <translation>Langue</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="58"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="70"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="118"/>
         <source>System default</source>
         <translation>Défaut système</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="77"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="89"/>
         <source>Qt Quick Controls style</source>
         <translation>Style Qt Quick Controls</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="132"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="113"/>
+        <source>Color scheme</source>
+        <translation>Schéma de couleurs</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="119"/>
+        <source>Dark</source>
+        <translation>Sombre</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="120"/>
+        <source>Light</source>
+        <translation>Clair</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="162"/>
         <source>Updates</source>
         <translation>Mises à jour</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="136"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="166"/>
         <source>Check for updates on startup</source>
         <translation>Vérifier les mises à jour au démarrage</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="84"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="96"/>
         <source>System</source>
         <translation>Système</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="100"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="130"/>
         <source>Hardware acceleration</source>
         <translation>Accélération matérielle</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="107"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="137"/>
         <source>Off</source>
         <translation>Désactivé</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="124"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="154"/>
         <source>Some settings take effect on the next launch.</source>
         <translation>Certains paramètres prendront effet au prochain lancement.</translation>
     </message>

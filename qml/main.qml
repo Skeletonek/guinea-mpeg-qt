@@ -68,7 +68,7 @@ ApplicationWindow {
                         if (url.length === 0) return
                         var path = url
                         if (path.startsWith("file://"))
-                            path = path.substring(7)
+                            path = decodeURIComponent(path.substring(7))
                         appWindow.loadVideo(path, url)
                     }
                 }
