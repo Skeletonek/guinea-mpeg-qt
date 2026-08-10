@@ -15,7 +15,7 @@ LabeledRow {
     
     TextField {
         id: textField
-        width: parent.width - root.labelWidth - root.spacing
+        width: parent.width - root.effectiveLabelWidth - root.spacing
         text: root.text
         placeholderText: root.placeholderText
         validator: root.validator

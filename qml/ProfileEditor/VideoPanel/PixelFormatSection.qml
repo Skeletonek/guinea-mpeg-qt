@@ -18,7 +18,7 @@ Column {
         label: qsTr("Pixel fmt")
         ComboBox {
             id: pixfmtCombo
-            width: parent.width - 138
+            width: parent.width - parent.effectiveLabelWidth - parent.spacing
             editable: true
             onCurrentIndexChanged: if (!root.loading) root.changed()
             onEditTextChanged: if (!root.loading) root.changed()

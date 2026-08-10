@@ -16,7 +16,7 @@ LabeledRow {
     
     ComboBox {
         id: comboBox
-        width: parent.width - root.labelWidth - root.spacing
+        width: parent.width - root.effectiveLabelWidth - root.spacing
         model: root.model
         currentIndex: root.currentIndex
         currentText: root.currentText

@@ -597,7 +597,7 @@ Kontynuować?</translation>
     <message>
         <location filename="../qml/ProfileEditor/VideoPanel/ScalingSection.qml" line="28"/>
         <source>Framerate</source>
-        <translation>Liczba klatek na sekunda (FPS)</translation>
+        <translation>Liczba klatek na sekunda</translation>
     </message>
 </context>
 <context>

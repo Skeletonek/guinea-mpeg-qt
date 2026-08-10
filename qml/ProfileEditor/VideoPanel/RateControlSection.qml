@@ -18,7 +18,7 @@ Column {
         label: qsTr("Rate control")
         Row {
             spacing: 8
-            width: parent.width - 130 - root.spacing
+            width: parent.width - parent.effectiveLabelWidth - parent.spacing
 
             ComboBox {
                 id: rateControlCombo

@@ -1,9 +1,17 @@
 ### 0.8.0
+- Added support for GIF output format
+- Added support for animated WebP output format
 - Change theming to QtQuickControls style changer
 - Added updated checker
 - Added copy button in AboutDialog for bug reporting
+- Added additional information for development builds
 - Fixed audio streams name not being captured properly
 - Fixed system name being "KDE Flatpak Runtime" in Flatpak version, instead of real system name
+- Fixed elements overlapping labels in some languages
+- Fixed not being able to set custom FPS values
+- Fixed source fps settings showing up as "0" in FPS combobox
+- Bump CXX standard to C++20
+- Cleaned up C++ codebase
 - Updated translations
 
 ### 0.7.0

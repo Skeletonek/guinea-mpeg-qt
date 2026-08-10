@@ -94,7 +94,7 @@ pub(crate) fn software_video_codec(codec: &str) -> &str {
         "vp9" => "libvpx-vp9",
         "av1" => "libsvtav1",
         "gif" => "gif",
-        "webp" => "libwebp",
+        "webp" => "libwebp_anim",
         _ => "libx264",
     }
 }

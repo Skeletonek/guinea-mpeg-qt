@@ -22,7 +22,7 @@ Column {
 
         ComboBox {
             id: presetCombo
-            width: parent.width - 138
+            width: parent.width - parent.effectiveLabelWidth - parent.spacing
             editable: true
             onCurrentIndexChanged: if (!root.loading) root.changed()
             onEditTextChanged: if (!root.loading) root.changed()
@@ -36,7 +36,7 @@ Column {
 
         ComboBox {
             id: tuneCombo
-            width: parent.width - 138
+            width: parent.width - parent.effectiveLabelWidth - parent.spacing
             editable: true
             onCurrentIndexChanged: if (!root.loading) root.changed()
             onEditTextChanged: if (!root.loading) root.changed()
@@ -50,7 +50,7 @@ Column {
 
         TextField {
             id: compressionLevelField
-            width: parent.width - 138
+            width: parent.width - parent.effectiveLabelWidth - parent.spacing
             onTextChanged: {
                 if (!root.loading) root.changed()
             }

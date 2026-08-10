@@ -23,7 +23,7 @@ Column {
         label: qsTr("CPU used")
         ComboBox {
             id: cpuUsedCombo
-            width: parent.width - 138
+            width: parent.width - parent.effectiveLabelWidth - parent.spacing
             editable: true
             model: Constants.vp8Vp9CpuUsedOptions
             onCurrentIndexChanged: if (!root.loading) root.changed()

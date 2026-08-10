@@ -134,7 +134,7 @@ audio_enabled = false
 [[profiles]]
 name = "Animated WebP"
 codec = "webp"
-encoder = "libwebp"
+encoder = "libwebp_anim"
 resolution = "480p"
 framerate = 10.0
 quality = 75

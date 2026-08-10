@@ -18,7 +18,7 @@ Column {
         ComboBox {
             id: resCombo
             model: Constants.resOptions
-            width: parent.width - 138
+            width: parent.width - parent.effectiveLabelWidth - parent.spacing
             onCurrentIndexChanged: if (!root.loading) root.changed()
             onActivated: if (!root.loading) root.changed()
         }
@@ -29,7 +29,7 @@ Column {
         ComboBox {
             id: fpsCombo
             model: Constants.fpsOptions
-            width: parent.width - 138
+            width: parent.width - parent.effectiveLabelWidth - parent.spacing
             editable: true
             validator: DoubleValidator { bottom: 0; top: 120 }
             onCurrentIndexChanged: if (!root.loading) root.changed()
@@ -38,19 +38,24 @@ Column {
     }
 
     function getScalingData() {
+        var fpsText = fpsCombo.editText.trim()
         return {
             resolution: DataUtils.comboText(resCombo, Constants.SENTINEL_NATIVE),
-            framerate: fpsCombo.currentIndex === 0 ? null : parseFloat(fpsCombo.currentText)
+            framerate: (fpsText === "" || fpsText === Constants.fpsOptions[0]) ? null : parseFloat(fpsText)
         }
     }
 
     function setScalingData(d) {
         DataUtils.setComboText(resCombo, d.resolution, Constants.SENTINEL_NATIVE)
 
-        if (d.framerate != null) {
+        if (d.framerate > 0) {
             var fi = Constants.fpsOptions.indexOf(d.framerate)
-            if (fi >= 0) fpsCombo.currentIndex = fi
-            else fpsCombo.editText = String(d.framerate)
+            if (fi >= 0) {
+                fpsCombo.currentIndex = fi
+            } else {
+                fpsCombo.currentIndex = -1
+                fpsCombo.editText = String(d.framerate)
+            }
         } else {
             fpsCombo.currentIndex = 0
         }

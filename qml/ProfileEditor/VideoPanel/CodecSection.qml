@@ -26,7 +26,7 @@ Column {
         ComboBox {
             id: codecCombo
             model: root.codecLabels
-            width: parent.width - root.spacing - 130
+            width: parent.width - parent.effectiveLabelWidth - parent.spacing
             delegate: ItemDelegate {
                 text: modelData + (root._codecAvailable[index] ? "" : " " + qsTr("(unavailable)"))
                 enabled: root._codecAvailable[index]
@@ -48,7 +48,7 @@ Column {
         label: qsTr("Encoder")
         Row {
             spacing: 8
-            width: parent.width - 130 - root.spacing
+            width: parent.width - parent.effectiveLabelWidth - parent.spacing
 
             Button {
                 id: compatInfoBtn

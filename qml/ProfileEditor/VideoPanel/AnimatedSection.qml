@@ -28,10 +28,9 @@ Column {
 
     LabeledRow {
         label: qsTr("Loop")
-        SwitchRow {
+        Switch {
             id: loopSwitch
             checked: true
-            label: qsTr("Loop forever")
             onCheckedChanged: if (!root.loading) root.changed()
         }
     }

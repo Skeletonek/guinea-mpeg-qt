@@ -35,7 +35,7 @@ var defaultEncoders = {
     "vp9": "libvpx-vp9",
     "av1": "libsvtav1",
     "gif": "gif",
-    "webp": "libwebp"
+    "webp": "libwebp_anim"
 }
 
 // Tune defaults for each codec
