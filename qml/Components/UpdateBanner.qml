@@ -13,6 +13,7 @@ Rectangle {
     radius: 6
 
     property string metadataUrl: "https://server.skeletonek.com/app/guinea-mpeg/update.toml"
+    property string defaultUpdateUrl: "https://skeletonek.com/apps/guinea-mpeg/"
     property bool updateAvailable: false
     property string latestVersion: ""
     property string updateUrl: ""
@@ -79,7 +80,7 @@ Rectangle {
                 spacing: 2
 
                 Text {
-                    text: buildInfo.debugBuild ? qsTr("Development build of GuineaMPEG")
+                    text: buildInfo.debugBuild ? "Development build of GuineaMPEG"
                                                : qsTr("A new version of GuineaMPEG is available")
                     color: theme.text
                     font.pixelSize: 13
@@ -104,10 +105,9 @@ Rectangle {
 
                 Button {
                     text: qsTr("Update")
-                    visible: !buildInfo.debugBuild
                     onClicked: {
-                        if (root.updateUrl !== "")
-                            Qt.openUrlExternally(root.updateUrl)
+                        var url = root.updateUrl !== "" ? root.updateUrl : root.defaultUpdateUrl
+                        Qt.openUrlExternally(url)
                     }
                 }
 

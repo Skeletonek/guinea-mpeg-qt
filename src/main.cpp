@@ -182,16 +182,17 @@ int main(int argc, char *argv[])
     QVariantMap buildInfo;
     buildInfo["author"] = "Skeletonek";
     buildInfo["license"] = "BSD 3-Clause";
+#ifdef QT_NO_DEBUG
+    buildInfo["debugBuild"] = false;
     buildInfo["version"] = PROJECT_VERSION_FULL;
+#else
+    buildInfo["debugBuild"] = true;
+    buildInfo["version"] = QStringLiteral(PROJECT_VERSION_FULL) + QStringLiteral(" (development build)");
+#endif
     buildInfo["buildDate"] = __DATE__ " " __TIME__;
     buildInfo["packageTarget"] = PACKAGE_TARGET;
     buildInfo["distroName"] = hostOsName();
     buildInfo["qtVersion"] = qVersion();
-#ifdef QT_NO_DEBUG
-    buildInfo["debugBuild"] = false;
-#else
-    buildInfo["debugBuild"] = true;
-#endif
     buildInfo["copyright"] = buildInfo["author"].toString() + QStringLiteral(" ")
         + QString::fromLatin1(__DATE__).right(4);
 

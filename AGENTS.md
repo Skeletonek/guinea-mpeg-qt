@@ -88,8 +88,8 @@ Plain `QObject`. Profile CRUD, options, video info, encoder detection/capabiliti
 
 ## Build
 - Always use `build/linux-build.sh`, never manual cmake. Rust builds automatically via cargo.
-- Flags: `--clean` (removes `out/` + `rust/target/`), `--package <deb,rpm,pacman,flatpak,appimage,generic,all>`, `--no-build`, `--version X.Y.Z` (delegates to `update-version.sh`), `--release`.
-- Default (no flags): configure + build to `out/generic/`. `--no-build` + `--package appimage` is an error (needs fresh in-Docker build).
+- Flags: `--clean` (removes `out/` + `rust/target/`), `--package <deb,rpm,pacman,flatpak,appimage,generic,all>`, `--no-build`, `--version X.Y.Z` (delegates to `update-version.sh`), `--release`, `--no-strip`.
+- Default (no flags): Debug build to `out/generic/` (the UpdateBanner always shows, gated by `buildInfo.debugBuild` ← `QT_NO_DEBUG`). `--release` or any `--package` produces a Release build (banner behaves normally) and strips binaries; `--no-strip` disables stripping. `--no-build` + `--package appimage` is an error (needs fresh in-Docker build).
 - `crate-type = ["cdylib"]`; plain `extern "C"` symbols link without `--whole-archive`.
 - deb/rpm/pacman: Docker builds (`build/docker/*.Dockerfile`) then fpm packaging; `stage_package()` runs `patchelf --add-rpath '$ORIGIN/../lib/$PKGNAME'` so the binary finds the Rust `.so`.
 - flatpak: host `flatpak-builder`, SDK `org.kde.Platform//6.10`.

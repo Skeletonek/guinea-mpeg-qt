@@ -9,7 +9,8 @@ Options:
   --clean               Remove out/ and rust/target/ before building
   --package <list>      Build packages (comma-separated: deb,rpm,pacman,flatpak,generic)
   --no-build            Skip the build step
-   --release             Build release binary, strip debug info
+   --release             Build release binary (default is a debug build), strip debug info
+   --no-strip            Disable stripping (keep debug info) even in release/package builds
   --version <ver>       Update project version, then build
   --help                Show this help message
 
@@ -50,6 +51,7 @@ DO_APPIMAGE=false
 DO_GENERIC=false
 DO_RELEASE=false
 DO_STRIP=false
+DO_NO_STRIP=false
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -74,7 +76,9 @@ while [[ $# -gt 0 ]]; do
         --no-build|-n)
             NO_BUILD=true; shift ;;
         --release)
-            DO_RELEASE=true; DO_STRIP=true; shift ;;
+            DO_RELEASE=true; shift ;;
+        --no-strip)
+            DO_NO_STRIP=true; shift ;;
         --version)
             shift
             "$PROJECT_DIR/update-version.sh" "$1"
@@ -106,6 +110,10 @@ if $HAS_PKG_FLAG || $DO_RELEASE; then
     DO_STRIP=true
 fi
 
+if $DO_NO_STRIP; then
+    DO_STRIP=false
+fi
+
 # ---- Clean ----
 if $DO_CLEAN; then
     echo "=== Cleaning build artifacts ==="
@@ -135,8 +143,13 @@ build_generic() {
 
     echo "=== Building GuineaMPEG $VERSION (generic) ==="
 
+    local build_type="Debug"
+    if $DO_RELEASE || $HAS_PKG_FLAG; then
+        build_type="Release"
+    fi
+
     export CARGO_TARGET_DIR="$cargo_dir"
-    local cmake_opts="-DCMAKE_BUILD_TYPE=Release -DPACKAGE_TARGET=generic"
+    local cmake_opts="-DCMAKE_BUILD_TYPE=${build_type} -DPACKAGE_TARGET=generic"
     cmake -S "$PROJECT_DIR" -B "$build_dir" $cmake_opts
     cmake --build "$build_dir"
 
