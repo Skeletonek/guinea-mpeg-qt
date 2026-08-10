@@ -190,10 +190,14 @@ int main(int argc, char *argv[])
     if (colorSchemeLockedStyles.contains(themeOption))
         colorSchemeOption = QStringLiteral("light");
 
-    // Color scheme: resolve the effective scheme up front (system is detected
-    // from the OS), then force our own palette and QStyleHints scheme so custom
-    // widgets and Qt Quick Controls never mix light and dark.
+    // Color scheme. An explicit dark/light choice always forces our palette +
+    // QStyleHints scheme so the option actually takes effect everywhere. With
+    // "system" we follow the OS: on Linux the platform theme (KDE/GNOME) already
+    // provides the correct native palette, while Windows needs a forced palette
+    // because its platform theme mixes light/dark (defaults light on Win10).
     Qt::ColorScheme effectiveScheme = Qt::ColorScheme::Light;
+    const bool explicitScheme = colorSchemeOption == QLatin1String("dark")
+                             || colorSchemeOption == QLatin1String("light");
     if (colorSchemeOption == QLatin1String("dark"))
         effectiveScheme = Qt::ColorScheme::Dark;
     else if (colorSchemeOption == QLatin1String("light"))
@@ -202,11 +206,17 @@ int main(int argc, char *argv[])
         effectiveScheme = detectSystemColorScheme();
 
     const bool darkTheme = effectiveScheme == Qt::ColorScheme::Dark;
-    app.setPalette(darkTheme ? makeDarkPalette() : makeLightPalette());
-    // QStyleHints::setColorScheme() was added in Qt 6.8.
-#if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)
-    QApplication::styleHints()->setColorScheme(effectiveScheme);
+    if (explicitScheme
+#ifdef Q_OS_WIN
+        || colorSchemeOption == QLatin1String("system")
 #endif
+    ) {
+        app.setPalette(darkTheme ? makeDarkPalette() : makeLightPalette());
+        // QStyleHints::setColorScheme() was added in Qt 6.8.
+#if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)
+        QApplication::styleHints()->setColorScheme(effectiveScheme);
+#endif
+    }
 
     QVariantMap theme;
     {
