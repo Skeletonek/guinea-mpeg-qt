@@ -38,7 +38,7 @@ A modern FFmpeg transcoding GUI with a Rust core library dynamically linked via 
   - `Qt Quick`
   - `Qt QuickControls2`
 - [mpv-dev bundle](https://github.com/zhongfly/mpv-winbuild) (auto-downloaded by the build script to `build/vendor/mpv-dev-x86_64/`)
-- FFmpeg & ffprobe (auto-downloaded by the build script, gyan.dev essential build)
+- FFmpeg & ffprobe (auto-downloaded by the build script, gyan.dev full build)
 - 7-Zip (required by the mpv-dev download script): `winget install 7zip.7zip`
 - Ninja (optional, auto-detected): `winget install Ninja-build.Ninja`
 - InnoSetup 6 (optional, for installer) — download from [jrsoftware.org](https://jrsoftware.org/isdl.php)

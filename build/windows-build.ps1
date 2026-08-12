@@ -105,17 +105,16 @@ Write-Host "Output dir: $OutputDir" -ForegroundColor Gray
 Write-Host "Release: $(if ($Config -eq 'Release') { 'Yes' } else { 'No' })" -ForegroundColor Gray
 
 # ---- Check prerequisites ----
-function Test-Command($Name) {
-    if (-not (Get-Command $Name -ErrorAction SilentlyContinue)) {
-        Write-Error "'$Name' not found in PATH. Please install it."
-        exit 1
+function Test-Command([string[]]$Name) {
+    foreach ($cmd in $Name) {
+        if (-not (Get-Command $cmd -ErrorAction SilentlyContinue)) {
+            throw "'$cmd' not found in PATH. Please install it."
+        }
     }
 }
 
 Write-Host "Checking prerequisites..." -ForegroundColor Cyan
-Test-Command "cmake"
-Test-Command "cargo"
-Test-Command "rustup"
+Test-Command "cmake", "cargo", "rustup"
 
 # Verify MSVC Rust target
 $Targets = rustup target list --installed
@@ -133,8 +132,7 @@ if (-not $QtDir) {
         Write-Host "Auto-detected Qt at: $QtDir" -ForegroundColor Green
     }
     else {
-        Write-Error "Qt6 not found at C:\Qt\6.*\msvc*. Set -QtDir or install Qt from the online installer."
-        exit 1
+        throw "Qt6 not found at C:\Qt\6.*\msvc*. Set -QtDir or install Qt from the online installer."
     }
 }
 else {
@@ -145,10 +143,9 @@ else {
 $MpvDir = Join-Path (Join-Path (Join-Path $ProjectRoot "build") "vendor") "mpv-dev-x86_64"
 $MpvH = Join-Path $MpvDir "include/mpv/client.h"
 if (-not (Test-Path $MpvH)) {
-    Write-Error "mpv-dev not found at $MpvDir.`nRun .\build\download-vendor.ps1 or download the bundle manually."
-    exit 1
+    throw "mpv-dev not found at $MpvDir.`nRun .\build\download-vendor.ps1 or download the bundle manually."
 }
-Write-Host "=== Step 1/6: mpv-dev bundle ===" -ForegroundColor Cyan
+Write-Host "=== Step 1/7: mpv-dev bundle ===" -ForegroundColor Cyan
 Write-Host "Using vendored mpv-dev at $MpvDir" -ForegroundColor Green
 
 # Ensure lib/ subdirectory
@@ -165,26 +162,10 @@ if (-not (Test-Path $mpvLibPath)) {
     } else {
         Write-Host "Generating MSVC import library from libmpv-2.dll..." -ForegroundColor Yellow
         $dllPath = Join-Path $MpvDir "libmpv-2.dll"
-        if (-not (Test-Path $dllPath)) { Write-Error "libmpv-2.dll not found in bundle"; exit 1 }
+        if (-not (Test-Path $dllPath)) { throw "libmpv-2.dll not found in bundle" }
 
         if (-not (Get-Command "dumpbin" -ErrorAction SilentlyContinue)) {
-            $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
-            if (-not (Test-Path $vswhere)) { $vswhere = "$env:ProgramFiles\Microsoft Visual Studio\Installer\vswhere.exe" }
-            $vsPath = if (Test-Path $vswhere) { & $vswhere -latest -property installationPath } else { $null }
-            if (-not $vsPath) {
-                $vsPath = @(
-                    "C:\Program Files\Microsoft Visual Studio\2022\Community",
-                    "C:\Program Files (x86)\Microsoft Visual Studio\2022\Community",
-                    "C:\Program Files\Microsoft Visual Studio\2022\Professional",
-                    "C:\Program Files (x86)\Microsoft Visual Studio\2022\Professional",
-                    "C:\Program Files\Microsoft Visual Studio\2022\Enterprise",
-                    "C:\Program Files (x86)\Microsoft Visual Studio\2022\Enterprise",
-                    "C:\Program Files\Microsoft Visual Studio\2022\BuildTools",
-                    "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools"
-                ) | Where-Object { Test-Path "$_\VC\Auxiliary\Build\vcvars64.bat" } | Select-Object -First 1
-            }
-            if (-not $vsPath) { Write-Error "Visual Studio not found. Cannot generate mpv.lib."; exit 1 }
-            $vcvars = Join-Path (Join-Path (Join-Path $vsPath "VC") "Auxiliary") "Build\vcvars64.bat"
+            $vcvars = Get-VcVarsPath
             cmd /c "`"$vcvars`" x64 > nul 2>&1 && set" | ForEach-Object {
                 if ($_ -match '^([^=]+)=(.*)$') { Set-Item -Path "env:$($matches[1])" -Value $matches[2] }
             }
@@ -202,49 +183,46 @@ if (-not (Test-Path $mpvLibPath)) {
         }
         Set-Content -Path $defPath -Value "LIBRARY libmpv-2.dll`r`nEXPORTS`r`n$($exports -join "`r`n")" -Encoding ASCII
         & lib /def:$defPath /out:$mpvLibPath /machine:x64
-        if ($LASTEXITCODE -ne 0) { Write-Error "Failed to generate mpv.lib"; exit 1 }
+        if ($LASTEXITCODE -ne 0) { throw "Failed to generate mpv.lib" }
         Remove-Item -Force $defPath
         Write-Host "Generated mpv.lib ($($exports.Count) exports)" -ForegroundColor Green
     }
 }
 
 # ---- Auto-detect MSVC compiler ----
-function Import-VisualStudioEnvironment {
-    if (Get-Command "cl" -ErrorAction SilentlyContinue) { return }
-    Write-Host "Looking for Visual Studio..." -ForegroundColor Yellow
+# Locates vcvars64.bat across common VS install paths (vswhere + fallbacks).
+function Get-VcVarsPath {
     $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
     if (-not (Test-Path $vswhere)) {
         $vswhere = "$env:ProgramFiles\Microsoft Visual Studio\Installer\vswhere.exe"
     }
-    if (-not (Test-Path $vswhere)) {
-        Write-Error "Visual Studio not found. Install it or run from a Developer Command Prompt."
-        exit 1
-    }
-    $vsPath = & $vswhere -latest -property installationPath
+    $vsPath = if (Test-Path $vswhere) { & $vswhere -latest -property installationPath } else { $null }
     if (-not $vsPath) {
-        $candidates = @(
+        $vsPath = @(
             "C:\Program Files\Microsoft Visual Studio\2022\Community",
-            "C:\Program Files\Microsoft Visual Studio\2022\Professional",
-            "C:\Program Files\Microsoft Visual Studio\2022\Enterprise",
-            "C:\Program Files\Microsoft Visual Studio\2022\BuildTools",
             "C:\Program Files (x86)\Microsoft Visual Studio\2022\Community",
+            "C:\Program Files\Microsoft Visual Studio\2022\Professional",
             "C:\Program Files (x86)\Microsoft Visual Studio\2022\Professional",
+            "C:\Program Files\Microsoft Visual Studio\2022\Enterprise",
             "C:\Program Files (x86)\Microsoft Visual Studio\2022\Enterprise",
-            "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools",
-            "C:\Program Files\Microsoft Visual Studio\2019\Community",
-            "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community"
-        )
-        $vsPath = $candidates | Where-Object { Test-Path "$_\VC\Auxiliary\Build\vcvars64.bat" } | Select-Object -First 1
+            "C:\Program Files\Microsoft Visual Studio\2022\BuildTools",
+            "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools"
+        ) | Where-Object { Test-Path "$_\VC\Auxiliary\Build\vcvars64.bat" } | Select-Object -First 1
     }
     if (-not $vsPath) {
-        Write-Error "Could not find Visual Studio installation."
-        exit 1
+        throw "Visual Studio not found. Install it or run from a Developer Command Prompt."
     }
     $vcvars = Join-Path (Join-Path (Join-Path $vsPath "VC") "Auxiliary") "Build\vcvars64.bat"
     if (-not (Test-Path $vcvars)) {
-        Write-Error "vcvars64.bat not found at $vcvars"
-        exit 1
+        throw "vcvars64.bat not found at $vcvars"
     }
+    return $vcvars
+}
+
+function Import-VisualStudioEnvironment {
+    if (Get-Command "cl" -ErrorAction SilentlyContinue) { return }
+    Write-Host "Looking for Visual Studio..." -ForegroundColor Yellow
+    $vcvars = Get-VcVarsPath
     Write-Host "Loading MSVC environment from $vcvars" -ForegroundColor Gray
     cmd /c "`"$vcvars`" x64 > nul 2>&1 && set" | ForEach-Object {
         if ($_ -match '^([^=]+)=(.*)$') {
@@ -255,7 +233,7 @@ function Import-VisualStudioEnvironment {
 Import-VisualStudioEnvironment
 
 # ---- Step 2: CMake configure ----
-Write-Host "=== Step 2/6: CMake configure ===" -ForegroundColor Cyan
+Write-Host "=== Step 2/7: CMake configure ===" -ForegroundColor Cyan
 
 if ($Clean) {
     Write-Host "=== Cleaning build artifacts ===" -ForegroundColor Cyan
@@ -281,23 +259,20 @@ cmake -S $ProjectRoot -B $OutputDir `
     $(if ($Console) { "-DCONSOLE_MODE=ON" } else { "-DCONSOLE_MODE=OFF" })
 
 if ($LASTEXITCODE -ne 0) {
-    Write-Error "CMake configuration failed"
-    exit 1
+    throw "CMake configuration failed"
 }
 
 # ---- Step 3: CMake build ----
-Write-Host "=== Step 3/6: CMake build ===" -ForegroundColor Cyan
+Write-Host "=== Step 3/7: CMake build ===" -ForegroundColor Cyan
 cmake "--build" $OutputDir "--config" $Config
 
 if ($LASTEXITCODE -ne 0) {
-    Write-Error "CMake build failed"
-    exit 1
+    throw "CMake build failed"
 }
 
 $ExePath = Join-Path $OutputDir "guinea-mpeg.exe"
 if (-not (Test-Path $ExePath)) {
-    Write-Error "Build succeeded but guine-mpeg.exe not found at $ExePath"
-    exit 1
+    throw "Build succeeded but guinea-mpeg.exe not found at $ExePath"
 }
 Write-Host "Build complete: $ExePath" -ForegroundColor Green
 
@@ -320,7 +295,7 @@ if (($Release -or $Package) -and $Config -ne "Debug") {
 }
 
 # ---- Step 4: Deploy Qt DLLs ----
-Write-Host "=== Step 4/6: Deploying Qt DLLs ===" -ForegroundColor Cyan
+Write-Host "=== Step 4/7: Deploying Qt DLLs ===" -ForegroundColor Cyan
 $Windeployqt = Join-Path (Join-Path $QtDir "bin") "windeployqt.exe"
 $DeployType = if ($Config -eq "Debug") { "--debug" } else { "--release" }
 if (Test-Path $Windeployqt) {
@@ -337,7 +312,7 @@ else {
 }
 
 # ---- Step 5: Copy mpv DLL ----
-Write-Host "=== Step 5/6: Copying mpv DLL ===" -ForegroundColor Cyan
+Write-Host "=== Step 5/7: Copying mpv DLL ===" -ForegroundColor Cyan
 $MpvDll = Join-Path $MpvDir "libmpv-2.dll"
 if (Test-Path $MpvDll) {
     Copy-Item $MpvDll (Join-Path $OutputDir "libmpv-2.dll") -Force
@@ -351,7 +326,7 @@ else {
 }
 
 # ---- Step 6: Copy Rust DLL ----
-Write-Host "=== Step 6/6: Copying Rust DLL ===" -ForegroundColor Cyan
+Write-Host "=== Step 6/7: Copying Rust DLL ===" -ForegroundColor Cyan
 $RustDll = Join-Path $RustDir "target\release\guinea_mpeg_core.dll"
 if (Test-Path $RustDll) {
     Copy-Item $RustDll (Join-Path $OutputDir "guinea_mpeg_core.dll") -Force
@@ -362,13 +337,12 @@ else {
 }
 
 # ---- Step 7: Bundle ffmpeg ----
-Write-Host "=== Bundling ffmpeg ===" -ForegroundColor Cyan
+Write-Host "=== Step 7/7: Bundling ffmpeg ===" -ForegroundColor Cyan
 $FfmpegDir = Join-Path (Join-Path (Join-Path $ProjectRoot "build") "vendor") "ffmpeg"
 $FfmpegExe = Join-Path $FfmpegDir "ffmpeg.exe"
 $FfprobeExe = Join-Path $FfmpegDir "ffprobe.exe"
 if (-not (Test-Path $FfmpegExe)) {
-    Write-Error "ffmpeg.exe not found at $FfmpegDir.`nRun .\build\download-vendor.ps1 or download manually."
-    exit 1
+    throw "ffmpeg.exe not found at $FfmpegDir.`nRun .\build\download-vendor.ps1 or download manually."
 }
 Copy-Item $FfmpegExe (Join-Path $OutputDir "ffmpeg.exe") -Force
 Copy-Item $FfprobeExe (Join-Path $OutputDir "ffprobe.exe") -Force
@@ -414,7 +388,6 @@ if ($Package) {
 
     if ($ISCC) {
         $IssPath = Join-Path (Join-Path $PSScriptRoot "windows") "installer.iss"
-        $InstallerPath = Join-Path (Split-Path $OutputDir -Parent) "$ArchiveName.exe"
 
         Write-Host "Creating InnoSetup installer..." -ForegroundColor Cyan
         & $ISCC.Source `

@@ -6,44 +6,95 @@
     into build/vendor/ so the build script doesn't need network access.
 .EXAMPLE
     .\build\download-vendor.ps1
+.PARAMETER OnlyMpv
+    Only download the mpv-dev-x86_64 bundle, skipping ffmpeg/ffprobe.
+.PARAMETER OnlyFfmpeg
+    Only download ffmpeg/ffprobe, skipping the mpv-dev-x86_64 bundle.
+.PARAMETER Force
+    Re-download dependencies even if they are already present.
 #>
+
+param(
+    [switch]$OnlyMpv,
+    [switch]$OnlyFfmpeg,
+    [switch]$Force
+)
 
 $ErrorActionPreference = "Stop"
 $ProjectRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
 $VendorDir = Join-Path (Join-Path $ProjectRoot "build") "vendor"
 
-# ---- mpv-dev-x86_64 ----
-$MpvDir = Join-Path $VendorDir "mpv-dev-x86_64"
-$MpvH = Join-Path $MpvDir "include/mpv/client.h"
-if (-not (Test-Path $MpvH)) {
-    Write-Host "=== mpv-dev-x86_64 ===" -ForegroundColor Cyan
+# ---- Download configuration ----
+# Change these URLs to point at a different mirror or build variant.
+$MpvReleaseApiUrl = "https://api.github.com/repos/zhongfly/mpv-winbuild/releases/latest"
+$MpvAssetPattern  = '^mpv-dev-x86_64-\d{8}'
+$MpvExcludedPattern = '-v3-'
+$FfmpegReleaseUrl = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-full.zip"
+$UserAgent = "guinea-mpeg-vendor/1.0"
+
+function New-WebClient {
+    param(
+        [string]$UserAgent = $script:UserAgent
+    )
 
     $wc = New-Object System.Net.WebClient
-    $wc.Headers.Add("User-Agent", "guinea-mpeg-vendor/1.0")
-    $json = $wc.DownloadString("https://api.github.com/repos/zhongfly/mpv-winbuild/releases/latest")
-    $release = $json | ConvertFrom-Json
+    $wc.Headers.Add("User-Agent", $UserAgent)
+    return $wc
+}
 
-    $asset = $release.assets | Where-Object { $_.name -match '^mpv-dev-x86_64-\d{8}' -and $_.name -notmatch '-v3-' } | Select-Object -First 1
-    if (-not $asset) {
-        Write-Error "No mpv-dev-x86_64 asset found in latest zhongfly/mpv-winbuild release"
-        exit 1
-    }
+function Invoke-UrlDownload {
+    param(
+        [Parameter(Mandatory)][string]$Url,
+        [Parameter(Mandatory)][string]$OutputFile
+    )
 
-    $archiveName = $asset.name
-    $downloadUrl = $asset.browser_download_url
-    Write-Host "Downloading $archiveName ..." -ForegroundColor Yellow
+    Write-Host "Downloading $([System.IO.Path]::GetFileName($OutputFile)) ..." -ForegroundColor Yellow
+    $wc = New-WebClient
+    $wc.DownloadFile($Url, $OutputFile)
+}
 
-    $archive = Join-Path $VendorDir $archiveName
-    Invoke-WebRequest -Uri $downloadUrl -OutFile $archive -UseBasicParsing
+function Get-UrlJson {
+    param(
+        [Parameter(Mandatory)][string]$Url
+    )
+
+    $wc = New-WebClient
+    return $wc.DownloadString($Url) | ConvertFrom-Json
+}
+
+function Expand-Archive7z {
+    param(
+        [Parameter(Mandatory)][string]$ArchivePath,
+        [Parameter(Mandatory)][string]$Destination
+    )
 
     Write-Host "Extracting..." -ForegroundColor Yellow
     if (-not (Get-Command "7z" -ErrorAction SilentlyContinue)) {
-        Write-Error "7-Zip (7z) not found in PATH. Install 7-Zip."
-        exit 1
+        throw "7-Zip (7z) not found in PATH. Install 7-Zip."
     }
-    $null = 7z x $archive -o"$VendorDir" -y
-    if ($LASTEXITCODE -ne 0) { Write-Error "7z extraction failed"; exit 1 }
-    Remove-Item -Force $archive
+    $null = 7z x $ArchivePath -o"$Destination" -y
+    if ($LASTEXITCODE -ne 0) { throw "extraction of $ArchivePath failed" }
+    Remove-Item -Force $ArchivePath
+}
+
+function Install-Mpv {
+    param(
+        [string]$VendorDir,
+        [string]$MpvDir
+    )
+
+    Write-Host "=== mpv-dev-x86_64 ===" -ForegroundColor Cyan
+
+    $release = Get-UrlJson -Url $script:MpvReleaseApiUrl
+    $asset = $release.assets | Where-Object { $_.name -match $script:MpvAssetPattern -and $_.name -notmatch $script:MpvExcludedPattern } | Select-Object -First 1
+    if (-not $asset) {
+        throw "No mpv-dev-x86_64 asset found in latest $($script:MpvReleaseApiUrl) release"
+    }
+
+    $archive = Join-Path $VendorDir $asset.name
+    Invoke-UrlDownload -Url $asset.browser_download_url -OutputFile $archive
+
+    Expand-Archive7z -ArchivePath $archive -Destination $VendorDir
 
     # Restructure: files extract into vendor root, move into mpv-dev-x86_64/
     if (Test-Path (Join-Path $VendorDir "include/mpv")) {
@@ -53,33 +104,55 @@ if (-not (Test-Path $MpvH)) {
         Remove-Item (Join-Path $VendorDir "libmpv.dll.a") -Force -ErrorAction SilentlyContinue
     }
     Write-Host "mpv-dev-x86_64 ready at $MpvDir" -ForegroundColor Green
-} else {
-    Write-Host "mpv-dev-x86_64 already present" -ForegroundColor Green
 }
 
-# ---- ffmpeg ----
-$FfmpegDir = Join-Path $VendorDir "ffmpeg"
-$FfmpegExe = Join-Path $FfmpegDir "ffmpeg.exe"
-if (-not (Test-Path $FfmpegExe)) {
+function Install-Ffmpeg {
+    param(
+        [string]$VendorDir,
+        [string]$FfmpegDir
+    )
+
     Write-Host "=== ffmpeg ===" -ForegroundColor Cyan
     New-Item -ItemType Directory -Force -Path $FfmpegDir | Out-Null
 
-    $zip = Join-Path $FfmpegDir "ffmpeg.zip"
-    Write-Host "Downloading ffmpeg-release-essentials.zip ..." -ForegroundColor Yellow
-    Invoke-WebRequest -Uri "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip" -OutFile $zip -UseBasicParsing
+    $archive = Join-Path $FfmpegDir "ffmpeg.zip"
+    Invoke-UrlDownload -Url $script:FfmpegReleaseUrl -OutputFile $archive
 
-    Write-Host "Extracting..." -ForegroundColor Yellow
-    Expand-Archive -Path $zip -DestinationPath $FfmpegDir -Force
+    Expand-Archive7z -ArchivePath $archive -Destination $FfmpegDir
     $Extracted = Get-ChildItem $FfmpegDir -Filter "ffmpeg-*" -Directory | Sort-Object Name -Descending | Select-Object -First 1
-    if ($Extracted) {
-        Move-Item (Join-Path $Extracted.FullName "bin/ffmpeg.exe") $FfmpegExe -Force
-        Move-Item (Join-Path $Extracted.FullName "bin/ffprobe.exe") "$FfmpegDir/ffprobe.exe" -Force
-        Remove-Item -Recurse -Force $Extracted.FullName
+    if (-not $Extracted) {
+        throw "Extraction of $archive did not produce an 'ffmpeg-*' directory"
     }
-    Remove-Item -Force $zip
+    Move-Item (Join-Path $Extracted.FullName "bin/ffmpeg.exe") (Join-Path $FfmpegDir "ffmpeg.exe") -Force
+    Move-Item (Join-Path $Extracted.FullName "bin/ffprobe.exe") (Join-Path $FfmpegDir "ffprobe.exe") -Force
+    Remove-Item -Recurse -Force $Extracted.FullName
     Write-Host "ffmpeg ready at $FfmpegDir" -ForegroundColor Green
-} else {
-    Write-Host "ffmpeg already present" -ForegroundColor Green
+}
+
+if ($OnlyMpv -and $OnlyFfmpeg) {
+    throw "OnlyMpv and OnlyFfmpeg are mutually exclusive"
+}
+$WantMpv = $OnlyMpv -or -not $OnlyFfmpeg
+$WantFfmpeg = $OnlyFfmpeg -or -not $OnlyMpv
+
+$MpvDir = Join-Path $VendorDir "mpv-dev-x86_64"
+$MpvH = Join-Path $MpvDir "include/mpv/client.h"
+if ($WantMpv) {
+    if ($Force -or -not (Test-Path $MpvH)) {
+        Install-Mpv -VendorDir $VendorDir -MpvDir $MpvDir
+    } else {
+        Write-Host "mpv-dev-x86_64 already present" -ForegroundColor Green
+    }
+}
+
+$FfmpegDir = Join-Path $VendorDir "ffmpeg"
+$FfmpegExe = Join-Path $FfmpegDir "ffmpeg.exe"
+if ($WantFfmpeg) {
+    if ($Force -or -not (Test-Path $FfmpegExe)) {
+        Install-Ffmpeg -VendorDir $VendorDir -FfmpegDir $FfmpegDir
+    } else {
+        Write-Host "ffmpeg already present" -ForegroundColor Green
+    }
 }
 
 Write-Host ""
