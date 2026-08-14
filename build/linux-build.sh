@@ -193,7 +193,7 @@ build_in_docker() {
 
     mkdir -p "$out_dir" "$build_dir" "$cargo_dir"
 
-    docker run --rm \
+    docker run --rm --init \
         -v "$PROJECT_DIR:/source" \
         -e CARGO_TARGET_DIR="/source/out/$cargo_dir_name" \
         -e CARGO_HOME="/tmp/home/.cargo" \
@@ -201,6 +201,7 @@ build_in_docker() {
         "$image_name" \
         bash -c "
             set -euo pipefail
+            trap 'echo \"=== Build interrupted ===\"; trap - INT TERM; kill 0 2>/dev/null || true; sleep 2; kill -9 0 2>/dev/null || true; exit 130' INT TERM
             mkdir -p /tmp/home
             cmake_opts='-DCMAKE_BUILD_TYPE=Release -DPACKAGE_TARGET=${target}'
             cmake -S /source -B /source/out/$build_dir_name \$cmake_opts
@@ -239,7 +240,7 @@ build_appimage() {
     docker build -t "$image_name" -f "$dockerfile" "$SCRIPT_DIR/docker"
     mkdir -p "$out_dir" "$build_dir" "$cargo_dir"
 
-    docker run --rm \
+    docker run --rm --init \
         -v "$PROJECT_DIR:/source" \
         -e CARGO_TARGET_DIR="/source/out/$cargo_dir_name" \
         -e CARGO_HOME="/tmp/home/.cargo" \
