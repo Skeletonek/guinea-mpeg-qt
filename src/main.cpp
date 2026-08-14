@@ -138,6 +138,10 @@ int main(int argc, char *argv[])
 #ifdef Q_OS_LINUX
     app.setDesktopFileName("guinea-mpeg");
     app.setWindowIcon(QIcon::fromTheme("guinea-mpeg"));
+#elif defined(Q_OS_WIN)
+    // Qt never reads the .rc-embedded exe icon for the window titlebar, so load
+    // it explicitly from the bundled resource (see AGENTS.md).
+    app.setWindowIcon(QIcon(QStringLiteral(":/media/logo/app.ico")));
 #endif
     std::setlocale(LC_NUMERIC, "C");
 
