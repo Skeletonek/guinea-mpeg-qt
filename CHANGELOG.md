@@ -1,5 +1,8 @@
 ### 0.9.0
+- Bundled debian version of ffmpeg in Appimage
 - Bundled full ffmpeg version for Windows
+- Decreased size of Appimage build by about 30%
+- Fixed AV1 profiles not working in Appimage
 - Fixed AV1 profiles not working on Windows
 - Fixed missing app icon in titlebar on Windows
 - Improved Windows build system
