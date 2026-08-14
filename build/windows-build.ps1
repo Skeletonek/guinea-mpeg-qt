@@ -104,6 +104,49 @@ Write-Host "Configuration: $Config" -ForegroundColor Gray
 Write-Host "Output dir: $OutputDir" -ForegroundColor Gray
 Write-Host "Release: $(if ($Config -eq 'Release') { 'Yes' } else { 'No' })" -ForegroundColor Gray
 
+# ---- Auto-detect MSVC compiler ----
+# Locates vcvars64.bat across common VS install paths (vswhere + fallbacks).
+function Get-VcVarsPath {
+    $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+    if (-not (Test-Path $vswhere)) {
+        $vswhere = "$env:ProgramFiles\Microsoft Visual Studio\Installer\vswhere.exe"
+    }
+    $vsPath = if (Test-Path $vswhere) { & $vswhere -latest -property installationPath } else { $null }
+    if (-not $vsPath) {
+        $vsPath = @(
+            "C:\Program Files\Microsoft Visual Studio\2022\Community",
+            "C:\Program Files (x86)\Microsoft Visual Studio\2022\Community",
+            "C:\Program Files\Microsoft Visual Studio\2022\Professional",
+            "C:\Program Files (x86)\Microsoft Visual Studio\2022\Professional",
+            "C:\Program Files\Microsoft Visual Studio\2022\Enterprise",
+            "C:\Program Files (x86)\Microsoft Visual Studio\2022\Enterprise",
+            "C:\Program Files\Microsoft Visual Studio\2022\BuildTools",
+            "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools"
+        ) | Where-Object { Test-Path "$_\VC\Auxiliary\Build\vcvars64.bat" } | Select-Object -First 1
+    }
+    if (-not $vsPath) {
+        throw "Visual Studio not found. Install it or run from a Developer Command Prompt."
+    }
+    $vcvars = Join-Path (Join-Path (Join-Path $vsPath "VC") "Auxiliary") "Build\vcvars64.bat"
+    if (-not (Test-Path $vcvars)) {
+        throw "vcvars64.bat not found at $vcvars"
+    }
+    return $vcvars
+}
+
+function Import-VisualStudioEnvironment {
+    if (Get-Command "cl" -ErrorAction SilentlyContinue) { return }
+    Write-Host "Looking for Visual Studio..." -ForegroundColor Yellow
+    $vcvars = Get-VcVarsPath
+    Write-Host "Loading MSVC environment from $vcvars" -ForegroundColor Gray
+    cmd /c "`"$vcvars`" x64 > nul 2>&1 && set" | ForEach-Object {
+        if ($_ -match '^([^=]+)=(.*)$') {
+            Set-Item -Path "env:$($matches[1])" -Value $matches[2]
+        }
+    }
+}
+Import-VisualStudioEnvironment
+
 # ---- Check prerequisites ----
 function Test-Command([string[]]$Name) {
     foreach ($cmd in $Name) {
@@ -164,12 +207,7 @@ if (-not (Test-Path $mpvLibPath)) {
         $dllPath = Join-Path $MpvDir "libmpv-2.dll"
         if (-not (Test-Path $dllPath)) { throw "libmpv-2.dll not found in bundle" }
 
-        if (-not (Get-Command "dumpbin" -ErrorAction SilentlyContinue)) {
-            $vcvars = Get-VcVarsPath
-            cmd /c "`"$vcvars`" x64 > nul 2>&1 && set" | ForEach-Object {
-                if ($_ -match '^([^=]+)=(.*)$') { Set-Item -Path "env:$($matches[1])" -Value $matches[2] }
-            }
-        }
+        Import-VisualStudioEnvironment
 
         $defPath = Join-Path $libDir "mpv.def"
         $output = & dumpbin /exports $dllPath
@@ -188,49 +226,6 @@ if (-not (Test-Path $mpvLibPath)) {
         Write-Host "Generated mpv.lib ($($exports.Count) exports)" -ForegroundColor Green
     }
 }
-
-# ---- Auto-detect MSVC compiler ----
-# Locates vcvars64.bat across common VS install paths (vswhere + fallbacks).
-function Get-VcVarsPath {
-    $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
-    if (-not (Test-Path $vswhere)) {
-        $vswhere = "$env:ProgramFiles\Microsoft Visual Studio\Installer\vswhere.exe"
-    }
-    $vsPath = if (Test-Path $vswhere) { & $vswhere -latest -property installationPath } else { $null }
-    if (-not $vsPath) {
-        $vsPath = @(
-            "C:\Program Files\Microsoft Visual Studio\2022\Community",
-            "C:\Program Files (x86)\Microsoft Visual Studio\2022\Community",
-            "C:\Program Files\Microsoft Visual Studio\2022\Professional",
-            "C:\Program Files (x86)\Microsoft Visual Studio\2022\Professional",
-            "C:\Program Files\Microsoft Visual Studio\2022\Enterprise",
-            "C:\Program Files (x86)\Microsoft Visual Studio\2022\Enterprise",
-            "C:\Program Files\Microsoft Visual Studio\2022\BuildTools",
-            "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools"
-        ) | Where-Object { Test-Path "$_\VC\Auxiliary\Build\vcvars64.bat" } | Select-Object -First 1
-    }
-    if (-not $vsPath) {
-        throw "Visual Studio not found. Install it or run from a Developer Command Prompt."
-    }
-    $vcvars = Join-Path (Join-Path (Join-Path $vsPath "VC") "Auxiliary") "Build\vcvars64.bat"
-    if (-not (Test-Path $vcvars)) {
-        throw "vcvars64.bat not found at $vcvars"
-    }
-    return $vcvars
-}
-
-function Import-VisualStudioEnvironment {
-    if (Get-Command "cl" -ErrorAction SilentlyContinue) { return }
-    Write-Host "Looking for Visual Studio..." -ForegroundColor Yellow
-    $vcvars = Get-VcVarsPath
-    Write-Host "Loading MSVC environment from $vcvars" -ForegroundColor Gray
-    cmd /c "`"$vcvars`" x64 > nul 2>&1 && set" | ForEach-Object {
-        if ($_ -match '^([^=]+)=(.*)$') {
-            Set-Item -Path "env:$($matches[1])" -Value $matches[2]
-        }
-    }
-}
-Import-VisualStudioEnvironment
 
 # ---- Step 2: CMake configure ----
 Write-Host "=== Step 2/7: CMake configure ===" -ForegroundColor Cyan

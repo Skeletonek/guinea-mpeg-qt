@@ -23,43 +23,32 @@ param(
 $ErrorActionPreference = "Stop"
 $ProjectRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
 $VendorDir = Join-Path (Join-Path $ProjectRoot "build") "vendor"
+New-Item -ItemType Directory -Force -Path $VendorDir | Out-Null
 
 # ---- Download configuration ----
 # Change these URLs to point at a different mirror or build variant.
 $MpvReleaseApiUrl = "https://api.github.com/repos/zhongfly/mpv-winbuild/releases/latest"
 $MpvAssetPattern  = '^mpv-dev-x86_64-\d{8}'
 $MpvExcludedPattern = '-v3-'
-$FfmpegReleaseUrl = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-full.zip"
+$FfmpegReleaseUrl = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-full.7z"
 $UserAgent = "guinea-mpeg-vendor/1.0"
 
-function New-WebClient {
-    param(
-        [string]$UserAgent = $script:UserAgent
-    )
-
-    $wc = New-Object System.Net.WebClient
-    $wc.Headers.Add("User-Agent", $UserAgent)
-    return $wc
-}
-
-function Invoke-UrlDownload {
+function Invoke-UrlRequest {
     param(
         [Parameter(Mandatory)][string]$Url,
-        [Parameter(Mandatory)][string]$OutputFile
+        [string]$OutputFile
     )
 
-    Write-Host "Downloading $([System.IO.Path]::GetFileName($OutputFile)) ..." -ForegroundColor Yellow
-    $wc = New-WebClient
-    $wc.DownloadFile($Url, $OutputFile)
-}
-
-function Get-UrlJson {
-    param(
-        [Parameter(Mandatory)][string]$Url
-    )
-
-    $wc = New-WebClient
-    return $wc.DownloadString($Url) | ConvertFrom-Json
+    if (-not (Get-Command "curl" -ErrorAction SilentlyContinue) -and -not (Get-Command "curl.exe" -ErrorAction SilentlyContinue)) {
+        throw "curl not found. Install curl or use a system with curl available (Windows 10 1803+ bundles it)."
+    }
+    if ($OutputFile) {
+        Write-Host "Downloading $([System.IO.Path]::GetFileName($OutputFile)) ..." -ForegroundColor Yellow
+        & curl.exe --location --fail --silent --show-error --user-agent $script:UserAgent --output $OutputFile --url $Url
+        if ($LASTEXITCODE -ne 0) { throw "download of $Url failed (curl exit $LASTEXITCODE)" }
+    } else {
+        return (& curl.exe --location --fail --silent --show-error --user-agent $script:UserAgent --url $Url)
+    }
 }
 
 function Expand-Archive7z {
@@ -85,14 +74,14 @@ function Install-Mpv {
 
     Write-Host "=== mpv-dev-x86_64 ===" -ForegroundColor Cyan
 
-    $release = Get-UrlJson -Url $script:MpvReleaseApiUrl
+    $release = Invoke-UrlRequest -Url $script:MpvReleaseApiUrl | ConvertFrom-Json
     $asset = $release.assets | Where-Object { $_.name -match $script:MpvAssetPattern -and $_.name -notmatch $script:MpvExcludedPattern } | Select-Object -First 1
     if (-not $asset) {
         throw "No mpv-dev-x86_64 asset found in latest $($script:MpvReleaseApiUrl) release"
     }
 
     $archive = Join-Path $VendorDir $asset.name
-    Invoke-UrlDownload -Url $asset.browser_download_url -OutputFile $archive
+    Invoke-UrlRequest -Url $asset.browser_download_url -OutputFile $archive
 
     Expand-Archive7z -ArchivePath $archive -Destination $VendorDir
 
@@ -115,8 +104,8 @@ function Install-Ffmpeg {
     Write-Host "=== ffmpeg ===" -ForegroundColor Cyan
     New-Item -ItemType Directory -Force -Path $FfmpegDir | Out-Null
 
-    $archive = Join-Path $FfmpegDir "ffmpeg.zip"
-    Invoke-UrlDownload -Url $script:FfmpegReleaseUrl -OutputFile $archive
+    $archive = Join-Path $FfmpegDir "ffmpeg.7z"
+    Invoke-UrlRequest -Url $script:FfmpegReleaseUrl -OutputFile $archive
 
     Expand-Archive7z -ArchivePath $archive -Destination $FfmpegDir
     $Extracted = Get-ChildItem $FfmpegDir -Filter "ffmpeg-*" -Directory | Sort-Object Name -Descending | Select-Object -First 1
