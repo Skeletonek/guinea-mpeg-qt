@@ -87,6 +87,20 @@ run_linuxdeploy() {
     rm -rf "$APPDIR/qml"
 }
 
+bundle_portal_theme() {
+    # Native file dialogs via xdg-desktop-portal; AppRun activates the theme.
+    echo "=== Bundling xdg-desktop-portal platform theme ==="
+    local theme_src
+    theme_src=$(find /usr/lib -path '*qt6/plugins/platformthemes/libqxdgdesktopportal.so' 2>/dev/null | head -1)
+    if [ -n "$theme_src" ]; then
+        mkdir -p "$APPDIR/usr/plugins/platformthemes"
+        cp "$theme_src" "$APPDIR/usr/plugins/platformthemes/"
+        echo "  -> copied $(basename "$theme_src")"
+    else
+        echo "  WARNING: libqxdgdesktopportal.so not found in container!" >&2
+    fi
+}
+
 fix_interpreter() {
     echo "=== Fixing ELF interpreter ==="
     local interp=""
@@ -112,6 +126,17 @@ HERE="$(dirname "$(readlink -f "$0")")"
 export PATH="$HERE/usr/bin:$PATH"
 export LD_LIBRARY_PATH="$HERE/usr/lib:$HERE/lib:$LD_LIBRARY_PATH"
 export QT_PLUGIN_PATH="$HERE/usr/plugins"
+
+# Use the host's native file dialogs (xdg-desktop-portal) when the bundled
+# theme is present and a portal responds on the session bus. Falls back to
+# Qt's built-in dialogs otherwise; respects a user override.
+if [ -f "$HERE/usr/plugins/platformthemes/libqxdgdesktopportal.so" ] \
+   && dbus-send --session --print-reply --dest=org.freedesktop.portal.Desktop \
+      /org/freedesktop/portal/desktop org.freedesktop.DBus.Properties.Get \
+      string:org.freedesktop.portal.FileChooser string:version >/dev/null 2>&1; then
+    export QT_QPA_PLATFORMTHEME="${QT_QPA_PLATFORMTHEME:-xdgdesktopportal}"
+fi
+
 exec "$HERE/usr/bin/guinea-mpeg" "$@"
 APPRUN
     chmod +x "$APPDIR/AppRun"
@@ -131,6 +156,7 @@ build_binary
 bundle_ffmpeg
 bundle_qml
 run_linuxdeploy
+bundle_portal_theme
 fix_interpreter
 write_apprun
 package_appimage
