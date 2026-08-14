@@ -21,6 +21,8 @@ BUILD_DIR="${1:?usage: build-appimage.sh <cmake-build-dir>}"
 CARGO_DIR="${CARGO_TARGET_DIR:-/source/rust/target}"
 VERSION=$(grep "^version = " /source/rust/Cargo.toml | head -1 | sed 's/version = "\(.*\)"/\1/')
 APPDIR="/source/out/appimage/AppDir"
+FFMPEG_URL="https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n8.1-latest-linux64-gpl-8.1.tar.xz"
+FFMPEG_SHA_URL="https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/checksums.sha256"
 
 fetch_tool() {
     local name="$1" url="$2" dest="$3"
@@ -55,13 +57,24 @@ build_binary() {
 
 bundle_ffmpeg() {
     echo "=== Bundling static ffmpeg ==="
-    wget -q -c "https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz" -O /tmp/ffmpeg-static.tar.xz
+    wget -q -c "$FFMPEG_URL" -O /tmp/ffmpeg-static.tar.xz
+    wget -q -c "$FFMPEG_SHA_URL" -O /tmp/ffmpeg-checksums.sha256
+
+    local expected actual
+    expected=$(grep "ffmpeg-n8.1-latest-linux64-gpl-8.1.tar.xz" /tmp/ffmpeg-checksums.sha256 | awk '{print $1}')
+    actual=$(sha256sum /tmp/ffmpeg-static.tar.xz | awk '{print $1}')
+    if [ -z "$expected" ] || [ "$expected" != "$actual" ]; then
+        echo "  ERROR: ffmpeg checksum mismatch (expected $expected, got $actual)" >&2
+        exit 1
+    fi
+    echo "  checksum OK"
+
     tar xf /tmp/ffmpeg-static.tar.xz -C /tmp/
     local ffmpeg_dir
-    ffmpeg_dir=$(ls -d /tmp/ffmpeg-*-static 2>/dev/null | head -1 || true)
+    ffmpeg_dir=$(ls -d /tmp/ffmpeg-*linux64-gpl* 2>/dev/null | head -1 || true)
     if [ -n "$ffmpeg_dir" ]; then
-        copy_stripped "$ffmpeg_dir/ffmpeg" "$APPDIR/usr/bin/"
-        copy_stripped "$ffmpeg_dir/ffprobe" "$APPDIR/usr/bin/"
+        copy_stripped "$ffmpeg_dir/bin/ffmpeg" "$APPDIR/usr/bin/"
+        copy_stripped "$ffmpeg_dir/bin/ffprobe" "$APPDIR/usr/bin/"
     else
         echo "  WARNING: static ffmpeg download failed!"
     fi
