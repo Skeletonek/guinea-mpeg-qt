@@ -50,32 +50,55 @@ Rectangle {
             width: editorFlickable.width - (editorScrollBar.visible ? editorScrollBar.width : 0)
             spacing: 16
 
-            Label {
-                text: qsTr("Profile Editor")
-                font.bold: true
-                font.pixelSize: 20
-                color: theme.text
-                bottomPadding: 4
-            }
-
             RowLayout {
                 width: parent.width
 
+                Label {
+                    text: qsTr("Profile Editor")
+                    font.bold: true
+                    font.pixelSize: 20
+                    color: theme.text
+                    bottomPadding: 4
+                }
+
+                Item { Layout.fillWidth: true }
+
+                Label {
+                    id: notifyLabel
+                    Layout.leftMargin: 12
+                    Layout.maximumWidth: 360
+                    color: theme.accent
+                    font.pixelSize: 13
+                    elide: Text.ElideRight
+                    visible: false
+                    opacity: 0
+                    Behavior on opacity { NumberAnimation { duration: 300 } }
+                }
+            }
+
+            Flow {
+                id: toolbar
+                width: parent.width
+                spacing: 10
+
                 Button {
+                    id: backBtn
                     text: qsTr("\u2190 Back")
                     onClicked: back()
                 }
 
                 Label {
+                    id: profileCaption
                     text: qsTr("Profile:")
                     color: theme.textSecondary
                     font.pixelSize: 14
+                    height: backBtn.height
                     verticalAlignment: Text.AlignVCenter
                 }
 
                 ComboBox {
                     id: profileSelector
-                    Layout.preferredWidth: 300
+                    width: 300
                     model: root._profileNames
                     displayText: currentIndex < 0 ? qsTr("New profile") : currentText
                     onCurrentTextChanged: {
@@ -86,52 +109,58 @@ Rectangle {
                 }
 
                 Button {
+                    id: newBtn
                     text: qsTr("+ New")
                     onClicked: resetToNew()
                 }
 
                 Button {
+                    id: saveBtn
                     text: qsTr("Save")
                     highlighted: true
                     onClicked: saveCurrent()
                 }
 
                 Button {
+                    id: restoreDeleteBtn
                     text: _isDefaultProfile ? qsTr("Restore") : qsTr("Delete")
                     visible: _loadedProfileName !== ""
                     onClicked: _isDefaultProfile ? restoreSingleProfile() : deleteDialog.open()
                 }
 
-                Label {
-                    id: notifyLabel
-                    Layout.leftMargin: 12
-                    color: theme.accent
-                    font.pixelSize: 13
-                    elide: Text.ElideRight
-                    visible: false
-                    opacity: 0
-                    Behavior on opacity { NumberAnimation { duration: 300 } }
+                Item {
+                    id: toolbarSpacer
+                    width: Math.max(0, toolbar.width - leftGroupWidth()
+                                    - rightGroup.width - toolbar.spacing * 2)
+                    height: 1
                 }
 
-                Item { Layout.fillWidth: true }
+                Row {
+                    id: rightGroup
+                    width: rightGroup.implicitWidth
+                    spacing: 10
 
-                Button {
-                    text: qsTr("Export\u2026")
-                    onClicked: {
-                        exportDialog.profileNames = JSON.parse(backend.userProfileNames())
-                        exportDialog.defaultCheckedName = _loadedProfileName
-                        exportDialog.open()
+                    Button {
+                        id: exportBtn
+                        text: qsTr("Export\u2026")
+                        onClicked: {
+                            exportDialog.profileNames = JSON.parse(backend.userProfileNames())
+                            exportDialog.defaultCheckedName = _loadedProfileName
+                            exportDialog.open()
+                        }
                     }
-                }
 
-                Button {
-                    text: qsTr("Import\u2026")
-                    onClicked: importDialog.open()
-                }
+                    Button {
+                        id: importBtn
+                        text: qsTr("Import\u2026")
+                        onClicked: importDialog.open()
+                    }
 
-                Button {
-                    text: qsTr("Restore Defaults")
-                    onClicked: restoreDialog.open()
+                    Button {
+                        id: restoreDefaultsBtn
+                        text: qsTr("Restore Defaults")
+                        onClicked: restoreDialog.open()
+                    }
                 }
             }
 
@@ -328,6 +357,22 @@ Rectangle {
     Connections {
         target: videoPanel
         function onOpenEncoderCompatDialog() { compatDialog.open() }
+    }
+
+    function leftGroupWidth() {
+        return groupWidth([backBtn, profileCaption, profileSelector, newBtn, saveBtn, restoreDeleteBtn])
+    }
+
+    function groupWidth(items) {
+        var w = 0
+        var count = 0
+        for (var i = 0; i < items.length; i++) {
+            if (!items[i].visible) continue
+            if (count > 0) w += toolbar.spacing
+            w += items[i].width
+            count++
+        }
+        return w
     }
 
     function showNotification(msg, clr) {
