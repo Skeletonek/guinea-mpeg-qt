@@ -8,8 +8,8 @@ A modern FFmpeg transcoding GUI with a Rust core library dynamically linked via 
 - **Timeline Selection**: Drag start/end handles to select a segment for transcoding
 - **Transcoding Profiles**: Built-in profiles for H.264, H.265/HEVC, VP9, AV1, GIF, and WebP
 - **Hardware Encoding**: Runtime detection of NVENC, QSV, VAAPI, AMF, Vulkan encoders via ffmpeg
-- **Profile Editor**: Create, edit, and delete profiles in-app; per-encoder preset/tune/pixfmt filtering
-- **Live Transcode Output**: Non-modal dialog showing real-time ffmpeg stderr output with autoscroll
+- **Profile Editor**: Create, edit, and delete profiles in-app
+- **Profile Export/Import**: Share profiles between machines as `.toml` files from the Profile Editor
 - **MIME type integration**: Open video files directly from your file manager
 - **Drag & Drop**: Drop a video file anywhere on the window to load it
 
@@ -37,8 +37,8 @@ A modern FFmpeg transcoding GUI with a Rust core library dynamically linked via 
   - `Qt 6.x / MSVC 2022 64-bit`
   - `Qt Quick`
   - `Qt QuickControls2`
-- [mpv-dev bundle](https://github.com/zhongfly/mpv-winbuild) (auto-downloaded by the build script to `build/vendor/mpv-dev-x86_64/`)
-- FFmpeg & ffprobe (auto-downloaded by the build script, gyan.dev full build)
+- [mpv-dev bundle](https://github.com/zhongfly/mpv-winbuild) (zhongfly winbuild, auto-downloaded by the build script)
+- [FFmpeg & ffprobe](https://github.com/BtbN/FFmpeg-Builds) (BtbN build, auto-downloaded by the build script)
 - 7-Zip (required by the mpv-dev download script): `winget install 7zip.7zip`
 - Ninja (optional, auto-detected): `winget install Ninja-build.Ninja`
 - InnoSetup 6 (optional, for installer) — download from [jrsoftware.org](https://jrsoftware.org/isdl.php)
@@ -47,24 +47,24 @@ A modern FFmpeg transcoding GUI with a Rust core library dynamically linked via 
 
 **Debian / Ubuntu**
 ```bash
-sudo apt install cmake g++ pkg-config \
-                 qt6-base-dev qt6-declarative-dev \
-                 libmpv-dev libgl1-mesa-dev \
-                 cargo
+sudo apt install cmake g++ pkg-config cargo \
+                 qt6-base-dev qt6-declarative-dev qt6-multimedia-dev qt6-tools-dev \
+                 qml6-module-qtmultimedia qml6-module-qtquickcontrols2 \
+                 libmpv-dev libgl1-mesa-dev
 ```
 
 **Fedora**
 ```bash
-sudo dnf install cmake gcc-c++ pkgconf-pkg-config \
+sudo dnf install cmake gcc-c++ pkgconf-pkg-config cargo rust \
                  qt6-qtbase-devel qt6-qtdeclarative-devel \
-                 mpv-libs-devel mesa-libGL-devel \
-                 cargo rust
+                 qt6-qtquickcontrols2-devel qt6-qtmultimedia-devel qt6-qttools-devel \
+                 mpv-libs-devel mesa-libGL-devel
 ```
 
 **Arch Linux**
 ```bash
 sudo pacman -S --needed base-devel cmake \
-                       qt6-base qt6-declarative \
+                       qt6-base qt6-declarative qt6-multimedia qt6-tools \
                        mpv rust cargo
 ```
 
@@ -132,37 +132,58 @@ Artifacts:
 | Portable ZIP | `out/guinea-mpeg-{version}-x86_64.zip` |
 | Installer (exe) | `out/guinea-mpeg-{version}-x86_64.exe` |
 
-Output: `out/windows/guinea-mpeg.exe` (no console window by default).
-
 ### Version
 
 Version is read from `rust/Cargo.toml` automatically. Bump with:
 
 ```bash
-./update-version.sh 0.2.1
+./update-version.sh 1.2.3
 ```
 
 ## CI/CD
 
-A GitLab CI pipeline (`.gitlab-ci.yml`) builds and releases all packages on tag pushes using Docker-in-Docker.
+A GitLab CI pipeline (`.gitlab-ci.yml`) builds and releases all linux packages (except Appimage) on tag pushes using Docker-in-Docker.
 
 ## Project Structure
 
-- `rust/` — Rust core library: `backend.rs` (profile management FFI), `config.rs` (TOML profile config), `ffmpeg/` (ffmpeg subprocess calls and command building — `args.rs`, `encoders.rs`, `codecs.rs`, `ffi.rs`, `types.rs`, `util.rs`), `mpv.rs` (mpv handle/events/commands)
-- `rust/include/guinea_mpeg_core.h` — Hand-written C header declaring all `extern "C"` FFI functions
-- `qml/` — Qt Quick QML UI: main window (`main.qml`), video preview (`VideoPreview.qml`), control panel (`ControlsPanel.qml`), timeline handles (`TimelineControl.qml`), profile editor (`ProfileEditor.qml` + sub-panels in `ProfileEditor/`), and `Dialogs/` subdirectory for modal dialogs
-- `src/main.cpp` — Qt C++ entry point, `GuineaMpegBackendExt` class with `Q_INVOKABLE` methods
-- `src/backend.h` / `src/backend.cpp` — Plain `QObject` wrapping Rust `extern "C"` calls; only transcode QProcess lifecycle stays in C++
-- `src/mpvitem.h` / `src/mpvitem.cpp` — `MpvItem` (QQuickFramebufferObject) + `MpvRenderer` delegating mpv commands to Rust via `extern "C"`
-- `CMakeLists.txt` — CMake build, links `libguinea_mpeg_core.so` (built via cargo), finds Qt6 + mpv
+```
+.
+├── rust/                    # Rust core library (cdylib)
+│   ├── include/guinea_mpeg_core.h    # hand-written C FFI header
+│   └── src/                 # backend FFI, TOML config, mpv, ffmpeg
+├── src/                     # C++ glue (QObjects exposed to QML)
+│   ├── main.cpp
+│   ├── backend.{h,cpp}
+│   └── mpvitem.{h,cpp}
+├── qml/                     # Qt Quick UI
+│   ├── main.qml
+│   ├── VideoPreview.qml, TimelineControl.qml, ControlsPanel.qml
+│   ├── ProfileEditor.qml (+ ProfileEditor/)
+│   ├── Components/          # reusable controls
+│   ├── Dialogs/             # modal dialogs
+│   └── Utils/               # JS helpers
+├── build/                   # build scripts + Dockerfiles
+├── translations/            # .ts locale files
+├── default_profiles.toml
+├── CMakeLists.txt
+└── .gitlab-ci.yml
+```
+
+- **Rust core** (`rust/`): all business logic, compiled to `libguinea_mpeg_core.so` — profile config/merge, mpv control, ffmpeg command building and encoder detection. Exposes a hand-written C API (`rust/include/guinea_mpeg_core.h`); data crosses the FFI boundary as JSON strings.
+- **C++ glue** (`src/`): thin `QObject`s (`GuineaMpegBackendExt`, `MpvItem` + renderer) registering into QML as `GuineaMpeg 1.0`. Only the transcode `QProcess` lifecycle lives in C++ — everything else delegates to Rust.
+- **QML** (`qml/`): the entire UI — main window, video preview, timeline trimming, profile editor and dialogs.
 
 ## Configuration
 
-Profiles are stored as human-editable TOML at `~/.config/guinea-mpeg/config.toml`.
-Format: `[[profiles]]` array-of-tables (auto-migrated from the legacy `[profiles."name"]` format).
+All user settings live in `~/.config/guinea-mpeg/config.toml`, editable in-app and directly as human-editable TOML. It holds:
+
+- **Profiles** — the `[[profiles]]` array-of-tables (auto-migrated from the legacy `[profiles."name"]` format), managed via the Profile Editor.
+- **Options** — an `[options]` table (language, Qt Quick Controls style, color scheme, hardware acceleration, preview volume, update checks), managed via the Settings button.
 
 Built-in defaults are bundled at `default_profiles.toml` (next to the binary or at `/usr/share/guinea-mpeg/default_profiles.toml`) and loaded at startup.
 User profiles merge over defaults (same name = user override).
+
+Profiles can be shared across machines by exporting them to `.toml` files and importing them (from the Profile Editor).
 
 ### Built-in Profiles
 

@@ -21,7 +21,7 @@
 │   ├── ProfileEditor.qml      # + ProfileEditor/{VideoPanel,AudioPanel,AdvancedPanel}.qml
 │   ├── ProfileEditor/VideoPanel/   # Codec, PresetTune, PixelFormat, RateControl, Scaling, Animated, AV1, VP8VP9 sections
 │   ├── Components/            # reusable controls (LabeledComboBox, SwitchRow, FormGroup, ...)
-│   ├── Dialogs/               # Transcode, Options, About, EncoderCompat, warnings, ...
+│   ├── Dialogs/               # Transcode, Options, About, Export/Import, warnings, ...
 │   └── Utils/                 # Constants.js, DataUtils.js, FormatUtils.js, Centering.js
 ├── rust/
 │   ├── Cargo.toml             # canonical version source
@@ -49,7 +49,7 @@ Plain `QObject`. Profile CRUD, options, video info, encoder detection/capabiliti
 - `MpvRenderer` stays in C++ (Renderer cannot be in Rust). Creates `mpv_render_context*` from the raw handle.
 
 ### Rust
-- `config.rs` — `[[profiles]]` TOML; falls back to legacy `HashMap`, migrates `"svtav1"`→`"av1"`. User config overlays defaults by `p.name`.
+- `config.rs` — `[[profiles]]` TOML; falls back to legacy `HashMap`, migrates `"svtav1"`→`"av1"`. User config overlays defaults by `p.name`. Profile export/import (`user_profile_names()`, `export_profiles()`, `import_profiles_preview()`/`import_profiles()`) — export only user-saved profiles; import warns on name conflicts with merged defaults+user.
 - `mpv.rs` — options set on create: `vo=libmpv`, `keep-open=yes`, `cache=yes`.
 - `ffmpeg/` — `args.rs` (`build_command()`, rate control per encoder family), `encoders.rs` (`encoder_family()`, software defaults), `ffi.rs` (`ffmpeg -hide_banner -encoders` parsing), `types.rs` (`EncoderCapabilities`).
 
@@ -61,6 +61,11 @@ Plain `QObject`. Profile CRUD, options, video info, encoder detection/capabiliti
 - `_loading` guard around model/list updates suppresses spurious `onCurrentTextChanged` → `loadProfile`. Set before populating combos in `Component.onCompleted`; defer `loadProfile` with `Qt.callLater` so child `Component.onCompleted` handlers run first.
 - `Keys.onPressed` only works on `Item` — attach to a focused child `Item` (e.g. `keyCatcher`), never `Dialog`/`Popup`.
 - `FileDialog.selectedFile` is a `file://` URL — strip prefix only for C++ paths; build `file://` URLs with `encodeURI()` for spaces/special chars.
+- `import QtQuick.Dialogs` must be **unversioned** on Qt 6 (no `2.15` import).
+- `FileDialog`/`FileSaveDialog`: `folder` is unset on the first open — never build `currentFile` from it (`undefined/...` URLs). A plain (relative) filename string works with the portal theme; `"file://" + name` is wrong (the name becomes the URL host). Set `currentFile` to only an absolute full path when you know the folder.
+- Custom `Dialog` header/footer must set `implicitHeight` (not just `height`) or the popup doesn't reserve space for them and content overflows.
+- `RowLayout` has no `padding` property — wrap it in an `Item` with `anchors.margins` if you need margins.
+- `ScrollView`: `contentItem.parent.availableWidth` is undefined (contentItem is a Flickable) — get width from the ScrollView's `id.availableWidth`.
 - Avoid property names colliding with parent scope IDs (`appWindow: appWindow` → binding loop; rename to `hostWindow`).
 - Prefer `Flickable` over `ScrollView` when a scrollbar must not reserve space.
 - QML exit 255 with no stderr: rerun with `QT_FORCE_STDERR_LOGGING=1`.
@@ -93,6 +98,7 @@ Plain `QObject`. Profile CRUD, options, video info, encoder detection/capabiliti
 - `crate-type = ["cdylib"]`; plain `extern "C"` symbols link without `--whole-archive`.
 - deb/rpm/pacman: Docker builds (`build/docker/*.Dockerfile`) then fpm packaging; `stage_package()` runs `patchelf --add-rpath '$ORIGIN/../lib/$PKGNAME'` so the binary finds the Rust `.so`.
 - flatpak: host `flatpak-builder`, SDK `org.kde.Platform//6.10`.
+- appimage: `bundle_portal_theme()` copies `libqxdgdesktopportal.so` into `$APPDIR/usr/plugins/platformthemes/`; AppRun sets `QT_QPA_PLATFORMTHEME=xdgdesktopportal` when present so the AppImage uses native file dialogs.
 
 ## Translations
 - `.ts` sources live in `translations/`, listed in `qml/CMakeLists.txt` via `qt_add_translations` (compiled into `:/i18n/qml/`; `main.cpp` loads them).

@@ -1,4 +1,5 @@
-### 0.9.0
+### 0.9.0 (In progress)
+- Added option to import and export profiles
 - Bundled debian version of ffmpeg in Appimage
 - Bundled full ffmpeg version for Windows
 - Decreased size of Appimage build by about 30%
