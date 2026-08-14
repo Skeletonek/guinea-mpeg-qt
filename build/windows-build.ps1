@@ -363,6 +363,15 @@ function Stage-Ffmpeg {
     Write-Step 7 "Bundle ffmpeg"
     Copy-ToStage -Source (Join-Path $FfmpegDir "ffmpeg.exe") -Destination (Join-Path $OutputDir "ffmpeg.exe") -Required
     Copy-ToStage -Source (Join-Path $FfmpegDir "ffprobe.exe") -Destination (Join-Path $OutputDir "ffprobe.exe") -Required
+    # ffmpeg is dynamically linked against the libav DLLs (BtbN gpl-shared) -
+    # they must sit next to the executables.
+    $FfmpegDlls = @(Get-ChildItem $FfmpegDir -Filter "*.dll" -ErrorAction SilentlyContinue)
+    if ($FfmpegDlls.Count -eq 0) {
+        Write-Warning "No libav DLLs found in $FfmpegDir. The shared ffmpeg build will not run. Re-run .\build\download-vendor.ps1 -Force."
+    } else {
+        $FfmpegDlls | Copy-Item -Destination $OutputDir -Force
+        Write-Host "$($FfmpegDlls.Count) ffmpeg DLLs staged." -ForegroundColor Green
+    }
 }
 
 function Trim-Staging {

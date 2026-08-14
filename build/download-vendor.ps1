@@ -30,7 +30,8 @@ New-Item -ItemType Directory -Force -Path $VendorDir | Out-Null
 $MpvReleaseApiUrl = "https://api.github.com/repos/zhongfly/mpv-winbuild/releases/latest"
 $MpvAssetPattern  = '^mpv-dev-x86_64-\d{8}'
 $MpvExcludedPattern = '-v3-'
-$FfmpegReleaseUrl = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-full.7z"
+$FfmpegReleaseUrl = "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n8.1-latest-win64-gpl-shared-8.1.zip"
+$FfmpegChecksumsUrl = "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/checksums.sha256"
 $UserAgent = "guinea-mpeg-vendor/1.0"
 
 function Invoke-UrlRequest {
@@ -104,16 +105,32 @@ function Install-Ffmpeg {
     Write-Host "=== ffmpeg ===" -ForegroundColor Cyan
     New-Item -ItemType Directory -Force -Path $FfmpegDir | Out-Null
 
-    $archive = Join-Path $FfmpegDir "ffmpeg.7z"
+    $assetName = [System.IO.Path]::GetFileName($script:FfmpegReleaseUrl)
+    $archive = Join-Path $FfmpegDir $assetName
     Invoke-UrlRequest -Url $script:FfmpegReleaseUrl -OutputFile $archive
+
+    # Verify the download against BtbN's published checksums
+    $checksumsFile = Join-Path $FfmpegDir "checksums.sha256"
+    Invoke-UrlRequest -Url $script:FfmpegChecksumsUrl -OutputFile $checksumsFile
+    $expectedHash = Get-Content $checksumsFile | Where-Object { $_ -like "*$assetName*" } | Select-Object -First 1
+    $expectedHash = if ($expectedHash) { ($expectedHash -split '\s+')[0] } else { $null }
+    $actualHash = (Get-FileHash -Algorithm SHA256 -Path $archive).Hash.ToLowerInvariant()
+    if (-not $expectedHash -or $expectedHash -ne $actualHash) {
+        throw "ffmpeg checksum mismatch (expected $expectedHash, got $actualHash)"
+    }
+    Write-Host "ffmpeg checksum OK." -ForegroundColor Green
+    Remove-Item -Force $checksumsFile
 
     Expand-Archive7z -ArchivePath $archive -Destination $FfmpegDir
     $Extracted = Get-ChildItem $FfmpegDir -Filter "ffmpeg-*" -Directory | Sort-Object Name -Descending | Select-Object -First 1
     if (-not $Extracted) {
         throw "Extraction of $archive did not produce an 'ffmpeg-*' directory"
     }
-    Move-Item (Join-Path $Extracted.FullName "bin/ffmpeg.exe") (Join-Path $FfmpegDir "ffmpeg.exe") -Force
-    Move-Item (Join-Path $Extracted.FullName "bin/ffprobe.exe") (Join-Path $FfmpegDir "ffprobe.exe") -Force
+    $BinDir = Join-Path $Extracted.FullName "bin"
+    Move-Item (Join-Path $BinDir "ffmpeg.exe") (Join-Path $FfmpegDir "ffmpeg.exe") -Force
+    Move-Item (Join-Path $BinDir "ffprobe.exe") (Join-Path $FfmpegDir "ffprobe.exe") -Force
+    # The gpl-shared build needs its libav DLLs next to the executables
+    Get-ChildItem $BinDir -Filter "*.dll" | Copy-Item -Destination $FfmpegDir -Force
     Remove-Item -Recurse -Force $Extracted.FullName
     Write-Host "ffmpeg ready at $FfmpegDir" -ForegroundColor Green
 }
@@ -136,8 +153,9 @@ if ($WantMpv) {
 
 $FfmpegDir = Join-Path $VendorDir "ffmpeg"
 $FfmpegExe = Join-Path $FfmpegDir "ffmpeg.exe"
+$FfmpegDlls = Get-ChildItem $FfmpegDir -Filter "*.dll" -ErrorAction SilentlyContinue
 if ($WantFfmpeg) {
-    if ($Force -or -not (Test-Path $FfmpegExe)) {
+    if ($Force -or -not (Test-Path $FfmpegExe) -or -not $FfmpegDlls) {
         Install-Ffmpeg -VendorDir $VendorDir -FfmpegDir $FfmpegDir
     } else {
         Write-Host "ffmpeg already present" -ForegroundColor Green
