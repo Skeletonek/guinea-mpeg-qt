@@ -2,11 +2,11 @@ use std::collections::HashMap;
 use std::os::raw::c_char;
 
 use crate::config::VideoProfile;
-use crate::ffmpeg::{build_command, build_preview, cstr, encoder_capabilities, normalize_path, run_cmd, to_c_string};
+use crate::ffmpeg::{build_command, build_preview, cstr, encoder_capabilities, normalize_path, quiet_command, run_cmd, to_c_string};
 
 #[no_mangle]
 pub extern "C" fn guinea_mpeg_ffmpeg_available() -> bool {
-    std::process::Command::new("ffmpeg")
+    quiet_command("ffmpeg")
         .arg("-version")
         .output()
         .is_ok()
@@ -42,7 +42,7 @@ pub extern "C" fn guinea_mpeg_generate_preview(path: *const c_char, time_ms: i64
     let preview = tmp.to_string_lossy().to_string();
 
     let sec = format!("{}", time_ms as f64 / 1000.0);
-    let ok = std::process::Command::new("ffmpeg")
+    let ok = quiet_command("ffmpeg")
         .args(&["-y", "-ss", &sec, "-i", &p, "-vframes", "1", "-q:v", "2", &preview])
         .output()
         .map(|o| o.status.success())

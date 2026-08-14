@@ -2,6 +2,17 @@ use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
 use std::process::Command;
 
+// On Windows, without CREATE_NO_WINDOW each child flashes a console window.
+pub(crate) fn quiet_command(prog: &str) -> Command {
+    let mut cmd = Command::new(prog);
+    #[cfg(target_os = "windows")]
+    {
+        use std::os::windows::process::CommandExt;
+        cmd.creation_flags(0x0800_0000); // CREATE_NO_WINDOW
+    }
+    cmd
+}
+
 pub(crate) fn normalize_path(path: &str) -> String {
     #[cfg(target_os = "windows")]
     {
@@ -14,7 +25,7 @@ pub(crate) fn normalize_path(path: &str) -> String {
 }
 
 pub(crate) fn run_cmd(prog: &str, args: &[&str]) -> Option<String> {
-    let output = Command::new(prog).args(args).output().ok()?;
+    let output = quiet_command(prog).args(args).output().ok()?;
     if output.status.success() {
         String::from_utf8(output.stdout).ok()
     } else {
