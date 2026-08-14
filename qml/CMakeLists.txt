@@ -17,6 +17,9 @@ qt_add_resources(guinea-mpeg "app_qml"
         ${CMAKE_SOURCE_DIR}/qml/Dialogs/FfmpegWarningDialog.qml
         ${CMAKE_SOURCE_DIR}/qml/Dialogs/FileOpenDialog.qml
         ${CMAKE_SOURCE_DIR}/qml/Dialogs/FileSaveDialog.qml
+        ${CMAKE_SOURCE_DIR}/qml/Dialogs/ProfileExportDialog.qml
+        ${CMAKE_SOURCE_DIR}/qml/Dialogs/ProfileImportDialog.qml
+        ${CMAKE_SOURCE_DIR}/qml/Dialogs/ProfileImportConflictDialog.qml
         ${CMAKE_SOURCE_DIR}/qml/Dialogs/MpvWarningDialog.qml
         ${CMAKE_SOURCE_DIR}/qml/Dialogs/RestoreDefaultsDialog.qml
         ${CMAKE_SOURCE_DIR}/qml/Dialogs/EncoderCompatDialog.qml

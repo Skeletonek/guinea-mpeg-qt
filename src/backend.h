@@ -25,11 +25,16 @@ public:
     void setTranscoding(bool v);
 
     Q_INVOKABLE QString availableProfiles();
+    Q_INVOKABLE QString userProfileNames();
     Q_INVOKABLE QString defaultProfileNames();
     Q_INVOKABLE QString loadProfile(const QString& name);
     Q_INVOKABLE bool saveProfile(const QString& name, const QString& json);
     Q_INVOKABLE bool deleteProfile(const QString& name);
     Q_INVOKABLE bool restoreDefaultProfiles();
+
+    Q_INVOKABLE bool exportProfiles(const QString& path, const QString& namesJson);
+    Q_INVOKABLE QString importProfilesPreview(const QString& path);
+    Q_INVOKABLE QString importProfiles(const QString& path, bool overwrite);
 
     Q_INVOKABLE QString getOptions();
     Q_INVOKABLE bool setOption(const QString& key, const QString& value);

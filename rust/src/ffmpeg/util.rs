@@ -4,7 +4,7 @@ use std::process::Command;
 
 // On Windows, without CREATE_NO_WINDOW each child flashes a console window.
 pub(crate) fn quiet_command(prog: &str) -> Command {
-    let mut cmd = Command::new(prog);
+    let cmd = Command::new(prog);
     #[cfg(target_os = "windows")]
     {
         use std::os::windows::process::CommandExt;

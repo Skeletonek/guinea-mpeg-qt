@@ -229,6 +229,16 @@ pub fn load_profile(name: &str) -> Option<VideoProfile> {
     config.profiles.iter().find(|p| p.name == name).cloned()
 }
 
+pub fn user_profile_names() -> Vec<String> {
+    let mut names = load_user_config()
+        .profiles
+        .into_iter()
+        .map(|p| p.name.clone())
+        .collect::<Vec<_>>();
+    names.sort();
+    names
+}
+
 pub fn save_profile(name: &str, json: &str) -> anyhow::Result<()> {
     let mut profile: VideoProfile = serde_json::from_str(json)?;
     profile.name = name.to_string();
@@ -262,6 +272,123 @@ pub fn delete_profile(name: &str) -> anyhow::Result<()> {
     save_user_config(&cfg)?;
     set_config(merge_configs());
     Ok(())
+}
+
+#[derive(Serialize)]
+struct ExportFile {
+    profiles: Vec<VideoProfile>,
+}
+
+pub fn export_profiles(path: &str, names: &[String]) -> anyhow::Result<()> {
+    let config = get_config();
+    let selected: Vec<VideoProfile> = config
+        .profiles
+        .iter()
+        .filter(|p| names.contains(&p.name))
+        .cloned()
+        .collect();
+    let content = toml::to_string(&ExportFile { profiles: selected })?;
+    Ok(std::fs::write(path, content)?)
+}
+
+fn parse_profiles_file(path: &Path) -> anyhow::Result<Vec<VideoProfile>> {
+    let content = std::fs::read_to_string(path)?;
+
+    if let Ok(mut cfg) = toml::from_str::<AppConfig>(&content) {
+        migrate_codec_key(&mut cfg.profiles);
+        return Ok(cfg.profiles);
+    }
+
+    #[derive(Deserialize)]
+    struct MapConfig {
+        profiles: HashMap<String, VideoProfile>,
+    }
+    if let Ok(cfg) = toml::from_str::<MapConfig>(&content) {
+        let mut profiles: Vec<VideoProfile> = cfg.profiles.into_values().collect();
+        migrate_codec_key(&mut profiles);
+        return Ok(profiles);
+    }
+
+    anyhow::bail!("not a valid profiles file")
+}
+
+#[derive(Debug, Clone, Default, Serialize)]
+pub struct ImportPreview {
+    pub conflicts: Vec<String>,
+    pub error: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Serialize)]
+pub struct ImportSummary {
+    pub imported: Vec<String>,
+    pub skipped: Vec<String>,
+    pub overwritten: Vec<String>,
+    pub error: Option<String>,
+}
+
+fn existing_profile_names() -> Vec<String> {
+    get_config().profiles.iter().map(|p| p.name.clone()).collect()
+}
+
+pub fn import_profiles_preview(path: &str) -> ImportPreview {
+    let profiles = match parse_profiles_file(Path::new(path)) {
+        Ok(p) => p,
+        Err(e) => {
+            let mut out = ImportPreview::default();
+            out.error = Some(e.to_string());
+            return out;
+        }
+    };
+    let existing = existing_profile_names();
+    ImportPreview {
+        conflicts: profiles
+            .iter()
+            .map(|p| p.name.clone())
+            .filter(|n| existing.contains(n))
+            .collect(),
+        error: None,
+    }
+}
+
+pub fn import_profiles(path: &str, overwrite: bool) -> ImportSummary {
+    let profiles = match parse_profiles_file(Path::new(path)) {
+        Ok(p) => p,
+        Err(e) => {
+            let mut out = ImportSummary::default();
+            out.error = Some(e.to_string());
+            return out;
+        }
+    };
+    let existing = existing_profile_names();
+    let mut summary = ImportSummary::default();
+    let mut cfg = load_user_config();
+    for p in profiles {
+        if existing.contains(&p.name) {
+            if !overwrite {
+                summary.skipped.push(p.name.clone());
+                continue;
+            }
+            if let Some(pos) = cfg.profiles.iter().position(|c| c.name == p.name) {
+                cfg.profiles[pos] = p.clone();
+            } else {
+                cfg.profiles.push(p.clone());
+            }
+            summary.overwritten.push(p.name);
+        } else {
+            cfg.profiles.push(p.clone());
+            summary.imported.push(p.name);
+        }
+    }
+    match save_user_config(&cfg) {
+        Ok(()) => {
+            set_config(merge_configs());
+            summary
+        }
+        Err(e) => {
+            summary.error = Some(e.to_string());
+            summary
+        }
+    }
 }
 
 pub fn get_options() -> AppOptions {

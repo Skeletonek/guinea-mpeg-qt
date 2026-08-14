@@ -96,6 +96,10 @@ QString GuineaMpegBackendExt::availableProfiles() {
     return takeRustString(guinea_mpeg_available_profiles());
 }
 
+QString GuineaMpegBackendExt::userProfileNames() {
+    return takeRustString(guinea_mpeg_user_profile_names());
+}
+
 QString GuineaMpegBackendExt::loadProfile(const QString& name) {
     return takeRustString(guinea_mpeg_load_profile(name.toUtf8().constData()));
 }
@@ -128,6 +132,20 @@ bool GuineaMpegBackendExt::deleteProfile(const QString& name) {
 
 bool GuineaMpegBackendExt::restoreDefaultProfiles() {
     return guinea_mpeg_restore_defaults();
+}
+
+bool GuineaMpegBackendExt::exportProfiles(const QString& path, const QString& namesJson) {
+    return guinea_mpeg_export_profiles(path.toUtf8().constData(), namesJson.toUtf8().constData());
+}
+
+QString GuineaMpegBackendExt::importProfilesPreview(const QString& path) {
+    return takeRustString(guinea_mpeg_import_profiles_preview(path.toUtf8().constData()),
+                          QStringLiteral("{}"));
+}
+
+QString GuineaMpegBackendExt::importProfiles(const QString& path, bool overwrite) {
+    return takeRustString(guinea_mpeg_import_profiles(path.toUtf8().constData(), overwrite),
+                          QStringLiteral("{}"));
 }
 
 QString GuineaMpegBackendExt::getOptions() {

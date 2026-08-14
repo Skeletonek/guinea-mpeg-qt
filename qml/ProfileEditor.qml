@@ -116,6 +116,20 @@ Rectangle {
                 Item { Layout.fillWidth: true }
 
                 Button {
+                    text: qsTr("Export\u2026")
+                    onClicked: {
+                        exportDialog.profileNames = JSON.parse(backend.userProfileNames())
+                        exportDialog.defaultCheckedName = _loadedProfileName
+                        exportDialog.open()
+                    }
+                }
+
+                Button {
+                    text: qsTr("Import\u2026")
+                    onClicked: importDialog.open()
+                }
+
+                Button {
                     text: qsTr("Restore Defaults")
                     onClicked: restoreDialog.open()
                 }
@@ -272,6 +286,38 @@ Rectangle {
         onDeleteRequested: deleteCurrent()
     }
 
+    ProfileExportDialog {
+        id: exportDialog
+        onExportFinished: function(count) {
+            showNotification(qsTr("Exported %1 profile(s)").arg(count), theme.accent)
+        }
+    }
+
+    ProfileImportDialog {
+        id: importDialog
+        onConflictsFound: function(path, conflicts) {
+            conflictDialog.importPath = path
+            conflictDialog.conflicts = conflicts
+            conflictDialog.open()
+        }
+        onImportFinished: function(summary) {
+            handleImportSummary(summary)
+        }
+        onImportFailed: function(message) {
+            showNotification(qsTr("Import failed: %1").arg(message), "#e66")
+        }
+    }
+
+    ProfileImportConflictDialog {
+        id: conflictDialog
+        onImportFinished: function(summary) {
+            handleImportSummary(summary)
+        }
+        onImportFailed: function(message) {
+            showNotification(qsTr("Import failed: %1").arg(message), "#e66")
+        }
+    }
+
     EncoderCompatDialog {
         id: compatDialog
         codecLabels: videoPanel.codecLabels
@@ -331,6 +377,25 @@ Rectangle {
         loadProfile(restoredName)
         _loading = false
         showNotification(qsTr("Profile \"%1\" restored to defaults").arg(restoredName), theme.accent)
+    }
+
+    function handleImportSummary(summary) {
+        _loading = true
+        _profileNames = JSON.parse(backend.availableProfiles())
+        _defaultNames = JSON.parse(backend.defaultProfileNames())
+        if (_loadedProfileName !== "" && _profileNames.indexOf(_loadedProfileName) >= 0)
+            loadProfile(_loadedProfileName)
+        else if (_profileNames.length > 0)
+            loadProfile(_profileNames[0])
+        else
+            resetToNew()
+        _loading = false
+        var imported = summary.imported ? summary.imported.length : 0
+        var overwritten = summary.overwritten ? summary.overwritten.length : 0
+        var skipped = summary.skipped ? summary.skipped.length : 0
+        var msg = qsTr("Imported %1, overwritten %2, skipped %3 profile(s)")
+            .arg(imported).arg(overwritten).arg(skipped)
+        showNotification(msg, theme.accent)
     }
 
     Component.onCompleted: {

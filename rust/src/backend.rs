@@ -21,6 +21,12 @@ pub extern "C" fn guinea_mpeg_available_profiles() -> *mut c_char {
 }
 
 #[no_mangle]
+pub extern "C" fn guinea_mpeg_user_profile_names() -> *mut c_char {
+    let names = crate::config::user_profile_names();
+    to_json(&names)
+}
+
+#[no_mangle]
 pub extern "C" fn guinea_mpeg_default_profile_names() -> *mut c_char {
     let names = crate::config::default_profile_names();
     to_json(&names)
@@ -46,6 +52,31 @@ pub extern "C" fn guinea_mpeg_save_profile(
 #[no_mangle]
 pub extern "C" fn guinea_mpeg_restore_defaults() -> bool {
     crate::config::restore_defaults().is_ok()
+}
+
+#[no_mangle]
+pub extern "C" fn guinea_mpeg_export_profiles(
+    path: *const c_char,
+    names_json: *const c_char,
+) -> bool {
+    let p = unsafe { from_cstr(path) };
+    let n = unsafe { from_cstr(names_json) };
+    let names: Vec<String> = serde_json::from_str(n).unwrap_or_default();
+    crate::config::export_profiles(p, &names).is_ok()
+}
+
+#[no_mangle]
+pub extern "C" fn guinea_mpeg_import_profiles_preview(path: *const c_char) -> *mut c_char {
+    let p = unsafe { from_cstr(path) };
+    let preview = crate::config::import_profiles_preview(p);
+    to_json(&preview)
+}
+
+#[no_mangle]
+pub extern "C" fn guinea_mpeg_import_profiles(path: *const c_char, overwrite: bool) -> *mut c_char {
+    let p = unsafe { from_cstr(path) };
+    let summary = crate::config::import_profiles(p, overwrite);
+    to_json(&summary)
 }
 
 #[no_mangle]
