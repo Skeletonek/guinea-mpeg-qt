@@ -27,7 +27,26 @@
 #ifdef Q_OS_WIN
 #include <windows.h>
 #include <winreg.h>
+#include <cstdio>
+#include <iostream>
 #endif
+
+// GUI-subsystem apps don't inherit a console, so stdout/stderr are lost when
+// launched from a terminal. Attach to the parent's console (no-op when
+// double-clicked, so no console window ever flashes) and redirect the CRT
+// streams to it.
+static void attachParentConsole()
+{
+#ifdef Q_OS_WIN
+    if (!AttachConsole(ATTACH_PARENT_PROCESS))
+        return;
+    FILE* fp = nullptr;
+    freopen_s(&fp, "CONOUT$", "w", stdout);
+    freopen_s(&fp, "CONOUT$", "w", stderr);
+    freopen_s(&fp, "CONIN$", "r", stdin);
+    std::ios::sync_with_stdio(true);
+#endif
+}
 
 static QJsonObject readAppOptions()
 {
@@ -134,10 +153,15 @@ static Qt::ColorScheme detectSystemColorScheme()
 
 int main(int argc, char *argv[])
 {
+    attachParentConsole();
     QApplication app(argc, argv);
 #ifdef Q_OS_LINUX
     app.setDesktopFileName("guinea-mpeg");
     app.setWindowIcon(QIcon::fromTheme("guinea-mpeg"));
+#elif defined(Q_OS_WIN)
+    // Qt never reads the .rc-embedded exe icon for the window titlebar, so load
+    // it explicitly from the bundled resource (see AGENTS.md).
+    app.setWindowIcon(QIcon(QStringLiteral(":/media/logo/app.ico")));
 #endif
     std::setlocale(LC_NUMERIC, "C");
 

@@ -4,6 +4,7 @@ qt_add_resources(guinea-mpeg "app_qml"
     FILES
         ${CMAKE_SOURCE_DIR}/qml/main.qml
         ${CMAKE_SOURCE_DIR}/media/logo/logo.png
+        ${CMAKE_SOURCE_DIR}/media/logo/app.ico
         ${CMAKE_SOURCE_DIR}/media/logo/skeletonek.jpg
         ${CMAKE_SOURCE_DIR}/media/icons/info.png
         ${CMAKE_SOURCE_DIR}/media/icons/settings.png

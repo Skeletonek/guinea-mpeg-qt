@@ -1,3 +1,9 @@
+### 0.9.0
+- Bundled full ffmpeg version for Windows
+- Fixed AV1 profiles not working on Windows
+- Fixed missing app icon in titlebar on Windows
+- Improved Windows build system
+
 ### 0.8.1
 - Fixed system color theme on Linux
 - Fixed incorrect file handling with filenames containing '\[' and '\]'
