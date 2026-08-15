@@ -235,6 +235,7 @@ function Assert-Preconditions {
 
     if (-not $script:QtDir) {
         $QtDirs = Get-ChildItem "C:\Qt\6.*" -Directory -ErrorAction SilentlyContinue |
+            ForEach-Object { Get-ChildItem $_.FullName -Directory -ErrorAction SilentlyContinue } |
             Where-Object {
                 if ($Arch -eq "arm64") { $_.Name -like "msvc*arm64" }
                 else { $_.Name -like "msvc*" -and $_.Name -notlike "*arm64" }
@@ -390,7 +391,9 @@ function Stage-MpvDll {
 function Stage-AppFiles {
     Write-Step 6 "Stage app files"
     Copy-ToStage -Source $ExePath -Destination (Join-Path $OutputDir "guinea-mpeg.exe")
-    Copy-ToStage -Source (Join-Path $RustDir "target\$RustTarget\release\guinea_mpeg_core.dll") -Destination (Join-Path $OutputDir "guinea_mpeg_core.dll")
+    # cargo mirrors the CMake build type: only Release produces a release crate.
+    $RustProfile = if ($Config -eq "Release") { "release" } else { "debug" }
+    Copy-ToStage -Source (Join-Path $RustDir "target\$RustTarget\$RustProfile\guinea_mpeg_core.dll") -Destination (Join-Path $OutputDir "guinea_mpeg_core.dll")
     # CMake POST_BUILD copies default_profiles.toml next to the exe in the build
     # dir; stage it alongside the app as well.
     Copy-ToStage -Source (Join-Path $BuildDir "default_profiles.toml") -Destination (Join-Path $OutputDir "default_profiles.toml")
