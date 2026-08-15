@@ -153,6 +153,11 @@ ApplicationWindow {
         appWindow: appWindow
     }
 
+    OverwriteConfirmDialog {
+        id: overwriteDialog
+        onOverwriteRequested: beginTranscoding()
+    }
+
     FfmpegWarningDialog {
         id: ffmpegWarningDialog
     }
@@ -218,6 +223,15 @@ ApplicationWindow {
             videoInfoText = qsTr("Please set an output file path first")
             return
         }
+        if (backend.fileExists(appWindow.outputFilePath)) {
+            overwriteDialog.filePath = appWindow.outputFilePath
+            overwriteDialog.open()
+            return
+        }
+        beginTranscoding()
+    }
+
+    function beginTranscoding() {
         var profile = JSON.parse(backend.loadProfile(currentProfile))
         if (selectedVideoIndices.length > 0)
             profile.video_stream_indices = selectedVideoIndices

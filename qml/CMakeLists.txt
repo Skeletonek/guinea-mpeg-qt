@@ -22,6 +22,7 @@ qt_add_resources(guinea-mpeg "app_qml"
         ${CMAKE_SOURCE_DIR}/qml/Dialogs/ProfileImportConflictDialog.qml
         ${CMAKE_SOURCE_DIR}/qml/Dialogs/MpvWarningDialog.qml
         ${CMAKE_SOURCE_DIR}/qml/Dialogs/RestoreDefaultsDialog.qml
+        ${CMAKE_SOURCE_DIR}/qml/Dialogs/OverwriteConfirmDialog.qml
         ${CMAKE_SOURCE_DIR}/qml/Dialogs/EncoderCompatDialog.qml
         ${CMAKE_SOURCE_DIR}/qml/Dialogs/TranscodeDialog.qml
         ${CMAKE_SOURCE_DIR}/qml/ControlsPanel.qml

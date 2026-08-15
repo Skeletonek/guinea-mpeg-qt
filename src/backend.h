@@ -39,6 +39,9 @@ public:
     Q_INVOKABLE QString getOptions();
     Q_INVOKABLE bool setOption(const QString& key, const QString& value);
 
+    Q_INVOKABLE bool fileExists(const QString& rawPath);
+    Q_INVOKABLE void systemBeep();
+
     Q_INVOKABLE QVariantMap getVideoInfo(const QString& rawPath);
     Q_INVOKABLE bool ffmpegAvailable();
     Q_INVOKABLE QString getFfmpegVersion();

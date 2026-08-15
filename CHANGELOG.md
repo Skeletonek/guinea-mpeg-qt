@@ -1,6 +1,7 @@
 ### 0.10.0 (In progress)
 - Added aarch64 (ARM64) CPU architecture support
 - Added ARM64 .deb, .rpm and .flatpak build support for CI/CD
+- Added confirmation dialog when transcoding would overwrite existing file
 - Swapped "Copy" and "Ok" buttons in about dialog
 - Unified margins, paddings and spacings across the entire app
 - Fixed encoder compatibility dialog rendering at the bottom on first launch in some Qt Quick Styles such as Fusion

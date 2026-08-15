@@ -1,8 +1,9 @@
 #include "backend.h"
 #include "guinea_mpeg_core.h"
-#include <QGuiApplication>
+#include <QApplication>
 #include <QClipboard>
 #include <QDir>
+#include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -154,6 +155,14 @@ QString GuineaMpegBackendExt::getOptions() {
 
 bool GuineaMpegBackendExt::setOption(const QString& key, const QString& value) {
     return guinea_mpeg_set_option(key.toUtf8().constData(), value.toUtf8().constData());
+}
+
+bool GuineaMpegBackendExt::fileExists(const QString& rawPath) {
+    return QFileInfo(QDir::cleanPath(rawPath)).exists();
+}
+
+void GuineaMpegBackendExt::systemBeep() {
+    QApplication::beep();
 }
 
 QVariantMap GuineaMpegBackendExt::getVideoInfo(const QString& rawPath) {
