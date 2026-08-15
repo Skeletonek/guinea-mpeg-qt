@@ -1,6 +1,5 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
-import "../Utils/Centering.js" as Utils
 
 Dialog {
     id: root
@@ -8,9 +7,9 @@ Dialog {
     standardButtons: Dialog.Ok
     width: 360
     padding: 16
+    modal: true
+    anchors.centerIn: Overlay.overlay
     implicitHeight: implicitHeaderHeight + contentCol.implicitHeight + implicitFooterHeight + 24
-    Component.onCompleted: Utils.centerInParent(root)
-    onOpened: Utils.centerInParent(root)
 
     property var codecLabels: []
     property var codecKeys: []
