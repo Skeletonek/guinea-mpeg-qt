@@ -65,7 +65,7 @@ package-generic:
     - if: '"$[[ inputs.build_generic ]]" == "true"'
   script:
     - docker build -t guinea-build -f build/docker/debian-trixie.Dockerfile build/docker
-    - docker run --rm -v $PWD:/build -w /build guinea-build ./build/linux-build.sh
+    - docker run --rm -v $PWD:/build -w /build guinea-build ./build/linux-build.sh --release
   artifacts:
     paths:
       - out/generic/
@@ -78,7 +78,7 @@ package-deb:
   rules:
     - if: '"$[[ inputs.build_deb ]]" == "true"'
   script:
-    - ./build/linux-build.sh --package deb
+    - ./build/linux-build.sh --release --package deb
   artifacts:
     paths:
       - out/deb/
@@ -99,7 +99,7 @@ package-deb-aarch64:
   rules:
     - if: '"$[[ inputs.build_deb_aarch64 ]]" == "true"'
   script:
-    - ./build/linux-build.sh --arch aarch64 --package deb
+    - ./build/linux-build.sh --release --arch aarch64 --package deb
   artifacts:
     paths:
       - out/deb/
@@ -111,7 +111,7 @@ package-rpm:
   rules:
     - if: '"$[[ inputs.build_rpm ]]" == "true"'
   script:
-    - ./build/linux-build.sh --package rpm
+    - ./build/linux-build.sh --release --package rpm
   artifacts:
     paths:
       - out/rpm/
@@ -129,7 +129,7 @@ package-rpm-aarch64:
   rules:
     - if: '"$[[ inputs.build_rpm_aarch64 ]]" == "true"'
   script:
-    - ./build/linux-build.sh --arch aarch64 --package rpm
+    - ./build/linux-build.sh --release --arch aarch64 --package rpm
   artifacts:
     paths:
       - out/rpm/
@@ -141,7 +141,7 @@ package-pacman:
   rules:
     - if: '"$[[ inputs.build_pacman ]]" == "true"'
   script:
-    - ./build/linux-build.sh --package pacman
+    - ./build/linux-build.sh --release --package pacman
   artifacts:
     paths:
       - out/pacman/
@@ -157,7 +157,7 @@ package-flatpak:
       flatpak flatpak-builder git elfutils ca-certificates librsvg2-common
     - flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
   script:
-    - ./build/linux-build.sh --package flatpak
+    - ./build/linux-build.sh --release --package flatpak
   artifacts:
     paths:
       - out/flatpak/
@@ -179,7 +179,7 @@ package-flatpak-aarch64:
       flatpak flatpak-builder git elfutils ca-certificates librsvg2-common
     - flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
   script:
-    - ./build/linux-build.sh --arch aarch64 --package flatpak
+    - ./build/linux-build.sh --release --arch aarch64 --package flatpak
   artifacts:
     paths:
       - out/flatpak/
