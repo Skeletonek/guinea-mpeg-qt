@@ -1,3 +1,8 @@
+### 0.10.0 (In progress)
+- Swapped "Copy" and "Ok" buttons in about dialog
+- Unified margins, paddings and spacings across the entire app
+- Fixed encoder compatibility dialog rendering at the bottom on first launch in some Qt Quick Styles such as Fusion
+
 ### 0.9.0
 - Added option to import and export profiles
 - Bundled debian version of ffmpeg in Appimage
