@@ -1,16 +1,10 @@
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Layouts
 import "../Utils/UpdateUtils.js" as UpdateUtils
 
-Rectangle {
+InfoBanner {
     id: root
-    implicitHeight: 96
     visible: buildInfo.debugBuild ? !dismissed : (updateAvailable && !dismissed)
-    color: theme.widget
-    border.color: theme.widgetBorder
-    border.width: 1
-    radius: 6
 
     property string metadataUrl: "https://server.skeletonek.com/app/guinea-mpeg/update.toml"
     property string defaultUpdateUrl: "https://skeletonek.com/apps/guinea-mpeg/"
@@ -18,6 +12,11 @@ Rectangle {
     property string latestVersion: ""
     property string updateUrl: ""
     property bool dismissed: false
+
+    text: buildInfo.debugBuild ? "Development build of GuineaMPEG"
+                               : qsTr("A new version of GuineaMPEG is available")
+    subText: buildInfo.debugBuild ? buildInfo.buildDate
+                                  : "%1 → %2".arg(buildInfo.version).arg(root.latestVersion)
 
     Component.onCompleted: {
         if (buildInfo.debugBuild === true) return
@@ -58,64 +57,16 @@ Rectangle {
         xhr.send()
     }
 
-    RowLayout {
-        anchors.fill: parent
-        anchors.margins: 8
-        spacing: 8
-
-        Rectangle {
-            Layout.preferredWidth: 4
-            Layout.fillHeight: true
-            color: theme.accent
-            radius: 2
+    Button {
+        text: qsTr("Update")
+        onClicked: {
+            var url = root.updateUrl !== "" ? root.updateUrl : root.defaultUpdateUrl
+            Qt.openUrlExternally(url)
         }
+    }
 
-        ColumnLayout {
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            spacing: 8
-
-            ColumnLayout {
-                Layout.fillWidth: true
-                spacing: 4
-
-                Text {
-                    text: buildInfo.debugBuild ? "Development build of GuineaMPEG"
-                                               : qsTr("A new version of GuineaMPEG is available")
-                    color: theme.text
-                    font.pixelSize: 13
-                    Layout.fillWidth: true
-                    elide: Text.ElideRight
-                }
-
-                Text {
-                    text: buildInfo.debugBuild ? buildInfo.buildDate
-                                               : "%1 → %2".arg(buildInfo.version).arg(root.latestVersion)
-                    color: theme.accent
-                    font.pixelSize: 13
-                    font.bold: true
-                    Layout.fillWidth: true
-                    elide: Text.ElideRight
-                }
-            }
-
-            RowLayout {
-                Layout.alignment: Qt.AlignRight
-                spacing: 8
-
-                Button {
-                    text: qsTr("Update")
-                    onClicked: {
-                        var url = root.updateUrl !== "" ? root.updateUrl : root.defaultUpdateUrl
-                        Qt.openUrlExternally(url)
-                    }
-                }
-
-                Button {
-                    text: qsTr("Close")
-                    onClicked: root.dismissed = true
-                }
-            }
-        }
+    Button {
+        text: qsTr("Close")
+        onClicked: root.dismissed = true
     }
 }

@@ -3,6 +3,7 @@ import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 import "ProfileEditor"
 import "Dialogs"
+import "Components"
 import "Utils/DataUtils.js" as DataUtils
 
 Rectangle {
@@ -19,18 +20,15 @@ Rectangle {
 
     onProfileNameChanged: _loadedProfileName = profileName
 
-    Timer {
-        id: notifyTimer
-        interval: 3000
-        onTriggered: {
-            notifyLabel.opacity = 0
-            notifyCollapseTimer.start()
-        }
-    }
-    Timer {
-        id: notifyCollapseTimer
-        interval: 350
-        onTriggered: notifyLabel.visible = false
+    InfoBanner {
+        id: notifyBanner
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.top: parent.top
+        anchors.topMargin: 8
+        z: 200
+        width: Math.min(Math.max(0, parent.width - 16), 480)
+        autoHideMs: 3000
+        visible: false
     }
 
     Flickable {
@@ -59,20 +57,6 @@ Rectangle {
                     font.pixelSize: 20
                     color: theme.text
                     bottomPadding: 4
-                }
-
-                Item { Layout.fillWidth: true }
-
-                Label {
-                    id: notifyLabel
-                    Layout.leftMargin: 8
-                    Layout.maximumWidth: 360
-                    color: theme.accent
-                    font.pixelSize: 13
-                    elide: Text.ElideRight
-                    visible: false
-                    opacity: 0
-                    Behavior on opacity { NumberAnimation { duration: 300 } }
                 }
             }
 
@@ -376,11 +360,9 @@ Rectangle {
     }
 
     function showNotification(msg, clr) {
-        notifyLabel.text = msg
-        notifyLabel.color = clr || theme.accent
-        notifyLabel.visible = true
-        notifyLabel.opacity = 1
-        notifyTimer.restart()
+        notifyBanner.text = msg
+        notifyBanner.accentColor = clr || theme.accent
+        notifyBanner.show()
     }
 
     function saveCurrent() {

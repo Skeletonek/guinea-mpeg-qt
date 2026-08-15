@@ -23,6 +23,7 @@ import "../Utils/Centering.js" as Utils
                 text: qsTr("Copy")
                 onClicked: {
                     backend.copyToClipboard(technicalInfo())
+                    copyBanner.show()
                 }
             }
             Button {

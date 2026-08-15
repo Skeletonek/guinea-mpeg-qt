@@ -31,6 +31,8 @@ ApplicationWindow {
     property var audioStreams: []
     property var selectedVideoIndices: []
     property var selectedAudioIndices: []
+    property var transcodeQueue: []
+    property var activeJob: null
 
     Component.onCompleted: {
         if (!mpvAvailable)
@@ -144,6 +146,17 @@ ApplicationWindow {
         id: aboutDialog
     }
 
+    InfoBanner {
+        id: copyBanner
+        x: aboutDialog.x + (aboutDialog.width - width) / 2
+        y: aboutDialog.y + aboutDialog.height + 8
+        z: 300
+        width: aboutDialog.width
+        text: qsTr("Copied to clipboard")
+        autoHideMs: 2000
+        visible: false
+    }
+
     OptionsDialog {
         id: optionsDialog
     }
@@ -155,7 +168,7 @@ ApplicationWindow {
 
     OverwriteConfirmDialog {
         id: overwriteDialog
-        onOverwriteRequested: beginTranscoding()
+        onOverwriteRequested: enqueueTranscoding()
     }
 
     FfmpegWarningDialog {
@@ -164,6 +177,18 @@ ApplicationWindow {
 
     MpvWarningDialog {
         id: mpvWarningDialog
+    }
+
+    Connections {
+        target: backend
+        function onTranscodingChanged() {
+            if (backend.transcoding) return
+            if (transcodeQueue.length > 0) {
+                transcodeQueue = transcodeQueue.slice(1)
+                activeJob = null
+            }
+            processTranscodeQueue()
+        }
     }
 
     function loadVideo(filePath, fileUrl) {
@@ -228,19 +253,34 @@ ApplicationWindow {
             overwriteDialog.open()
             return
         }
-        beginTranscoding()
+        enqueueTranscoding()
     }
 
-    function beginTranscoding() {
+    function enqueueTranscoding() {
         var profile = JSON.parse(backend.loadProfile(currentProfile))
         if (selectedVideoIndices.length > 0)
             profile.video_stream_indices = selectedVideoIndices
         if (selectedAudioIndices.length > 0)
             profile.audio_stream_indices = selectedAudioIndices
-        transcodeDialog.targetFps = profile.framerate || 0
-        backend.startTranscode(currentVideoPath, appWindow.outputFilePath,
-                                    startTime / 1000.0, endTime / 1000.0,
-                                    JSON.stringify(profile))
+        var job = {
+            input: currentVideoPath,
+            output: appWindow.outputFilePath,
+            start: startTime / 1000.0,
+            end: endTime / 1000.0,
+            profile: JSON.stringify(profile),
+            targetFps: profile.framerate || 0,
+            sourceFps: FormatUtils.fpsToDecimal(currentVideoInfo.fps || "") || 0,
+            durationMs: endTime - startTime
+        }
+        transcodeQueue = transcodeQueue.concat([job])
+        processTranscodeQueue()
+    }
+
+    function processTranscodeQueue() {
+        if (activeJob !== null || transcodeQueue.length === 0) return
+        var job = transcodeQueue[0]
+        activeJob = job
+        backend.startTranscode(job.input, job.output, job.start, job.end, job.profile)
         transcodeDialog.open()
     }
 }

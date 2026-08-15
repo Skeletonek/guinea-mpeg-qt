@@ -247,7 +247,10 @@ Item {
             }
 
             Label {
-                text: qsTr("Transcoding in progress... (click to view)")
+                text: hostWindow && hostWindow.transcodeQueue.length > 1
+                      ? qsTr("Transcoding in progress... (%1 queued, click to view)")
+                            .arg(hostWindow.transcodeQueue.length - 1)
+                      : qsTr("Transcoding in progress... (click to view)")
                 color: theme.accent
                 visible: backend.transcoding
                 width: parent.width

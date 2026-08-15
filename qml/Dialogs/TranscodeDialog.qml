@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import GuineaMpeg 1.0
+import "../Utils/FormatUtils.js" as FormatUtils
 
 Dialog {
     id: root
@@ -12,18 +13,21 @@ Dialog {
     background: Rectangle { color: theme.bg }
 
     property QtObject appWindow: null
-    property double targetFps: 0
 
     property int _lastOutputLen: 0
     property double _progress: 0.0
     property double _totalFrames: 0
 
-    function parseFps(fpsStr) {
-        if (!fpsStr || fpsStr === "0/1") return 0
-        var parts = fpsStr.split("/")
-        if (parts.length === 2)
-            return parseFloat(parts[0]) / parseFloat(parts[1])
-        return parseFloat(fpsStr) || 0
+    function recalcProgress() {
+        _lastOutputLen = 0
+        _progress = 0.0
+        var job = appWindow ? appWindow.activeJob : null
+        if (!job) {
+            _totalFrames = 0
+            return
+        }
+        var fps = job.targetFps > 0 ? job.targetFps : job.sourceFps
+        _totalFrames = fps > 0 ? Math.round(fps * job.durationMs / 1000.0) : 0
     }
 
     function parseProgress() {
@@ -57,7 +61,13 @@ Dialog {
             spacing: 4
 
             Label {
-                text: backend.transcoding ? qsTr("Transcoding...") : qsTr("Transcoding Complete")
+                text: {
+                    var n = appWindow ? appWindow.transcodeQueue.length : 0
+                    if (backend.transcoding)
+                        return n > 1 ? qsTr("Transcoding... (1 of %1)").arg(n)
+                                     : qsTr("Transcoding...")
+                    return qsTr("Transcoding Complete")
+                }
                 color: theme.textHeader
                 font.bold: true
                 elide: Text.ElideRight
@@ -78,12 +88,15 @@ Dialog {
     onAboutToShow: {
         x = (appWindow.width - width) / 2
         y = (appWindow.height - height) / 2
-        _lastOutputLen = 0
-        _progress = 0.0
-        var sourceFps = parseFps(appWindow.currentVideoInfo.fps || "")
-        var fps = targetFps > 0 ? targetFps : sourceFps
-        var durationSec = (appWindow.endTime - appWindow.startTime) / 1000.0
-        _totalFrames = fps > 0 ? Math.round(fps * durationSec) : 0
+        recalcProgress()
+    }
+
+    Connections {
+        target: appWindow
+
+        function onActiveJobChanged() {
+            recalcProgress()
+        }
     }
 
     Connections {
@@ -97,6 +110,44 @@ Dialog {
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 8
+
+        Column {
+            id: queueStrip
+            Layout.fillWidth: true
+            spacing: 4
+            visible: appWindow && appWindow.transcodeQueue.length > 0
+
+            Repeater {
+                model: appWindow ? appWindow.transcodeQueue : []
+
+                delegate: RowLayout {
+                    width: queueStrip.width
+                    spacing: 8
+
+                    Label {
+                        text: index + 1 + "."
+                        color: theme.textSecondary
+                        font.pixelSize: 12
+                    }
+
+                    Label {
+                        text: FormatUtils.getFilename(modelData.output)
+                        color: index === 0 ? theme.accent : theme.text
+                        font.pixelSize: 12
+                        font.bold: index === 0
+                        elide: Text.ElideMiddle
+                        Layout.fillWidth: true
+                    }
+
+                    Label {
+                        text: index === 0 ? (backend.transcoding ? qsTr("Running") : qsTr("Starting"))
+                                          : qsTr("Waiting")
+                        color: index === 0 ? theme.accent : theme.textSecondary
+                        font.pixelSize: 12
+                    }
+                }
+            }
+        }
 
         Rectangle {
             Layout.fillWidth: true
