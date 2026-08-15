@@ -10,6 +10,30 @@ Rectangle {
     property int endTime: 0
     property QtObject mainWindow: null
 
+    readonly property int nudgeStep: {
+        var fpsStr = mainWindow && mainWindow.currentVideoInfo ? String(mainWindow.currentVideoInfo.fps || "") : ""
+        var fps = 0
+        if (fpsStr.length > 0) {
+            var parts = fpsStr.split("/")
+            fps = parts.length === 2 ? (parseFloat(parts[0]) / parseFloat(parts[1])) : parseFloat(fpsStr)
+        }
+        return fps > 0 ? Math.max(1, Math.round(1000 / fps)) : 100
+    }
+
+    function nudgeStartTime(dir) {
+        var step = (dir < 0 ? -1 : 1) * nudgeStep
+        var t = Math.max(0, Math.min(startTime + step, endTime - 1))
+        startTime = t
+        startTime = Qt.binding(function() { return mainWindow ? mainWindow.startTime : 0 })
+    }
+
+    function nudgeEndTime(dir) {
+        var step = (dir < 0 ? -1 : 1) * nudgeStep
+        var t = Math.max(startTime + 1, Math.min(endTime + step, videoDuration))
+        endTime = t
+        endTime = Qt.binding(function() { return mainWindow ? mainWindow.endTime : 0 })
+    }
+
     color: theme.widget
     border.color: theme.widgetBorder
     border.width: 1
@@ -51,12 +75,32 @@ Rectangle {
                  height: parent.height
                  color: Constants.colorPrimary
                  radius: 3
+                 border.width: activeFocus ? 1 : 0
+                 border.color: "#ffffff"
+                 activeFocusOnTab: true
+
+                 Keys.onLeftPressed: function(event) {
+                     event.accepted = true
+                     nudgeStartTime(-1)
+                 }
+                 Keys.onRightPressed: function(event) {
+                     event.accepted = true
+                     nudgeStartTime(1)
+                 }
+                 Keys.onPressed: function(event) {
+                     if (event.key === Qt.Key_H || event.key === Qt.Key_L) {
+                         event.accepted = true
+                         nudgeStartTime(event.key === Qt.Key_H ? -1 : 1)
+                     }
+                 }
+
                 MouseArea {
                     anchors.fill: parent
                     drag.target: parent
                     drag.axis: Drag.XAxis
                     drag.minimumX: 0
                     drag.maximumX: track.width - width
+                    onClicked: startHandle.forceActiveFocus()
                     onPositionChanged: {
                         startHandle.x = Math.max(0, Math.min(startHandle.x, track.width - width))
                         var t = Math.round(startHandle.x / track._ratio)
@@ -80,12 +124,32 @@ Rectangle {
                  height: parent.height
                  color: Constants.colorSecondary
                  radius: 3
+                 border.width: activeFocus ? 1 : 0
+                 border.color: "#ffffff"
+                 activeFocusOnTab: true
+
+                 Keys.onLeftPressed: function(event) {
+                     event.accepted = true
+                     nudgeEndTime(-1)
+                 }
+                 Keys.onRightPressed: function(event) {
+                     event.accepted = true
+                     nudgeEndTime(1)
+                 }
+                 Keys.onPressed: function(event) {
+                     if (event.key === Qt.Key_H || event.key === Qt.Key_L) {
+                         event.accepted = true
+                         nudgeEndTime(event.key === Qt.Key_H ? -1 : 1)
+                     }
+                 }
+
                 MouseArea {
                     anchors.fill: parent
                     drag.target: parent
                     drag.axis: Drag.XAxis
                     drag.minimumX: 0
                     drag.maximumX: track.width - width
+                    onClicked: endHandle.forceActiveFocus()
                     onPositionChanged: {
                         endHandle.x = Math.max(0, Math.min(endHandle.x, track.width - width))
                         var t = Math.round((endHandle.x + width) / track._ratio)
