@@ -7,7 +7,7 @@ Dialog {
     title: qsTr("Available Encoders")
     standardButtons: Dialog.Ok
     width: 360
-    padding: 0
+    padding: 16
     implicitHeight: implicitHeaderHeight + contentCol.implicitHeight + implicitFooterHeight + 24
     Component.onCompleted: Utils.centerInParent(root)
     onOpened: Utils.centerInParent(root)
@@ -19,12 +19,11 @@ Dialog {
     Column {
         id: contentCol
         anchors.fill: parent
-        anchors.margins: 16
         spacing: 8
         Repeater {
             model: root.codecLabels.length
             delegate: Column {
-                spacing: 3
+                spacing: 4
                 readonly property var encs: root.availableEncoders[root.codecKeys[index]] || []
                 visible: encs.length > 0
                 Label {
@@ -39,7 +38,7 @@ Dialog {
                         text: "\u2022 " + modelData
                         color: theme.textSecondary
                         font.pixelSize: 11
-                        leftPadding: 12
+                        leftPadding: 8
                     }
                 }
             }

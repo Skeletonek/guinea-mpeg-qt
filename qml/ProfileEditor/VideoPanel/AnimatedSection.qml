@@ -7,7 +7,7 @@ Column {
     id: root
     width: parent.width
     visible: codecKey === "gif" || codecKey === "webp"
-    spacing: 6
+    spacing: 8
 
     property string codecKey: ""
     property bool loading: false

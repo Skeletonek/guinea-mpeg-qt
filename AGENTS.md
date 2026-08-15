@@ -70,6 +70,12 @@ Plain `QObject`. Profile CRUD, options, video info, encoder detection/capabiliti
 - Prefer `Flickable` over `ScrollView` when a scrollbar must not reserve space.
 - QML exit 255 with no stderr: rerun with `QT_FORCE_STDERR_LOGGING=1`.
 
+### UI spacing
+- Margins, paddings and spacings may **only** be `4`, `8` or `16` — no `2`/`5`/`6`/`10`/`12`/`20`/`30`/non-multiples. Round stray values up to the nearest allowed one (`6`→`8`, `10`→`8`, `12`→`8`, `20`→`16`).
+- Put dialog gutters on the `Dialog` via `padding`/`topPadding` (16/8), never on child `anchors.fill` + `anchors.margins`. `Popup.padding` insets the `contentItem`, which children `anchors.fill: parent` — setting both double-insets.
+- `8` for form/section spacing, `16` for dialog-level gutters, `4` for tight inner groups.
+- Width math that derives from spacing must reference the spacing variable (`parent.width - N*spacing`, `parent.width/2 - spacing/2`), not a hard-coded leftover.
+
 ### MPV
 - **Must** `setMirrorVertically(true)` on MpvItem AND pass `MPV_RENDER_PARAM_FLIP_Y = 1` — mpv renders upside-down into the FBO.
 - `MPV_RENDER_PARAM_OPENGL_FBO` requires the full `mpv_opengl_fbo` struct (`fbo`, `w`, `h`, `internal_format`), not just an int.

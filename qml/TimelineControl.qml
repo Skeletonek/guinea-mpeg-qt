@@ -15,12 +15,12 @@ Rectangle {
     border.width: 1
 
     Column {
-        spacing: 5
+        spacing: 8
         anchors.fill: parent
-        padding: 5
+        padding: 8
 
         Row {
-            spacing: 10
+            spacing: 8
             Label { text: FormatUtils.formatTime(startTime); width: 80; color: theme.text }
             Label { text: FormatUtils.formatTime(endTime); width: 80; color: theme.text }
         }

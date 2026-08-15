@@ -36,7 +36,7 @@ Rectangle {
     Flickable {
         id: editorFlickable
         anchors.fill: parent
-        anchors.margins: 10
+        anchors.margins: 8
         contentHeight: mainColumn.height + 30
         clip: true
 
@@ -65,7 +65,7 @@ Rectangle {
 
                 Label {
                     id: notifyLabel
-                    Layout.leftMargin: 12
+                    Layout.leftMargin: 8
                     Layout.maximumWidth: 360
                     color: theme.accent
                     font.pixelSize: 13
@@ -79,7 +79,7 @@ Rectangle {
             Flow {
                 id: toolbar
                 width: parent.width
-                spacing: 10
+                spacing: 8
 
                 Button {
                     id: backBtn
@@ -138,7 +138,7 @@ Rectangle {
                 Row {
                     id: rightGroup
                     width: rightGroup.implicitWidth
-                    spacing: 10
+                    spacing: 8
 
                     Button {
                         id: exportBtn
@@ -179,19 +179,19 @@ Rectangle {
             Rectangle { width: parent.width; height: 1; color: theme.textDim }
 
             Row {
-                spacing: 20
+                spacing: 16
                 width: parent.width
 
                 VideoPanel {
                     id: videoPanel
-                    width: parent.width / 2 - 10
+                    width: parent.width / 2 - 8
                     loading: root._loading
                     onChanged: updatePreview()
                 }
 
                 AudioPanel {
                     id: audioPanel
-                    width: parent.width / 2 - 10
+                    width: parent.width / 2 - 8
                     loading: root._loading
                     videoEnabled: videoPanel.videoEnabled
                     currentCodecKey: videoPanel.codec

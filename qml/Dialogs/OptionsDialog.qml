@@ -8,7 +8,8 @@ Dialog {
     id: root
     title: qsTr("Options")
     width: 400
-    padding: 0
+    padding: 16
+    topPadding: 8
     implicitHeight: implicitHeaderHeight + mainLayout.implicitHeight + implicitFooterHeight + 24
     modal: true
     standardButtons: Dialog.Close
@@ -56,9 +57,7 @@ Dialog {
     ColumnLayout {
         id: mainLayout
         anchors.fill: parent
-        anchors.margins: 16
-        anchors.topMargin: 8
-        spacing: 10
+        spacing: 8
 
         Label { text: qsTr("General"); font.bold: true; font.pixelSize: 14; color: theme.text }
 
@@ -159,7 +158,7 @@ Dialog {
             visible: root.restartRequired
         }
 
-        Label { text: qsTr("Updates"); font.bold: true; font.pixelSize: 14; color: theme.text; Layout.topMargin: 6 }
+        Label { text: qsTr("Updates"); font.bold: true; font.pixelSize: 14; color: theme.text; Layout.topMargin: 8 }
 
         SwitchRow {
             id: checkForUpdatesSwitch

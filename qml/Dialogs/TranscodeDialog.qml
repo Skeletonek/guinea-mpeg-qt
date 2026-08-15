@@ -52,7 +52,7 @@ Dialog {
 
         RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: 10
+            anchors.leftMargin: 8
             anchors.rightMargin: 4
             spacing: 4
 
@@ -96,7 +96,7 @@ Dialog {
 
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: 10
+        anchors.margins: 8
 
         Rectangle {
             Layout.fillWidth: true

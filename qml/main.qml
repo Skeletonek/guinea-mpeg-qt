@@ -86,8 +86,8 @@ ApplicationWindow {
 
                 Row {
                     anchors.fill: parent
-                    anchors.margins: 10
-                    spacing: 10
+                    anchors.margins: 8
+                    spacing: 8
 
                     VideoPreview {
                         id: player

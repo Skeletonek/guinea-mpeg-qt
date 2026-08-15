@@ -7,7 +7,7 @@ Column {
     id: root
     width: parent.width
     visible: codecKey === "av1"
-    spacing: 6
+    spacing: 8
 
     property string codecKey: ""
     property bool loading: false
@@ -21,7 +21,7 @@ Column {
     Grid {
         columns: 4
         columnSpacing: 8
-        rowSpacing: 6
+        rowSpacing: 8
         width: parent.width
 
         Label { text: qsTr("Tile rows"); color: theme.textSecondary }

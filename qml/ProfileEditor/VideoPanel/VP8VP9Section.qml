@@ -8,7 +8,7 @@ Column {
     id: root
     width: parent.width
     visible: codecKey === "vp8" || codecKey === "vp9"
-    spacing: 6
+    spacing: 8
 
     property string codecKey: ""
     property bool loading: false

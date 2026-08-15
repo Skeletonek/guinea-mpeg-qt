@@ -23,7 +23,7 @@ Column {
         height: 28
         Row {
             anchors.verticalCenter: parent.verticalCenter
-            leftPadding: 6
+            leftPadding: 8
             spacing: 8
             Label {
                 text: qsTr("Audio")
@@ -74,7 +74,7 @@ Column {
 
         Column {
             width: parent.width
-            spacing: 6
+            spacing: 8
 
             LabeledTextField {
                 id: audioBitrateField

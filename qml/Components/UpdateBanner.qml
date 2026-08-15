@@ -61,7 +61,7 @@ Rectangle {
     RowLayout {
         anchors.fill: parent
         anchors.margins: 8
-        spacing: 10
+        spacing: 8
 
         Rectangle {
             Layout.preferredWidth: 4
@@ -77,7 +77,7 @@ Rectangle {
 
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 2
+                spacing: 4
 
                 Text {
                     text: buildInfo.debugBuild ? "Development build of GuineaMPEG"

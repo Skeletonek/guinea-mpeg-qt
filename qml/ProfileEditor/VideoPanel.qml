@@ -28,7 +28,7 @@ Column {
         
         Row {
             anchors.verticalCenter: parent.verticalCenter
-            leftPadding: 6
+            leftPadding: 8
             spacing: 8
             Label {
                 text: qsTr("Video")

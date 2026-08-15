@@ -8,7 +8,8 @@ Dialog {
     title: qsTr("Overwrite Existing Profiles?")
     modal: true
     width: 460
-    padding: 0
+    padding: 16
+    topPadding: 8
     implicitHeight: implicitHeaderHeight + mainLayout.implicitHeight + implicitFooterHeight + 24
     Component.onCompleted: Utils.centerInParent(root)
     onOpened: Utils.centerInParent(root)
@@ -31,9 +32,7 @@ Dialog {
     ColumnLayout {
         id: mainLayout
         anchors.fill: parent
-        anchors.margins: 16
-        anchors.topMargin: 8
-        spacing: 10
+        spacing: 8
 
         Label {
             text: qsTr("The following profiles already exist and would be overwritten:")

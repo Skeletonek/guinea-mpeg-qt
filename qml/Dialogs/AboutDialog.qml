@@ -32,7 +32,8 @@ import "../Utils/Centering.js" as Utils
         }
     }
     width: 430
-    padding: 0
+    padding: 16
+    topPadding: 8
     implicitHeight: implicitHeaderHeight + mainLayout.implicitHeight + implicitFooterHeight + 24
 
     property bool easterEggActivated: false
@@ -133,12 +134,10 @@ import "../Utils/Centering.js" as Utils
     ColumnLayout {
         id: mainLayout
         anchors.fill: parent
-        anchors.margins: 16
-        anchors.topMargin: 8
-        spacing: 6
+        spacing: 8
 
         RowLayout {
-            spacing: 12
+            spacing: 8
             ColumnLayout {
                 Label { text: "GuineaMPEG"; font.pixelSize: 20; font.bold: true; color: theme.text }
                 Label { text: qsTr("FFmpeg Frontend with Rust Core"); color: theme.textSecondary; font.pixelSize: 12 }
@@ -169,10 +168,10 @@ import "../Utils/Centering.js" as Utils
 
         RowLayout {
             Layout.fillWidth: true
-            spacing: 12
+            spacing: 8
 
             ColumnLayout {
-                spacing: 6
+                spacing: 8
 
                 Label { text: qsTr("Version: %1").arg(buildInfo.version); color: theme.text }
                 Label {

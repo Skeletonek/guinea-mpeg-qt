@@ -7,7 +7,7 @@ Dialog {
     title: qsTr("Restore Default Profiles")
     standardButtons: Dialog.Yes | Dialog.No
     width: 400
-    padding: 0
+    padding: 16
     implicitHeight: implicitHeaderHeight + msg.implicitHeight + implicitFooterHeight + 24
     Component.onCompleted: Utils.centerInParent(root)
     onOpened: Utils.centerInParent(root)
@@ -18,7 +18,6 @@ Dialog {
     Label {
         id: msg
         anchors.fill: parent
-        anchors.margins: 16
         text: qsTr("This will reset all built-in profiles to their original settings.\n\nCustom profiles you created will not be affected.\n\nContinue?")
         color: theme.text
         wrapMode: Text.WordWrap

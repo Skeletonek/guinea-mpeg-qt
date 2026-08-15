@@ -9,8 +9,8 @@ Dialog {
     background: Rectangle { color: theme.surface }
 
     Column {
-        spacing: 10
-        padding: 20
+        spacing: 8
+        padding: 16
 
         Label {
             text: qsTr("ffmpeg was not found on your system.")

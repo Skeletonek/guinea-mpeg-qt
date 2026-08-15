@@ -9,7 +9,8 @@ Dialog {
     title: qsTr("Export Profiles")
     modal: true
     width: 460
-    padding: 0
+    padding: 16
+    topPadding: 8
     implicitHeight: implicitHeaderHeight + mainLayout.implicitHeight + implicitFooterHeight + 24
     Component.onCompleted: Utils.centerInParent(root)
     onOpened: {
@@ -79,9 +80,7 @@ Dialog {
     ColumnLayout {
         id: mainLayout
         anchors.fill: parent
-        anchors.margins: 16
-        anchors.topMargin: 8
-        spacing: 10
+        spacing: 8
 
         Label {
             text: root.profileNames.length === 0
@@ -124,8 +123,8 @@ Dialog {
         Column {
             id: footerColumn
             anchors.fill: parent
-            anchors.margins: 6
-            spacing: 6
+            anchors.margins: 8
+            spacing: 8
 
             Label {
                 id: errorLabel
@@ -139,7 +138,7 @@ Dialog {
             RowLayout {
                 id: footerRow
                 width: parent.width
-                spacing: 6
+                spacing: 8
                 Button {
                     text: qsTr("Select All")
                     visible: root.profileNames.length > 0

@@ -7,7 +7,7 @@ Dialog {
     title: qsTr("Delete Profile")
     standardButtons: Dialog.Yes | Dialog.No
     width: 380
-    padding: 0
+    padding: 16
     implicitHeight: implicitHeaderHeight + delMsg.implicitHeight + implicitFooterHeight + 24
     Component.onCompleted: Utils.centerInParent(root)
     onOpened: Utils.centerInParent(root)
@@ -19,7 +19,6 @@ Dialog {
     Label {
         id: delMsg
         anchors.fill: parent
-        anchors.margins: 16
         text: qsTr("Delete profile \"%1\"?\n\nThis cannot be undone.").arg(root.profileName)
         color: theme.text
         wrapMode: Text.WordWrap

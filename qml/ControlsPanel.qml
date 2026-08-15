@@ -50,7 +50,7 @@ Item {
 
         Column {
             id: column
-            spacing: 12
+            spacing: 8
             width: rightPanelFlickable.width - (vbar.visible ? vbar.width : 0)
 
             Label {
@@ -110,7 +110,7 @@ Item {
             }
 
             Column {
-                spacing: 2
+                spacing: 4
                 width: parent.width
                 visible: hostWindow && hostWindow.videoStreams.length > 1
 
@@ -137,7 +137,7 @@ Item {
             }
 
             Column {
-                spacing: 2
+                spacing: 4
                 width: parent.width
                 visible: hostWindow && hostWindow.audioStreams.length > 1
 
@@ -215,7 +215,7 @@ Item {
             }
 
             Row {
-                spacing: 5
+                spacing: 8
                 width: parent.width
 
                 TextField {
@@ -275,7 +275,6 @@ Item {
         id: settingsButton
         anchors.left: parent.left
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: 8
         width: 48
         height: 48
         icon.name: "preferences-system-symbolic"
@@ -290,7 +289,6 @@ Item {
         id: aboutButton
         anchors.right: parent.right
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: 8
         width: 48
         height: 48
         icon.name: "help-about-symbolic"
