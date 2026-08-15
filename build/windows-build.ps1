@@ -13,6 +13,12 @@
 .PARAMETER Config
     Build configuration: Debug (default), Release or RelWithDebInfo.
 
+.PARAMETER Arch
+    Target architecture: x86_64 (default) or arm64 (Windows on ARM).
+    arm64 builds require the ARM64 MSVC build tools and the Qt
+    "win64_msvc2022_arm64" package. The produced binaries only run on
+    Windows-on-ARM devices.
+
 .PARAMETER OutputDir
     Output directory (default: out/windows).
 
@@ -45,7 +51,9 @@ param(
     [switch]$Package,
     [ValidateSet("Debug", "Release", "RelWithDebInfo")]
     [string]$Config = "Debug",
-    [string]$OutputDir = (Join-Path (Join-Path (Join-Path $PSScriptRoot "..") "out") "windows"),
+    [ValidateSet("x86_64", "arm64")]
+    [string]$Arch = "x86_64",
+    [string]$OutputDir = (Join-Path (Join-Path $PSScriptRoot "..") "out\windows"),
     [string]$QtDir = "",
     [switch]$Clean,
     [switch]$Console,
@@ -76,6 +84,7 @@ Usage:
 
 Options:
   -Config <type>     Build config: Debug (default), Release or RelWithDebInfo
+  -Arch <arch>       Target architecture: x86_64 (default) or arm64
   -OutputDir <path>  Output directory (default: out/windows)
   -QtDir <path>      Qt installation dir (auto-detected if omitted)
   -Clean             Remove output dir and Rust artifacts before building
@@ -90,6 +99,7 @@ Examples:
   .\build\windows-build.ps1 -Config Debug -Console
   .\build\windows-build.ps1 -Config RelWithDebInfo -Console
   .\build\windows-build.ps1 -Package -Clean
+  .\build\windows-build.ps1 -Arch arm64 -Package
 "@
     exit 0
 }
@@ -101,9 +111,31 @@ $ProjectRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
 $RustDir = Join-Path $ProjectRoot "rust"
 $BuildDir = Join-Path (Split-Path $OutputDir -Parent) ".build-windows"
 $VendorDir = Join-Path (Join-Path $ProjectRoot "build") "vendor"
-$MpvDir = Join-Path $VendorDir "mpv-dev-x86_64"
-$FfmpegDir = Join-Path $VendorDir "ffmpeg"
 $ExePath = Join-Path $BuildDir "guinea-mpeg.exe"
+
+# ---- Per-architecture selection ----
+# Vendor dirs mirror download-vendor.ps1 (mpv uses "aarch64", ffmpeg keeps the
+# legacy "ffmpeg" dir for x86_64).
+switch ($Arch) {
+    "arm64" {
+        $MpvAssetArch = "aarch64"
+        $RustTarget = "aarch64-pc-windows-msvc"
+        # vcvarsall's first arg is the HOST arch: "arm64" on a WoA host,
+        # "x64_arm64" (x64 host -> arm64 target) when cross-building on x86_64.
+        $VcArch = if ($env:PROCESSOR_ARCHITECTURE -eq "ARM64") { "arm64" } else { "x64_arm64" }
+        $Machine = "arm64"
+        $ArchSuffix = "arm64"
+    }
+    default {
+        $MpvAssetArch = "x86_64"
+        $RustTarget = "x86_64-pc-windows-msvc"
+        $VcArch = "x64"
+        $Machine = "x64"
+        $ArchSuffix = "x86_64"
+    }
+}
+$MpvDir = Join-Path $VendorDir "mpv-dev-$MpvAssetArch"
+$FfmpegDir = if ($Arch -eq "arm64") { Join-Path $VendorDir "ffmpeg-arm64" } else { Join-Path $VendorDir "ffmpeg" }
 
 # ---- Helpers ----
 
@@ -140,7 +172,7 @@ function Copy-ToStage {
 
 # ---- Environment ----
 
-# Locates vcvars64.bat across common VS install paths (vswhere + fallbacks).
+# Locates vcvarsall.bat across common VS install paths (vswhere + fallbacks).
 function Get-VcVarsPath {
     $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
     if (-not (Test-Path $vswhere)) {
@@ -157,14 +189,14 @@ function Get-VcVarsPath {
             "C:\Program Files (x86)\Microsoft Visual Studio\2022\Enterprise",
             "C:\Program Files\Microsoft Visual Studio\2022\BuildTools",
             "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools"
-        ) | Where-Object { Test-Path "$_\VC\Auxiliary\Build\vcvars64.bat" } | Select-Object -First 1
+        ) | Where-Object { Test-Path "$_\VC\Auxiliary\Build\vcvarsall.bat" } | Select-Object -First 1
     }
     if (-not $vsPath) {
         throw "Visual Studio not found. Install it or run from a Developer Command Prompt."
     }
-    $vcvars = Join-Path (Join-Path (Join-Path $vsPath "VC") "Auxiliary") "Build\vcvars64.bat"
+    $vcvars = Join-Path (Join-Path (Join-Path $vsPath "VC") "Auxiliary") "Build\vcvarsall.bat"
     if (-not (Test-Path $vcvars)) {
-        throw "vcvars64.bat not found at $vcvars"
+        throw "vcvarsall.bat not found at $vcvars"
     }
     return $vcvars
 }
@@ -173,8 +205,8 @@ function Import-VisualStudioEnvironment {
     if (Get-Command "cl" -ErrorAction SilentlyContinue) { return }
     Write-Host "Looking for Visual Studio..." -ForegroundColor Yellow
     $vcvars = Get-VcVarsPath
-    Write-Host "Loading MSVC environment from $vcvars" -ForegroundColor Gray
-    cmd /c "`"$vcvars`" x64 > nul 2>&1 && set" | ForEach-Object {
+    Write-Host "Loading MSVC $VcArch environment from $vcvars" -ForegroundColor Gray
+    cmd /c "`"$vcvars`" $VcArch > nul 2>&1 && set" | ForEach-Object {
         if ($_ -match '^([^=]+)=(.*)$') {
             Set-Item -Path "env:$($matches[1])" -Value $matches[2]
         }
@@ -196,20 +228,24 @@ function Assert-Preconditions {
     Test-Command "cmake", "cargo", "rustup"
 
     $Targets = rustup target list --installed
-    if ($Targets -notcontains "x86_64-pc-windows-msvc") {
-        Write-Host "Adding Rust target: x86_64-pc-windows-msvc..." -ForegroundColor Yellow
-        rustup target add x86_64-pc-windows-msvc
+    if ($Targets -notcontains $RustTarget) {
+        Write-Host "Adding Rust target: $RustTarget..." -ForegroundColor Yellow
+        rustup target add $RustTarget
     }
 
     if (-not $script:QtDir) {
-        $QtDirs = Get-ChildItem "C:\Qt\6.*\msvc*\" -Directory -ErrorAction SilentlyContinue `
-            | Sort-Object Name -Descending
+        $QtDirs = Get-ChildItem "C:\Qt\6.*" -Directory -ErrorAction SilentlyContinue |
+            Where-Object {
+                if ($Arch -eq "arm64") { $_.Name -like "msvc*arm64" }
+                else { $_.Name -like "msvc*" -and $_.Name -notlike "*arm64" }
+            } |
+            Sort-Object Name -Descending
         if ($QtDirs) {
             $script:QtDir = $QtDirs[0].FullName
             Write-Host "Auto-detected Qt at: $script:QtDir" -ForegroundColor Green
         }
         else {
-            throw "Qt6 not found at C:\Qt\6.*\msvc*. Set -QtDir or install Qt from the online installer."
+            throw "Qt6 not found under C:\Qt. Install the $(if ($Arch -eq 'arm64') { 'win64_msvc2022_arm64' } else { 'msvc2022' }) Qt kit."
         }
     }
     else {
@@ -257,7 +293,7 @@ function Ensure-MpvImportLibrary {
         }
     }
     Set-Content -Path $defPath -Value "LIBRARY libmpv-2.dll`r`nEXPORTS`r`n$($exports -join "`r`n")" -Encoding ASCII
-    & lib /def:$defPath /out:$mpvLibPath /machine:x64
+    & lib /def:$defPath /out:$mpvLibPath /machine:$Machine
     Assert-LastExitCode "mpv.lib generation"
     Remove-Item -Force $defPath
     Write-Host "Generated mpv.lib ($($exports.Count) exports)" -ForegroundColor Green
@@ -287,6 +323,7 @@ function Invoke-CMakeConfigure {
         "-DCMAKE_C_COMPILER=cl" `
         "-DCMAKE_CXX_COMPILER=cl" `
         "-DPACKAGE_TARGET=windows" `
+        "-DRUST_TARGET=$RustTarget" `
         $consoleFlag
     Assert-LastExitCode "CMake configuration"
 }
@@ -353,7 +390,7 @@ function Stage-MpvDll {
 function Stage-AppFiles {
     Write-Step 6 "Stage app files"
     Copy-ToStage -Source $ExePath -Destination (Join-Path $OutputDir "guinea-mpeg.exe")
-    Copy-ToStage -Source (Join-Path $RustDir "target\release\guinea_mpeg_core.dll") -Destination (Join-Path $OutputDir "guinea_mpeg_core.dll")
+    Copy-ToStage -Source (Join-Path $RustDir "target\$RustTarget\release\guinea_mpeg_core.dll") -Destination (Join-Path $OutputDir "guinea_mpeg_core.dll")
     # CMake POST_BUILD copies default_profiles.toml next to the exe in the build
     # dir; stage it alongside the app as well.
     Copy-ToStage -Source (Join-Path $BuildDir "default_profiles.toml") -Destination (Join-Path $OutputDir "default_profiles.toml")
@@ -403,7 +440,7 @@ function New-Package {
 
     $CargoToml = Join-Path (Join-Path $ProjectRoot "rust") "Cargo.toml"
     $Version = Select-String -Path $CargoToml '^version = "(.+)"' | ForEach-Object { $_.Matches.Groups[1].Value }
-    $ArchiveName = "guinea-mpeg-$Version-x86_64"
+    $ArchiveName = "guinea-mpeg-$Version-$ArchSuffix"
 
     $ZipPath = Join-Path (Split-Path $OutputDir -Parent) "$ArchiveName.zip"
     Write-Host "Creating portable ZIP: $ZipPath" -ForegroundColor Cyan
@@ -427,6 +464,7 @@ function New-Package {
     Write-Host "Creating InnoSetup installer..." -ForegroundColor Cyan
     & $ISCC.Source `
         "/DAppVersion=$Version" `
+        "/DAppArchitecture=$ArchSuffix" `
         "/DSourceDir=$OutputDir" `
         "/DOutputDir=$(Split-Path $OutputDir -Parent)" `
         "/DOutputFilename=$ArchiveName" `
@@ -444,9 +482,15 @@ function New-Package {
 Write-Host "=== GuineaMPEG Windows Build ===" -ForegroundColor Cyan
 Write-Host "Project root: $ProjectRoot" -ForegroundColor Gray
 Write-Host "Configuration: $Config" -ForegroundColor Gray
+Write-Host "Architecture: $Arch" -ForegroundColor Gray
+Write-Host "Rust target: $RustTarget" -ForegroundColor Gray
 Write-Host "Build dir: $BuildDir" -ForegroundColor Gray
 Write-Host "Output dir: $OutputDir" -ForegroundColor Gray
 Write-Host "Release: $(if ($Config -eq 'Release') { 'Yes' } else { 'No' })" -ForegroundColor Gray
+
+if ($Arch -eq "arm64") {
+    Write-Warning "arm64 binaries only run on Windows-on-ARM (WoA) devices. x86_64 hosts can build them but cannot execute them."
+}
 
 # Without -Clean, stale artifacts from previous builds (e.g. Debug Qt DLLs
 # from an earlier Debug run into the same output dir) may remain and get

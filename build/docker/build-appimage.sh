@@ -19,6 +19,8 @@ trap interrupt_cleanup INT TERM
 
 BUILD_DIR="${1:?usage: build-appimage.sh <cmake-build-dir>}"
 CARGO_DIR="${CARGO_TARGET_DIR:-/source/rust/target}"
+CMAKE_BUILD_TYPE="${GUINEA_CMAKE_BUILD_TYPE:-Release}"
+CARGO_SUBDIR="${GUINEA_CARGO_SUBDIR:-release}"
 VERSION=$(grep "^version = " /source/rust/Cargo.toml | head -1 | sed 's/version = "\(.*\)"/\1/')
 APPDIR="/source/out/appimage/AppDir"
 
@@ -40,14 +42,14 @@ copy_stripped() {
 build_binary() {
     echo "=== Building AppImage (version $VERSION) ==="
     mkdir -p /tmp/home "$APPDIR/usr/bin" /source/out/appimage
-    cmake -S /source -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE=Release -DPACKAGE_TARGET=appimage
+    cmake -S /source -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE="$CMAKE_BUILD_TYPE" -DPACKAGE_TARGET=appimage
     cmake --build "$BUILD_DIR"
 
     copy_stripped "$BUILD_DIR/src/guinea-mpeg" "$APPDIR/usr/bin/"
     cp /source/default_profiles.toml "$APPDIR/usr/bin/"
-    if [ -f "$CARGO_DIR/release/libguinea_mpeg_core.so" ]; then
+    if [ -f "$CARGO_DIR/$CARGO_SUBDIR/libguinea_mpeg_core.so" ]; then
         mkdir -p "$APPDIR/usr/lib"
-        copy_stripped "$CARGO_DIR/release/libguinea_mpeg_core.so" "$APPDIR/usr/lib/"
+        copy_stripped "$CARGO_DIR/$CARGO_SUBDIR/libguinea_mpeg_core.so" "$APPDIR/usr/lib/"
     fi
     cp /source/build/linux/applications/guinea-mpeg.desktop "$APPDIR/"
     cp /source/build/linux/icons/hicolor/256x256/apps/guinea-mpeg.png "$APPDIR/"

@@ -43,6 +43,14 @@ A modern FFmpeg transcoding GUI with a Rust core library dynamically linked via 
 - Ninja (optional, auto-detected): `winget install Ninja-build.Ninja`
 - InnoSetup 6 (optional, for installer) — download from [jrsoftware.org](https://jrsoftware.org/isdl.php)
 
+For **Windows on ARM (ARM64)** additionally install:
+- The `MSVC v143 - VS 2022 C++ ARM64 build tools` component in the VS 2022 installer
+- The Qt **`win64_msvc2022_arm64`** package (Qt 6.x for MSVC 2022 ARM64)
+- `rustup target add aarch64-pc-windows-msvc`
+
+> ARM64 binaries only run on Windows-on-ARM (WoA) devices; an x64 host can build
+> them but cannot execute them.
+
 ### Per-Distro Package Lists
 
 **Debian / Ubuntu**
@@ -89,9 +97,25 @@ The `build/linux-build.sh` script supports Docker-based cross-distro packaging:
 ./build/linux-build.sh --package deb,rpm,pacman     # multiple targets
 ./build/linux-build.sh --package all                # all targets
 ./build/linux-build.sh --clean --package deb        # clean + rebuild + .deb
+./build/linux-build.sh --release --package deb      # optimized Release build (strips debug info)
 ```
 
 Output goes to `out/{target}/` — e.g. `out/deb/`, `out/appimage/`.
+
+#### ARM64 (Linux)
+
+Pass `--arch aarch64` to build for ARM64. `generic`, `deb` and `rpm` build in
+Docker with `--platform linux/arm64` and emit artifacts to `out/<target>-aarch64/`.
+On an `x86_64` host this needs Docker **buildx** and QEMU binfmt registration:
+
+```bash
+docker run --privileged --rm tonistiigi/binfmt --install arm64
+./build/linux-build.sh --arch aarch64 --package deb,rpm
+```
+
+`pacman`, `appimage` and `flatpak` are not supported for aarch64 cross-builds —
+build those on a native ARM64 host (`--arch` is then unnecessary, the arch is
+detected automatically).
 
 ### Windows
 
@@ -100,10 +124,15 @@ Open **x64 Native Tools Command Prompt for VS 2022** (or any PowerShell where `c
 ```powershell
 .\build\windows-build.ps1                           # build to out/windows/
 .\build\windows-build.ps1 -Package                  # build + ZIP + InnoSetup installer
+.\build\windows-build.ps1 -Arch arm64               # build for Windows on ARM
+.\build\windows-build.ps1 -Arch arm64 -Package      # arm64 ZIP + installer
 .\build\windows-build.ps1 -Clean                    # full rebuild
 .\build\windows-build.ps1 -Console                  # build with visible console (for debugging)
 .\build\windows-build.ps1 -Config RelWithDebInfo    # debug symbols enabled
 ```
+
+Run `.\build\download-vendor.ps1 -Arch arm64` first to fetch the arm64 mpv-dev
+bundle and winarm64 ffmpeg (the build script does this automatically too).
 
 The script will:
 1. Auto-detect Visual Studio 2022 (via vswhere)
@@ -119,18 +148,18 @@ Additional flags:
 
 | Flag | Description |
 |------|-------------|
-| `-SkipPackage` | Build only, skip packaging |
-| `-SkipMpv` | Skip mpv-dev download (use existing) |
-| `-QtDir C:\Qt\6.8.0\msvc2022_64` | Specify Qt path manually |
-| `-NoClean` | Rebuild without cleaning |
+| `-Arch x86_64` | Target architecture: `x86_64` (default) or `arm64` |
+| `-Config Release` | Build config: `Debug` (default), `Release`, `RelWithDebInfo` |
+| `-Clean` | Remove output dir and Rust artifacts before building |
+| `-QtDir C:\Qt\6.11.1\msvc2022_64` | Specify Qt path manually |
 
 Artifacts:
 
 | Artifact | Path |
 |----------|------|
 | Executable | `out/windows/guinea-mpeg.exe` |
-| Portable ZIP | `out/guinea-mpeg-{version}-x86_64.zip` |
-| Installer (exe) | `out/guinea-mpeg-{version}-x86_64.exe` |
+| Portable ZIP | `out/guinea-mpeg-{version}-x86_64.zip` (or `-arm64`) |
+| Installer (exe) | `out/guinea-mpeg-{version}-x86_64.exe` (or `-arm64`) |
 
 ### Version
 

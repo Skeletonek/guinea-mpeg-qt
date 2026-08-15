@@ -2,19 +2,27 @@
 .SYNOPSIS
     Downloads vendored build dependencies for GuineaMPEG Windows builds.
 .DESCRIPTION
-    Fetches mpv-dev-x86_64 (libmpv SDK) and ffmpeg/ffprobe
-    into build/vendor/ so the build script doesn't need network access.
+    Fetches the mpv-dev SDK (libmpv) and ffmpeg/ffprobe into build/vendor/
+    so the build script doesn't need network access. Architecture is chosen
+    with -Arch: x86_64 uses mpv-dev-x86_64 + win64 ffmpeg, arm64 uses
+    mpv-dev-aarch64 + winarm64 ffmpeg.
 .EXAMPLE
     .\build\download-vendor.ps1
+.EXAMPLE
+    .\build\download-vendor.ps1 -Arch arm64
+.PARAMETER Arch
+    Target architecture: x86_64 (default) or arm64.
 .PARAMETER OnlyMpv
-    Only download the mpv-dev-x86_64 bundle, skipping ffmpeg/ffprobe.
+    Only download the mpv-dev bundle, skipping ffmpeg/ffprobe.
 .PARAMETER OnlyFfmpeg
-    Only download ffmpeg/ffprobe, skipping the mpv-dev-x86_64 bundle.
+    Only download ffmpeg/ffprobe, skipping the mpv-dev bundle.
 .PARAMETER Force
     Re-download dependencies even if they are already present.
 #>
 
 param(
+    [ValidateSet("x86_64", "arm64")]
+    [string]$Arch = "x86_64",
     [switch]$OnlyMpv,
     [switch]$OnlyFfmpeg,
     [switch]$Force
@@ -25,12 +33,30 @@ $ProjectRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
 $VendorDir = Join-Path (Join-Path $ProjectRoot "build") "vendor"
 New-Item -ItemType Directory -Force -Path $VendorDir | Out-Null
 
+# ---- Per-architecture selection ----
+# mpv bundles use "aarch64" in the asset name, ffmpeg bundles use "winarm64" /
+# "win64" in the URL. Vendor dirs mirror the mpv asset arch (mpv-dev-x86_64 /
+# mpv-dev-aarch64); ffmpeg keeps the legacy "ffmpeg" dir for x86_64.
+switch ($Arch) {
+    "arm64" {
+        $MpvAssetArch = "aarch64"
+        $FfmpegArch = "arm64"
+    }
+    default {
+        $MpvAssetArch = "x86_64"
+        $FfmpegArch = "x86_64"
+    }
+}
+$MpvDir = Join-Path $VendorDir "mpv-dev-$MpvAssetArch"
+$FfmpegDir = if ($FfmpegArch -eq "arm64") { Join-Path $VendorDir "ffmpeg-arm64" } else { Join-Path $VendorDir "ffmpeg" }
+
 # ---- Download configuration ----
 # Change these URLs to point at a different mirror or build variant.
 $MpvReleaseApiUrl = "https://api.github.com/repos/zhongfly/mpv-winbuild/releases/latest"
-$MpvAssetPattern  = '^mpv-dev-x86_64-\d{8}'
+$MpvAssetPattern  = "^mpv-dev-$MpvAssetArch-\d{8}"
 $MpvExcludedPattern = '-v3-'
-$FfmpegReleaseUrl = "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n8.1-latest-win64-gpl-shared-8.1.zip"
+$FfmpegSharedSuffix = if ($FfmpegArch -eq "arm64") { "winarm64" } else { "win64" }
+$FfmpegReleaseUrl = "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n8.1-latest-$FfmpegSharedSuffix-gpl-shared-8.1.zip"
 $FfmpegChecksumsUrl = "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/checksums.sha256"
 $UserAgent = "guinea-mpeg-vendor/1.0"
 
@@ -73,12 +99,12 @@ function Install-Mpv {
         [string]$MpvDir
     )
 
-    Write-Host "=== mpv-dev-x86_64 ===" -ForegroundColor Cyan
+    Write-Host "=== mpv-dev SDK ($MpvAssetArch) ===" -ForegroundColor Cyan
 
     $release = Invoke-UrlRequest -Url $script:MpvReleaseApiUrl | ConvertFrom-Json
     $asset = $release.assets | Where-Object { $_.name -match $script:MpvAssetPattern -and $_.name -notmatch $script:MpvExcludedPattern } | Select-Object -First 1
     if (-not $asset) {
-        throw "No mpv-dev-x86_64 asset found in latest $($script:MpvReleaseApiUrl) release"
+        throw "No mpv-dev-$MpvAssetArch asset found in latest $($script:MpvReleaseApiUrl) release"
     }
 
     $archive = Join-Path $VendorDir $asset.name
@@ -86,14 +112,14 @@ function Install-Mpv {
 
     Expand-Archive7z -ArchivePath $archive -Destination $VendorDir
 
-    # Restructure: files extract into vendor root, move into mpv-dev-x86_64/
+    # Restructure: files extract into vendor root, move into mpv-dev-<arch>/
     if (Test-Path (Join-Path $VendorDir "include/mpv")) {
         New-Item -ItemType Directory -Force -Path $MpvDir | Out-Null
         Move-Item (Join-Path $VendorDir "include") "$MpvDir/include" -Force
         Move-Item (Join-Path $VendorDir "libmpv-2.dll") "$MpvDir/libmpv-2.dll" -Force
         Remove-Item (Join-Path $VendorDir "libmpv.dll.a") -Force -ErrorAction SilentlyContinue
     }
-    Write-Host "mpv-dev-x86_64 ready at $MpvDir" -ForegroundColor Green
+    Write-Host "mpv-dev SDK ready at $MpvDir" -ForegroundColor Green
 }
 
 function Install-Ffmpeg {
@@ -141,24 +167,22 @@ if ($OnlyMpv -and $OnlyFfmpeg) {
 $WantMpv = $OnlyMpv -or -not $OnlyFfmpeg
 $WantFfmpeg = $OnlyFfmpeg -or -not $OnlyMpv
 
-$MpvDir = Join-Path $VendorDir "mpv-dev-x86_64"
 $MpvH = Join-Path $MpvDir "include/mpv/client.h"
 if ($WantMpv) {
     if ($Force -or -not (Test-Path $MpvH)) {
         Install-Mpv -VendorDir $VendorDir -MpvDir $MpvDir
     } else {
-        Write-Host "mpv-dev-x86_64 already present" -ForegroundColor Green
+        Write-Host "mpv-dev SDK already present at $MpvDir" -ForegroundColor Green
     }
 }
 
-$FfmpegDir = Join-Path $VendorDir "ffmpeg"
 $FfmpegExe = Join-Path $FfmpegDir "ffmpeg.exe"
 $FfmpegDlls = Get-ChildItem $FfmpegDir -Filter "*.dll" -ErrorAction SilentlyContinue
 if ($WantFfmpeg) {
     if ($Force -or -not (Test-Path $FfmpegExe) -or -not $FfmpegDlls) {
         Install-Ffmpeg -VendorDir $VendorDir -FfmpegDir $FfmpegDir
     } else {
-        Write-Host "ffmpeg already present" -ForegroundColor Green
+        Write-Host "ffmpeg already present at $FfmpegDir" -ForegroundColor Green
     }
 }
 

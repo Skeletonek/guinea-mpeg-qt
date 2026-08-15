@@ -18,8 +18,12 @@
     #define OutputDir "..\..\out"
 #endif
 
+#ifndef AppArchitecture
+    #define AppArchitecture "x86_64"
+#endif
+
 #ifndef OutputFilename
-    #define OutputFilename "guinea-mpeg-" + AppVersion + "-x86_64"
+    #define OutputFilename "guinea-mpeg-" + AppVersion + "-" + AppArchitecture
 #endif
 
 [Setup]
@@ -34,6 +38,13 @@ DefaultDirName={autopf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
 PrivilegesRequiredOverridesAllowed=dialog
+#if AppArchitecture == "arm64"
+ArchitecturesAllowed=arm64
+ArchitecturesInstallIn64BitMode=arm64
+#else
+ArchitecturesAllowed=x64compatible
+ArchitecturesInstallIn64BitMode=x64compatible
+#endif
 OutputDir={#OutputDir}
 OutputBaseFilename={#OutputFilename}
 LicenseFile=..\..\LICENSE

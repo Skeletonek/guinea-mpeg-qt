@@ -164,7 +164,7 @@ pub extern "C" fn guinea_mpeg_mpv_load_file(ptr: *mut c_void, path: *const c_cha
     let c_path = CString::new(p).unwrap();
     let args = [c_loadfile.as_ptr(), c_path.as_ptr(), std::ptr::null()];
     unsafe {
-        mpv_command(backend.handle, args.as_ptr() as *mut *const i8);
+        mpv_command(backend.handle, args.as_ptr() as *mut *const c_char);
         mpv_set_property_string(
             backend.handle,
             CString::new("pause").unwrap().as_ptr(),

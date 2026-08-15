@@ -99,12 +99,16 @@ Plain `QObject`. Profile CRUD, options, video info, encoder detection/capabiliti
 
 ## Build
 - Always use `build/linux-build.sh`, never manual cmake. Rust builds automatically via cargo.
-- Flags: `--clean` (removes `out/` + `rust/target/`), `--package <deb,rpm,pacman,flatpak,appimage,generic,all>`, `--no-build`, `--version X.Y.Z` (delegates to `update-version.sh`), `--release`, `--no-strip`.
-- Default (no flags): Debug build to `out/generic/` (the UpdateBanner always shows, gated by `buildInfo.debugBuild` ← `QT_NO_DEBUG`). `--release` or any `--package` produces a Release build (banner behaves normally) and strips binaries; `--no-strip` disables stripping. `--no-build` + `--package appimage` is an error (needs fresh in-Docker build).
+- Flags: `--clean` (removes `out/` + `rust/target/`), `--package <deb,rpm,pacman,flatpak,appimage,generic,all>`, `--arch <x86_64|aarch64>`, `--no-build`, `--version X.Y.Z` (delegates to `update-version.sh`), `--release`, `--no-strip`.
+- `--arch aarch64`: `generic`/`deb`/`rpm` build in Docker via `docker buildx --platform linux/arm64 --load` + `docker run --platform linux/arm64` and land in `out/<target>-aarch64/`; requires QEMU binfmt on x86_64 hosts (`docker run --privileged --rm tonistiigi/binfmt --install arm64`). aarch64 pacman/appimage/flatpak cross-builds are rejected. flatpak arch = build host, so arm64 flatpak needs an arm64 host.
+- Default (no flags): Debug build to `out/generic/` (the UpdateBanner always shows, gated by `buildInfo.debugBuild` ← `QT_NO_DEBUG`). `--release` produces a Release build (banner behaves normally) and strips binaries; builds are Debug unless `--release` is passed — `--package` alone does NOT make a Release. `--no-strip` disables stripping in release builds. The Rust core follows the same profile: cargo builds `--release` only when `CMAKE_BUILD_TYPE=Release` (artifacts under `target/<debug|release>/`, `RUST_LIB`/`RUST_LIB_PROFILE` in CMake picks the dir). `--no-build` + `--package appimage` is an error (needs fresh in-Docker build).
+- Docker builds persist the cargo registry across runs by mounting `out/.cargo-home` into the container as `CARGO_HOME` (set `CARGO_HOME=/tmp/home/.cargo`); crates are only downloaded once. `--clean` removes `out/` (and with it the cargo cache).
 - `crate-type = ["cdylib"]`; plain `extern "C"` symbols link without `--whole-archive`.
 - deb/rpm/pacman: Docker builds (`build/docker/*.Dockerfile`) then fpm packaging; `stage_package()` runs `patchelf --add-rpath '$ORIGIN/../lib/$PKGNAME'` so the binary finds the Rust `.so`.
 - flatpak: host `flatpak-builder`, SDK `org.kde.Platform//6.10`.
 - appimage: `bundle_portal_theme()` copies `libqxdgdesktopportal.so` into `$APPDIR/usr/plugins/platformthemes/`; AppRun sets `QT_QPA_PLATFORMTHEME=xdgdesktopportal` when present so the AppImage uses native file dialogs.
+- Windows: `windows-build.ps1`/`download-vendor.ps1` take `-Arch x86_64|arm64`. Rust builds with `cargo --target $RUST_TARGET` (CMake var `RUST_TARGET` set from ps1; artifacts under `target/<triple>/release/`). arm64 uses `mpv-dev-aarch64` vendor bundle + BtbN `winarm64` ffmpeg, `vcvarsall.bat arm64`, Qt `msvc2022_arm64` kit; the exe runs only on WoA hardware.
+- `-mdirect-extern-access` (CMakeLists) is x86-64-only GCC — guarded by `CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64"`; do not apply it on aarch64.
 
 ## Translations
 - `.ts` sources live in `translations/`, listed in `qml/CMakeLists.txt` via `qt_add_translations` (compiled into `:/i18n/qml/`; `main.cpp` loads them).

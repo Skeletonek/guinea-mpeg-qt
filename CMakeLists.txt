@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
 
-if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" AND CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64")
     add_compile_options(-mdirect-extern-access)
 endif()
 
@@ -81,12 +81,24 @@ else()
     set(RUST_TARGET_DIR "${RUST_PROJECT_DIR}/target")
 endif()
 
-if(WIN32)
-    set(RUST_LIB "${RUST_TARGET_DIR}/release/guinea_mpeg_core.dll")
-elseif(APPLE)
-    set(RUST_LIB "${RUST_TARGET_DIR}/release/libguinea_mpeg_core.dylib")
+# When the Rust toolchain cross-targets an explicit triple (e.g. Windows ARM64),
+# cargo writes artifacts under <target_dir>/<triple>/.
+if(RUST_TARGET)
+    set(RUST_SYSROOT_DIR "${RUST_TARGET_DIR}/${RUST_TARGET}")
 else()
-    set(RUST_LIB "${RUST_TARGET_DIR}/release/libguinea_mpeg_core.so")
+    set(RUST_SYSROOT_DIR "${RUST_TARGET_DIR}")
+endif()
+
+# cargo artifact subdir mirrors CMAKE_BUILD_TYPE (Debug unless explicitly Release)
+set(RUST_LIB_PROFILE release)
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(RUST_LIB_PROFILE debug)
+endif()
+
+if(WIN32)
+    set(RUST_LIB "${RUST_SYSROOT_DIR}/${RUST_LIB_PROFILE}/guinea_mpeg_core.dll")
+else()
+    set(RUST_LIB "${RUST_SYSROOT_DIR}/${RUST_LIB_PROFILE}/libguinea_mpeg_core.so")
 endif()
 
 # Read full semver from canonical Cargo.toml (may include pre-release suffix like -dev)

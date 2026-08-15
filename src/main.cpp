@@ -323,6 +323,13 @@ int main(int argc, char *argv[])
     buildInfo["packageTarget"] = PACKAGE_TARGET;
     buildInfo["distroName"] = hostOsName();
     buildInfo["qtVersion"] = qVersion();
+#if defined(__aarch64__) || defined(_M_ARM64)
+    buildInfo["cpuArch"] = QStringLiteral("aarch64");
+#elif defined(__x86_64__) || defined(_M_X64) || defined(_M_AMD64)
+    buildInfo["cpuArch"] = QStringLiteral("x86_64");
+#else
+    buildInfo["cpuArch"] = QSysInfo::currentCpuArchitecture();
+#endif
     buildInfo["copyright"] = buildInfo["author"].toString() + QStringLiteral(" ")
         + QString::fromLatin1(__DATE__).right(4);
 

@@ -187,6 +187,7 @@ import "../Utils/Centering.js" as Utils
                 Label { text: qsTr("License: %1").arg(buildInfo.license); color: theme.text }
                 Label { text: qsTr("OS name: %1").arg(buildInfo.distroName); color: theme.text }
                 Label { text: qsTr("Package: %1").arg(buildInfo.packageTarget); color: theme.textMuted; font.pixelSize: 11 }
+                Label { text: qsTr("Architecture: %1").arg(buildInfo.cpuArch); color: theme.textMuted; font.pixelSize: 11 }
                 Label { text: qsTr("Build: %1").arg(buildInfo.buildDate); color: theme.textMuted; font.pixelSize: 11 }
                 Label { text: "Copyright © " + buildInfo.copyright; color: theme.textMuted; font.pixelSize: 11 }
             }
@@ -223,6 +224,7 @@ import "../Utils/Centering.js" as Utils
         lines.push("Author: " + buildInfo.author)
         lines.push("License: " + buildInfo.license)
         lines.push("OS: " + buildInfo.distroName)
+        lines.push("Architecture: " + buildInfo.cpuArch)
         lines.push("Package: " + buildInfo.packageTarget)
         lines.push("Build: " + buildInfo.buildDate)
         lines.push("Qt: " + buildInfo.qtVersion)

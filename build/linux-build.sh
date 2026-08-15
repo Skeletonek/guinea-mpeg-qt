@@ -8,9 +8,10 @@ Usage: $0 [options]
 Options:
   --clean               Remove out/ and rust/target/ before building
   --package <list>      Build packages (comma-separated: deb,rpm,pacman,flatpak,generic)
+  --arch <arch>         Target architecture: x86_64 (default) or aarch64
   --no-build            Skip the build step
    --release             Build release binary (default is a debug build), strip debug info
-   --no-strip            Disable stripping (keep debug info) even in release/package builds
+   --no-strip            Disable stripping (keep debug info) even in release builds
   --version <ver>       Update project version, then build
   --help                Show this help message
 
@@ -23,11 +24,19 @@ Package targets:
   appimage      Build in Debian Docker container, produce .AppImage
   flatpak       Build using flatpak-builder (native, requires flatpak)
 
+Architecture targets:
+  x86_64        Default. Native builds everywhere.
+  aarch64       ARM64. deb/rpm/generic build in Docker with --platform linux/arm64
+                (needs docker buildx + QEMU binfmt on an x86_64 host, or a native
+                ARM64 host). pacman, appimage and flatpak for aarch64 are not
+                supported when cross-building; build them on a native ARM64 host.
+
 Examples:
   $0                                        Build to out/generic
   $0 --package generic                      Build + .tar.gz
   $0 --package deb                          Docker build + .deb
   $0 --package deb,flatpak                  Docker build + .deb + flatpak
+  $0 --arch aarch64 --package deb,rpm       ARM64 Docker builds + packages
   $0 --clean --version 0.3.0 --package deb,rpm,pacman
                                             Clean, bump, rebuild all, package
   $0 --package appimage                     Build self-contained AppImage
@@ -38,6 +47,7 @@ EOF
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 OUT_DIR="$PROJECT_DIR/out"
+CARGO_HOME_DIR="$OUT_DIR/.cargo-home"
 
 VERSION="$(grep '^version = ' "$PROJECT_DIR/rust/Cargo.toml" | head -1 | sed 's/version = "\(.*\)"/\1/')"
 
@@ -52,11 +62,16 @@ DO_GENERIC=false
 DO_RELEASE=false
 DO_STRIP=false
 DO_NO_STRIP=false
+ARCH_OVERRIDE=""
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --clean)
             DO_CLEAN=true; shift ;;
+        --arch)
+            shift
+            ARCH_OVERRIDE="$1"
+            shift ;;
         --package)
             shift
             IFS=',' read -ra PKG_LIST <<< "$1"
@@ -93,7 +108,28 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-ARCH="$(uname -m)"
+HOST_ARCH="$(uname -m)"
+ARCH="$HOST_ARCH"
+if [[ -n "$ARCH_OVERRIDE" ]]; then
+    ARCH="$ARCH_OVERRIDE"
+fi
+case "$ARCH" in
+    x86_64|aarch64) ;;
+    *) echo "ERROR: unsupported --arch '$ARCH' (valid: x86_64, aarch64)"; exit 1 ;;
+esac
+DOCKER_ARCH="$ARCH"
+[ "$DOCKER_ARCH" = "aarch64" ] && DOCKER_ARCH="arm64"
+DOCKER_PLATFORM="linux/${DOCKER_ARCH}"
+BINFMT_ARCH="$DOCKER_ARCH"
+[ "$BINFMT_ARCH" = "arm64" ] && BINFMT_ARCH="aarch64"
+CROSS_ARCH=false
+if [[ "$ARCH" != "$HOST_ARCH" ]]; then
+    CROSS_ARCH=true
+fi
+ARCH_SUFFIX=""
+if $CROSS_ARCH; then
+    ARCH_SUFFIX="-$ARCH"
+fi
 PKGNAME="guinea-mpeg"
 DESCRIPTION="FFmpeg GUI Frontend with Rust Core"
 
@@ -106,7 +142,7 @@ if ! $HAS_PKG_FLAG; then
     DO_GENERIC=true
 fi
 
-if $HAS_PKG_FLAG || $DO_RELEASE; then
+if $DO_RELEASE; then
     DO_STRIP=true
 fi
 
@@ -144,8 +180,13 @@ build_generic() {
     echo "=== Building GuineaMPEG $VERSION (generic) ==="
 
     local build_type="Debug"
-    if $DO_RELEASE || $HAS_PKG_FLAG; then
+    if $DO_RELEASE; then
         build_type="Release"
+    fi
+
+    local cargo_subdir="debug"
+    if $DO_RELEASE; then
+        cargo_subdir="release"
     fi
 
     export CARGO_TARGET_DIR="$cargo_dir"
@@ -155,8 +196,8 @@ build_generic() {
 
     mkdir -p "$generic_dir"
     cp "$build_dir/src/guinea-mpeg" "$generic_dir/"
-    if [ -f "$cargo_dir/release/libguinea_mpeg_core.so" ]; then
-        cp "$cargo_dir/release/libguinea_mpeg_core.so" "$generic_dir/"
+    if [ -f "$cargo_dir/$cargo_subdir/libguinea_mpeg_core.so" ]; then
+        cp "$cargo_dir/$cargo_subdir/libguinea_mpeg_core.so" "$generic_dir/"
     fi
     cp "$PROJECT_DIR/default_profiles.toml" "$generic_dir/"
     strip_artifacts "$generic_dir"
@@ -176,9 +217,9 @@ build_in_docker() {
     local target="$1"
     local dockerfile="$2"
     local image_name="guinea-mpeg-${target}-builder"
-    local out_dir="$OUT_DIR/$target"
-    local build_dir_name=".build-${target}"
-    local cargo_dir_name=".cargo-${target}"
+    local out_dir="$OUT_DIR/$target$ARCH_SUFFIX"
+    local build_dir_name=".build-${target}${ARCH_SUFFIX}"
+    local cargo_dir_name=".cargo-${target}${ARCH_SUFFIX}"
     local build_dir="$OUT_DIR/$build_dir_name"
     local cargo_dir="$OUT_DIR/$cargo_dir_name"
 
@@ -187,14 +228,44 @@ build_in_docker() {
         return 1
     fi
 
-    echo "=== Building GuineaMPEG $VERSION in Docker container ($target) ==="
+    echo "=== Building GuineaMPEG $VERSION in Docker container ($target, $ARCH) ==="
 
-    docker build -t "$image_name" -f "$dockerfile" "$SCRIPT_DIR/docker"
+    if $CROSS_ARCH; then
+        if ! docker buildx version &>/dev/null; then
+            echo "ERROR: docker buildx is required to cross-build for $ARCH." >&2
+            return 1
+        fi
+        if ! ls /proc/sys/fs/binfmt_misc/ 2>/dev/null | grep -q "qemu-${BINFMT_ARCH}"; then
+            echo "ERROR: cannot run ${DOCKER_PLATFORM} containers on this ${HOST_ARCH} host:" >&2
+            echo "       QEMU binfmt (qemu-${BINFMT_ARCH}) is not registered in binfmt_misc." >&2
+            echo "  Docker: docker run --privileged --rm tonistiigi/binfmt --install ${BINFMT_ARCH}" >&2
+            echo "  Podman: sudo podman run --privileged --rm docker.io/tonistiigi/binfmt --install ${BINFMT_ARCH}" >&2
+            echo "  ...or run the build on a native ${ARCH} host (no --arch needed)." >&2
+            return 1
+        fi
+        docker buildx build --platform "$DOCKER_PLATFORM" --load \
+            -t "$image_name" -f "$dockerfile" "$SCRIPT_DIR/docker"
+    else
+        docker build -t "$image_name" -f "$dockerfile" "$SCRIPT_DIR/docker"
+    fi
 
-    mkdir -p "$out_dir" "$build_dir" "$cargo_dir"
+    mkdir -p "$out_dir" "$build_dir" "$cargo_dir" "$CARGO_HOME_DIR"
 
-    docker run --rm --init \
+    local run_platform=()
+    if $CROSS_ARCH; then
+        run_platform=(--platform "$DOCKER_PLATFORM")
+    fi
+
+    local cmake_build_type="Debug"
+    local cargo_subdir="debug"
+    if $DO_RELEASE; then
+        cmake_build_type="Release"
+        cargo_subdir="release"
+    fi
+
+    docker run --rm --init "${run_platform[@]}" \
         -v "$PROJECT_DIR:/source" \
+        -v "$CARGO_HOME_DIR:/tmp/home/.cargo" \
         -e CARGO_TARGET_DIR="/source/out/$cargo_dir_name" \
         -e CARGO_HOME="/tmp/home/.cargo" \
         -e HOME="/tmp/home" \
@@ -203,20 +274,24 @@ build_in_docker() {
             set -euo pipefail
             trap 'echo \"=== Build interrupted ===\"; trap - INT TERM; kill 0 2>/dev/null || true; sleep 2; kill -9 0 2>/dev/null || true; exit 130' INT TERM
             mkdir -p /tmp/home
-            cmake_opts='-DCMAKE_BUILD_TYPE=Release -DPACKAGE_TARGET=${target}'
+            cmake_opts='-DCMAKE_BUILD_TYPE=${cmake_build_type} -DPACKAGE_TARGET=${target}'
             cmake -S /source -B /source/out/$build_dir_name \$cmake_opts
             cmake --build /source/out/$build_dir_name
-            cp /source/out/$build_dir_name/src/guinea-mpeg /source/out/$target/
-            cp /source/out/$cargo_dir_name/release/libguinea_mpeg_core.so /source/out/$target/ || true
-            $(if $DO_STRIP; then echo "strip /source/out/$target/guinea-mpeg 2>/dev/null || true; strip /source/out/$target/libguinea_mpeg_core.so 2>/dev/null || true"; fi)
-            cp /source/default_profiles.toml /source/out/$target/
+            cp /source/out/$build_dir_name/src/guinea-mpeg /source/out/$target$ARCH_SUFFIX/
+            cp /source/out/$cargo_dir_name/${cargo_subdir}/libguinea_mpeg_core.so /source/out/$target$ARCH_SUFFIX/ || true
+            $(if $DO_STRIP; then echo "strip /source/out/$target$ARCH_SUFFIX/guinea-mpeg 2>/dev/null || true; strip /source/out/$target$ARCH_SUFFIX/libguinea_mpeg_core.so 2>/dev/null || true"; fi)
+            cp /source/default_profiles.toml /source/out/$target$ARCH_SUFFIX/
         " || {
             echo "WARNING: Docker build for $target failed" >&2
+            if $CROSS_ARCH; then
+                echo "HINT: for $ARCH cross-builds on an $HOST_ARCH host, register QEMU binfmt:" >&2
+                echo "  docker run --privileged --rm tonistiigi/binfmt --install arm64" >&2
+            fi
             return 1
         }
 
     # Fix ownership if running rootful Docker (no-op under rootless podman)
-    chown -R "$(id -u):$(id -g)" "$out_dir" "$build_dir" "$cargo_dir" 2>/dev/null || true
+    chown -R "$(id -u):$(id -g)" "$out_dir" "$build_dir" "$cargo_dir" "$CARGO_HOME_DIR" 2>/dev/null || true
     echo "=== Docker build for $target complete ==="
 }
 
@@ -238,20 +313,23 @@ build_appimage() {
     echo "=== Building AppImage ==="
 
     docker build -t "$image_name" -f "$dockerfile" "$SCRIPT_DIR/docker"
-    mkdir -p "$out_dir" "$build_dir" "$cargo_dir"
+    mkdir -p "$out_dir" "$build_dir" "$cargo_dir" "$CARGO_HOME_DIR"
 
     docker run --rm --init \
         -v "$PROJECT_DIR:/source" \
+        -v "$CARGO_HOME_DIR:/tmp/home/.cargo" \
         -e CARGO_TARGET_DIR="/source/out/$cargo_dir_name" \
         -e CARGO_HOME="/tmp/home/.cargo" \
         -e HOME="/tmp/home" \
+        -e GUINEA_CMAKE_BUILD_TYPE="$(if $DO_RELEASE; then echo Release; else echo Debug; fi)" \
+        -e GUINEA_CARGO_SUBDIR="$(if $DO_RELEASE; then echo release; else echo debug; fi)" \
         "$image_name" \
         bash "$script" "/source/out/$build_dir_name" || {
             echo "WARNING: AppImage build failed" >&2
             return 1
         }
 
-    chown -R "$(id -u):$(id -g)" "$out_dir" "$build_dir" "$cargo_dir" 2>/dev/null || true
+    chown -R "$(id -u):$(id -g)" "$out_dir" "$build_dir" "$cargo_dir" "$CARGO_HOME_DIR" 2>/dev/null || true
     echo "=== AppImage build complete ==="
 }
 
@@ -320,7 +398,7 @@ build_fpm_package() {
     local target="$1"
     shift
     local deps=("$@")
-    local artifacts_dir="$OUT_DIR/$target"
+    local artifacts_dir="$OUT_DIR/$target$ARCH_SUFFIX"
     local staging; staging=$(mktemp -d)
     trap 'rm -rf "$staging"' RETURN
 
@@ -346,7 +424,7 @@ build_fpm_package() {
 }
 
 build_generic_tar() {
-    local generic_dir="$OUT_DIR/generic"
+    local generic_dir="$OUT_DIR/generic$ARCH_SUFFIX"
     local archive_name="${PKGNAME}-${VERSION}-${ARCH}"
     local archive_file="$generic_dir/${archive_name}.tar.gz"
 
@@ -401,12 +479,36 @@ fi
 # ---- Main ----
 
 if ! $NO_BUILD; then
-    $DO_GENERIC  && build_generic
+    $DO_GENERIC && {
+        if $CROSS_ARCH; then
+            build_in_docker "generic" "$SCRIPT_DIR/docker/debian-trixie.Dockerfile"
+        else
+            build_generic
+        fi
+    }
     $DO_DEB      && build_in_docker "deb"      "$SCRIPT_DIR/docker/debian-trixie.Dockerfile"
     $DO_RPM      && build_in_docker "rpm"      "$SCRIPT_DIR/docker/fedora-43.Dockerfile"
-    $DO_PACMAN   && build_in_docker "pacman"   "$SCRIPT_DIR/docker/arch-latest.Dockerfile"
-    $DO_APPIMAGE && build_appimage
-    $DO_FLATPAK  && build_flatpak
+    $DO_PACMAN && {
+        if $CROSS_ARCH; then
+            echo "ERROR: aarch64 pacman is not supported (no official Arch ARM Docker image). Build pacman on a native $ARCH host." >&2
+            exit 1
+        fi
+        build_in_docker "pacman" "$SCRIPT_DIR/docker/arch-latest.Dockerfile"
+    }
+    $DO_APPIMAGE && {
+        if $CROSS_ARCH; then
+            echo "ERROR: aarch64/appimage cross-build is not supported. Build AppImage on a native $ARCH host." >&2
+            exit 1
+        fi
+        build_appimage
+    }
+    $DO_FLATPAK  && {
+        if $CROSS_ARCH; then
+            echo "ERROR: aarch64/flatpak cross-build is not supported (bundle arch = build host). Build Flatpak on a native $ARCH host." >&2
+            exit 1
+        fi
+        build_flatpak
+    }
 fi
 
 # Package phase (separate from build so --no-build can re-package existing artifacts)
