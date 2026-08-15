@@ -27,42 +27,52 @@
         <translation>O programu GuineaMPEG</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/AboutDialog.qml" line="131"/>
+        <location filename="../qml/Dialogs/AboutDialog.qml" line="30"/>
+        <source>OK</source>
+        <translation>OK</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/AboutDialog.qml" line="144"/>
         <source>FFmpeg Frontend with Rust Core</source>
         <translation>FFmpeg frontend s jádrem v Rust</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/AboutDialog.qml" line="164"/>
+        <location filename="../qml/Dialogs/AboutDialog.qml" line="177"/>
         <source>Version: %1</source>
         <translation>Verze: %1</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/AboutDialog.qml" line="166"/>
+        <location filename="../qml/Dialogs/AboutDialog.qml" line="179"/>
         <source>Author: %1</source>
         <translation>Autor: %1</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/AboutDialog.qml" line="175"/>
+        <location filename="../qml/Dialogs/AboutDialog.qml" line="188"/>
         <source>License: %1</source>
         <translation>Licence: %1</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/AboutDialog.qml" line="176"/>
+        <location filename="../qml/Dialogs/AboutDialog.qml" line="189"/>
         <source>OS name: %1</source>
         <translation>Systém: %1</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/AboutDialog.qml" line="177"/>
+        <location filename="../qml/Dialogs/AboutDialog.qml" line="190"/>
         <source>Package: %1</source>
         <translation>Balíček: %1</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/AboutDialog.qml" line="178"/>
+        <location filename="../qml/Dialogs/AboutDialog.qml" line="191"/>
+        <source>Architecture: %1</source>
+        <translation>Architektura: %1</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/AboutDialog.qml" line="192"/>
         <source>Build: %1</source>
         <translation>Sestavení: %1</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/AboutDialog.qml" line="13"/>
+        <location filename="../qml/Dialogs/AboutDialog.qml" line="23"/>
         <source>Copy</source>
         <translation>Kopírovat</translation>
     </message>
@@ -227,7 +237,12 @@
         <translation>Zahájit transkódování</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="250"/>
+        <location filename="../qml/ControlsPanel.qml" line="251"/>
+        <source>Transcoding in progress... (%1 queued, click to view)</source>
+        <translation>Probíhá převod... (%1 ve frontě, klikněte pro zobrazení)</translation>
+    </message>
+    <message>
+        <location filename="../qml/ControlsPanel.qml" line="253"/>
         <source>Transcoding in progress... (click to view)</source>
         <translation>Transkódování probíhá... (klikněte pro zobrazení)</translation>
     </message>
@@ -240,7 +255,7 @@
         <translation>Smazat profil</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/DeleteProfileDialog.qml" line="23"/>
+        <location filename="../qml/Dialogs/DeleteProfileDialog.qml" line="22"/>
         <source>Delete profile &quot;%1&quot;?
 
 This cannot be undone.</source>
@@ -252,7 +267,7 @@ Tuto akci nelze vrátit zpět.</translation>
 <context>
     <name>EncoderCompatDialog</name>
     <message>
-        <location filename="../qml/Dialogs/EncoderCompatDialog.qml" line="7"/>
+        <location filename="../qml/Dialogs/EncoderCompatDialog.qml" line="6"/>
         <source>Available Encoders</source>
         <translation>Dostupné enkodéry</translation>
     </message>
@@ -314,17 +329,17 @@ Nainstalujte jej pomocí správce balíčků, např.:
 <context>
     <name>GuineaMpegBackendExt</name>
     <message>
-        <location filename="../src/backend.cpp" line="243"/>
+        <location filename="../src/backend.cpp" line="270"/>
         <source>Error: failed to build ffmpeg command from profile</source>
         <translation>Chyba: nepodařilo se sestavit příkaz ffmpeg z profilu</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="248"/>
+        <location filename="../src/backend.cpp" line="275"/>
         <source>Error: profile produced no ffmpeg arguments</source>
         <translation>Chyba: profil nevytvořil žádné argumenty ffmpeg</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="264"/>
+        <location filename="../src/backend.cpp" line="291"/>
         <source>
 --- Transcoding cancelled ---
 </source>
@@ -333,7 +348,7 @@ Nainstalujte jej pomocí správce balíčků, např.:
 </translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="306"/>
+        <location filename="../src/backend.cpp" line="333"/>
         <source>
 --- Transcoding finished: SUCCESS ---
 </source>
@@ -342,7 +357,7 @@ Nainstalujte jej pomocí správce balíčků, např.:
 </translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="308"/>
+        <location filename="../src/backend.cpp" line="335"/>
         <source>
 --- Transcoding finished: FAILED (exit code %1) ---
 </source>
@@ -351,22 +366,22 @@ Nainstalujte jej pomocí správce balíčků, např.:
 </translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="310"/>
+        <location filename="../src/backend.cpp" line="337"/>
         <source>Transcoding Complete</source>
         <translation>Transkódování dokončeno</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="310"/>
+        <location filename="../src/backend.cpp" line="337"/>
         <source>Transcoding Failed</source>
         <translation>Transkódování selhalo</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="311"/>
+        <location filename="../src/backend.cpp" line="338"/>
         <source>Your video has been transcoded successfully.</source>
         <translation>Vaše video bylo úspěšně přetranskódováno.</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="312"/>
+        <location filename="../src/backend.cpp" line="339"/>
         <source>Transcoding exited with code %1</source>
         <translation>Transkódování skončilo s kódem %1</translation>
     </message>
@@ -407,70 +422,91 @@ Nainstalujte jej pomocí správce balíčků, např.:
         <translation>Možnosti</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="63"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="62"/>
         <source>General</source>
         <translation>Obecné</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="65"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="64"/>
         <source>Language</source>
         <translation>Jazyk</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="70"/>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="118"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="69"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="117"/>
         <source>System default</source>
         <translation>Systémový výchozí</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="89"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="88"/>
         <source>Qt Quick Controls style</source>
         <translation>Styl Qt Quick Controls</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="113"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="112"/>
         <source>Color scheme</source>
         <translation>Barevné schéma</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="119"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="118"/>
         <source>Dark</source>
         <translation>Tmavý</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="120"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="119"/>
         <source>Light</source>
         <translation>Světlý</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="162"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="161"/>
         <source>Updates</source>
         <translation>Aktualizace</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="166"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="165"/>
         <source>Check for updates on startup</source>
         <translation>Kontrolovat aktualizace při spuštění</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="96"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="95"/>
         <source>System</source>
         <translation>Systém</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="130"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="129"/>
         <source>Hardware acceleration</source>
         <translation>Hardwarová akcelerace</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="137"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="136"/>
         <source>Off</source>
         <translation>Vypnuto</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="154"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="153"/>
         <source>Some settings take effect on the next launch.</source>
         <translation>Některá nastavení se projeví při příštím spuštění.</translation>
+    </message>
+</context>
+<context>
+    <name>OverwriteConfirmDialog</name>
+    <message>
+        <location filename="../qml/Dialogs/OverwriteConfirmDialog.qml" line="7"/>
+        <source>Overwrite File</source>
+        <translation>Přepsat soubor?</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/OverwriteConfirmDialog.qml" line="25"/>
+        <source>The output file already exists:
+
+&quot;%1&quot;
+
+Do you want to overwrite it?</source>
+        <translation>Výstupní soubor již existuje:
+
+&quot;%1&quot;
+
+Chcete jej přepsat?</translation>
     </message>
 </context>
 <context>
@@ -502,84 +538,214 @@ Nainstalujte jej pomocí správce balíčků, např.:
 <context>
     <name>ProfileEditor</name>
     <message>
-        <location filename="../qml/ProfileEditor.qml" line="54"/>
+        <location filename="../qml/ProfileEditor.qml" line="55"/>
         <source>Profile Editor</source>
         <translation>Editor profilů</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor.qml" line="65"/>
+        <location filename="../qml/ProfileEditor.qml" line="70"/>
         <source>← Back</source>
         <translation>← Zpět</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor.qml" line="70"/>
+        <location filename="../qml/ProfileEditor.qml" line="76"/>
         <source>Profile:</source>
         <translation>Profil:</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor.qml" line="80"/>
+        <location filename="../qml/ProfileEditor.qml" line="87"/>
         <source>New profile</source>
         <translation>Nový profil</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor.qml" line="89"/>
+        <location filename="../qml/ProfileEditor.qml" line="97"/>
         <source>+ New</source>
         <translation>+ Nový</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor.qml" line="94"/>
+        <location filename="../qml/ProfileEditor.qml" line="103"/>
         <source>Save</source>
         <translation>Uložit</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor.qml" line="100"/>
+        <location filename="../qml/ProfileEditor.qml" line="110"/>
         <source>Restore</source>
         <translation>Obnovit</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor.qml" line="100"/>
+        <location filename="../qml/ProfileEditor.qml" line="110"/>
         <source>Delete</source>
         <translation>Smazat</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor.qml" line="119"/>
+        <location filename="../qml/ProfileEditor.qml" line="129"/>
+        <source>Export…</source>
+        <translation>Exportovat…</translation>
+    </message>
+    <message>
+        <location filename="../qml/ProfileEditor.qml" line="139"/>
+        <source>Import…</source>
+        <translation>Importovat…</translation>
+    </message>
+    <message>
+        <location filename="../qml/ProfileEditor.qml" line="145"/>
         <source>Restore Defaults</source>
         <translation>Obnovit výchozí</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor.qml" line="125"/>
+        <location filename="../qml/ProfileEditor.qml" line="152"/>
         <source>Profile name</source>
         <translation>Název profilu</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor.qml" line="133"/>
+        <location filename="../qml/ProfileEditor.qml" line="160"/>
         <source>Enter profile name...</source>
         <translation>Zadejte název profilu...</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor.qml" line="190"/>
+        <location filename="../qml/ProfileEditor.qml" line="217"/>
         <source>Failed to generate preview</source>
         <translation>Nepodařilo se vygenerovat náhled</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor.qml" line="298"/>
+        <location filename="../qml/ProfileEditor.qml" line="305"/>
+        <source>Exported %1 profile(s)</source>
+        <translation>Exportováno %1 profilů</translation>
+    </message>
+    <message>
+        <location filename="../qml/ProfileEditor.qml" line="320"/>
+        <location filename="../qml/ProfileEditor.qml" line="330"/>
+        <source>Import failed: %1</source>
+        <translation>Import se nezdařil: %1</translation>
+    </message>
+    <message>
+        <location filename="../qml/ProfileEditor.qml" line="371"/>
         <source>Name is required!</source>
         <translation>Název je povinný!</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor.qml" line="310"/>
+        <location filename="../qml/ProfileEditor.qml" line="383"/>
         <source>Profile &quot;%1&quot; saved</source>
         <translation>Profil „%1&quot; uložen</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor.qml" line="323"/>
+        <location filename="../qml/ProfileEditor.qml" line="396"/>
         <source>Profile &quot;%1&quot; deleted</source>
         <translation>Profil „%1&quot; smazán</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor.qml" line="333"/>
+        <location filename="../qml/ProfileEditor.qml" line="406"/>
         <source>Profile &quot;%1&quot; restored to defaults</source>
         <translation>Profil „%1&quot; obnoven do výchozího stavu</translation>
+    </message>
+    <message>
+        <location filename="../qml/ProfileEditor.qml" line="423"/>
+        <source>Imported %1, overwritten %2, skipped %3 profile(s)</source>
+        <translation>Importováno %1, přepsáno %2, přeskočeno %3 profilů</translation>
+    </message>
+</context>
+<context>
+    <name>ProfileExportDialog</name>
+    <message>
+        <location filename="../qml/Dialogs/ProfileExportDialog.qml" line="9"/>
+        <source>Export Profiles</source>
+        <translation>Exportovat profily</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/ProfileExportDialog.qml" line="61"/>
+        <source>Export Profiles To</source>
+        <translation>Exportovat profily do</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/ProfileExportDialog.qml" line="63"/>
+        <source>Export</source>
+        <translation>Exportovat</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/ProfileExportDialog.qml" line="64"/>
+        <source>TOML files (*.toml)</source>
+        <translation>Soubory TOML (*.toml)</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/ProfileExportDialog.qml" line="87"/>
+        <source>No user-created profiles to export.</source>
+        <translation>Žádné uživatelské profily k exportu.</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/ProfileExportDialog.qml" line="88"/>
+        <source>Select profiles to export:</source>
+        <translation>Vyberte profily k exportu:</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/ProfileExportDialog.qml" line="131"/>
+        <source>Export failed. Please check the destination path.</source>
+        <translation>Export se nezdařil. Zkontrolujte cílovou cestu.</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/ProfileExportDialog.qml" line="143"/>
+        <source>Select All</source>
+        <translation>Vybrat vše</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/ProfileExportDialog.qml" line="148"/>
+        <source>Select None</source>
+        <translation>Vybrat nic</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/ProfileExportDialog.qml" line="154"/>
+        <source>Cancel</source>
+        <translation>Zrušit</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/ProfileExportDialog.qml" line="158"/>
+        <source>Export…</source>
+        <translation>Exportovat…</translation>
+    </message>
+</context>
+<context>
+    <name>ProfileImportConflictDialog</name>
+    <message>
+        <location filename="../qml/Dialogs/ProfileImportConflictDialog.qml" line="8"/>
+        <source>Overwrite Existing Profiles?</source>
+        <translation>Přepsat existující profily?</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/ProfileImportConflictDialog.qml" line="38"/>
+        <source>The following profiles already exist and would be overwritten:</source>
+        <translation>Následující profily již existují a budou přepsány:</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/ProfileImportConflictDialog.qml" line="70"/>
+        <source>&quot;Skip duplicates&quot; keeps your existing profiles and imports only the new ones. &quot;Import all&quot; replaces them.</source>
+        <translation>&quot;Přeskočit duplicity&quot; zachová vaše stávající profily a naimportuje jen nové. &quot;Importovat vše&quot; je nahradí.</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/ProfileImportConflictDialog.qml" line="79"/>
+        <source>Skip duplicates</source>
+        <translation>Přeskočit duplicity</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/ProfileImportConflictDialog.qml" line="83"/>
+        <source>Import all</source>
+        <translation>Importovat vše</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/ProfileImportConflictDialog.qml" line="88"/>
+        <source>Cancel</source>
+        <translation>Zrušit</translation>
+    </message>
+</context>
+<context>
+    <name>ProfileImportDialog</name>
+    <message>
+        <location filename="../qml/Dialogs/ProfileImportDialog.qml" line="6"/>
+        <source>Import Profiles</source>
+        <translation>Importovat profily</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/ProfileImportDialog.qml" line="7"/>
+        <source>TOML files (*.toml)</source>
+        <translation>Soubory TOML (*.toml)</translation>
     </message>
 </context>
 <context>
@@ -608,7 +774,7 @@ Nainstalujte jej pomocí správce balíčků, např.:
         <translation>Obnovit výchozí profily</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/RestoreDefaultsDialog.qml" line="22"/>
+        <location filename="../qml/Dialogs/RestoreDefaultsDialog.qml" line="21"/>
         <source>This will reset all built-in profiles to their original settings.
 
 Custom profiles you created will not be affected.
@@ -637,27 +803,47 @@ Pokračovat?</translation>
 <context>
     <name>TranscodeDialog</name>
     <message>
-        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="60"/>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="67"/>
+        <source>Transcoding... (1 of %1)</source>
+        <translation>Převod... (1 z %1)</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="68"/>
         <source>Transcoding...</source>
         <translation>Transkódování...</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="60"/>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="69"/>
         <source>Transcoding Complete</source>
         <translation>Transkódování dokončeno</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="171"/>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="143"/>
+        <source>Running</source>
+        <translation>Běží</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="143"/>
+        <source>Starting</source>
+        <translation>Spouští se</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="144"/>
+        <source>Waiting</source>
+        <translation>Čeká</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="222"/>
         <source>ffmpeg is running...</source>
         <translation>ffmpeg běží...</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="171"/>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="222"/>
         <source>Done. You can close this window.</source>
         <translation>Hotovo. Toto okno můžete zavřít.</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="178"/>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="229"/>
         <source>Cancel</source>
         <translation>Zrušit</translation>
     </message>
@@ -665,17 +851,17 @@ Pokračovat?</translation>
 <context>
     <name>UpdateBanner</name>
     <message>
-        <location filename="../qml/Components/UpdateBanner.qml" line="84"/>
+        <location filename="../qml/Components/UpdateBanner.qml" line="17"/>
         <source>A new version of GuineaMPEG is available</source>
         <translation>Je dostupná nová verze GuineaMPEG</translation>
     </message>
     <message>
-        <location filename="../qml/Components/UpdateBanner.qml" line="107"/>
+        <location filename="../qml/Components/UpdateBanner.qml" line="61"/>
         <source>Update</source>
         <translation>Aktualizovat</translation>
     </message>
     <message>
-        <location filename="../qml/Components/UpdateBanner.qml" line="115"/>
+        <location filename="../qml/Components/UpdateBanner.qml" line="69"/>
         <source>Close</source>
         <translation>Zavřít</translation>
     </message>
@@ -727,7 +913,12 @@ Pokračovat?</translation>
         <translation>Načtěte video soubor pro zobrazení informací</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="186"/>
+        <location filename="../qml/main.qml" line="155"/>
+        <source>Copied to clipboard</source>
+        <translation>Zkopírováno do schránky</translation>
+    </message>
+    <message>
+        <location filename="../qml/main.qml" line="216"/>
         <source>File: %1
 Duration: %2s
 Resolution: %3x%4
@@ -742,7 +933,7 @@ Video: %6
 Zvuk: %7</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="218"/>
+        <location filename="../qml/main.qml" line="248"/>
         <source>Please set an output file path first</source>
         <translation>Nejprve nastavte cestu výstupního souboru</translation>
     </message>

@@ -27,42 +27,52 @@
         <translation>À propos de GuineaMPEG</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/AboutDialog.qml" line="131"/>
+        <location filename="../qml/Dialogs/AboutDialog.qml" line="30"/>
+        <source>OK</source>
+        <translation>OK</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/AboutDialog.qml" line="144"/>
         <source>FFmpeg Frontend with Rust Core</source>
         <translation>Frontend FFmpeg avec noyau Rust</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/AboutDialog.qml" line="164"/>
+        <location filename="../qml/Dialogs/AboutDialog.qml" line="177"/>
         <source>Version: %1</source>
         <translation>Version : %1</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/AboutDialog.qml" line="166"/>
+        <location filename="../qml/Dialogs/AboutDialog.qml" line="179"/>
         <source>Author: %1</source>
         <translation>Auteur : %1</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/AboutDialog.qml" line="175"/>
+        <location filename="../qml/Dialogs/AboutDialog.qml" line="188"/>
         <source>License: %1</source>
         <translation>Licence : %1</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/AboutDialog.qml" line="176"/>
+        <location filename="../qml/Dialogs/AboutDialog.qml" line="189"/>
         <source>OS name: %1</source>
         <translation>Système : %1</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/AboutDialog.qml" line="177"/>
+        <location filename="../qml/Dialogs/AboutDialog.qml" line="190"/>
         <source>Package: %1</source>
         <translation>Paquet : %1</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/AboutDialog.qml" line="178"/>
+        <location filename="../qml/Dialogs/AboutDialog.qml" line="191"/>
+        <source>Architecture: %1</source>
+        <translation>Architecture : %1</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/AboutDialog.qml" line="192"/>
         <source>Build: %1</source>
         <translation>Build : %1</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/AboutDialog.qml" line="13"/>
+        <location filename="../qml/Dialogs/AboutDialog.qml" line="23"/>
         <source>Copy</source>
         <translation>Copier</translation>
     </message>
@@ -227,7 +237,12 @@
         <translation>Démarrer le transcodage</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="250"/>
+        <location filename="../qml/ControlsPanel.qml" line="251"/>
+        <source>Transcoding in progress... (%1 queued, click to view)</source>
+        <translation>Transcodage en cours... (%1 en file d'attente, cliquez pour voir)</translation>
+    </message>
+    <message>
+        <location filename="../qml/ControlsPanel.qml" line="253"/>
         <source>Transcoding in progress... (click to view)</source>
         <translation>Transcodage en cours... (cliquez pour voir)</translation>
     </message>
@@ -240,7 +255,7 @@
         <translation>Supprimer le profil</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/DeleteProfileDialog.qml" line="23"/>
+        <location filename="../qml/Dialogs/DeleteProfileDialog.qml" line="22"/>
         <source>Delete profile &quot;%1&quot;?
 
 This cannot be undone.</source>
@@ -252,7 +267,7 @@ Cette action est irréversible.</translation>
 <context>
     <name>EncoderCompatDialog</name>
     <message>
-        <location filename="../qml/Dialogs/EncoderCompatDialog.qml" line="7"/>
+        <location filename="../qml/Dialogs/EncoderCompatDialog.qml" line="6"/>
         <source>Available Encoders</source>
         <translation>Encodeurs disponibles</translation>
     </message>
@@ -314,17 +329,17 @@ Installez-le avec votre gestionnaire de paquets, par ex. :
 <context>
     <name>GuineaMpegBackendExt</name>
     <message>
-        <location filename="../src/backend.cpp" line="243"/>
+        <location filename="../src/backend.cpp" line="270"/>
         <source>Error: failed to build ffmpeg command from profile</source>
         <translation>Erreur : impossible de créer la commande ffmpeg à partir du profil</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="248"/>
+        <location filename="../src/backend.cpp" line="275"/>
         <source>Error: profile produced no ffmpeg arguments</source>
         <translation>Erreur : le profil n&apos;a produit aucun argument ffmpeg</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="264"/>
+        <location filename="../src/backend.cpp" line="291"/>
         <source>
 --- Transcoding cancelled ---
 </source>
@@ -333,7 +348,7 @@ Installez-le avec votre gestionnaire de paquets, par ex. :
 </translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="306"/>
+        <location filename="../src/backend.cpp" line="333"/>
         <source>
 --- Transcoding finished: SUCCESS ---
 </source>
@@ -342,7 +357,7 @@ Installez-le avec votre gestionnaire de paquets, par ex. :
 </translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="308"/>
+        <location filename="../src/backend.cpp" line="335"/>
         <source>
 --- Transcoding finished: FAILED (exit code %1) ---
 </source>
@@ -351,22 +366,22 @@ Installez-le avec votre gestionnaire de paquets, par ex. :
 </translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="310"/>
+        <location filename="../src/backend.cpp" line="337"/>
         <source>Transcoding Complete</source>
         <translation>Transcodage terminé</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="310"/>
+        <location filename="../src/backend.cpp" line="337"/>
         <source>Transcoding Failed</source>
         <translation>Échec du transcodage</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="311"/>
+        <location filename="../src/backend.cpp" line="338"/>
         <source>Your video has been transcoded successfully.</source>
         <translation>Votre vidéo a été transcodée avec succès.</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="312"/>
+        <location filename="../src/backend.cpp" line="339"/>
         <source>Transcoding exited with code %1</source>
         <translation>Le transcodage s&apos;est terminé avec le code %1</translation>
     </message>
@@ -407,70 +422,91 @@ Installez-le avec votre gestionnaire de paquets, par ex. :
         <translation>Options</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="63"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="62"/>
         <source>General</source>
         <translation>Général</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="65"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="64"/>
         <source>Language</source>
         <translation>Langue</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="70"/>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="118"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="69"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="117"/>
         <source>System default</source>
         <translation>Défaut système</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="89"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="88"/>
         <source>Qt Quick Controls style</source>
         <translation>Style Qt Quick Controls</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="113"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="112"/>
         <source>Color scheme</source>
         <translation>Schéma de couleurs</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="119"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="118"/>
         <source>Dark</source>
         <translation>Sombre</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="120"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="119"/>
         <source>Light</source>
         <translation>Clair</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="162"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="161"/>
         <source>Updates</source>
         <translation>Mises à jour</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="166"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="165"/>
         <source>Check for updates on startup</source>
         <translation>Vérifier les mises à jour au démarrage</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="96"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="95"/>
         <source>System</source>
         <translation>Système</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="130"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="129"/>
         <source>Hardware acceleration</source>
         <translation>Accélération matérielle</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="137"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="136"/>
         <source>Off</source>
         <translation>Désactivé</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="154"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="153"/>
         <source>Some settings take effect on the next launch.</source>
         <translation>Certains paramètres prendront effet au prochain lancement.</translation>
+    </message>
+</context>
+<context>
+    <name>OverwriteConfirmDialog</name>
+    <message>
+        <location filename="../qml/Dialogs/OverwriteConfirmDialog.qml" line="7"/>
+        <source>Overwrite File</source>
+        <translation>Remplacer le fichier ?</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/OverwriteConfirmDialog.qml" line="25"/>
+        <source>The output file already exists:
+
+&quot;%1&quot;
+
+Do you want to overwrite it?</source>
+        <translation>Le fichier de sortie existe déjà :
+
+&quot;%1&quot;
+
+Voulez-vous le remplacer ?</translation>
     </message>
 </context>
 <context>
@@ -502,84 +538,214 @@ Installez-le avec votre gestionnaire de paquets, par ex. :
 <context>
     <name>ProfileEditor</name>
     <message>
-        <location filename="../qml/ProfileEditor.qml" line="54"/>
+        <location filename="../qml/ProfileEditor.qml" line="55"/>
         <source>Profile Editor</source>
         <translation>Éditeur de profils</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor.qml" line="65"/>
+        <location filename="../qml/ProfileEditor.qml" line="70"/>
         <source>← Back</source>
         <translation>← Retour</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor.qml" line="70"/>
+        <location filename="../qml/ProfileEditor.qml" line="76"/>
         <source>Profile:</source>
         <translation>Profil :</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor.qml" line="80"/>
+        <location filename="../qml/ProfileEditor.qml" line="87"/>
         <source>New profile</source>
         <translation>Nouveau profil</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor.qml" line="89"/>
+        <location filename="../qml/ProfileEditor.qml" line="97"/>
         <source>+ New</source>
         <translation>+ Nouveau</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor.qml" line="94"/>
+        <location filename="../qml/ProfileEditor.qml" line="103"/>
         <source>Save</source>
         <translation>Enregistrer</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor.qml" line="100"/>
+        <location filename="../qml/ProfileEditor.qml" line="110"/>
         <source>Restore</source>
         <translation>Restaurer</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor.qml" line="100"/>
+        <location filename="../qml/ProfileEditor.qml" line="110"/>
         <source>Delete</source>
         <translation>Supprimer</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor.qml" line="119"/>
+        <location filename="../qml/ProfileEditor.qml" line="129"/>
+        <source>Export…</source>
+        <translation>Exporter…</translation>
+    </message>
+    <message>
+        <location filename="../qml/ProfileEditor.qml" line="139"/>
+        <source>Import…</source>
+        <translation>Importer…</translation>
+    </message>
+    <message>
+        <location filename="../qml/ProfileEditor.qml" line="145"/>
         <source>Restore Defaults</source>
         <translation>Restaurer les valeurs par défaut</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor.qml" line="125"/>
+        <location filename="../qml/ProfileEditor.qml" line="152"/>
         <source>Profile name</source>
         <translation>Nom du profil</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor.qml" line="133"/>
+        <location filename="../qml/ProfileEditor.qml" line="160"/>
         <source>Enter profile name...</source>
         <translation>Saisissez le nom du profil...</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor.qml" line="190"/>
+        <location filename="../qml/ProfileEditor.qml" line="217"/>
         <source>Failed to generate preview</source>
         <translation>Échec de la génération de l&apos;aperçu</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor.qml" line="298"/>
+        <location filename="../qml/ProfileEditor.qml" line="305"/>
+        <source>Exported %1 profile(s)</source>
+        <translation>%1 profil(s) exporté(s)</translation>
+    </message>
+    <message>
+        <location filename="../qml/ProfileEditor.qml" line="320"/>
+        <location filename="../qml/ProfileEditor.qml" line="330"/>
+        <source>Import failed: %1</source>
+        <translation>Échec de l'importation : %1</translation>
+    </message>
+    <message>
+        <location filename="../qml/ProfileEditor.qml" line="371"/>
         <source>Name is required!</source>
         <translation>Le nom est requis !</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor.qml" line="310"/>
+        <location filename="../qml/ProfileEditor.qml" line="383"/>
         <source>Profile &quot;%1&quot; saved</source>
         <translation>Profil « %1 » enregistré</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor.qml" line="323"/>
+        <location filename="../qml/ProfileEditor.qml" line="396"/>
         <source>Profile &quot;%1&quot; deleted</source>
         <translation>Profil « %1 » supprimé</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor.qml" line="333"/>
+        <location filename="../qml/ProfileEditor.qml" line="406"/>
         <source>Profile &quot;%1&quot; restored to defaults</source>
         <translation>Profil « %1 » restauré aux valeurs par défaut</translation>
+    </message>
+    <message>
+        <location filename="../qml/ProfileEditor.qml" line="423"/>
+        <source>Imported %1, overwritten %2, skipped %3 profile(s)</source>
+        <translation>%1 profil(s) importé(s), %2 remplacé(s), %3 ignoré(s)</translation>
+    </message>
+</context>
+<context>
+    <name>ProfileExportDialog</name>
+    <message>
+        <location filename="../qml/Dialogs/ProfileExportDialog.qml" line="9"/>
+        <source>Export Profiles</source>
+        <translation>Exporter les profils</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/ProfileExportDialog.qml" line="61"/>
+        <source>Export Profiles To</source>
+        <translation>Exporter les profils vers</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/ProfileExportDialog.qml" line="63"/>
+        <source>Export</source>
+        <translation>Exporter</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/ProfileExportDialog.qml" line="64"/>
+        <source>TOML files (*.toml)</source>
+        <translation>Fichiers TOML (*.toml)</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/ProfileExportDialog.qml" line="87"/>
+        <source>No user-created profiles to export.</source>
+        <translation>Aucun profil créé par l'utilisateur à exporter.</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/ProfileExportDialog.qml" line="88"/>
+        <source>Select profiles to export:</source>
+        <translation>Sélectionnez les profils à exporter :</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/ProfileExportDialog.qml" line="131"/>
+        <source>Export failed. Please check the destination path.</source>
+        <translation>Échec de l'exportation. Vérifiez le chemin de destination.</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/ProfileExportDialog.qml" line="143"/>
+        <source>Select All</source>
+        <translation>Tout sélectionner</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/ProfileExportDialog.qml" line="148"/>
+        <source>Select None</source>
+        <translation>Ne rien sélectionner</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/ProfileExportDialog.qml" line="154"/>
+        <source>Cancel</source>
+        <translation>Annuler</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/ProfileExportDialog.qml" line="158"/>
+        <source>Export…</source>
+        <translation>Exporter…</translation>
+    </message>
+</context>
+<context>
+    <name>ProfileImportConflictDialog</name>
+    <message>
+        <location filename="../qml/Dialogs/ProfileImportConflictDialog.qml" line="8"/>
+        <source>Overwrite Existing Profiles?</source>
+        <translation>Remplacer les profils existants ?</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/ProfileImportConflictDialog.qml" line="38"/>
+        <source>The following profiles already exist and would be overwritten:</source>
+        <translation>Les profils suivants existent déjà et seraient remplacés :</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/ProfileImportConflictDialog.qml" line="70"/>
+        <source>&quot;Skip duplicates&quot; keeps your existing profiles and imports only the new ones. &quot;Import all&quot; replaces them.</source>
+        <translation>&quot;Ignorer les doublons&quot; conserve vos profils existants et n'importe que les nouveaux. &quot;Tout importer&quot; les remplace.</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/ProfileImportConflictDialog.qml" line="79"/>
+        <source>Skip duplicates</source>
+        <translation>Ignorer les doublons</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/ProfileImportConflictDialog.qml" line="83"/>
+        <source>Import all</source>
+        <translation>Tout importer</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/ProfileImportConflictDialog.qml" line="88"/>
+        <source>Cancel</source>
+        <translation>Annuler</translation>
+    </message>
+</context>
+<context>
+    <name>ProfileImportDialog</name>
+    <message>
+        <location filename="../qml/Dialogs/ProfileImportDialog.qml" line="6"/>
+        <source>Import Profiles</source>
+        <translation>Importer les profils</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/ProfileImportDialog.qml" line="7"/>
+        <source>TOML files (*.toml)</source>
+        <translation>Fichiers TOML (*.toml)</translation>
     </message>
 </context>
 <context>
@@ -608,7 +774,7 @@ Installez-le avec votre gestionnaire de paquets, par ex. :
         <translation>Restaurer les profils par défaut</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/RestoreDefaultsDialog.qml" line="22"/>
+        <location filename="../qml/Dialogs/RestoreDefaultsDialog.qml" line="21"/>
         <source>This will reset all built-in profiles to their original settings.
 
 Custom profiles you created will not be affected.
@@ -637,27 +803,47 @@ Continuer ?</translation>
 <context>
     <name>TranscodeDialog</name>
     <message>
-        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="60"/>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="67"/>
+        <source>Transcoding... (1 of %1)</source>
+        <translation>Transcodage... (1 sur %1)</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="68"/>
         <source>Transcoding...</source>
         <translation>Transcodage en cours...</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="60"/>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="69"/>
         <source>Transcoding Complete</source>
         <translation>Transcodage terminé</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="171"/>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="143"/>
+        <source>Running</source>
+        <translation>En cours</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="143"/>
+        <source>Starting</source>
+        <translation>Démarrage</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="144"/>
+        <source>Waiting</source>
+        <translation>En attente</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="222"/>
         <source>ffmpeg is running...</source>
         <translation>ffmpeg est en cours d&apos;exécution...</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="171"/>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="222"/>
         <source>Done. You can close this window.</source>
         <translation>Terminé. Vous pouvez fermer cette fenêtre.</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="178"/>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="229"/>
         <source>Cancel</source>
         <translation>Annuler</translation>
     </message>
@@ -665,17 +851,17 @@ Continuer ?</translation>
 <context>
     <name>UpdateBanner</name>
     <message>
-        <location filename="../qml/Components/UpdateBanner.qml" line="84"/>
+        <location filename="../qml/Components/UpdateBanner.qml" line="17"/>
         <source>A new version of GuineaMPEG is available</source>
         <translation>Une nouvelle version de GuineaMPEG est disponible</translation>
     </message>
     <message>
-        <location filename="../qml/Components/UpdateBanner.qml" line="107"/>
+        <location filename="../qml/Components/UpdateBanner.qml" line="61"/>
         <source>Update</source>
         <translation>Mettre à jour</translation>
     </message>
     <message>
-        <location filename="../qml/Components/UpdateBanner.qml" line="115"/>
+        <location filename="../qml/Components/UpdateBanner.qml" line="69"/>
         <source>Close</source>
         <translation>Fermer</translation>
     </message>
@@ -727,7 +913,12 @@ Continuer ?</translation>
         <translation>Chargez un fichier vidéo pour voir les informations</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="186"/>
+        <location filename="../qml/main.qml" line="155"/>
+        <source>Copied to clipboard</source>
+        <translation>Copié dans le presse-papiers</translation>
+    </message>
+    <message>
+        <location filename="../qml/main.qml" line="216"/>
         <source>File: %1
 Duration: %2s
 Resolution: %3x%4
@@ -742,7 +933,7 @@ Vidéo : %6
 Audio : %7</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="218"/>
+        <location filename="../qml/main.qml" line="248"/>
         <source>Please set an output file path first</source>
         <translation>Veuillez d&apos;abord définir un chemin de fichier de sortie</translation>
     </message>
