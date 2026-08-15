@@ -8,11 +8,12 @@ variables:
 workflow:
   rules:
     - if: $CI_COMMIT_TAG
+    - if: $CI_PIPELINE_SOURCE == "web"
 
 .dind: &dind
-  image: docker:24.0
+  image: docker:29.0
   services:
-    - name: docker:24.0-dind
+    - name: docker:29-dind
       alias: docker
   variables:
     DOCKER_HOST: tcp://docker:2376
@@ -44,11 +45,46 @@ package-deb:
       - out/deb/
     expire_in: 1 week
 
+# Native ARM64 builds (no QEMU/binfmt needed — runner is arm64), so artifacts
+# land in out/<target>/ without the -aarch64 suffix. dockerd runs with an MTU
+# matching Google Cloud's (1400) — see GitLab's known Linux Arm dind issue.
+package-deb-aarch64:
+  <<: *dind
+  stage: package
+  tags:
+    - saas-linux-small-arm64
+  services:
+    - name: docker:29-dind
+      alias: docker
+      command: ["--mtu=1400"]
+  script:
+    - ./build/linux-build.sh --arch aarch64 --package deb
+  artifacts:
+    paths:
+      - out/deb/
+    expire_in: 1 week
+
 package-rpm:
   <<: *dind
   stage: package
   script:
     - ./build/linux-build.sh --package rpm
+  artifacts:
+    paths:
+      - out/rpm/
+    expire_in: 1 week
+
+package-rpm-aarch64:
+  <<: *dind
+  stage: package
+  tags:
+    - saas-linux-small-arm64
+  services:
+    - name: docker:29-dind
+      alias: docker
+      command: ["--mtu=1400"]
+  script:
+    - ./build/linux-build.sh --arch aarch64 --package rpm
   artifacts:
     paths:
       - out/rpm/
@@ -80,11 +116,33 @@ package-flatpak:
   allow_failure: true
   needs: []
 
+# Flatpak bundles the host architecture, so arm64 flatpak builds need a real
+# ARM64 runner (the script rejects aarch64 cross-builds).
+package-flatpak-aarch64:
+  stage: package
+  image: debian:trixie-slim
+  tags:
+    - saas-linux-small-arm64
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends
+      flatpak flatpak-builder git elfutils ca-certificates librsvg2-common
+    - flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+  script:
+    - ./build/linux-build.sh --arch aarch64 --package flatpak
+  artifacts:
+    paths:
+      - out/flatpak/
+    expire_in: 1 week
+  allow_failure: true
+  needs: []
+
 release:
   stage: release
   image: alpine:latest
   variables:
     GITLAB_TOKEN: $GITLAB_ACCESS_TOKEN
+  rules:
+    - if: $CI_COMMIT_TAG
   needs:
     - job: package-generic
       artifacts: true
@@ -95,6 +153,15 @@ release:
     - job: package-pacman
       artifacts: true
     - job: package-flatpak
+      artifacts: true
+      optional: true
+    - job: package-deb-aarch64
+      artifacts: true
+      optional: true
+    - job: package-rpm-aarch64
+      artifacts: true
+      optional: true
+    - job: package-flatpak-aarch64
       artifacts: true
       optional: true
   before_script:
