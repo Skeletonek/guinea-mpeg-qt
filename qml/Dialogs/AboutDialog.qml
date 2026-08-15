@@ -7,16 +7,29 @@ import "../Utils/Centering.js" as Utils
     Dialog {
         id: root
         title: qsTr("About GuineaMPEG")
-    standardButtons: Dialog.Ok
-    footer: DialogButtonBox {
-        Button {
-            text: qsTr("Copy")
-            onClicked: {
-                backend.copyToClipboard(technicalInfo())
+    footer: Item {
+        implicitWidth: root.width
+        implicitHeight: copyButton.implicitHeight + 16
+
+        RowLayout {
+            anchors.fill: parent
+            anchors.margins: 8
+            spacing: 8
+
+            Item { Layout.fillWidth: true }
+
+            Button {
+                id: copyButton
+                text: qsTr("Copy")
+                onClicked: {
+                    backend.copyToClipboard(technicalInfo())
+                }
+            }
+            Button {
+                text: qsTr("OK")
+                onClicked: root.accept()
             }
         }
-        onAccepted: root.accept()
-        onRejected: root.reject()
     }
     width: 430
     padding: 0
