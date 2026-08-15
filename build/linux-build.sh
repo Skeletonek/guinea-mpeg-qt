@@ -312,10 +312,21 @@ build_appimage() {
 
     echo "=== Building AppImage ==="
 
-    docker build -t "$image_name" -f "$dockerfile" "$SCRIPT_DIR/docker"
+    if $CROSS_ARCH; then
+        docker buildx build --platform "$DOCKER_PLATFORM" --load \
+            -t "$image_name" -f "$dockerfile" "$SCRIPT_DIR/docker"
+    else
+        docker build --platform "$DOCKER_PLATFORM" \
+            -t "$image_name" -f "$dockerfile" "$SCRIPT_DIR/docker"
+    fi
     mkdir -p "$out_dir" "$build_dir" "$cargo_dir" "$CARGO_HOME_DIR"
 
-    docker run --rm --init \
+    local run_platform=()
+    if $CROSS_ARCH; then
+        run_platform=(--platform "$DOCKER_PLATFORM")
+    fi
+
+    docker run --rm --init "${run_platform[@]}" \
         -v "$PROJECT_DIR:/source" \
         -v "$CARGO_HOME_DIR:/tmp/home/.cargo" \
         -e CARGO_TARGET_DIR="/source/out/$cargo_dir_name" \
