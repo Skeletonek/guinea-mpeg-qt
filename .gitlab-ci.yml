@@ -213,7 +213,9 @@ lint:
     - if: $CI_PIPELINE_SOURCE == "push"
   before_script:
     - apt-get update -qq && apt-get install -y -qq --no-install-recommends
-      rustc cargo rustfmt rust-clippy qt6-declarative-dev-tools clang-format
+      ca-certificates rustc cargo rustfmt rust-clippy qt6-declarative-dev-tools clang-format
+    # Debian ships qmllint/qmlformat under /usr/lib/qt6/bin, not in PATH.
+    - export PATH="$PATH:/usr/lib/qt6/bin"
   script:
     - ./build/run-lint.sh
 
