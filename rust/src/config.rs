@@ -99,11 +99,11 @@ impl Default for AppOptions {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-struct AppConfig {
+pub(crate) struct AppConfig {
     #[serde(default)]
-    profiles: Vec<VideoProfile>,
+    pub(crate) profiles: Vec<VideoProfile>,
     #[serde(default)]
-    options: AppOptions,
+    pub(crate) options: AppOptions,
 }
 
 impl Default for AppConfig {
@@ -115,14 +115,30 @@ impl Default for AppConfig {
     }
 }
 
+// Base directory for the app's config. Tests (and power users) can redirect it
+// with GUINEA_MPEG_CONFIG_DIR; otherwise dirs::config_dir() is used.
+pub(crate) fn config_dir() -> PathBuf {
+    if let Ok(dir) = std::env::var("GUINEA_MPEG_CONFIG_DIR") {
+        if !dir.trim().is_empty() {
+            return PathBuf::from(dir);
+        }
+    }
+    dirs_or_fallback()
+}
+
 fn user_config_path() -> PathBuf {
-    let mut path = dirs_or_fallback();
+    let mut path = config_dir();
     path.push("guinea-mpeg");
     path.push("config.toml");
     path
 }
 
 fn defaults_path() -> PathBuf {
+    // Override lookup so tests can point defaults at a fixture (GUINEA_MPEG_CONFIG_DIR).
+    let override_defaults = config_dir().join("guinea-mpeg").join("default_profiles.toml");
+    if override_defaults.exists() {
+        return override_defaults;
+    }
     if let Ok(exe) = std::env::current_exe() {
         if let Some(dir) = exe.parent() {
             let p = dir.join("default_profiles.toml");
@@ -151,7 +167,7 @@ fn migrate_codec_key(profiles: &mut [VideoProfile]) {
     }
 }
 
-fn load_config_from_file(path: &Path) -> AppConfig {
+pub(crate) fn load_config_from_file(path: &Path) -> AppConfig {
     let content = std::fs::read_to_string(path).unwrap_or_default();
 
     // Canonical format: [[profiles]] array + optional [options] table
@@ -185,7 +201,7 @@ fn load_user_config() -> AppConfig {
     load_config_from_file(&user_config_path())
 }
 
-fn merge_configs() -> AppConfig {
+pub(crate) fn merge_configs() -> AppConfig {
     let defaults = load_defaults();
     let user = load_user_config();
     let mut map: HashMap<String, VideoProfile> = HashMap::new();
@@ -201,12 +217,12 @@ fn merge_configs() -> AppConfig {
     }
 }
 
-fn get_config() -> AppConfig {
+pub(crate) fn get_config() -> AppConfig {
     let mut guard = CONFIG.lock().unwrap();
     guard.get_or_insert_with(merge_configs).clone()
 }
 
-fn set_config(config: AppConfig) {
+pub(crate) fn set_config(config: AppConfig) {
     let mut guard = CONFIG.lock().unwrap();
     *guard = Some(config);
 }

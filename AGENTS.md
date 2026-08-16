@@ -110,6 +110,14 @@ Plain `QObject`. Profile CRUD, options, video info, encoder detection/capabiliti
 - Windows: `windows-build.ps1`/`download-vendor.ps1` take `-Arch x86_64|arm64`. Rust builds with `cargo --target $RUST_TARGET` (CMake var `RUST_TARGET` set from ps1; artifacts under `target/<triple>/release/`). arm64 uses `mpv-dev-aarch64` vendor bundle + BtbN `winarm64` ffmpeg, `vcvarsall.bat arm64`, Qt `msvc2022_arm64` kit; the exe runs only on WoA hardware.
 - `-mdirect-extern-access` (CMakeLists) is x86-64-only GCC — guarded by `CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64"`; do not apply it on aarch64.
 
+## Tests
+- Run everything with `./build/run-tests.sh` (Rust core via cargo, then QML + C++ FFI via cmake/ctest into `out/.build-tests`). `--clean` removes `out/.build-tests` + `rust/target` first for a fully fresh run. CI is untouched — tests are local-only.
+- Three layers:
+  - **Rust** (`rust/src/tests/`, hooked in `rust/src/lib.rs` as `#[cfg(test)] mod tests;`): pure `cargo test`; `tests/common.rs::with_config_dir(dir, f)` overrides `GUINEA_MPEG_CONFIG_DIR` (serialized via a `Mutex`) and writes fixtures to `<dir>/guinea-mpeg/` so config tests never touch the real config. Test-only helpers must be gated `#[cfg(test)]` (e.g. `ffmpeg::parse_encoders` re-export) so the lib build stays warning-free.
+  - **QML** (`tests/qml/tst_*.qml`, Qt Quick Test): the runner is `tests/tst_qml_main.cpp` using `QUICK_TEST_MAIN` + a `QUICK_TEST_SOURCE_DIR` compile definition — this Qt 6.11 does NOT support the `QUICK_TEST_SOURCE_DIR` keyword of `qt_add_executable`. Test files import app JS from `../../qml/Utils/...` (relative to `tests/qml/`).
+  - **C++ FFI** (`tests/cpp/tst_backend_ffi.cpp`, Qt Test): smoke-tests the C header contract directly (link `tst_backend_ffi` against `${RUST_LIB}` + `rust/include/`). `initTestCase()` calls `setlocale(LC_NUMERIC, "C")` — mpv refuses to init otherwise (app does the same in `main.cpp`). Every returned `const char*` must be freed with `guinea_mpeg_free_string()`. Config round-trip uses a `QTemporaryDir` + `GUINEA_MPEG_CONFIG_DIR` fixture.
+- Tests must run headless: ctest sets `QT_QPA_PLATFORM=offscreen`; no test may require a display, mpv render GL context, or the real ffmpeg preview pipeline (C++ test uses only the FFI contract, mpv create/init, and `available_encoders()` which shells out to `ffmpeg -hide_banner -encoders`).
+
 ## Translations
 - `.ts` sources live in `translations/`, listed in `qml/CMakeLists.txt` via `qt_add_translations` (compiled into `:/i18n/qml/`; `main.cpp` loads them).
 - Update the source strings (add/modify `qsTr()` etc.) and refresh all `.ts` files:

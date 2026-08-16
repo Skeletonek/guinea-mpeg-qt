@@ -1,6 +1,7 @@
 ### 0.10.1 (In progress)
 - Fixed preview controls not working on Windows
 - Fixed profile exporting not working in Profile Editor on Windows
+- Fixed encoder settings comboboxes in profile editor being set incorrectly after changing profile with different encoder
 
 ### 0.10.0
 - Added aarch64 (ARM64) CPU architecture support

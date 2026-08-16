@@ -63,12 +63,7 @@ pub extern "C" fn guinea_mpeg_encoder_capabilities(encoder_name: *const c_char) 
     }
 }
 
-#[no_mangle]
-pub extern "C" fn guinea_mpeg_available_encoders() -> *mut c_char {
-    let output = match run_cmd("ffmpeg", &["-hide_banner", "-encoders"]) {
-        Some(o) => o,
-        None => return to_c_string("null".to_string()),
-    };
+pub(crate) fn parse_encoders(output: &str) -> HashMap<String, Vec<String>> {
     let mut by_codec: HashMap<String, Vec<String>> = HashMap::new();
     for line in output.lines() {
         let trimmed = line.trim();
@@ -100,7 +95,16 @@ pub extern "C" fn guinea_mpeg_available_encoders() -> *mut c_char {
     for list in by_codec.values_mut() {
         list.sort();
     }
-    to_c_string(serde_json::to_string(&by_codec).unwrap_or_default())
+    by_codec
+}
+
+#[no_mangle]
+pub extern "C" fn guinea_mpeg_available_encoders() -> *mut c_char {
+    let output = match run_cmd("ffmpeg", &["-hide_banner", "-encoders"]) {
+        Some(o) => o,
+        None => return to_c_string("null".to_string()),
+    };
+    to_c_string(serde_json::to_string(&parse_encoders(&output)).unwrap_or_default())
 }
 
 #[no_mangle]

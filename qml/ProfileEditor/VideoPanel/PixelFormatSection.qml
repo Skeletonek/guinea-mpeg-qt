@@ -32,7 +32,7 @@ Column {
             : Constants.pixfmtOptions.slice()
         if (list.indexOf(Constants.SENTINEL_DEFAULT) < 0)
             list.unshift(Constants.SENTINEL_DEFAULT)
-        var prev = pixfmtCombo.currentText
+        var prev = DataUtils.comboValue(pixfmtCombo)
         pixfmtCombo.model = list
         var idx = list.indexOf(prev)
         pixfmtCombo.currentIndex = idx >= 0 ? idx : 0

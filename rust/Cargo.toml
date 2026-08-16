@@ -15,5 +15,8 @@ anyhow = "1.0"
 dirs = "5.0"
 libmpv2-sys = "4.0"
 
+[dev-dependencies]
+tempfile = "3"
+
 [profile.release]
 strip = true

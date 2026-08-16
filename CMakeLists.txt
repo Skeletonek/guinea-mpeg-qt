@@ -110,6 +110,11 @@ add_subdirectory(rust)
 add_subdirectory(src)
 add_subdirectory(qml)
 
+include(CTest)
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()
+
 if(NOT WIN32)
     install(TARGETS guinea-mpeg
         BUNDLE DESTINATION .

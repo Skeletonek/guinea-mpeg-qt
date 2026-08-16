@@ -26,13 +26,30 @@ function toLocalPath(url) {
 }
 
 /**
+ * Gets the effective text of an (editable) combo box.
+ * For editable combos the edited text wins when it differs from the selected
+ * item's text: this is the case for typed/custom values and for values that
+ * were applied via the setComboText editText fallback (currentIndex/currentText
+ * still point at the previously selected item until the model is rebuilt).
+ * @param {ComboBox} combo - The ComboBox instance
+ * @returns {string} The effective text
+ */
+function comboValue(combo) {
+    var current = combo.currentText
+    if (combo.editable && combo.editText && combo.editText !== current)
+        return combo.editText
+    return current
+}
+
+/**
  * Gets text from combo box, returning null if empty or matches sentinel
  * @param {ComboBox} combo - The ComboBox instance
  * @param {string} sentinel - The sentinel value to check against
  * @returns {string|null} The text value or null
  */
 function comboText(combo, sentinel) {
-    return (combo.currentText && combo.currentText !== sentinel) ? combo.currentText : null
+    var text = comboValue(combo)
+    return (text && text !== sentinel) ? text : null
 }
 
 /**

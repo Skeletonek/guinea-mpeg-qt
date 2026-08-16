@@ -62,7 +62,7 @@ Column {
         var codec = root.currentCodecKey
         var list = (caps.presets || Constants.presetDefaults[codec] || []).slice()
         list.unshift(Constants.SENTINEL_DEFAULT)
-        var prev = presetCombo.currentText
+        var prev = DataUtils.comboValue(presetCombo)
         presetCombo.model = list
         var idx = list.indexOf(prev)
         presetCombo.currentIndex = idx >= 0 ? idx : 0
@@ -73,7 +73,7 @@ Column {
         var codec = root.currentCodecKey
         var tunes = (caps.tunes || Constants.tuneDefaults[codec] || []).slice()
         tunes.unshift(Constants.SENTINEL_DEFAULT)
-        var prev = tuneCombo.currentText
+        var prev = DataUtils.comboValue(tuneCombo)
         tuneCombo.model = tunes
         var idx = tunes.indexOf(prev)
         tuneCombo.currentIndex = idx >= 0 ? idx : 0
