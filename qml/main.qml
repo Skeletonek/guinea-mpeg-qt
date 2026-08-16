@@ -4,6 +4,7 @@ import QtQuick.Layouts
 import "Components"
 import "Dialogs"
 import "Utils/FormatUtils.js" as FormatUtils
+import "Utils/DataUtils.js" as DataUtils
 import "Utils/Constants.js" as Constants
 import GuineaMpeg 1.0
 
@@ -68,9 +69,7 @@ ApplicationWindow {
                         dragOverlay.visible = false
                         var url = String(drop.urls[0])
                         if (url.length === 0) return
-                        var path = url
-                        if (path.startsWith("file://"))
-                            path = decodeURIComponent(path.substring(7))
+                        var path = DataUtils.toLocalPath(url)
                         appWindow.loadVideo(path, url)
                     }
                 }

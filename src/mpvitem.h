@@ -2,6 +2,7 @@
 
 #include <QQuickFramebufferObject>
 #include <QOpenGLFunctions>
+#include <QTimer>
 #include <QUrl>
 
 struct mpv_handle;
@@ -62,6 +63,7 @@ private:
     void* m_backend = nullptr;
     mpv_handle* m_mpv = nullptr;
     bool m_renderReady = false;
+    QTimer* m_eventTimer = nullptr;
 
     mpv_handle* getMpv() const { return m_mpv; }
     static void wakeup(void* ctx);

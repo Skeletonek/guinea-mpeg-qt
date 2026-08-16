@@ -1,5 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Dialogs
+import "../Utils/DataUtils.js" as DataUtils
 
 FileDialog {
     id: root
@@ -11,9 +12,7 @@ FileDialog {
     signal importFailed(string message)
 
     onAccepted: {
-        var path = String(root.selectedFile)
-        if (path.startsWith("file://"))
-            path = decodeURIComponent(path.substring(7))
+        var path = DataUtils.toLocalPath(root.selectedFile)
         var preview = {}
         try { preview = JSON.parse(backend.importProfilesPreview(path)) } catch(e) {}
         if (preview.error) {

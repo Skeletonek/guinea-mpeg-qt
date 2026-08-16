@@ -301,6 +301,56 @@ pub extern "C" fn guinea_mpeg_mpv_process_events(ptr: *mut c_void) -> i32 {
         }
     }
 
+    // Fallback: property observation events can be missed (e.g. lost wakeups
+    // on some platforms), so poll the observed properties directly as well.
+    // Reads are cheap and only report a change when the cached value differs.
+    unsafe {
+        let mut pos: f64 = 0.0;
+        if mpv_get_property(
+            backend.handle,
+            CString::new("time-pos").unwrap().as_ptr(),
+            FORMAT_DOUBLE,
+            &mut pos as *mut _ as *mut c_void,
+        ) == 0
+        {
+            let new_pos = (pos * 1000.0).max(0.0) as i32;
+            if new_pos != backend.position {
+                backend.position = new_pos;
+                changed |= 1;
+            }
+        }
+
+        let mut dur: f64 = 0.0;
+        if mpv_get_property(
+            backend.handle,
+            CString::new("duration").unwrap().as_ptr(),
+            FORMAT_DOUBLE,
+            &mut dur as *mut _ as *mut c_void,
+        ) == 0
+        {
+            let new_dur = (dur * 1000.0).max(0.0) as i32;
+            if new_dur != backend.duration {
+                backend.duration = new_dur;
+                changed |= 2;
+            }
+        }
+
+        let mut paused: i32 = 0;
+        if mpv_get_property(
+            backend.handle,
+            CString::new("pause").unwrap().as_ptr(),
+            FORMAT_FLAG,
+            &mut paused as *mut _ as *mut c_void,
+        ) == 0
+        {
+            let new_playing = paused == 0;
+            if new_playing != backend.playing {
+                backend.playing = new_playing;
+                changed |= 4;
+            }
+        }
+    }
+
     changed
 }
 

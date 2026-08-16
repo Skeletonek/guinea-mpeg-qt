@@ -6,6 +6,26 @@
  */
 
 /**
+ * Converts a file:// URL to a local filesystem path.
+ * Strips the file:// prefix and percent-encoding; on Windows also removes the
+ * leading slash before the drive letter (file:///C:/... -> C:/...), which
+ * C++/Rust path APIs reject.
+ * @param {string} url - The file:// URL
+ * @returns {string} Local filesystem path
+ */
+function toLocalPath(url) {
+    var p = String(url)
+    if (p.startsWith("file://"))
+        p = p.substring(7)
+    try {
+        p = decodeURIComponent(p)
+    } catch (e) {}
+    if (Qt.platform.os === "windows" && p.length >= 3 && p.charAt(0) === "/" && p.charAt(2) === ":")
+        p = p.substring(1)
+    return p
+}
+
+/**
  * Gets text from combo box, returning null if empty or matches sentinel
  * @param {ComboBox} combo - The ComboBox instance
  * @param {string} sentinel - The sentinel value to check against

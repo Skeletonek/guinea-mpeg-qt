@@ -99,7 +99,16 @@ MpvItem::MpvItem()
     m_volume = guinea_mpeg_mpv_volume(m_backend);
 
     mpv_set_wakeup_callback(m_mpv, wakeup, this);
-    connect(this, &MpvItem::onMpvEvents, this, &MpvItem::handleMpvEvents);
+    connect(this, &MpvItem::onMpvEvents, this, &MpvItem::handleMpvEvents, Qt::QueuedConnection);
+
+    // mpv's wakeup callback can be unreliable (lost wakeups) or fire
+    // reentrantly on some platforms (notably Windows), so also poll events
+    // on a fixed interval. The drain is cheap when the queue is empty and
+    // guarantees position/duration updates even if the wakeup path fails.
+    m_eventTimer = new QTimer(this);
+    m_eventTimer->setInterval(50);
+    connect(m_eventTimer, &QTimer::timeout, this, &MpvItem::handleMpvEvents);
+    m_eventTimer->start();
 }
 
 MpvItem::~MpvItem()

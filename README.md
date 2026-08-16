@@ -24,6 +24,31 @@ A modern FFmpeg transcoding GUI with a Rust core library dynamically linked via 
 - OpenGL / GLX development headers
 - FFmpeg + ffprobe (runtime, for transcoding — with SVT-AV1, libx264, libvpx(-vp9), libwebp, libopus for full profile support)
 
+### Per-Distro Package Lists
+
+**Debian / Ubuntu**
+```bash
+sudo apt install cmake g++ pkg-config cargo \
+                 qt6-base-dev qt6-declarative-dev qt6-multimedia-dev qt6-tools-dev \
+                 qml6-module-qtmultimedia qml6-module-qtquick-controls \
+                 libmpv-dev libgl1-mesa-dev
+```
+
+**Fedora**
+```bash
+sudo dnf install cmake gcc-c++ pkgconf-pkg-config cargo rust \
+                 qt6-qtbase-devel qt6-qtdeclarative-devel \
+                 qt6-qtquickcontrols2-devel qt6-qtmultimedia-devel qt6-qttools-devel \
+                 mpv-libs-devel mesa-libGL-devel
+```
+
+**Arch Linux**
+```bash
+sudo pacman -S --needed base-devel cmake \
+                       qt6-base qt6-declarative qt6-multimedia qt6-tools \
+                       mpv rust cargo
+```
+
 ### Windows
 - CMake 3.16+
 - Visual Studio 2022 (Build Tools or full IDE) with **Desktop development with C++** workload
@@ -43,61 +68,32 @@ A modern FFmpeg transcoding GUI with a Rust core library dynamically linked via 
 - Ninja (optional, auto-detected): `winget install Ninja-build.Ninja`
 - InnoSetup 6 (optional, for installer) — download from [jrsoftware.org](https://jrsoftware.org/isdl.php)
 
-For **Windows on ARM (ARM64)** additionally install:
+For building **Windows on ARM (ARM64)** on x86 hosts you need to additionally install:
 - The `MSVC v143 - VS 2022 C++ ARM64 build tools` component in the VS 2022 installer
 - The Qt **`win64_msvc2022_arm64`** package (Qt 6.x for MSVC 2022 ARM64)
 - `rustup target add aarch64-pc-windows-msvc`
 
-> ARM64 binaries only run on Windows-on-ARM (WoA) devices; an x64 host can build
-> them but cannot execute them.
-
-### Per-Distro Package Lists
-
-**Debian / Ubuntu**
-```bash
-sudo apt install cmake g++ pkg-config cargo \
-                 qt6-base-dev qt6-declarative-dev qt6-multimedia-dev qt6-tools-dev \
-                 qml6-module-qtmultimedia qml6-module-qtquickcontrols2 \
-                 libmpv-dev libgl1-mesa-dev
-```
-
-**Fedora**
-```bash
-sudo dnf install cmake gcc-c++ pkgconf-pkg-config cargo rust \
-                 qt6-qtbase-devel qt6-qtdeclarative-devel \
-                 qt6-qtquickcontrols2-devel qt6-qtmultimedia-devel qt6-qttools-devel \
-                 mpv-libs-devel mesa-libGL-devel
-```
-
-**Arch Linux**
-```bash
-sudo pacman -S --needed base-devel cmake \
-                       qt6-base qt6-declarative qt6-multimedia qt6-tools \
-                       mpv rust cargo
-```
-
 ## Building
 
 ### Linux
+
+For quick development build use the prepared script
+
 ```bash
 ./build/linux-build.sh                              # build to out/generic/
 ```
-
-#### Packaging (Linux)
 
 The `build/linux-build.sh` script supports Docker-based cross-distro packaging:
 
 ```bash
 ./build/linux-build.sh --package generic            # build + .tar.gz
-./build/linux-build.sh --package deb                # Docker build + .deb
-./build/linux-build.sh --package rpm                # Docker build + .rpm
-./build/linux-build.sh --package pacman             # Docker build + .pkg.tar.zst
+./build/linux-build.sh --package deb,rpm,pacman     # Docker build + .deb + .rpm + .pkg.tar.zst
 ./build/linux-build.sh --package flatpak            # flatpak-builder build
 ./build/linux-build.sh --package appimage           # Docker build + .AppImage
-./build/linux-build.sh --package deb,rpm,pacman     # multiple targets
 ./build/linux-build.sh --package all                # all targets
 ./build/linux-build.sh --clean --package deb        # clean + rebuild + .deb
 ./build/linux-build.sh --release --package deb      # optimized Release build (strips debug info)
+./build/linux-build.sh --help                       # show all possible parameters
 ```
 
 Output goes to `out/{target}/` — e.g. `out/deb/`, `out/appimage/`.
@@ -113,13 +109,17 @@ docker run --privileged --rm tonistiigi/binfmt --install arm64
 ./build/linux-build.sh --arch aarch64 --package deb,rpm
 ```
 
-`pacman`, `appimage` and `flatpak` are not supported for aarch64 cross-builds —
+`pacman`, `appimage` and `flatpak` are not supported for aarch64 cross-builds -
 build those on a native ARM64 host (`--arch` is then unnecessary, the arch is
 detected automatically).
 
 ### Windows
 
 Open **x64 Native Tools Command Prompt for VS 2022** (or any PowerShell where `cl.exe` and `nmake` are available from PATH), then:
+
+Run `.\build\download-vendor.ps1` first to fetch the mpv-dev bundle and ffmpeg (the build script does this automatically too).
+
+Use `.\build\download-vendor.ps1 -Arch arm64` to fetch arm64 bundles
 
 ```powershell
 .\build\windows-build.ps1                           # build to out/windows/
@@ -129,29 +129,8 @@ Open **x64 Native Tools Command Prompt for VS 2022** (or any PowerShell where `c
 .\build\windows-build.ps1 -Clean                    # full rebuild
 .\build\windows-build.ps1 -Console                  # build with visible console (for debugging)
 .\build\windows-build.ps1 -Config RelWithDebInfo    # debug symbols enabled
+.\build\windows-build.ps1 -Help                     # show all possible parameters
 ```
-
-Run `.\build\download-vendor.ps1 -Arch arm64` first to fetch the arm64 mpv-dev
-bundle and winarm64 ffmpeg (the build script does this automatically too).
-
-The script will:
-1. Auto-detect Visual Studio 2022 (via vswhere)
-2. Download the mpv-dev bundle and ffmpeg/ffprobe if missing
-3. Build the Rust library with `cargo`
-4. Configure and build with CMake + Ninja (MSVC)
-5. Run `windeployqt` to collect Qt DLLs
-6. Copy `mpv-2.dll` to the output directory
-7. Create a portable ZIP archive
-8. Build an InnoSetup installer (if ISCC.exe is available)
-
-Additional flags:
-
-| Flag | Description |
-|------|-------------|
-| `-Arch x86_64` | Target architecture: `x86_64` (default) or `arm64` |
-| `-Config Release` | Build config: `Debug` (default), `Release`, `RelWithDebInfo` |
-| `-Clean` | Remove output dir and Rust artifacts before building |
-| `-QtDir C:\Qt\6.11.1\msvc2022_64` | Specify Qt path manually |
 
 Artifacts:
 
@@ -204,15 +183,10 @@ A GitLab CI pipeline (`.gitlab-ci.yml`) builds and releases all linux packages (
 
 ## Configuration
 
-All user settings live in `~/.config/guinea-mpeg/config.toml`, editable in-app and directly as human-editable TOML. It holds:
+All user settings live in `~/.config/guinea-mpeg/config.toml` or `%APPDATA%/guinea-mpeg/config.toml`. It stores both user profiles and application config
 
-- **Profiles** — the `[[profiles]]` array-of-tables (auto-migrated from the legacy `[profiles."name"]` format), managed via the Profile Editor.
-- **Options** — an `[options]` table (language, Qt Quick Controls style, color scheme, hardware acceleration, preview volume, update checks), managed via the Settings button.
-
-Built-in defaults are bundled at `default_profiles.toml` (next to the binary or at `/usr/share/guinea-mpeg/default_profiles.toml`) and loaded at startup.
+Built-in defaults profiles are bundled at `default_profiles.toml` (next to the binary or at `/usr/share/guinea-mpeg/default_profiles.toml`).
 User profiles merge over defaults (same name = user override).
-
-Profiles can be shared across machines by exporting them to `.toml` files and importing them (from the Profile Editor).
 
 ### Built-in Profiles
 

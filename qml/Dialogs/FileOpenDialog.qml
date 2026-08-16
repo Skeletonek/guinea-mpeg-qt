@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Dialogs
+import "../Utils/DataUtils.js" as DataUtils
 
 FileDialog {
     id: root
@@ -9,9 +10,7 @@ FileDialog {
     property QtObject appWindow: null
 
     onAccepted: {
-        var path = String(root.selectedFile)
-        if (path.startsWith("file://"))
-            path = decodeURIComponent(path.substring(7))
+        var path = DataUtils.toLocalPath(root.selectedFile)
         appWindow.loadVideo(path, root.selectedFile)
     }
 }

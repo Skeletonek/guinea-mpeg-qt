@@ -3,6 +3,7 @@ import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 import QtQuick.Dialogs
 import "../Utils/Centering.js" as Utils
+import "../Utils/DataUtils.js" as DataUtils
 
 Dialog {
     id: root
@@ -63,9 +64,7 @@ Dialog {
         acceptLabel: qsTr("Export")
         nameFilters: [qsTr("TOML files (*.toml)")]
         onAccepted: {
-            var path = String(fileDialog.selectedFile)
-            if (path.startsWith("file://"))
-                path = decodeURIComponent(path.substring(7))
+            var path = DataUtils.toLocalPath(fileDialog.selectedFile)
             if (path.toLowerCase().lastIndexOf(".toml") !== path.length - 5)
                 path += ".toml"
             if (backend.exportProfiles(path, JSON.stringify(root.selectedNames()))) {
