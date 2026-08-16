@@ -6,7 +6,7 @@ import QtQuick.Controls 2.15
  */
 Label {
     id: root
-    
+
     text: root.text
     color: theme.textMuted
     font.bold: true

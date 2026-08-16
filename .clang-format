@@ -1,0 +1,10 @@
+# K&R style for GuineaMPEG's C++ sources (src/, tests/cpp/).
+BasedOnStyle: LLVM
+IndentWidth: 4
+ContinuationIndentWidth: 4
+ColumnLimit: 120
+BreakBeforeBraces: Attach
+BreakConstructorInitializers: BeforeColon
+PointerAlignment: Left
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortFunctionsOnASingleLine: None

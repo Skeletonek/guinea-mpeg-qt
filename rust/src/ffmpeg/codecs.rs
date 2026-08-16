@@ -2,7 +2,10 @@ use crate::config::VideoProfile;
 use crate::ffmpeg::software_video_codec;
 
 pub(crate) fn video_codec(profile: &VideoProfile) -> String {
-    profile.encoder.clone().unwrap_or_else(|| software_video_codec(&profile.codec).to_string())
+    profile
+        .encoder
+        .clone()
+        .unwrap_or_else(|| software_video_codec(&profile.codec).to_string())
 }
 
 pub(crate) fn audio_codec_for_profile(profile: &VideoProfile) -> &str {

@@ -1,26 +1,22 @@
 #include "mpvitem.h"
 #include "guinea_mpeg_core.h"
-#include <mpv/client.h>
-#include <mpv/render.h>
-#include <mpv/render_gl.h>
+#include <QDebug>
 #include <QOpenGLContext>
 #include <QOpenGLFramebufferObject>
 #include <QQuickWindow>
-#include <QDebug>
+#include <mpv/client.h>
+#include <mpv/render.h>
+#include <mpv/render_gl.h>
 
 #include <algorithm>
 
-MpvRenderer::MpvRenderer(MpvItem* item)
-    : m_item(item)
-{
+MpvRenderer::MpvRenderer(MpvItem* item) : m_item(item) {
     initializeOpenGLFunctions();
 
-    mpv_opengl_init_params gl_init{ .get_proc_address = getProcAddr, .get_proc_address_ctx = nullptr };
-    mpv_render_param params[] = {
-        { MPV_RENDER_PARAM_API_TYPE, const_cast<char*>(MPV_RENDER_API_TYPE_OPENGL) },
-        { MPV_RENDER_PARAM_OPENGL_INIT_PARAMS, &gl_init },
-        { MPV_RENDER_PARAM_INVALID, nullptr }
-    };
+    mpv_opengl_init_params gl_init{.get_proc_address = getProcAddr, .get_proc_address_ctx = nullptr};
+    mpv_render_param params[] = {{MPV_RENDER_PARAM_API_TYPE, const_cast<char*>(MPV_RENDER_API_TYPE_OPENGL)},
+                                 {MPV_RENDER_PARAM_OPENGL_INIT_PARAMS, &gl_init},
+                                 {MPV_RENDER_PARAM_INVALID, nullptr}};
 
     if (mpv_render_context_create(&m_renderCtx, item->getMpv(), params) < 0) {
         qWarning() << "mpv: failed to create render context";
@@ -32,19 +28,16 @@ MpvRenderer::MpvRenderer(MpvItem* item)
     QMetaObject::invokeMethod(item, "loadPendingSource", Qt::QueuedConnection);
 }
 
-MpvRenderer::~MpvRenderer()
-{
+MpvRenderer::~MpvRenderer() {
     if (m_renderCtx)
         mpv_render_context_free(m_renderCtx);
 }
 
-QOpenGLFramebufferObject* MpvRenderer::createFramebufferObject(const QSize& size)
-{
+QOpenGLFramebufferObject* MpvRenderer::createFramebufferObject(const QSize& size) {
     return new QOpenGLFramebufferObject(size);
 }
 
-void MpvRenderer::render()
-{
+void MpvRenderer::render() {
     if (!m_renderCtx)
         return;
 
@@ -55,38 +48,27 @@ void MpvRenderer::render()
     glClear(GL_COLOR_BUFFER_BIT);
 
     mpv_opengl_fbo mpfbo{
-        .fbo = static_cast<int>(fbo->handle()),
-        .w = sz.width(),
-        .h = sz.height(),
-        .internal_format = 0
-    };
+        .fbo = static_cast<int>(fbo->handle()), .w = sz.width(), .h = sz.height(), .internal_format = 0};
     int flip = 1;
     mpv_render_param params[] = {
-        { MPV_RENDER_PARAM_OPENGL_FBO, &mpfbo },
-        { MPV_RENDER_PARAM_FLIP_Y, &flip },
-        { MPV_RENDER_PARAM_INVALID, nullptr }
-    };
+        {MPV_RENDER_PARAM_OPENGL_FBO, &mpfbo}, {MPV_RENDER_PARAM_FLIP_Y, &flip}, {MPV_RENDER_PARAM_INVALID, nullptr}};
     if (mpv_render_context_render(m_renderCtx, params) < 0)
         qWarning() << "mpv: render failed";
 }
 
-void MpvRenderer::synchronize(QQuickFramebufferObject*)
-{
+void MpvRenderer::synchronize(QQuickFramebufferObject*) {
 }
 
-void* MpvRenderer::getProcAddr(void*, const char* name)
-{
+void* MpvRenderer::getProcAddr(void*, const char* name) {
     return reinterpret_cast<void*>(QOpenGLContext::currentContext()->getProcAddress(name));
 }
 
-void MpvItem::onUpdate(void* ctx)
-{
+void MpvItem::onUpdate(void* ctx) {
     auto* item = static_cast<MpvItem*>(ctx);
     QMetaObject::invokeMethod(item, "update", Qt::QueuedConnection);
 }
 
-MpvItem::MpvItem()
-{
+MpvItem::MpvItem() {
     setMirrorVertically(true);
 
     m_backend = guinea_mpeg_mpv_create();
@@ -111,15 +93,14 @@ MpvItem::MpvItem()
     m_eventTimer->start();
 }
 
-MpvItem::~MpvItem()
-{
+MpvItem::~MpvItem() {
     if (m_backend)
         guinea_mpeg_mpv_destroy(m_backend);
 }
 
-void MpvItem::setSource(const QUrl& source)
-{
-    if (m_source == source) return;
+void MpvItem::setSource(const QUrl& source) {
+    if (m_source == source)
+        return;
     m_source = source;
     m_pendingSource = source;
 
@@ -136,9 +117,9 @@ void MpvItem::setSource(const QUrl& source)
     emit sourceChanged();
 }
 
-void MpvItem::loadPendingSource()
-{
-    if (!m_backend || m_pendingSource.isEmpty()) return;
+void MpvItem::loadPendingSource() {
+    if (!m_backend || m_pendingSource.isEmpty())
+        return;
 
     QUrl src = m_pendingSource;
     m_pendingSource = QUrl();
@@ -154,15 +135,15 @@ void MpvItem::loadPendingSource()
     emit playingChanged();
 }
 
-void MpvItem::setPosition(int pos)
-{
-    if (!m_backend) return;
+void MpvItem::setPosition(int pos) {
+    if (!m_backend)
+        return;
     guinea_mpeg_mpv_seek(m_backend, pos);
 }
 
-void MpvItem::play()
-{
-    if (!m_backend) return;
+void MpvItem::play() {
+    if (!m_backend)
+        return;
     if (m_duration > 0 && m_position >= m_duration - 500) {
         guinea_mpeg_mpv_seek(m_backend, 0);
         m_position = 0;
@@ -173,17 +154,17 @@ void MpvItem::play()
     emit playingChanged();
 }
 
-void MpvItem::pause()
-{
-    if (!m_backend) return;
+void MpvItem::pause() {
+    if (!m_backend)
+        return;
     guinea_mpeg_mpv_pause(m_backend);
     m_playing = false;
     emit playingChanged();
 }
 
-void MpvItem::stop()
-{
-    if (!m_backend) return;
+void MpvItem::stop() {
+    if (!m_backend)
+        return;
     guinea_mpeg_mpv_stop(m_backend);
     m_playing = false;
     m_position = 0;
@@ -191,8 +172,7 @@ void MpvItem::stop()
     emit positionChanged();
 }
 
-void MpvItem::setVolume(qreal vol)
-{
+void MpvItem::setVolume(qreal vol) {
     m_volume = vol;
     if (m_backend) {
         const int v = std::clamp(static_cast<int>(vol), 0, 100);
@@ -201,14 +181,13 @@ void MpvItem::setVolume(qreal vol)
     emit volumeChanged();
 }
 
-QQuickFramebufferObject::Renderer* MpvItem::createRenderer() const
-{
+QQuickFramebufferObject::Renderer* MpvItem::createRenderer() const {
     return new MpvRenderer(const_cast<MpvItem*>(this));
 }
 
-void MpvItem::handleMpvEvents()
-{
-    if (!m_backend) return;
+void MpvItem::handleMpvEvents() {
+    if (!m_backend)
+        return;
 
     int changed = guinea_mpeg_mpv_process_events(m_backend);
 
@@ -226,8 +205,7 @@ void MpvItem::handleMpvEvents()
     }
 }
 
-void MpvItem::wakeup(void* ctx)
-{
+void MpvItem::wakeup(void* ctx) {
     auto* item = static_cast<MpvItem*>(ctx);
     emit item->onMpvEvents();
 }

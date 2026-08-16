@@ -7,15 +7,16 @@ import QtQuick.Controls 2.15
  */
 Row {
     id: root
-    spacing: 8
-    width: parent.width
-    
+
     property string label: ""
     property bool checked: false
     property color labelColor: theme.text
     property bool labelBold: false
     property int labelPixelSize: 14
-    
+
+    spacing: 8
+    width: parent.width
+
     Label {
         text: root.label
         color: root.labelColor
@@ -24,12 +25,16 @@ Row {
         verticalAlignment: Text.AlignVCenter
         visible: root.label !== ""
     }
-    
-    Item { width: root.spacing }
-    
+
+    Item {
+        width: root.spacing
+    }
+
     Switch {
         id: switchControl
+
         checked: root.checked
         onCheckedChanged: root.checked = checked
     }
+
 }

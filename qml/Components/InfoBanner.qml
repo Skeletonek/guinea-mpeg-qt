@@ -4,11 +4,6 @@ import QtQuick.Layouts 1.15
 
 Rectangle {
     id: root
-    color: theme.widget
-    border.color: theme.widgetBorder
-    border.width: 1
-    radius: 6
-    implicitHeight: contentColumn.implicitHeight + 16
 
     property string text: ""
     property string subText: ""
@@ -16,8 +11,29 @@ Rectangle {
     property int autoHideMs: 0
     default property alias actions: buttonsRow.children
 
+    function show() {
+        root.visible = true;
+        root.opacity = 1;
+        if (root.autoHideMs > 0)
+            hideTimer.start();
+
+    }
+
+    function hide() {
+        hideTimer.stop();
+        root.opacity = 0;
+        collapseTimer.start();
+    }
+
+    color: theme.widget
+    border.color: theme.widgetBorder
+    border.width: 1
+    radius: 6
+    implicitHeight: contentColumn.implicitHeight + 16
+
     Rectangle {
         id: accentBar
+
         anchors.top: parent.top
         anchors.bottom: parent.bottom
         anchors.left: parent.left
@@ -28,6 +44,7 @@ Rectangle {
 
     ColumnLayout {
         id: contentColumn
+
         anchors.fill: parent
         anchors.leftMargin: 16
         anchors.rightMargin: 8
@@ -37,6 +54,7 @@ Rectangle {
 
         Text {
             id: mainText
+
             visible: root.text !== ""
             text: root.text
             color: theme.text
@@ -47,6 +65,7 @@ Rectangle {
 
         Text {
             id: subTextLabel
+
             visible: root.subText !== ""
             text: root.subText
             color: root.accentColor
@@ -58,35 +77,33 @@ Rectangle {
 
         RowLayout {
             id: buttonsRow
+
             Layout.alignment: Qt.AlignRight
             spacing: 8
             visible: buttonsRow.children.length > 0
         }
+
     }
 
     Timer {
         id: hideTimer
+
         interval: Math.max(1, root.autoHideMs)
         onTriggered: hide()
     }
+
     Timer {
         id: collapseTimer
+
         interval: 250
         onTriggered: root.visible = false
     }
 
-    Behavior on opacity { NumberAnimation { duration: 200 } }
+    Behavior on opacity {
+        NumberAnimation {
+            duration: 200
+        }
 
-    function show() {
-        root.visible = true
-        root.opacity = 1
-        if (root.autoHideMs > 0)
-            hideTimer.start()
     }
 
-    function hide() {
-        hideTimer.stop()
-        root.opacity = 0
-        collapseTimer.start()
-    }
 }

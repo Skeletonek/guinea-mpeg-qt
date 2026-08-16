@@ -1,7 +1,7 @@
 #pragma once
 
-#include <QQuickFramebufferObject>
 #include <QOpenGLFunctions>
+#include <QQuickFramebufferObject>
 #include <QTimer>
 #include <QUrl>
 
@@ -18,19 +18,29 @@ class MpvItem : public QQuickFramebufferObject {
     Q_PROPERTY(bool playing READ isPlaying NOTIFY playingChanged)
     Q_PROPERTY(qreal volume READ volume WRITE setVolume NOTIFY volumeChanged)
 
-public:
+  public:
     MpvItem();
     ~MpvItem();
 
-    QUrl source() const { return m_source; }
+    QUrl source() const {
+        return m_source;
+    }
     void setSource(const QUrl& source);
 
-    int position() const { return m_position; }
+    int position() const {
+        return m_position;
+    }
     void setPosition(int pos);
 
-    int duration() const { return m_duration; }
-    bool isPlaying() const { return m_playing; }
-    qreal volume() const { return m_volume; }
+    int duration() const {
+        return m_duration;
+    }
+    bool isPlaying() const {
+        return m_playing;
+    }
+    qreal volume() const {
+        return m_volume;
+    }
 
     Q_INVOKABLE void play();
     Q_INVOKABLE void pause();
@@ -40,7 +50,7 @@ public:
 
     Renderer* createRenderer() const override;
 
-signals:
+  signals:
     void sourceChanged();
     void positionChanged();
     void durationChanged();
@@ -48,11 +58,11 @@ signals:
     void volumeChanged();
     void onMpvEvents();
 
-private slots:
+  private slots:
     void handleMpvEvents();
     void loadPendingSource();
 
-private:
+  private:
     friend class MpvRenderer;
     QUrl m_source;
     QUrl m_pendingSource;
@@ -65,13 +75,15 @@ private:
     bool m_renderReady = false;
     QTimer* m_eventTimer = nullptr;
 
-    mpv_handle* getMpv() const { return m_mpv; }
+    mpv_handle* getMpv() const {
+        return m_mpv;
+    }
     static void wakeup(void* ctx);
     static void onUpdate(void* ctx);
 };
 
 class MpvRenderer : public QQuickFramebufferObject::Renderer, protected QOpenGLFunctions {
-public:
+  public:
     MpvRenderer(MpvItem* item);
     ~MpvRenderer();
 
@@ -79,7 +91,7 @@ public:
     void render() override;
     void synchronize(QQuickFramebufferObject* item) override;
 
-private:
+  private:
     MpvItem* m_item;
     mpv_render_context* m_renderCtx = nullptr;
 

@@ -34,6 +34,7 @@ spec:
       description: Build aarch64 Flatpak package (arm64 runner)
 ---
 stages:
+  - lint
   - package
   - release
 
@@ -43,7 +44,14 @@ variables:
 workflow:
   rules:
     - if: $CI_COMMIT_TAG
+    - if: $CI_PIPELINE_SOURCE == "push"
     - if: $CI_PIPELINE_SOURCE == "web"
+
+# Package builds stay opt-in (manual web runs + tags); a plain push only runs
+# the lint job, so every package job skips when the pipeline came from a push.
+.skip-on-push: &skip-on-push
+  if: $CI_PIPELINE_SOURCE == "push"
+  when: never
 
 .dind: &dind
   image: docker:29.0
@@ -62,6 +70,7 @@ package-generic:
   <<: *dind
   stage: package
   rules:
+    - *skip-on-push
     - if: '"$[[ inputs.build_generic ]]" == "true"'
   script:
     - docker build -t guinea-build -f build/docker/debian-trixie.Dockerfile build/docker
@@ -76,6 +85,7 @@ package-deb:
   <<: *dind
   stage: package
   rules:
+    - *skip-on-push
     - if: '"$[[ inputs.build_deb ]]" == "true"'
   script:
     - ./build/linux-build.sh --release --package deb
@@ -97,6 +107,7 @@ package-deb-aarch64:
       alias: docker
       command: ["--mtu=1400"]
   rules:
+    - *skip-on-push
     - if: '"$[[ inputs.build_deb_aarch64 ]]" == "true"'
   script:
     - ./build/linux-build.sh --release --arch aarch64 --package deb
@@ -109,6 +120,7 @@ package-rpm:
   <<: *dind
   stage: package
   rules:
+    - *skip-on-push
     - if: '"$[[ inputs.build_rpm ]]" == "true"'
   script:
     - ./build/linux-build.sh --release --package rpm
@@ -127,6 +139,7 @@ package-rpm-aarch64:
       alias: docker
       command: ["--mtu=1400"]
   rules:
+    - *skip-on-push
     - if: '"$[[ inputs.build_rpm_aarch64 ]]" == "true"'
   script:
     - ./build/linux-build.sh --release --arch aarch64 --package rpm
@@ -139,6 +152,7 @@ package-pacman:
   <<: *dind
   stage: package
   rules:
+    - *skip-on-push
     - if: '"$[[ inputs.build_pacman ]]" == "true"'
   script:
     - ./build/linux-build.sh --release --package pacman
@@ -151,6 +165,7 @@ package-flatpak:
   stage: package
   image: debian:trixie-slim
   rules:
+    - *skip-on-push
     - if: '"$[[ inputs.build_flatpak ]]" == "true"'
   before_script:
     - apt-get update -qq && apt-get install -y -qq --no-install-recommends
@@ -173,6 +188,7 @@ package-flatpak-aarch64:
   tags:
     - saas-linux-small-arm64
   rules:
+    - *skip-on-push
     - if: '"$[[ inputs.build_flatpak_aarch64 ]]" == "true"'
   before_script:
     - apt-get update -qq && apt-get install -y -qq --no-install-recommends
@@ -186,6 +202,20 @@ package-flatpak-aarch64:
     expire_in: 1 week
   allow_failure: true
   needs: []
+
+lint:
+  stage: lint
+  image: debian:trixie-slim
+  # Advisory only: never blocks package/release pipelines on the same push.
+  allow_failure: true
+  needs: []
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push"
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends
+      rustc cargo rustfmt rust-clippy qt6-declarative-dev-tools clang-format
+  script:
+    - ./build/run-lint.sh
 
 release:
   stage: release

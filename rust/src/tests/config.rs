@@ -190,7 +190,11 @@ fn default_override_does_not_duplicate_in_merge() {
         // must contain exactly one entry for that name.
         save_profile("H.264 High", r#"{"codec":"h264","crf":25}"#).unwrap();
         let cfg = merge_configs();
-        let matches = cfg.profiles.iter().filter(|p| p.name == "H.264 High").count();
+        let matches = cfg
+            .profiles
+            .iter()
+            .filter(|p| p.name == "H.264 High")
+            .count();
         assert_eq!(matches, 1);
         assert_eq!(load_profile("H.264 High").unwrap().crf, Some(25));
     });
@@ -202,7 +206,11 @@ fn merge_configs_user_overrides_default() {
         write_default_profiles(dir, DEFAULT_PROFILES_TOML);
         save_profile("H.264 High", r#"{"codec":"h264","crf":30}"#).unwrap();
         let cfg = merge_configs();
-        let h264 = cfg.profiles.iter().find(|p| p.name == "H.264 High").unwrap();
+        let h264 = cfg
+            .profiles
+            .iter()
+            .find(|p| p.name == "H.264 High")
+            .unwrap();
         assert_eq!(h264.crf, Some(30));
         // defaults merged in too
         assert!(cfg.profiles.iter().any(|p| p.name == "VP9 Low"));
@@ -249,8 +257,13 @@ fn export_then_import_roundtrip() {
         save_profile("A", r#"{"codec":"h264","crf":18}"#).unwrap();
         save_profile("B", r#"{"codec":"av1","crf":35}"#).unwrap();
 
-        let export_path = std::env::temp_dir().join(format!("guinea_export_{}.toml", std::process::id()));
-        export_profiles(export_path.to_str().unwrap(), &["A".to_string(), "B".to_string()]).unwrap();
+        let export_path =
+            std::env::temp_dir().join(format!("guinea_export_{}.toml", std::process::id()));
+        export_profiles(
+            export_path.to_str().unwrap(),
+            &["A".to_string(), "B".to_string()],
+        )
+        .unwrap();
 
         delete_profile("A").unwrap();
         delete_profile("B").unwrap();
@@ -270,7 +283,8 @@ fn export_then_import_roundtrip() {
 fn import_conflicts_detected() {
     with_config_dir(tempdir().unwrap().path(), |_dir| {
         save_profile("Existing", r#"{"codec":"h264","crf":18}"#).unwrap();
-        let import_path = std::env::temp_dir().join(format!("guinea_import_{}.toml", std::process::id()));
+        let import_path =
+            std::env::temp_dir().join(format!("guinea_import_{}.toml", std::process::id()));
         export_profiles(import_path.to_str().unwrap(), &["Existing".to_string()]).unwrap();
 
         let preview = import_profiles_preview(import_path.to_str().unwrap());

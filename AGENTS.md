@@ -118,6 +118,15 @@ Plain `QObject`. Profile CRUD, options, video info, encoder detection/capabiliti
   - **C++ FFI** (`tests/cpp/tst_backend_ffi.cpp`, Qt Test): smoke-tests the C header contract directly (link `tst_backend_ffi` against `${RUST_LIB}` + `rust/include/`). `initTestCase()` calls `setlocale(LC_NUMERIC, "C")` — mpv refuses to init otherwise (app does the same in `main.cpp`). Every returned `const char*` must be freed with `guinea_mpeg_free_string()`. Config round-trip uses a `QTemporaryDir` + `GUINEA_MPEG_CONFIG_DIR` fixture.
 - Tests must run headless: ctest sets `QT_QPA_PLATFORM=offscreen`; no test may require a display, mpv render GL context, or the real ffmpeg preview pipeline (C++ test uses only the FFI contract, mpv create/init, and `available_encoders()` which shells out to `ffmpeg -hide_banner -encoders`).
 
+## Lint & Format
+- Run everything with `./build/run-lint.sh` (checks only, fails on any violation). Flags: `--fix` (auto-apply formatters: `cargo fmt`, `cargo clippy --fix`, `qmlformat -i -f`, `clang-format -i`), `--only <rust|cpp|qml>`, `--cpp-tidy` (also run clang-tidy; configures `out/.build-lint` with clang++ for `compile_commands.json`), `--help`.
+- Three layers:
+  - **Rust**: `cargo fmt --all -- --check` + `cargo clippy --all-targets -- -D warnings` (run from `rust/`).
+  - **QML**: `qmllint -I qml` over all `qml/` + `tests/qml/` files, plus a per-file qmlformat equality check. `qmlformat` only runs on `.qml` — Qt 6.11's qmlformat exits 1 on standalone `.js` files even for valid input, so JS is lint-only.
+  - **C++**: `clang-format --dry-run --Werror` over `src/` + `tests/cpp/`; optional `clang-tidy -p out/.build-lint` limited to `src/*.cpp` (headers are covered via each TU — analyzing them standalone flags `MpvItem::position` shadowing `QQuickItem::position`, an intentional QML property name).
+- Styles: `.clang-format` is K&R (Attach braces, 4-space indent, 120 columns) — this is the mandated C++ brace style. `.clang-tidy` runs `bugprone-*,clang-analyzer-*,performance-*` with `WarningsAsErrors: '*'`; the intentional `m_currentTranscode.release()` in `backend.cpp` carries a `// NOLINT` (ownership moves to `deleteLater`). Rust is rustfmt-default; QML follows `qmlformat` defaults.
+- CI: `.gitlab-ci.yml` `lint` stage runs `./build/run-lint.sh` on every push with `allow_failure: true` (never blocks packages/releases); package jobs skip pushes via a `.skip-on-push` `when: never` rule. clang-tidy is local-only.
+
 ## Translations
 - `.ts` sources live in `translations/`, listed in `qml/CMakeLists.txt` via `qt_add_translations` (compiled into `:/i18n/qml/`; `main.cpp` loads them).
 - Update the source strings (add/modify `qsTr()` etc.) and refresh all `.ts` files:

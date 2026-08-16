@@ -212,7 +212,7 @@ pub extern "C" fn guinea_mpeg_mpv_seek(ptr: *mut c_void, pos_ms: i32) {
 #[no_mangle]
 pub extern "C" fn guinea_mpeg_mpv_set_volume(ptr: *mut c_void, vol: i32) {
     if !ptr.is_null() {
-        backend_from_ptr(ptr).set_string("volume", &vol.max(0).min(100).to_string());
+        backend_from_ptr(ptr).set_string("volume", &vol.clamp(0, 100).to_string());
     }
 }
 

@@ -7,22 +7,23 @@ import QtQuick.Controls 2.15
  */
 Rectangle {
     id: root
-    width: parent.width
-    height: 28
-    color: theme.widget
-    radius: 4
-    
+
     property string text: ""
     property color textColor: theme.text
     property bool bold: true
     property int pixelSize: 14
     property real topPadding: 0
-    
+
+    width: parent.width
+    height: 28
+    color: theme.widget
+    radius: 4
+
     Row {
         anchors.verticalCenter: parent.verticalCenter
         leftPadding: 8
         spacing: 8
-        
+
         Label {
             text: root.text
             color: root.textColor
@@ -30,5 +31,7 @@ Rectangle {
             font.pixelSize: root.pixelSize
             verticalAlignment: Text.AlignVCenter
         }
+
     }
+
 }

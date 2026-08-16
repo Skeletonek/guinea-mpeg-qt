@@ -39,5 +39,9 @@ pub(crate) fn to_c_string(s: String) -> *mut c_char {
 }
 
 pub(crate) unsafe fn cstr(ptr: *const c_char) -> &'static str {
-    if ptr.is_null() { "" } else { CStr::from_ptr(ptr).to_str().unwrap_or("") }
+    if ptr.is_null() {
+        ""
+    } else {
+        CStr::from_ptr(ptr).to_str().unwrap_or("")
+    }
 }

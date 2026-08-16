@@ -2,14 +2,14 @@ use std::collections::HashMap;
 use std::os::raw::c_char;
 
 use crate::config::VideoProfile;
-use crate::ffmpeg::{build_command, build_preview, cstr, encoder_capabilities, normalize_path, quiet_command, run_cmd, to_c_string};
+use crate::ffmpeg::{
+    build_command, build_preview, cstr, encoder_capabilities, normalize_path, quiet_command,
+    run_cmd, to_c_string,
+};
 
 #[no_mangle]
 pub extern "C" fn guinea_mpeg_ffmpeg_available() -> bool {
-    quiet_command("ffmpeg")
-        .arg("-version")
-        .output()
-        .is_ok()
+    quiet_command("ffmpeg").arg("-version").output().is_ok()
 }
 
 #[no_mangle]
@@ -26,10 +26,18 @@ pub extern "C" fn guinea_mpeg_ffmpeg_version() -> *mut c_char {
 #[no_mangle]
 pub extern "C" fn guinea_mpeg_video_info(path: *const c_char) -> *mut c_char {
     let p = normalize_path(unsafe { cstr(path) });
-    match run_cmd("ffprobe", &[
-        "-v", "quiet", "-print_format", "json",
-        "-show_format", "-show_streams", &p,
-    ]) {
+    match run_cmd(
+        "ffprobe",
+        &[
+            "-v",
+            "quiet",
+            "-print_format",
+            "json",
+            "-show_format",
+            "-show_streams",
+            &p,
+        ],
+    ) {
         Some(json) => to_c_string(json),
         None => to_c_string(r#"{"duration":0.0}"#.to_string()),
     }
@@ -43,12 +51,18 @@ pub extern "C" fn guinea_mpeg_generate_preview(path: *const c_char, time_ms: i64
 
     let sec = format!("{}", time_ms as f64 / 1000.0);
     let ok = quiet_command("ffmpeg")
-        .args(&["-y", "-ss", &sec, "-i", &p, "-vframes", "1", "-q:v", "2", &preview])
+        .args([
+            "-y", "-ss", &sec, "-i", &p, "-vframes", "1", "-q:v", "2", &preview,
+        ])
         .output()
         .map(|o| o.status.success())
         .unwrap_or(false);
 
-    if ok { to_c_string(preview) } else { std::ptr::null_mut() }
+    if ok {
+        to_c_string(preview)
+    } else {
+        std::ptr::null_mut()
+    }
 }
 
 #[no_mangle]
@@ -75,7 +89,10 @@ pub(crate) fn parse_encoders(output: &str) -> HashMap<String, Vec<String>> {
             continue;
         }
         let enc_name = parts[1].to_string();
-        if enc_name.ends_with("_v4l2m2m") || enc_name.ends_with("_videotoolbox") || enc_name.ends_with("_vulkan") {
+        if enc_name.ends_with("_v4l2m2m")
+            || enc_name.ends_with("_videotoolbox")
+            || enc_name.ends_with("_vulkan")
+        {
             continue;
         }
         let codec = if let Some(start) = trimmed.rfind("(codec ") {

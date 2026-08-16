@@ -6,16 +6,18 @@ import "SectionHeader.qml"
  * Container for grouping related form elements with a header
  */
 Column {
+    // Content goes here
+
     id: root
+
+    property string title: ""
+
     spacing: 8
     width: parent.width
-    
-    property string title: ""
-    
+
     SectionHeader {
         text: root.title
         visible: root.title !== ""
     }
-    
-    // Content goes here
+
 }

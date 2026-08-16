@@ -3,6 +3,12 @@ import QtQuick.Controls 2.15
 
 Dialog {
     id: root
+
+    property var codecLabels: []
+    property var codecKeys: []
+    property var availableEncoders: ({
+    })
+
     title: qsTr("Available Encoders")
     standardButtons: Dialog.Ok
     width: 360
@@ -11,36 +17,44 @@ Dialog {
     anchors.centerIn: Overlay.overlay
     implicitHeight: implicitHeaderHeight + contentCol.implicitHeight + implicitFooterHeight + 24
 
-    property var codecLabels: []
-    property var codecKeys: []
-    property var availableEncoders: ({})
-
     Column {
         id: contentCol
+
         anchors.fill: parent
         spacing: 8
+
         Repeater {
             model: root.codecLabels.length
+
             delegate: Column {
-                spacing: 4
                 readonly property var encs: root.availableEncoders[root.codecKeys[index]] || []
+
+                spacing: 4
                 visible: encs.length > 0
+
                 Label {
                     text: root.codecLabels[index] + " (" + encs.length + ")"
                     color: theme.text
                     font.bold: true
                     font.pixelSize: 12
                 }
+
                 Repeater {
                     model: encs
+
                     delegate: Label {
                         text: "\u2022 " + modelData
                         color: theme.textSecondary
                         font.pixelSize: 11
                         leftPadding: 8
                     }
+
                 }
+
             }
+
         }
+
     }
+
 }

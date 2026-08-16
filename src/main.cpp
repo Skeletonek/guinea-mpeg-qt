@@ -1,42 +1,41 @@
 #include <QApplication>
+#include <QLocale>
+#include <QPalette>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QQmlEngine>
 #include <QQuickStyle>
 #include <QQuickWindow>
 #include <QSGRendererInterface>
-#include <QPalette>
 #include <QStyleHints>
 #include <QTranslator>
-#include <QLocale>
 
-#include <clocale>
-#include <ranges>
-#include "mpvitem.h"
 #include "backend.h"
 #include "guinea_mpeg_core.h"
+#include "mpvitem.h"
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
 #include <QIcon>
-#include <QUrl>
-#include <QSysInfo>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QSysInfo>
+#include <QUrl>
+#include <clocale>
+#include <ranges>
 
 #ifdef Q_OS_WIN
-#include <windows.h>
-#include <winreg.h>
 #include <cstdio>
 #include <iostream>
+#include <windows.h>
+#include <winreg.h>
 #endif
 
 // GUI-subsystem apps don't inherit a console, so stdout/stderr are lost when
 // launched from a terminal. Attach to the parent's console (no-op when
 // double-clicked, so no console window ever flashes) and redirect the CRT
 // streams to it.
-static void attachParentConsole()
-{
+static void attachParentConsole() {
 #ifdef Q_OS_WIN
     if (!AttachConsole(ATTACH_PARENT_PROCESS))
         return;
@@ -48,25 +47,19 @@ static void attachParentConsole()
 #endif
 }
 
-static QJsonObject readAppOptions()
-{
+static QJsonObject readAppOptions() {
     const char* json = guinea_mpeg_get_options();
-    if (!json) return {};
+    if (!json)
+        return {};
     QJsonObject opts = QJsonDocument::fromJson(QByteArray(json)).object();
     guinea_mpeg_free_string(json);
     return opts;
 }
 
-static QStringList availableQmlStyles()
-{
-    static const QStringList candidates = {
-        QStringLiteral("Fusion"),
-        QStringLiteral("Universal"),
-        QStringLiteral("Material"),
-        QStringLiteral("Windows"),
-        QStringLiteral("Imagine"),
-        QStringLiteral("FluentWinUI3")
-    };
+static QStringList availableQmlStyles() {
+    static const QStringList candidates = {QStringLiteral("Fusion"),   QStringLiteral("Universal"),
+                                           QStringLiteral("Material"), QStringLiteral("Windows"),
+                                           QStringLiteral("Imagine"),  QStringLiteral("FluentWinUI3")};
 
     QStringList styles;
     const QQmlEngine probe;
@@ -91,8 +84,7 @@ static QStringList availableQmlStyles()
     return styles;
 }
 
-static QPalette makeDarkPalette()
-{
+static QPalette makeDarkPalette() {
     QPalette p;
     p.setColor(QPalette::Window, QColor(53, 53, 53));
     p.setColor(QPalette::WindowText, QColor(220, 220, 220));
@@ -111,8 +103,7 @@ static QPalette makeDarkPalette()
     return p;
 }
 
-static QPalette makeLightPalette()
-{
+static QPalette makeLightPalette() {
     QPalette p;
     p.setColor(QPalette::Window, QColor(240, 240, 240));
     p.setColor(QPalette::WindowText, QColor(0, 0, 0));
@@ -131,18 +122,15 @@ static QPalette makeLightPalette()
     return p;
 }
 
-static Qt::ColorScheme detectSystemColorScheme()
-{
+static Qt::ColorScheme detectSystemColorScheme() {
     Qt::ColorScheme scheme = QApplication::styleHints()->colorScheme();
 #ifdef Q_OS_WIN
     if (scheme == Qt::ColorScheme::Unknown) {
         // Fallback: read Windows "apps use light theme" registry value.
         DWORD value = 1;
         DWORD size = sizeof(value);
-        if (RegGetValueW(HKEY_CURRENT_USER,
-                         L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
-                         L"AppsUseLightTheme",
-                         RRF_RT_REG_DWORD, nullptr, &value, &size) == ERROR_SUCCESS)
+        if (RegGetValueW(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+                         L"AppsUseLightTheme", RRF_RT_REG_DWORD, nullptr, &value, &size) == ERROR_SUCCESS)
             scheme = value ? Qt::ColorScheme::Light : Qt::ColorScheme::Dark;
     }
 #endif
@@ -151,8 +139,7 @@ static Qt::ColorScheme detectSystemColorScheme()
     return scheme;
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char* argv[]) {
     attachParentConsole();
     QApplication app(argc, argv);
 #ifdef Q_OS_LINUX
@@ -205,11 +192,7 @@ int main(int argc, char *argv[])
     // Debug builds allow the full combination (see AGENTS.md).
     QStringList colorSchemeLockedStyles;
 #ifdef QT_NO_DEBUG
-    colorSchemeLockedStyles = {
-        QStringLiteral("Material"),
-        QStringLiteral("Universal"),
-        QStringLiteral("Imagine")
-    };
+    colorSchemeLockedStyles = {QStringLiteral("Material"), QStringLiteral("Universal"), QStringLiteral("Imagine")};
 #endif
     if (colorSchemeLockedStyles.contains(themeOption))
         colorSchemeOption = QStringLiteral("light");
@@ -220,8 +203,8 @@ int main(int argc, char *argv[])
     // provides the correct native palette, while Windows needs a forced palette
     // because its platform theme mixes light/dark (defaults light on Win10).
     Qt::ColorScheme effectiveScheme = Qt::ColorScheme::Light;
-    const bool explicitScheme = colorSchemeOption == QLatin1String("dark")
-                             || colorSchemeOption == QLatin1String("light");
+    const bool explicitScheme =
+        colorSchemeOption == QLatin1String("dark") || colorSchemeOption == QLatin1String("light");
     if (colorSchemeOption == QLatin1String("dark"))
         effectiveScheme = Qt::ColorScheme::Dark;
     else if (colorSchemeOption == QLatin1String("light"))
@@ -246,33 +229,29 @@ int main(int argc, char *argv[])
     {
         QPalette pal = app.palette();
 
-        auto hex = [](const QColor &c) { return c.name(QColor::HexArgb); };
+        auto hex = [](const QColor& c) { return c.name(QColor::HexArgb); };
 
         QColor bgCol = pal.color(QPalette::Window);
         QColor txtCol = pal.color(QPalette::WindowText);
         QColor btnCol = pal.color(QPalette::Button);
 
-        auto blend = [](const QColor &a, const QColor &b, double t) {
-            return QColor(
-                int(a.red() * (1 - t) + b.red() * t),
-                int(a.green() * (1 - t) + b.green() * t),
-                int(a.blue() * (1 - t) + b.blue() * t),
-                int(a.alpha() * (1 - t) + b.alpha() * t)
-            );
+        auto blend = [](const QColor& a, const QColor& b, double t) {
+            return QColor(int(a.red() * (1 - t) + b.red() * t), int(a.green() * (1 - t) + b.green() * t),
+                          int(a.blue() * (1 - t) + b.blue() * t), int(a.alpha() * (1 - t) + b.alpha() * t));
         };
 
-        theme["bg"]            = hex(bgCol);
-        theme["surface"]       = hex(pal.color(QPalette::Base));
-        theme["widget"]        = hex(btnCol);
-        theme["widgetBorder"]  = hex(pal.color(QPalette::Mid));
-        theme["text"]          = hex(txtCol);
+        theme["bg"] = hex(bgCol);
+        theme["surface"] = hex(pal.color(QPalette::Base));
+        theme["widget"] = hex(btnCol);
+        theme["widgetBorder"] = hex(pal.color(QPalette::Mid));
+        theme["text"] = hex(txtCol);
         theme["textSecondary"] = hex(blend(txtCol, bgCol, 0.4));
-        theme["textMuted"]     = hex(blend(txtCol, bgCol, 0.65));
-        theme["textHeader"]    = hex(txtCol);
-        theme["textDim"]       = hex(blend(txtCol, bgCol, 0.8));
-        theme["accent"]        = hex(pal.color(QPalette::Highlight));
-        theme["accentEnd"]     = hex(pal.color(QPalette::Highlight));
-        theme["black"]         = "#000000";
+        theme["textMuted"] = hex(blend(txtCol, bgCol, 0.65));
+        theme["textHeader"] = hex(txtCol);
+        theme["textDim"] = hex(blend(txtCol, bgCol, 0.8));
+        theme["accent"] = hex(pal.color(QPalette::Highlight));
+        theme["accentEnd"] = hex(pal.color(QPalette::Highlight));
+        theme["black"] = "#000000";
 
         QColor overlayCol = txtCol;
         overlayCol.setAlpha(darkTheme ? 128 : 64);
@@ -330,8 +309,8 @@ int main(int argc, char *argv[])
 #else
     buildInfo["cpuArch"] = QSysInfo::currentCpuArchitecture();
 #endif
-    buildInfo["copyright"] = buildInfo["author"].toString() + QStringLiteral(" ")
-        + QString::fromLatin1(__DATE__).right(4);
+    buildInfo["copyright"] =
+        buildInfo["author"].toString() + QStringLiteral(" ") + QString::fromLatin1(__DATE__).right(4);
 
     QQmlApplicationEngine engine;
     engine.addImportPath("qrc:/qml");
@@ -367,14 +346,8 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("initialFilePath", QVariant(initialFilePath));
 
     QObject::connect(
-        &engine,
-        &QQmlApplicationEngine::objectCreationFailed,
-        &app,
-        []() {
-            QCoreApplication::exit(-1);
-        },
-        Qt::QueuedConnection
-    );
+        &engine, &QQmlApplicationEngine::objectCreationFailed, &app, []() { QCoreApplication::exit(-1); },
+        Qt::QueuedConnection);
     engine.load(QUrl(QStringLiteral("qrc:/qml/main.qml")));
 
     return app.exec();

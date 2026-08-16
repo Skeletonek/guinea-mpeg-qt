@@ -1,24 +1,19 @@
+import "Components"
+import "Dialogs"
+import GuineaMpeg 1.0
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import "Components"
-import "Dialogs"
-import "Utils/FormatUtils.js" as FormatUtils
-import "Utils/DataUtils.js" as DataUtils
 import "Utils/Constants.js" as Constants
-import GuineaMpeg 1.0
+import "Utils/DataUtils.js" as DataUtils
+import "Utils/FormatUtils.js" as FormatUtils
 
 ApplicationWindow {
     id: appWindow
-    width: 1024
-    height: 800
-    minimumWidth: 900
-    minimumHeight: 700
-    visible: true
-    title: "GuineaMPEG"
 
     property string currentVideoPath: ""
-    property var currentVideoInfo: ({})
+    property var currentVideoInfo: ({
+    })
     property string currentProfile: "H.264 High"
     property string currentCodec: Constants.codecKeys[0]
     property int videoDuration: 0
@@ -35,30 +30,135 @@ ApplicationWindow {
     property var transcodeQueue: []
     property var activeJob: null
 
+    function loadVideo(filePath, fileUrl) {
+        currentVideoPath = filePath;
+        appWindow.videoSource = fileUrl || ("file://" + encodeURI(filePath));
+        var info = backend.getVideoInfo(filePath);
+        currentVideoInfo = info;
+        videoDuration = Math.round(info.duration * 1000);
+        settingTimeline = true;
+        startTime = 0;
+        endTime = videoDuration;
+        settingTimeline = false;
+        videoStreams = info.video_streams || [];
+        audioStreams = info.audio_streams || [];
+        var vi = [];
+        for (var v = 0; v < videoStreams.length; v++) vi.push(v)
+        selectedVideoIndices = vi;
+        var ai = [];
+        for (var a = 0; a < audioStreams.length; a++) ai.push(a)
+        selectedAudioIndices = ai;
+        var name = FormatUtils.getFilename(filePath);
+        var fps = FormatUtils.formatFps(info.fps || "0/1");
+        videoInfoText = qsTr("File: %1\nDuration: %2s\nResolution: %3x%4\nFPS: %5\nVideo: %6\nAudio: %7").arg(name).arg(info.duration.toFixed(1)).arg(info.width).arg(info.height).arg(fps).arg(info.codec).arg(info.audio_codec || "N/A");
+        var base = FormatUtils.getBaseFilename(name);
+        var dir = FormatUtils.getDirectory(filePath);
+        var profileData = {
+        };
+        try {
+            profileData = JSON.parse(backend.loadProfile(currentProfile));
+        } catch (e) {
+        }
+        appWindow.outputFilePath = dir + base + "_transcoded." + getExtensionForProfile(profileData);
+    }
+
+    function getExtensionForProfile(d) {
+        if (d.video_enabled !== false)
+            return Constants.profileExtensions[d.codec] || "webm";
+
+        return Constants.audioExtensions[d.audio_codec] || "ogg";
+    }
+
+    function updateCodec() {
+        var d;
+        try {
+            d = JSON.parse(backend.loadProfile(currentProfile));
+            currentCodec = d.codec || Constants.codecKeys[0];
+        } catch (e) {
+            currentCodec = Constants.codecKeys[0];
+        }
+        var ext = getExtensionForProfile(d || {
+        });
+        var dot = appWindow.outputFilePath.lastIndexOf(".");
+        appWindow.outputFilePath = appWindow.outputFilePath.substring(0, dot >= 0 ? dot : 0) + "." + ext;
+    }
+
+    function startTranscoding() {
+        if (appWindow.outputFilePath === "") {
+            videoInfoText = qsTr("Please set an output file path first");
+            return ;
+        }
+        if (backend.fileExists(appWindow.outputFilePath)) {
+            overwriteDialog.filePath = appWindow.outputFilePath;
+            overwriteDialog.open();
+            return ;
+        }
+        enqueueTranscoding();
+    }
+
+    function enqueueTranscoding() {
+        var profile = JSON.parse(backend.loadProfile(currentProfile));
+        if (selectedVideoIndices.length > 0)
+            profile.video_stream_indices = selectedVideoIndices;
+
+        if (selectedAudioIndices.length > 0)
+            profile.audio_stream_indices = selectedAudioIndices;
+
+        var job = {
+            "input": currentVideoPath,
+            "output": appWindow.outputFilePath,
+            "start": startTime / 1000,
+            "end": endTime / 1000,
+            "profile": JSON.stringify(profile),
+            "targetFps": profile.framerate || 0,
+            "sourceFps": FormatUtils.fpsToDecimal(currentVideoInfo.fps || "") || 0,
+            "durationMs": endTime - startTime
+        };
+        transcodeQueue = transcodeQueue.concat([job]);
+        processTranscodeQueue();
+    }
+
+    function processTranscodeQueue() {
+        if (activeJob !== null || transcodeQueue.length === 0)
+            return ;
+
+        var job = transcodeQueue[0];
+        activeJob = job;
+        backend.startTranscode(job.input, job.output, job.start, job.end, job.profile);
+        transcodeDialog.open();
+    }
+
+    width: 1024
+    height: 800
+    minimumWidth: 900
+    minimumHeight: 700
+    visible: true
+    title: "GuineaMPEG"
     Component.onCompleted: {
         if (!mpvAvailable)
-            mpvWarningDialog.open()
+            mpvWarningDialog.open();
         else if (!ffmpegAvailable)
-            ffmpegWarningDialog.open()
+            ffmpegWarningDialog.open();
         else if (initialFilePath !== "")
-            appWindow.loadVideo(initialFilePath)
+            appWindow.loadVideo(initialFilePath);
     }
 
     StackView {
         id: stackView
+
         anchors.fill: parent
         initialItem: mainPage
 
         Component {
             id: mainPage
+
             Rectangle {
                 width: stackView.width
                 height: stackView.height
                 color: theme.bg
-
                 StackView.onActivated: {
-                    controlsPanel.refreshProfiles()
-                    appWindow.updateCodec()
+                    controlsPanel.refreshProfiles();
+                    appWindow.updateCodec();
                 }
 
                 DropArea {
@@ -66,16 +166,19 @@ ApplicationWindow {
                     onEntered: dragOverlay.visible = true
                     onExited: dragOverlay.visible = false
                     onDropped: function(drop) {
-                        dragOverlay.visible = false
-                        var url = String(drop.urls[0])
-                        if (url.length === 0) return
-                        var path = DataUtils.toLocalPath(url)
-                        appWindow.loadVideo(path, url)
+                        dragOverlay.visible = false;
+                        var url = String(drop.urls[0]);
+                        if (url.length === 0)
+                            return ;
+
+                        var path = DataUtils.toLocalPath(url);
+                        appWindow.loadVideo(path, url);
                     }
                 }
 
                 Rectangle {
                     id: dragOverlay
+
                     anchors.fill: parent
                     color: theme.accent
                     opacity: 0.15
@@ -92,6 +195,7 @@ ApplicationWindow {
 
                     VideoPreview {
                         id: player
+
                         width: Math.max(100, parent.width - 300 - parent.spacing)
                         height: parent.height
                         source: appWindow.videoSource
@@ -100,44 +204,52 @@ ApplicationWindow {
 
                     ControlsPanel {
                         id: controlsPanel
+
                         width: 300
                         height: parent.height
                         hostWindow: appWindow
                         playerItem: player
-
                         onOpenVideoClicked: fileDialog.open()
                         onProfileEditorClicked: {
-                            player.pause()
-                            stackView.push(profileEditorPage)
+                            player.pause();
+                            stackView.push(profileEditorPage);
                         }
                         onBrowseOutputClicked: {
-                            saveDialog.currentFile = "file://" + encodeURI(appWindow.outputFilePath)
-                            saveDialog.open()
+                            saveDialog.currentFile = "file://" + encodeURI(appWindow.outputFilePath);
+                            saveDialog.open();
                         }
                         onViewTranscodeClicked: transcodeDialog.open()
                         onSettingsClicked: optionsDialog.open()
                         onAboutClicked: aboutDialog.open()
                     }
+
                 }
+
             }
+
         }
 
         Component {
             id: profileEditorPage
+
             ProfileEditor {
                 profileName: currentProfile
                 onBack: stackView.pop()
             }
+
         }
+
     }
 
     FileOpenDialog {
         id: fileDialog
+
         appWindow: appWindow
     }
 
     FileSaveDialog {
         id: saveDialog
+
         appWindow: appWindow
     }
 
@@ -147,6 +259,7 @@ ApplicationWindow {
 
     InfoBanner {
         id: copyBanner
+
         x: aboutDialog.x + (aboutDialog.width - width) / 2
         y: aboutDialog.y + aboutDialog.height + 8
         z: 300
@@ -162,11 +275,13 @@ ApplicationWindow {
 
     TranscodeDialog {
         id: transcodeDialog
+
         appWindow: appWindow
     }
 
     OverwriteConfirmDialog {
         id: overwriteDialog
+
         onOverwriteRequested: enqueueTranscoding()
     }
 
@@ -179,107 +294,18 @@ ApplicationWindow {
     }
 
     Connections {
-        target: backend
         function onTranscodingChanged() {
-            if (backend.transcoding) return
+            if (backend.transcoding)
+                return ;
+
             if (transcodeQueue.length > 0) {
-                transcodeQueue = transcodeQueue.slice(1)
-                activeJob = null
+                transcodeQueue = transcodeQueue.slice(1);
+                activeJob = null;
             }
-            processTranscodeQueue()
+            processTranscodeQueue();
         }
+
+        target: backend
     }
 
-    function loadVideo(filePath, fileUrl) {
-        currentVideoPath = filePath
-        appWindow.videoSource = fileUrl || ("file://" + encodeURI(filePath))
-
-        var info = backend.getVideoInfo(filePath)
-        currentVideoInfo = info
-        videoDuration = Math.round(info.duration * 1000)
-        settingTimeline = true
-        startTime = 0
-        endTime = videoDuration
-        settingTimeline = false
-        videoStreams = info.video_streams || []
-        audioStreams = info.audio_streams || []
-        var vi = []
-        for (var v = 0; v < videoStreams.length; v++) vi.push(v)
-        selectedVideoIndices = vi
-        var ai = []
-        for (var a = 0; a < audioStreams.length; a++) ai.push(a)
-        selectedAudioIndices = ai
-
-        var name = FormatUtils.getFilename(filePath)
-        var fps = FormatUtils.formatFps(info.fps || "0/1")
-        videoInfoText = qsTr("File: %1\nDuration: %2s\nResolution: %3x%4\nFPS: %5\nVideo: %6\nAudio: %7")
-            .arg(name).arg(info.duration.toFixed(1)).arg(info.width).arg(info.height).arg(fps).arg(info.codec).arg(info.audio_codec || "N/A")
-
-        var base = FormatUtils.getBaseFilename(name)
-        var dir = FormatUtils.getDirectory(filePath)
-        var profileData = {}
-        try { profileData = JSON.parse(backend.loadProfile(currentProfile)) } catch(e) {}
-        appWindow.outputFilePath = dir + base + "_transcoded." + getExtensionForProfile(profileData)
-    }
-
-    function getExtensionForProfile(d) {
-        if (d.video_enabled !== false) {
-            return Constants.profileExtensions[d.codec] || "webm"
-        }
-        return Constants.audioExtensions[d.audio_codec] || "ogg"
-    }
-
-    function updateCodec() {
-        var d
-        try {
-            d = JSON.parse(backend.loadProfile(currentProfile))
-            currentCodec = d.codec || Constants.codecKeys[0]
-        } catch(e) {
-            currentCodec = Constants.codecKeys[0]
-        }
-        var ext = getExtensionForProfile(d || {})
-        var dot = appWindow.outputFilePath.lastIndexOf(".")
-        appWindow.outputFilePath = appWindow.outputFilePath.substring(0, dot >= 0 ? dot : 0) + "." + ext
-    }
-
-    function startTranscoding() {
-        if (appWindow.outputFilePath === "") {
-            videoInfoText = qsTr("Please set an output file path first")
-            return
-        }
-        if (backend.fileExists(appWindow.outputFilePath)) {
-            overwriteDialog.filePath = appWindow.outputFilePath
-            overwriteDialog.open()
-            return
-        }
-        enqueueTranscoding()
-    }
-
-    function enqueueTranscoding() {
-        var profile = JSON.parse(backend.loadProfile(currentProfile))
-        if (selectedVideoIndices.length > 0)
-            profile.video_stream_indices = selectedVideoIndices
-        if (selectedAudioIndices.length > 0)
-            profile.audio_stream_indices = selectedAudioIndices
-        var job = {
-            input: currentVideoPath,
-            output: appWindow.outputFilePath,
-            start: startTime / 1000.0,
-            end: endTime / 1000.0,
-            profile: JSON.stringify(profile),
-            targetFps: profile.framerate || 0,
-            sourceFps: FormatUtils.fpsToDecimal(currentVideoInfo.fps || "") || 0,
-            durationMs: endTime - startTime
-        }
-        transcodeQueue = transcodeQueue.concat([job])
-        processTranscodeQueue()
-    }
-
-    function processTranscodeQueue() {
-        if (activeJob !== null || transcodeQueue.length === 0) return
-        var job = transcodeQueue[0]
-        activeJob = job
-        backend.startTranscode(job.input, job.output, job.start, job.end, job.profile)
-        transcodeDialog.open()
-    }
 }

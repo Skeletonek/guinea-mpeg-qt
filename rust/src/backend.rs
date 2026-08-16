@@ -40,10 +40,7 @@ pub extern "C" fn guinea_mpeg_load_profile(name: *const c_char) -> *mut c_char {
 }
 
 #[no_mangle]
-pub extern "C" fn guinea_mpeg_save_profile(
-    name: *const c_char,
-    json: *const c_char,
-) -> bool {
+pub extern "C" fn guinea_mpeg_save_profile(name: *const c_char, json: *const c_char) -> bool {
     let n = unsafe { from_cstr(name) };
     let j = unsafe { from_cstr(json) };
     crate::config::save_profile(n, j).is_ok()

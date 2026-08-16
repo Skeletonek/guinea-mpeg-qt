@@ -80,7 +80,8 @@ fn crf_with_bitrate_emits_both() {
 
 #[test]
 fn vbr_emits_bitrate_only() {
-    let args = args_for(r#"{"codec":"h264","encoder":"libx264","bitrate":"2M","rate_control":"vbr"}"#);
+    let args =
+        args_for(r#"{"codec":"h264","encoder":"libx264","bitrate":"2M","rate_control":"vbr"}"#);
     assert!(contains_pair(&args, "-b:v", "2M"));
     assert!(!contains_flag(&args, "-crf"));
     assert!(!contains_flag(&args, "-minrate"));
@@ -88,7 +89,8 @@ fn vbr_emits_bitrate_only() {
 
 #[test]
 fn cbr_emits_minrate_maxrate_bufsize() {
-    let args = args_for(r#"{"codec":"h264","encoder":"libx264","bitrate":"2M","rate_control":"cbr"}"#);
+    let args =
+        args_for(r#"{"codec":"h264","encoder":"libx264","bitrate":"2M","rate_control":"cbr"}"#);
     assert!(contains_pair(&args, "-b:v", "2M"));
     assert!(contains_pair(&args, "-minrate", "2M"));
     assert!(contains_pair(&args, "-maxrate", "2M"));
@@ -97,7 +99,9 @@ fn cbr_emits_minrate_maxrate_bufsize() {
 
 #[test]
 fn vp9_deadline_and_cpu_used() {
-    let args = args_for(r#"{"codec":"vp9","encoder":"libvpx-vp9","crf":40,"preset":"good","cpu_used":3,"tune":"ssim"}"#);
+    let args = args_for(
+        r#"{"codec":"vp9","encoder":"libvpx-vp9","crf":40,"preset":"good","cpu_used":3,"tune":"ssim"}"#,
+    );
     assert!(contains_pair(&args, "-deadline", "good"));
     assert!(contains_pair(&args, "-cpu-used", "3"));
     assert!(contains_pair(&args, "-tune", "ssim"));
@@ -119,7 +123,10 @@ fn av1_svtav1_params() {
         }"#,
     );
     let idx = args.iter().position(|a| a == "-svtav1-params").unwrap();
-    assert_eq!(args[idx + 1], "preset=6:enable-qm=1:tune=2:crf=35:tile-rows=1:tile-columns=2");
+    assert_eq!(
+        args[idx + 1],
+        "preset=6:enable-qm=1:tune=2:crf=35:tile-rows=1:tile-columns=2"
+    );
 }
 
 #[test]
@@ -133,7 +140,8 @@ fn nvenc_uses_cq() {
 
 #[test]
 fn nvenc_cbr_uses_lowercase_rc() {
-    let args = args_for(r#"{"codec":"h264","encoder":"h264_nvenc","bitrate":"4M","rate_control":"cbr"}"#);
+    let args =
+        args_for(r#"{"codec":"h264","encoder":"h264_nvenc","bitrate":"4M","rate_control":"cbr"}"#);
     assert!(contains_pair(&args, "-rc", "cbr"));
     assert!(!contains_flag(&args, "-cq"));
 }
@@ -166,7 +174,13 @@ fn qsv_uses_global_quality() {
 
 #[test]
 fn trim_sets_ss_and_t() {
-    let args = build_command("in.mp4", "out.mp4", 10.0, 16.0, &profile(r#"{"codec":"h264"}"#));
+    let args = build_command(
+        "in.mp4",
+        "out.mp4",
+        10.0,
+        16.0,
+        &profile(r#"{"codec":"h264"}"#),
+    );
     let ss_idx = args.iter().position(|a| a == "-ss").unwrap();
     let i_idx = args.iter().position(|a| a == "-i").unwrap();
     assert_eq!(ss_idx + 2, i_idx);
@@ -182,13 +196,20 @@ fn no_trim_when_zero_start_or_equal_times() {
     let args = args_for(r#"{"codec":"h264"}"#);
     assert!(!contains_flag(&args, "-ss"));
     assert!(!contains_flag(&args, "-t"));
-    let args = build_command("in.mp4", "out.mp4", 10.0, 10.0, &profile(r#"{"codec":"h264"}"#));
+    let args = build_command(
+        "in.mp4",
+        "out.mp4",
+        10.0,
+        10.0,
+        &profile(r#"{"codec":"h264"}"#),
+    );
     assert!(!contains_flag(&args, "-t"));
 }
 
 #[test]
 fn explicit_stream_mapping() {
-    let args = args_for(r#"{"codec":"h264","video_stream_indices":[0,2],"audio_stream_indices":[1]}"#);
+    let args =
+        args_for(r#"{"codec":"h264","video_stream_indices":[0,2],"audio_stream_indices":[1]}"#);
     assert!(contains_pair(&args, "-map", "0:v:0"));
     assert!(contains_pair(&args, "-map", "0:v:2"));
     assert!(contains_pair(&args, "-map", "0:a:1"));
@@ -231,7 +252,9 @@ fn audio_codec_explicit() {
 
 #[test]
 fn audio_parameters() {
-    let args = args_for(r#"{"codec":"h264","audio_bitrate":"192k","audio_channels":1,"audio_sample_rate":44100}"#);
+    let args = args_for(
+        r#"{"codec":"h264","audio_bitrate":"192k","audio_channels":1,"audio_sample_rate":44100}"#,
+    );
     assert!(contains_pair(&args, "-b:a", "192k"));
     assert!(contains_pair(&args, "-ac", "1"));
     assert!(contains_pair(&args, "-ar", "44100"));
@@ -266,7 +289,9 @@ fn gif_palette_and_loop() {
 
 #[test]
 fn webp_quality_and_loop() {
-    let args = args_for(r#"{"codec":"webp","encoder":"libwebp_anim","quality":50,"loop_enabled":false,"audio_enabled":false}"#);
+    let args = args_for(
+        r#"{"codec":"webp","encoder":"libwebp_anim","quality":50,"loop_enabled":false,"audio_enabled":false}"#,
+    );
     assert!(contains_pair(&args, "-quality", "50"));
     assert!(contains_pair(&args, "-loop", "1"));
     assert!(contains_flag(&args, "-an"));

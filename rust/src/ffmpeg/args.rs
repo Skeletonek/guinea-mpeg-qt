@@ -1,13 +1,25 @@
 use crate::config::VideoProfile;
-use crate::ffmpeg::{audio_codec_for_profile, detect_vaapi_device, encoder_capabilities, encoder_family, normalize_path, video_codec, EncoderFamily};
+use crate::ffmpeg::{
+    audio_codec_for_profile, detect_vaapi_device, encoder_capabilities, encoder_family,
+    normalize_path, video_codec, EncoderFamily,
+};
 
-fn push_rc_flag(args: &mut Vec<String>, family: EncoderFamily, caps: &Option<super::EncoderCapabilities>, mode: &str) {
+fn push_rc_flag(
+    args: &mut Vec<String>,
+    family: EncoderFamily,
+    caps: &Option<super::EncoderCapabilities>,
+    mode: &str,
+) {
     if family == EncoderFamily::Vaapi {
         args.push("-rc_mode".to_string());
         args.push(mode.to_uppercase());
     } else if let Some(ref caps) = caps {
         if let Some(ref rc_flag) = caps.rc_flag {
-            let rc_mode = if rc_flag == "-rc" { mode.to_lowercase() } else { mode.to_uppercase() };
+            let rc_mode = if rc_flag == "-rc" {
+                mode.to_lowercase()
+            } else {
+                mode.to_uppercase()
+            };
             args.push(rc_flag.clone());
             args.push(rc_mode);
         }
@@ -81,9 +93,7 @@ fn add_rate_control(args: &mut Vec<String>, profile: &VideoProfile, enc: &str) {
         }
         _ => {
             if let Some(crf) = profile.crf {
-                let crf_flag = caps.as_ref()
-                    .map(|c| c.crf_flag.as_str())
-                    .unwrap_or("-crf");
+                let crf_flag = caps.as_ref().map(|c| c.crf_flag.as_str()).unwrap_or("-crf");
                 args.push(crf_flag.to_string());
                 args.push(crf.to_string());
             }
@@ -115,9 +125,7 @@ fn add_codec_specific(args: &mut Vec<String>, profile: &VideoProfile, enc: &str)
         }
         _ => {
             if let Some(preset) = &profile.preset {
-                let can_preset = caps.as_ref()
-                    .map(|c| c.uses_preset)
-                    .unwrap_or(true);
+                let can_preset = caps.as_ref().map(|c| c.uses_preset).unwrap_or(true);
                 if can_preset {
                     args.push("-preset".to_string());
                     args.push(preset.clone());
@@ -138,9 +146,7 @@ fn add_codec_specific(args: &mut Vec<String>, profile: &VideoProfile, enc: &str)
     if let Some(tune) = &profile.tune {
         let can_tune = match profile.codec.as_str() {
             "vp8" | "vp9" => tune == "psnr" || tune == "ssim",
-            _ => caps.as_ref()
-                .map(|c| c.uses_tune)
-                .unwrap_or(true),
+            _ => caps.as_ref().map(|c| c.uses_tune).unwrap_or(true),
         };
         if can_tune {
             args.push("-tune".to_string());
@@ -200,12 +206,15 @@ fn add_av1_params(args: &mut Vec<String>, profile: &VideoProfile) {
         svt.push("enable-qm=1".to_string());
     }
     if let Some(tune) = &profile.tune {
-        svt.push(format!("tune={}", match tune.to_lowercase().as_str() {
-            "psnr" => "0",
-            "ssim" => "1",
-            "vmaf" => "2",
-            _ => "0",
-        }));
+        svt.push(format!(
+            "tune={}",
+            match tune.to_lowercase().as_str() {
+                "psnr" => "0",
+                "ssim" => "1",
+                "vmaf" => "2",
+                _ => "0",
+            }
+        ));
     }
     match profile.rate_control.as_deref() {
         Some("cbr" | "vbr" | "bitrate") => {

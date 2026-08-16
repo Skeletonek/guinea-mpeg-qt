@@ -1,26 +1,35 @@
+import GuineaMpeg 1.0
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import GuineaMpeg 1.0
 import "Utils/FormatUtils.js" as FormatUtils
 
 Rectangle {
     id: root
-    color: theme.black
-    border.color: theme.widgetBorder
-    border.width: 1
-    clip: true
 
     property url source: ""
     property bool hasVideo: false
-
     property alias playing: player.playing
     property alias position: player.position
     property alias duration: player.duration
     property alias volume: player.volume
 
+    function pause() {
+        player.pause();
+    }
+
+    function play() {
+        player.play();
+    }
+
+    color: theme.black
+    border.color: theme.widgetBorder
+    border.width: 1
+    clip: true
+
     MpvItem {
         id: player
+
         anchors.fill: parent
         visible: root.hasVideo
         source: root.source
@@ -51,9 +60,9 @@ Rectangle {
                 Layout.preferredWidth: 40
                 onClicked: {
                     if (player.playing)
-                        player.pause()
+                        player.pause();
                     else
-                        player.play()
+                        player.play();
                 }
                 Layout.fillHeight: true
             }
@@ -80,8 +89,8 @@ Rectangle {
                 value: player.volume
                 Layout.preferredWidth: 60
                 onMoved: {
-                    player.volume = value
-                    backend.setOption("previewVolume", value)
+                    player.volume = value;
+                    backend.setOption("previewVolume", value);
                 }
                 Layout.fillHeight: true
             }
@@ -100,9 +109,9 @@ Rectangle {
                 verticalAlignment: Text.AlignVCenter
                 Layout.fillHeight: true
             }
-        }
-     }
 
-     function pause() { player.pause() }
-     function play() { player.play() }
+        }
+
+    }
+
 }

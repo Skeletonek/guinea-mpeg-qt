@@ -1,8 +1,11 @@
 use crate::ffmpeg::{EncoderCapabilities, EncoderFamily};
 
 pub(crate) fn encoder_family(encoder: &str) -> EncoderFamily {
-    if encoder.starts_with("libx26") || encoder.starts_with("libvpx") || encoder == "libsvtav1"
-        || encoder == "libaom-av1" || encoder == "librav1e"
+    if encoder.starts_with("libx26")
+        || encoder.starts_with("libvpx")
+        || encoder == "libsvtav1"
+        || encoder == "libaom-av1"
+        || encoder == "librav1e"
     {
         EncoderFamily::Software
     } else if encoder.ends_with("_nvenc") || encoder.ends_with("_nvenc_hybrid") {
@@ -23,9 +26,24 @@ pub(crate) fn encoder_family(encoder: &str) -> EncoderFamily {
 pub(crate) fn encoder_capabilities(encoder: &str) -> Option<EncoderCapabilities> {
     Some(match encoder_family(encoder) {
         EncoderFamily::Nvenc => EncoderCapabilities {
-            presets: Some(vec!["p1","p2","p3","p4","p5","p6","p7"].into_iter().map(String::from).collect()),
-            tunes: Some(vec!["hq","ll","ull","lossless"].into_iter().map(String::from).collect()),
-            pix_fmts: Some(vec!["yuv420p","nv12","p010le","yuv444p"].into_iter().map(String::from).collect()),
+            presets: Some(
+                vec!["p1", "p2", "p3", "p4", "p5", "p6", "p7"]
+                    .into_iter()
+                    .map(String::from)
+                    .collect(),
+            ),
+            tunes: Some(
+                vec!["hq", "ll", "ull", "lossless"]
+                    .into_iter()
+                    .map(String::from)
+                    .collect(),
+            ),
+            pix_fmts: Some(
+                vec!["yuv420p", "nv12", "p010le", "yuv444p"]
+                    .into_iter()
+                    .map(String::from)
+                    .collect(),
+            ),
             uses_preset: true,
             uses_tune: true,
             uses_compression_level: false,
@@ -35,9 +53,24 @@ pub(crate) fn encoder_capabilities(encoder: &str) -> Option<EncoderCapabilities>
             rc_flag: Some("-rc".into()),
         },
         EncoderFamily::Qsv => EncoderCapabilities {
-            presets: Some(vec!["veryfast","faster","fast","medium","slow","slower"].into_iter().map(String::from).collect()),
-            tunes: Some(vec!["film","animation","grain"].into_iter().map(String::from).collect()),
-            pix_fmts: Some(vec!["nv12","yuv420p","p010le"].into_iter().map(String::from).collect()),
+            presets: Some(
+                vec!["veryfast", "faster", "fast", "medium", "slow", "slower"]
+                    .into_iter()
+                    .map(String::from)
+                    .collect(),
+            ),
+            tunes: Some(
+                vec!["film", "animation", "grain"]
+                    .into_iter()
+                    .map(String::from)
+                    .collect(),
+            ),
+            pix_fmts: Some(
+                vec!["nv12", "yuv420p", "p010le"]
+                    .into_iter()
+                    .map(String::from)
+                    .collect(),
+            ),
             uses_preset: true,
             uses_tune: true,
             uses_compression_level: false,
@@ -49,7 +82,12 @@ pub(crate) fn encoder_capabilities(encoder: &str) -> Option<EncoderCapabilities>
         EncoderFamily::Vaapi => EncoderCapabilities {
             presets: None,
             tunes: None,
-            pix_fmts: Some(vec!["nv12","vaapi_vld","p010le"].into_iter().map(String::from).collect()),
+            pix_fmts: Some(
+                vec!["nv12", "vaapi_vld", "p010le"]
+                    .into_iter()
+                    .map(String::from)
+                    .collect(),
+            ),
             uses_preset: false,
             uses_tune: false,
             uses_compression_level: true,
@@ -59,9 +97,24 @@ pub(crate) fn encoder_capabilities(encoder: &str) -> Option<EncoderCapabilities>
             rc_flag: Some("-rc_mode".into()),
         },
         EncoderFamily::Amf => EncoderCapabilities {
-            presets: Some(vec!["speed","balanced","quality"].into_iter().map(String::from).collect()),
-            tunes: Some(vec!["film","animation","grain"].into_iter().map(String::from).collect()),
-            pix_fmts: Some(vec!["nv12","yuv420p"].into_iter().map(String::from).collect()),
+            presets: Some(
+                vec!["speed", "balanced", "quality"]
+                    .into_iter()
+                    .map(String::from)
+                    .collect(),
+            ),
+            tunes: Some(
+                vec!["film", "animation", "grain"]
+                    .into_iter()
+                    .map(String::from)
+                    .collect(),
+            ),
+            pix_fmts: Some(
+                vec!["nv12", "yuv420p"]
+                    .into_iter()
+                    .map(String::from)
+                    .collect(),
+            ),
             uses_preset: true,
             uses_tune: true,
             uses_compression_level: false,
@@ -73,7 +126,12 @@ pub(crate) fn encoder_capabilities(encoder: &str) -> Option<EncoderCapabilities>
         EncoderFamily::Vulkan => EncoderCapabilities {
             presets: None,
             tunes: None,
-            pix_fmts: Some(vec!["yuv420p","nv12","gbrp10le"].into_iter().map(String::from).collect()),
+            pix_fmts: Some(
+                vec!["yuv420p", "nv12", "gbrp10le"]
+                    .into_iter()
+                    .map(String::from)
+                    .collect(),
+            ),
             uses_preset: false,
             uses_tune: false,
             uses_compression_level: false,

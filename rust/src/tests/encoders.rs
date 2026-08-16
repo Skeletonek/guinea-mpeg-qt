@@ -61,7 +61,11 @@ fn nvenc_capabilities() {
     assert_eq!(caps.crf_flag, "-cq");
     assert_eq!(caps.rc_flag.as_deref(), Some("-rc"));
     assert_eq!(caps.presets.as_ref().unwrap().first().unwrap(), "p1");
-    assert!(caps.pix_fmts.as_ref().unwrap().contains(&"yuv420p".to_string()));
+    assert!(caps
+        .pix_fmts
+        .as_ref()
+        .unwrap()
+        .contains(&"yuv420p".to_string()));
 }
 
 #[test]

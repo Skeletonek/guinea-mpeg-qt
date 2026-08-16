@@ -1,23 +1,17 @@
+import "Components"
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import "Components"
-import "Utils/FormatUtils.js" as FormatUtils
-import "Utils/DataUtils.js" as DataUtils
 import "Utils/Constants.js" as Constants
+import "Utils/DataUtils.js" as DataUtils
+import "Utils/FormatUtils.js" as FormatUtils
 
 Item {
     id: root
 
     property QtObject hostWindow: null
     property Item playerItem: null
-
     property var _profileNames: []
-
-    function refreshProfiles() {
-        var p = backend.availableProfiles()
-        try { _profileNames = JSON.parse(p) } catch(e) { _profileNames = [] }
-    }
 
     signal openVideoClicked()
     signal profileEditorClicked()
@@ -26,16 +20,26 @@ Item {
     signal settingsClicked()
     signal aboutClicked()
 
+    function refreshProfiles() {
+        var p = backend.availableProfiles();
+        try {
+            _profileNames = JSON.parse(p);
+        } catch (e) {
+            _profileNames = [];
+        }
+    }
+
     function _toggleSelection(index, checked, selection) {
-        return DataUtils.toggleSelection(index, checked, selection)
+        return DataUtils.toggleSelection(index, checked, selection);
     }
 
     function _streamText(stream, index, type) {
-        return FormatUtils.streamText(stream, index, type)
+        return FormatUtils.streamText(stream, index, type);
     }
 
     Flickable {
         id: rightPanelFlickable
+
         anchors.top: parent.top
         anchors.bottom: updateBanner.visible ? updateBanner.top : aboutButton.top
         anchors.bottomMargin: 4
@@ -43,13 +47,9 @@ Item {
         contentHeight: column.height
         clip: true
 
-        ScrollBar.vertical: ScrollBar {
-            id: vbar
-            policy: ScrollBar.AsNeeded
-        }
-
         Column {
             id: column
+
             spacing: 8
             width: rightPanelFlickable.width - (vbar.visible ? vbar.width : 0)
 
@@ -75,14 +75,15 @@ Item {
 
             Flickable {
                 id: videoInfoScroll
+
                 width: parent.width
                 height: Math.max(Math.min(videoInfoDisplay.contentHeight, 160), 120)
                 contentHeight: videoInfoDisplay.contentHeight
                 clip: true
-                ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
 
                 TextEdit {
                     id: videoInfoDisplay
+
                     readOnly: true
                     text: hostWindow ? hostWindow.videoInfoText : ""
                     wrapMode: TextEdit.Wrap
@@ -90,6 +91,11 @@ Item {
                     color: theme.text
                     textFormat: TextEdit.PlainText
                 }
+
+                ScrollBar.vertical: ScrollBar {
+                    policy: ScrollBar.AsNeeded
+                }
+
             }
 
             Label {
@@ -97,8 +103,7 @@ Item {
                 font.bold: true
                 font.pixelSize: 16
                 color: theme.text
-                visible: (hostWindow && hostWindow.videoStreams.length > 1)
-                         || (hostWindow && hostWindow.audioStreams.length > 1)
+                visible: (hostWindow && hostWindow.videoStreams.length > 1) || (hostWindow && hostWindow.audioStreams.length > 1)
             }
 
             Label {
@@ -121,11 +126,15 @@ Item {
                         checked: hostWindow ? hostWindow.selectedVideoIndices.indexOf(index) >= 0 : false
                         text: hostWindow ? _streamText(hostWindow.videoStreams[index], index, "video") : ""
                         onClicked: {
-                            if (!hostWindow) return
-                            hostWindow.selectedVideoIndices = _toggleSelection(index, checked, hostWindow.selectedVideoIndices)
+                            if (!hostWindow)
+                                return ;
+
+                            hostWindow.selectedVideoIndices = _toggleSelection(index, checked, hostWindow.selectedVideoIndices);
                         }
                     }
+
                 }
+
             }
 
             Label {
@@ -148,11 +157,15 @@ Item {
                         checked: hostWindow ? hostWindow.selectedAudioIndices.indexOf(index) >= 0 : false
                         text: hostWindow ? _streamText(hostWindow.audioStreams[index], index, "audio") : ""
                         onClicked: {
-                            if (!hostWindow) return
-                            hostWindow.selectedAudioIndices = _toggleSelection(index, checked, hostWindow.selectedAudioIndices)
+                            if (!hostWindow)
+                                return ;
+
+                            hostWindow.selectedAudioIndices = _toggleSelection(index, checked, hostWindow.selectedAudioIndices);
                         }
                     }
+
                 }
+
             }
 
             Label {
@@ -164,11 +177,12 @@ Item {
 
             ComboBox {
                 id: profileSelector
+
                 model: root._profileNames
                 onCurrentTextChanged: {
                     if (hostWindow) {
-                        hostWindow.currentProfile = currentText
-                        hostWindow.updateCodec()
+                        hostWindow.currentProfile = currentText;
+                        hostWindow.updateCodec();
                     }
                 }
                 width: parent.width
@@ -189,6 +203,7 @@ Item {
 
             TimelineControl {
                 id: timeline
+
                 width: parent.width
                 height: 80
                 mainWindow: hostWindow
@@ -196,14 +211,22 @@ Item {
                 startTime: hostWindow ? hostWindow.startTime : 0
                 endTime: hostWindow ? hostWindow.endTime : 0
                 onStartTimeChanged: {
-                    if (!hostWindow || hostWindow.settingTimeline) return
-                    hostWindow.startTime = startTime
-                    if (playerItem) playerItem.position = startTime
+                    if (!hostWindow || hostWindow.settingTimeline)
+                        return ;
+
+                    hostWindow.startTime = startTime;
+                    if (playerItem)
+                        playerItem.position = startTime;
+
                 }
                 onEndTimeChanged: {
-                    if (!hostWindow || hostWindow.settingTimeline) return
-                    hostWindow.endTime = endTime
-                    if (playerItem) playerItem.position = endTime
+                    if (!hostWindow || hostWindow.settingTimeline)
+                        return ;
+
+                    hostWindow.endTime = endTime;
+                    if (playerItem)
+                        playerItem.position = endTime;
+
                 }
             }
 
@@ -220,52 +243,69 @@ Item {
 
                 TextField {
                     id: outputPathField
+
                     text: hostWindow ? hostWindow.outputFilePath : ""
                     placeholderText: qsTr("Output path...")
                     onTextChanged: {
-                        if (hostWindow) hostWindow.outputFilePath = text
+                        if (hostWindow)
+                            hostWindow.outputFilePath = text;
+
                     }
                     width: parent.width - 40 - parent.spacing
                 }
 
                 Button {
                     id: browseButton
+
                     text: "..."
                     width: 40
                     onClicked: root.browseOutputClicked()
                 }
+
             }
 
             Button {
                 text: qsTr("Start Transcoding")
                 enabled: hostWindow && hostWindow.currentVideoPath !== "" && hostWindow.endTime > hostWindow.startTime
                 onClicked: {
-                    if (playerItem) playerItem.pause()
-                    if (hostWindow) hostWindow.startTranscoding()
+                    if (playerItem)
+                        playerItem.pause();
+
+                    if (hostWindow)
+                        hostWindow.startTranscoding();
+
                 }
                 width: parent.width
             }
 
             Label {
-                text: hostWindow && hostWindow.transcodeQueue.length > 1
-                      ? qsTr("Transcoding in progress... (%1 queued, click to view)")
-                            .arg(hostWindow.transcodeQueue.length - 1)
-                      : qsTr("Transcoding in progress... (click to view)")
+                text: hostWindow && hostWindow.transcodeQueue.length > 1 ? qsTr("Transcoding in progress... (%1 queued, click to view)").arg(hostWindow.transcodeQueue.length - 1) : qsTr("Transcoding in progress... (click to view)")
                 color: theme.accent
                 visible: backend.transcoding
                 width: parent.width
                 wrapMode: Text.WordWrap
+
                 MouseArea {
                     anchors.fill: parent
                     cursorShape: Qt.PointingHandCursor
                     onClicked: root.viewTranscodeClicked()
                 }
+
             }
+
         }
+
+        ScrollBar.vertical: ScrollBar {
+            id: vbar
+
+            policy: ScrollBar.AsNeeded
+        }
+
     }
 
     UpdateBanner {
         id: updateBanner
+
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: settingsButton.top
@@ -276,6 +316,7 @@ Item {
 
     Button {
         id: settingsButton
+
         anchors.left: parent.left
         anchors.bottom: parent.bottom
         width: 48
@@ -290,6 +331,7 @@ Item {
 
     Button {
         id: aboutButton
+
         anchors.right: parent.right
         anchors.bottom: parent.bottom
         width: 48
@@ -301,4 +343,5 @@ Item {
         display: Button.IconOnly
         onClicked: root.aboutClicked()
     }
+
 }

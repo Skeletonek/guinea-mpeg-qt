@@ -1,0 +1,6 @@
+# misc-* is intentionally excluded: its sub-checks (include-cleaner,
+# const-correctness, use-anonymous-namespace) are too noisy for Qt code.
+---
+Checks: '-*,bugprone-*,clang-analyzer-*,performance-*'
+WarningsAsErrors: '*'
+HeaderFilterRegex: '^src/'

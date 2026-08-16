@@ -14,14 +14,18 @@ class GuineaMpegBackendExt : public QObject {
     Q_OBJECT
     Q_PROPERTY(QString transcodeOutput READ transcodeOutput WRITE setTranscodeOutput NOTIFY transcodeOutputUpdated)
     Q_PROPERTY(bool transcoding READ transcoding WRITE setTranscoding NOTIFY transcodingChanged)
-public:
+  public:
     explicit GuineaMpegBackendExt(QObject* parent = nullptr);
     ~GuineaMpegBackendExt();
 
-    QString transcodeOutput() const { return m_transcodeOutput; }
+    QString transcodeOutput() const {
+        return m_transcodeOutput;
+    }
     void setTranscodeOutput(const QString& v);
 
-    bool transcoding() const { return m_transcoding; }
+    bool transcoding() const {
+        return m_transcoding;
+    }
     void setTranscoding(bool v);
 
     Q_INVOKABLE QString availableProfiles();
@@ -51,17 +55,16 @@ public:
     Q_INVOKABLE QString availableEncoders();
     Q_INVOKABLE QString encoderCapabilities(const QString& encoderName);
     Q_INVOKABLE void copyToClipboard(const QString& text);
-    Q_INVOKABLE QString startTranscode(const QString& rawInput, const QString& rawOutput,
-                                        double startTime, double endTime,
-                                        const QString& profileJson);
+    Q_INVOKABLE QString startTranscode(const QString& rawInput, const QString& rawOutput, double startTime,
+                                       double endTime, const QString& profileJson);
     Q_INVOKABLE void cancelTranscode();
 
-signals:
+  signals:
     void transcodeOutputUpdated();
     void transcodingChanged();
     void transcodeFinished(bool success);
 
-private:
+  private:
     void connectOutputCapture(QProcess* proc);
     void appendTranscodeOutput(const QString& chunk);
     void sendNotification(const QString& title, const QString& body);

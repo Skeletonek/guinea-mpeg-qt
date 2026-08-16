@@ -98,21 +98,12 @@ impl Default for AppOptions {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub(crate) struct AppConfig {
     #[serde(default)]
     pub(crate) profiles: Vec<VideoProfile>,
     #[serde(default)]
     pub(crate) options: AppOptions,
-}
-
-impl Default for AppConfig {
-    fn default() -> Self {
-        Self {
-            profiles: Vec::new(),
-            options: AppOptions::default(),
-        }
-    }
 }
 
 // Base directory for the app's config. Tests (and power users) can redirect it
@@ -135,7 +126,9 @@ fn user_config_path() -> PathBuf {
 
 fn defaults_path() -> PathBuf {
     // Override lookup so tests can point defaults at a fixture (GUINEA_MPEG_CONFIG_DIR).
-    let override_defaults = config_dir().join("guinea-mpeg").join("default_profiles.toml");
+    let override_defaults = config_dir()
+        .join("guinea-mpeg")
+        .join("default_profiles.toml");
     if override_defaults.exists() {
         return override_defaults;
     }
@@ -228,14 +221,22 @@ pub(crate) fn set_config(config: AppConfig) {
 }
 
 pub fn default_profile_names() -> Vec<String> {
-    let mut names = load_defaults().profiles.into_iter().map(|p| p.name.clone()).collect::<Vec<_>>();
+    let mut names = load_defaults()
+        .profiles
+        .into_iter()
+        .map(|p| p.name.clone())
+        .collect::<Vec<_>>();
     names.sort();
     names
 }
 
 pub fn available_profiles() -> Vec<String> {
     let config = get_config();
-    let mut names = config.profiles.iter().map(|p| p.name.clone()).collect::<Vec<_>>();
+    let mut names = config
+        .profiles
+        .iter()
+        .map(|p| p.name.clone())
+        .collect::<Vec<_>>();
     names.sort();
     names
 }
@@ -343,16 +344,21 @@ pub struct ImportSummary {
 }
 
 fn existing_profile_names() -> Vec<String> {
-    get_config().profiles.iter().map(|p| p.name.clone()).collect()
+    get_config()
+        .profiles
+        .iter()
+        .map(|p| p.name.clone())
+        .collect()
 }
 
 pub fn import_profiles_preview(path: &str) -> ImportPreview {
     let profiles = match parse_profiles_file(Path::new(path)) {
         Ok(p) => p,
         Err(e) => {
-            let mut out = ImportPreview::default();
-            out.error = Some(e.to_string());
-            return out;
+            return ImportPreview {
+                error: Some(e.to_string()),
+                ..Default::default()
+            };
         }
     };
     let existing = existing_profile_names();
@@ -370,9 +376,10 @@ pub fn import_profiles(path: &str, overwrite: bool) -> ImportSummary {
     let profiles = match parse_profiles_file(Path::new(path)) {
         Ok(p) => p,
         Err(e) => {
-            let mut out = ImportSummary::default();
-            out.error = Some(e.to_string());
-            return out;
+            return ImportSummary {
+                error: Some(e.to_string()),
+                ..Default::default()
+            };
         }
     };
     let existing = existing_profile_names();
