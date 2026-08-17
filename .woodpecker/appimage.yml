@@ -1,0 +1,31 @@
+when:
+  - event: tag
+
+labels:
+  platform: linux/amd64
+  backend: docker
+
+services:
+  - name: docker
+    image: docker:29-dind
+    privileged: true
+    commands:
+      - dockerd-entrypoint.sh --storage-driver=vfs --tls=false
+
+steps:
+  - name: build-appimage
+    image: docker:29.0
+    environment:
+      - DOCKER_HOST=tcp://docker:2375
+    commands:
+      - apk add --no-cache bash
+      - ./build/linux-build.sh --release --package appimage
+
+  - name: upload-filen
+    image: debian:trixie-slim
+    environment:
+      - FILEN_AUTH_CONFIG_B64:
+          from_secret: filen_auth_config_b64
+    commands:
+      - apt-get update -qq && apt-get install -y -qq --no-install-recommends curl ca-certificates
+      - bash build/ci/filen-upload.sh 'out/appimage/*.AppImage' /Shared/apps/guinea-mpeg

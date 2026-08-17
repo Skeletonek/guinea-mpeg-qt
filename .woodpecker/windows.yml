@@ -1,0 +1,22 @@
+when:
+  - event: tag
+
+labels:
+  platform: windows/amd64
+  backend: local
+
+steps:
+  - name: build
+    image: powershell
+    commands:
+      - .\build\download-vendor.ps1
+      - .\build\windows-build.ps1 -Package -Release -Clean
+
+  - name: upload-filen
+    image: powershell
+    environment:
+      - FILEN_AUTH_CONFIG_B64:
+          from_secret: filen_auth_config_b64
+    commands:
+      - .\build\ci\filen-upload.ps1 -LocalGlob "out\guinea-mpeg-*-x86_64.zip" -CloudDir "/Shared/apps/guinea-mpeg"
+      - .\build\ci\filen-upload.ps1 -LocalGlob "out\guinea-mpeg-*-x86_64.exe" -CloudDir "/Shared/apps/guinea-mpeg"
