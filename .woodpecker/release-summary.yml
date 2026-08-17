@@ -14,8 +14,8 @@ steps:
   - name: links-summary
     image: debian:trixie-slim
     environment:
-      - FILEN_AUTH_CONFIG_B64:
-          from_secret: filen_auth_config_b64
+      FILEN_AUTH_CONFIG_B64:
+        from_secret: filen_auth_config_b64
     commands:
       - apt-get update -qq && apt-get install -y -qq --no-install-recommends curl ca-certificates
       - bash build/ci/release-summary.sh

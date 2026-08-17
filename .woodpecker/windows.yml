@@ -16,8 +16,8 @@ steps:
   - name: upload-filen
     image: powershell
     environment:
-      - FILEN_AUTH_CONFIG_B64:
-          from_secret: filen_auth_config_b64
+      FILEN_AUTH_CONFIG_B64:
+        from_secret: filen_auth_config_b64
     commands:
       - .\build\ci\filen-upload.ps1 -LocalGlob "out\guinea-mpeg-*-x86_64.zip" -CloudDir "/Shared/apps/guinea-mpeg"
       - .\build\ci\filen-upload.ps1 -LocalGlob "out\guinea-mpeg-*-x86_64.exe" -CloudDir "/Shared/apps/guinea-mpeg"
