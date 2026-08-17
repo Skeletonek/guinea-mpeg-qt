@@ -1,6 +1,11 @@
-# GuineaMPEG
+# <img src="media/logo/logo.png" height=48> GuineaMPEG
 
-A modern FFmpeg transcoding GUI with a Rust core library dynamically linked via C FFI.
+FFmpeg transcoding GUI using Qt QML with a Rust core library dynamically linked via C FFI.
+
+<img src="media/images/preview.webp" width=1024>
+
+> [!NOTE]
+> This project main git hosting site is [gitlab.com](https://gitlab.com/Skeletonek/guinea-mpeg-qt/); Pull requests or Issues created on other mirrors, such as github.com, may be ignored by the authors
 
 ## Features
 
@@ -9,22 +14,29 @@ A modern FFmpeg transcoding GUI with a Rust core library dynamically linked via 
 - **Transcoding Profiles**: Built-in profiles for H.264, H.265/HEVC, VP9, AV1, GIF, and WebP
 - **Hardware Encoding**: Runtime detection of NVENC, QSV, VAAPI, AMF, Vulkan encoders via ffmpeg
 - **Profile Editor**: Create, edit, and delete profiles in-app
-- **Profile Export/Import**: Share profiles between machines as `.toml` files from the Profile Editor
 - **MIME type integration**: Open video files directly from your file manager
 - **Drag & Drop**: Drop a video file anywhere on the window to load it
 
-## Build Requirements
+## Download
 
-### Linux
+Linux x86_64 and aarch64 packages are available to download through [releases page](https://gitlab.com/Skeletonek/guinea-mpeg-qt/-/releases)
+
+Windows x86_64 and Linux x86_64 appimage is built outside this repository, and downloads are available through [my website](https://www.skeletonek.com/apps/guinea-mpeg/#download)
+
+Windows aarch64 and Linux aarch64 appimage requires manual building
+
+## Building
+
+### Build Requirements
+
+#### Linux
 - CMake 3.16+
-- GCC 10+ (C++20 required)
+- GCC 11+ (C++20 required)
 - Rust 1.56+ (use your distro's `cargo`/`rustc` packages)
-- Qt 6.5+ (tested on 6.11.0)
-- libmpv (development headers, `pkg-config` findable)
+- Qt 6.5+
+- libmpv-dev
 - OpenGL / GLX development headers
-- FFmpeg + ffprobe (runtime, for transcoding — with SVT-AV1, libx264, libvpx(-vp9), libwebp, libopus for full profile support)
-
-### Per-Distro Package Lists
+- FFmpeg + ffprobe runtime
 
 **Debian / Ubuntu**
 ```bash
@@ -49,21 +61,19 @@ sudo pacman -S --needed base-devel cmake \
                        mpv rust cargo
 ```
 
-### Windows
+#### Windows
 - CMake 3.16+
-- Visual Studio 2022 (Build Tools or full IDE) with **Desktop development with C++** workload
+- Visual Studio 2022 with **Desktop development with C++** workload
 - Rust 1.56+ with MSVC toolchain:
   ```powershell
   rustup toolchain install stable-msvc
   rustup default stable-msvc
   rustup target add x86_64-pc-windows-msvc
   ```
-- Qt 6.5+ for MSVC 2022 (tested on 6.11.1) — required components:
+- Qt 6.5+ for MSVC 2022 — required components:
   - `Qt 6.x / MSVC 2022 64-bit`
   - `Qt Quick`
   - `Qt QuickControls2`
-- [mpv-dev bundle](https://github.com/zhongfly/mpv-winbuild) (zhongfly winbuild, auto-downloaded by the build script)
-- [FFmpeg & ffprobe](https://github.com/BtbN/FFmpeg-Builds) (BtbN build, auto-downloaded by the build script)
 - 7-Zip (required by the mpv-dev download script): `winget install 7zip.7zip`
 - Ninja (optional, auto-detected): `winget install Ninja-build.Ninja`
 - InnoSetup 6 (optional, for installer) — download from [jrsoftware.org](https://jrsoftware.org/isdl.php)
@@ -73,9 +83,9 @@ For building **Windows on ARM (ARM64)** on x86 hosts you need to additionally in
 - The Qt **`win64_msvc2022_arm64`** package (Qt 6.x for MSVC 2022 ARM64)
 - `rustup target add aarch64-pc-windows-msvc`
 
-## Building
+### How to build
 
-### Linux
+#### Linux
 
 For quick development build use the prepared script
 
@@ -98,26 +108,25 @@ The `build/linux-build.sh` script supports Docker-based cross-distro packaging:
 
 Output goes to `out/{target}/` — e.g. `out/deb/`, `out/appimage/`.
 
-#### ARM64 (Linux)
+##### ARM64 (Linux)
 
-Pass `--arch aarch64` to build for ARM64. `generic`, `deb` and `rpm` build in
+Pass `--arch aarch64` to build for ARM64 on x86_64 hosts. `generic`, `deb` and `rpm` build in
 Docker with `--platform linux/arm64` and emit artifacts to `out/<target>-aarch64/`.
-On an `x86_64` host this needs Docker **buildx** and QEMU binfmt registration:
+On an x86_64 host this needs Docker **buildx** and QEMU binfmt registration:
 
 ```bash
 docker run --privileged --rm tonistiigi/binfmt --install arm64
 ./build/linux-build.sh --arch aarch64 --package deb,rpm
 ```
 
-`pacman`, `appimage` and `flatpak` are not supported for aarch64 cross-builds -
-build those on a native ARM64 host (`--arch` is then unnecessary, the arch is
-detected automatically).
+**pacman**, **appimage** and **flatpak** are not supported for aarch64 cross-builds -
+build those on a native ARM64 host.
 
-### Windows
+#### Windows
 
 Open **x64 Native Tools Command Prompt for VS 2022** (or any PowerShell where `cl.exe` and `nmake` are available from PATH), then:
 
-Run `.\build\download-vendor.ps1` first to fetch the mpv-dev bundle and ffmpeg (the build script does this automatically too).
+Optionally run `.\build\download-vendor.ps1` first to fetch the mpv-dev bundle and ffmpeg (the build script does this automatically so it's not necessary).
 
 Use `.\build\download-vendor.ps1 -Arch arm64` to fetch arm64 bundles
 
@@ -132,32 +141,23 @@ Use `.\build\download-vendor.ps1 -Arch arm64` to fetch arm64 bundles
 .\build\windows-build.ps1 -Help                     # show all possible parameters
 ```
 
-Artifacts:
-
 | Artifact | Path |
 |----------|------|
 | Executable | `out/windows/guinea-mpeg.exe` |
 | Portable ZIP | `out/guinea-mpeg-{version}-x86_64.zip` (or `-arm64`) |
 | Installer (exe) | `out/guinea-mpeg-{version}-x86_64.exe` (or `-arm64`) |
 
-### Version
-
-Version is read from `rust/Cargo.toml` automatically. Bump with:
-
-```bash
-./update-version.sh 1.2.3
-```
-
 ## CI/CD
 
-A GitLab CI pipeline (`.gitlab-ci.yml`) builds and releases all linux packages (except Appimage) on tag pushes using Docker-in-Docker.
+A GitLab CI pipeline (`.gitlab-ci.yml`) runs lint and format checks on every push.
+It also handles builds and releases for all linux packages (except Appimage) on tag using Docker-in-Docker.
 
 ## Project Structure
 
 ```
 .
 ├── rust/                    # Rust core library (cdylib)
-│   ├── include/guinea_mpeg_core.h    # hand-written C FFI header
+│   ├── include/guinea_mpeg_core.h    # C FFI header
 │   └── src/                 # backend FFI, TOML config, mpv, ffmpeg
 ├── src/                     # C++ glue (QObjects exposed to QML)
 │   ├── main.cpp
@@ -165,14 +165,13 @@ A GitLab CI pipeline (`.gitlab-ci.yml`) builds and releases all linux packages (
 │   └── mpvitem.{h,cpp}
 ├── qml/                     # Qt Quick UI
 │   ├── main.qml
-│   ├── VideoPreview.qml, TimelineControl.qml, ControlsPanel.qml
-│   ├── ProfileEditor.qml (+ ProfileEditor/)
+│   ├── ProfileEditor/       # components for ProfileEditor.qml
 │   ├── Components/          # reusable controls
 │   ├── Dialogs/             # modal dialogs
 │   └── Utils/               # JS helpers
-├── build/                   # build scripts + Dockerfiles
+├── build/                   # build scripts + utils + Dockerfiles
 ├── translations/            # .ts locale files
-├── default_profiles.toml
+├── default_profiles.toml    # default profiles bundled with the app
 ├── CMakeLists.txt
 └── .gitlab-ci.yml
 ```
@@ -202,3 +201,7 @@ User profiles merge over defaults (same name = user override).
 | AV1 Low | libsvtav1 | CRF 42, preset 6, VMAF tune, 720p |
 | Animated GIF | gif | 480p, 10 fps, quality 75, loop |
 | Animated WebP | libwebp_anim | 480p, 10 fps, quality 75, loop |
+
+## LLM Usage
+
+This project uses AI to help generate code, and a significant portion of the codebase is AI-generated. However, reviews and quality testing are done entirely by a human. New features are also planed by human with the help of AI to best suit the current project codebase.
