@@ -174,5 +174,22 @@ TestCase {
         compare(DataUtils.buildProfileData(undefined).hasOwnProperty("a"), false);
     }
 
+    function test_advancedTemplateFromArgs() {
+        compare(DataUtils.advancedTemplateFromArgs(["-i", "[input]", "-c:v", "libx264", "-y", "[output]"]), "ffmpeg -i {input} -ss {start} -t {duration} -c:v libx264 -y {output}");
+        compare(DataUtils.advancedTemplateFromArgs(["-c:v", "libx264"]), "ffmpeg -c:v libx264");
+        compare(DataUtils.advancedTemplateFromArgs([]), "ffmpeg ");
+        compare(DataUtils.advancedTemplateFromArgs(null), "");
+        compare(DataUtils.advancedTemplateFromArgs(undefined), "");
+    }
+
+    function test_advancedTemplateFromArgs_quotingAndTrim() {
+        // arg containing whitespace must be shell-quoted so it round-trips
+        compare(DataUtils.advancedTemplateFromArgs(["-metadata", "title=Hello World", "-y", "[output]"]), "ffmpeg -metadata \"title=Hello World\" -y {output}");
+        // no -i means no trim placeholders are injected
+        compare(DataUtils.advancedTemplateFromArgs(["-i", "[input]", "-vf", "scale=-2:720"]), "ffmpeg -i {input} -ss {start} -t {duration} -vf scale=-2:720");
+        // args already containing quotes get escaped
+        compare(DataUtils.advancedTemplateFromArgs(["-vf", "eq=gamma=1.5,drawtext=text='hi'"]), "ffmpeg -vf eq=gamma=1.5,drawtext=text='hi'");
+    }
+
     name: "DataUtils"
 }

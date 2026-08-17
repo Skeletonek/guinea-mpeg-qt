@@ -15,6 +15,7 @@ Rectangle {
     property string _loadedProfileName: ""
     property bool _isDefaultProfile: _defaultNames.indexOf(_loadedProfileName) >= 0
     property var _profileNames: []
+    property bool advancedMode: false
 
     signal back()
 
@@ -39,8 +40,41 @@ Rectangle {
         advancedPanel.setPreview(qsTr("Failed to generate preview"));
     }
 
+    function enterAdvancedMode() {
+        if (_loading || root.advancedMode)
+            return ;
+
+        var snapshot = buildCurrentData();
+        _loading = true;
+        var raw = backend.generateCommandPreview(JSON.stringify(snapshot));
+        var args = [];
+        if (raw)
+            args = JSON.parse(raw);
+
+        advancedPanel.setCommand(DataUtils.advancedTemplateFromArgs(args));
+        root.advancedMode = true;
+        _loading = false;
+        updatePreview();
+    }
+
+    function exitAdvancedMode() {
+        if (!root.advancedMode)
+            return ;
+
+        exitAdvancedDialog.open();
+    }
+
+    function confirmExitAdvanced() {
+        _loading = true;
+        root.advancedMode = false;
+        advancedPanel.setCommand("");
+        _loading = false;
+        updatePreview();
+    }
+
     function resetToNew() {
         _loadedProfileName = "";
+        root.advancedMode = false;
         profileNameField.text = "";
         profileNameField.placeholderText = "Enter profile name...";
         profileSelector.currentIndex = -1;
@@ -92,6 +126,7 @@ Rectangle {
         videoPanel.setData(d);
         audioPanel.setData(d);
         advancedPanel.setData(d);
+        root.advancedMode = !!(d.custom_command && d.custom_command !== "");
         for (var i = 0; i < _profileNames.length; i++) {
             if (_profileNames[i] === name) {
                 profileSelector.currentIndex = i;
@@ -120,7 +155,7 @@ Rectangle {
     }
 
     function leftGroupWidth() {
-        return groupWidth([backBtn, profileCaption, profileSelector, newBtn, saveBtn, restoreDeleteBtn]);
+        return groupWidth([backBtn, profileCaption, profileSelector, newBtn, saveBtn, restoreDeleteBtn, advancedBtn]);
     }
 
     function groupWidth(items) {
@@ -317,6 +352,15 @@ Rectangle {
                     onClicked: _isDefaultProfile ? restoreSingleProfile() : deleteDialog.open()
                 }
 
+                Button {
+                    id: advancedBtn
+
+                    text: qsTr("Advanced Mode")
+                    checkable: true
+                    checked: root.advancedMode
+                    onClicked: root.advancedMode ? exitAdvancedMode() : enterAdvancedMode()
+                }
+
                 Item {
                     id: toolbarSpacer
 
@@ -374,12 +418,14 @@ Rectangle {
             }
 
             Rectangle {
+                visible: !root.advancedMode
                 width: parent.width
                 height: 1
                 color: theme.textDim
             }
 
             Row {
+                visible: !root.advancedMode
                 spacing: 16
                 width: parent.width
 
@@ -414,6 +460,8 @@ Rectangle {
 
                 width: parent.width
                 loading: root._loading
+                advancedMode: root.advancedMode
+                onAdvancedCommandChanged: updatePreview()
                 onExtraArgsChanged: updatePreview()
             }
 
@@ -438,6 +486,12 @@ Rectangle {
 
         profileName: root._loadedProfileName
         onDeleteRequested: deleteCurrent()
+    }
+
+    ExitAdvancedDialog {
+        id: exitAdvancedDialog
+
+        onExitRequested: confirmExitAdvanced()
     }
 
     ProfileExportDialog {

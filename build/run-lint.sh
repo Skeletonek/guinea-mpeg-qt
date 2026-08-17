@@ -4,9 +4,12 @@
 #
 # Usage:
 #   $0                          Run all lint + format checks (fails on any violation)
-#   $0 --fix                    Auto-apply formatters (rustfmt, qmlformat, clang-format,
-#                               clippy --fix), then re-run the checks to verify
+#   $0 --fix                    Auto-apply formatters (rustfmt, clang-format, clippy --fix),
+#                               then re-run the checks to verify (never touches qmlformat)
 #   $0 --only <rust|cpp|qml>    Limit to one language
+#   $0 --format                 Also run the qmlformat equality check (opt-in: qmlformat
+#                               output differs across Qt versions, so it is skipped by default)
+#   $0 --format-fix             Auto-apply qmlformat -i -f, then run the equality check
 #   $0 --cpp-tidy               Also run clang-tidy (configures out/.build-lint)
 #   $0 --help                   Show this help message
 set -euo pipefail
@@ -20,6 +23,9 @@ Usage:
   $0                          Run all lint + format checks (fails on any violation)
   $0 --fix                    Auto-apply formatters, then re-run the checks
   $0 --only <rust|cpp|qml>    Limit to one language
+  $0 --format                 Also run the qmlformat equality check (opt-in: qmlformat
+                              output differs across Qt versions, so it is skipped by default)
+  $0 --format-fix             Auto-apply qmlformat -i -f, then run the equality check
   $0 --cpp-tidy               Also run clang-tidy (configures out/.build-lint)
   $0 --help                   Show this help message
 EOF
@@ -31,12 +37,16 @@ LINT_BUILD_DIR="${ROOT}/out/.build-lint"
 
 MODE=check
 ONLY=
+FORMAT=false
+FORMAT_FIX=false
 CPP_TIDY=false
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --fix) MODE=fix; shift ;;
         --only) ONLY="${2:?--only needs <rust|cpp|qml>}"; shift 2 ;;
+        --format) FORMAT=true; shift ;;
+        --format-fix) FORMAT_FIX=true; FORMAT=true; shift ;;
         --cpp-tidy) CPP_TIDY=true; shift ;;
         --help) show_help; exit 0 ;;
         *)
@@ -68,6 +78,16 @@ while IFS= read -r -d '' f; do QML_ONLY+=("$f"); done < <(
     find "${ROOT}/qml" "${ROOT}/tests/qml" -name '*.qml' -print0
 )
 
+# Qt's own QML module directories (QtQuick & co.) so qmllint can resolve them
+# even when its built-in install-path lookup doesn't cover the distro layout
+# (e.g. Debian multiarch /usr/lib/<triplet>/qt6/qml in CI).
+QT_QML_IMPORT_DIRS=()
+for d in /usr/lib/qt6/qml /usr/lib/*/qt6/qml; do
+    if [[ -d "$d" ]]; then
+        QT_QML_IMPORT_DIRS+=("$d")
+    fi
+done
+
 rust_section() {
     echo "==> Rust (rustfmt + clippy)"
     if [[ $MODE == fix ]]; then
@@ -91,12 +111,20 @@ qml_section() {
         fail
         return
     fi
-    if [[ $MODE == fix ]]; then
+    if [[ $FORMAT_FIX == true ]]; then
         qmlformat -i -f "${QML_ONLY[@]}"
     fi
-    if ! qmllint -I "${ROOT}/qml" "${QML_FILES[@]}"; then
+    local -a qmllint_args=(-I "${ROOT}/qml")
+    local d
+    for d in "${QT_QML_IMPORT_DIRS[@]}"; do
+        qmllint_args+=(-I "$d")
+    done
+    if ! qmllint "${qmllint_args[@]}" "${QML_FILES[@]}"; then
         echo "!! QML: qmllint errors"
         fail
+    fi
+    if [[ $FORMAT != true ]]; then
+        return
     fi
     local unformatted=0 f
     for f in "${QML_ONLY[@]}"; do

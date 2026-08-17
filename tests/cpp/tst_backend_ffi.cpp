@@ -43,7 +43,9 @@ class TestBackendFfi : public QObject {
     void softwareEncoderHasNoCapabilities();
     void buildFfmpegCommand();
     void buildFfmpegCommandRejectsInvalid();
+    void buildFfmpegCommandWithCustomCommand();
     void previewCommandRejectsInvalid();
+    void previewCustomCommand();
     void profileRoundtrip();
     void availableEncoders();
     void mpvAvailable();
@@ -97,10 +99,34 @@ void TestBackendFfi::buildFfmpegCommandRejectsInvalid() {
     QVERIFY(!guinea_mpeg_build_ffmpeg_command(nullptr, nullptr, 0.0, 0.0, nullptr));
 }
 
+void TestBackendFfi::buildFfmpegCommandWithCustomCommand() {
+    const char* json = guinea_mpeg_build_ffmpeg_command(
+        "in.mp4", "out.mkv", 0.0, 0.0,
+        R"({"codec":"h264","custom_command":"-c:v libx264 -crf 23 -preset fast -y {output}"})");
+    QVERIFY(json);
+    const QJsonArray args = QJsonDocument::fromJson(QByteArray(json)).array();
+    guinea_mpeg_free_string(json);
+    QCOMPARE(args.at(indexOfArg(args, QStringLiteral("-c:v")) + 1).toString(), QStringLiteral("libx264"));
+    QCOMPARE(args.at(indexOfArg(args, QStringLiteral("-crf")) + 1).toString(), QStringLiteral("23"));
+    QCOMPARE(args.last().toString(), QStringLiteral("out.mkv"));
+    QVERIFY(!args.contains(QStringLiteral("-i")));
+}
+
 void TestBackendFfi::previewCommandRejectsInvalid() {
     QVERIFY(!guinea_mpeg_preview_command(""));
     QVERIFY(!guinea_mpeg_preview_command("not json"));
     QVERIFY(!guinea_mpeg_preview_command(nullptr));
+}
+
+void TestBackendFfi::previewCustomCommand() {
+    const char* json =
+        guinea_mpeg_preview_command(R"({"codec":"h264","custom_command":"-i {input} -c:v libx264 -y {output}"})");
+    QVERIFY(json);
+    const QJsonArray args = QJsonDocument::fromJson(QByteArray(json)).array();
+    guinea_mpeg_free_string(json);
+    QVERIFY(args.contains(QStringLiteral("[input]")));
+    QCOMPARE(args.last().toString(), QStringLiteral("[output]"));
+    QCOMPARE(args.at(indexOfArg(args, QStringLiteral("-c:v")) + 1).toString(), QStringLiteral("libx264"));
 }
 
 void TestBackendFfi::profileRoundtrip() {
