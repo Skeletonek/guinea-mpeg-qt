@@ -190,7 +190,7 @@ build_generic() {
     fi
 
     export CARGO_TARGET_DIR="$cargo_dir"
-    local cmake_opts="-DCMAKE_BUILD_TYPE=${build_type} -DPACKAGE_TARGET=generic"
+    local cmake_opts="-DCMAKE_BUILD_TYPE=${build_type} -DPACKAGE_TARGET=generic -DBUILD_TESTING=OFF"
     cmake -S "$PROJECT_DIR" -B "$build_dir" $cmake_opts
     cmake --build "$build_dir"
 
@@ -274,7 +274,7 @@ build_in_docker() {
             set -euo pipefail
             trap 'echo \"=== Build interrupted ===\"; trap - INT TERM; kill 0 2>/dev/null || true; sleep 2; kill -9 0 2>/dev/null || true; exit 130' INT TERM
             mkdir -p /tmp/home
-            cmake_opts='-DCMAKE_BUILD_TYPE=${cmake_build_type} -DPACKAGE_TARGET=${target}'
+            cmake_opts='-DCMAKE_BUILD_TYPE=${cmake_build_type} -DPACKAGE_TARGET=${target} -DBUILD_TESTING=OFF'
             cmake -S /source -B /source/out/$build_dir_name \$cmake_opts
             cmake --build /source/out/$build_dir_name
             cp /source/out/$build_dir_name/src/guinea-mpeg /source/out/$target$ARCH_SUFFIX/

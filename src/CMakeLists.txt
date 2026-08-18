@@ -1,5 +1,18 @@
 if(WIN32)
-    set(GUINEA_APP_SOURCES main.cpp backend.cpp app.rc)
+    set(GUINEA_APP_SOURCES main.cpp backend.cpp)
+
+    # Windows version resource (icon + VERSIONINFO). Substituted at configure
+    # time so the Details tab shows the version, copyright and publisher
+    # (CompanyName) instead of 0.0.0.0/empty.
+    set(APP_ICON_PATH "${CMAKE_SOURCE_DIR}/media/logo/app.ico")
+    set(APP_NAME "GuineaMPEG")
+    set(APP_EXE_NAME "guinea-mpeg.exe")
+    set(APP_PUBLISHER "Skeletonek")
+    string(TIMESTAMP APP_COPYRIGHT_YEAR "%Y")
+    set(APP_COPYRIGHT "Copyright © ${APP_COPYRIGHT_YEAR} Skeletonek")
+    set(FILE_VERSION_TUPLE "${PROJECT_VERSION_MAJOR},${PROJECT_VERSION_MINOR},${PROJECT_VERSION_PATCH},0")
+    configure_file(app.rc.in ${CMAKE_CURRENT_BINARY_DIR}/app.rc @ONLY)
+    list(APPEND GUINEA_APP_SOURCES ${CMAKE_CURRENT_BINARY_DIR}/app.rc)
 else()
     set(GUINEA_APP_SOURCES main.cpp backend.cpp)
 endif()

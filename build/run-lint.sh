@@ -82,11 +82,27 @@ while IFS= read -r -d '' f; do QML_ONLY+=("$f"); done < <(
 # even when its built-in install-path lookup doesn't cover the distro layout
 # (e.g. Debian multiarch /usr/lib/<triplet>/qt6/qml in CI).
 QT_QML_IMPORT_DIRS=()
-for d in /usr/lib/qt6/qml /usr/lib/*/qt6/qml; do
+for d in /usr/lib/qt6/qml /usr/lib/*/qt6/qml /usr/lib64/qt6/qml; do
     if [[ -d "$d" ]]; then
         QT_QML_IMPORT_DIRS+=("$d")
     fi
 done
+
+resolve_tool() {
+    local name="$1" result=""
+    result="$(command -v "$name" 2>/dev/null || true)"
+    if [[ -z "$result" ]]; then
+        result="$(command -v "${name}-qt6" 2>/dev/null || true)"
+    fi
+    if [[ -z "$result" ]]; then
+        for d in /usr/lib64/qt6/bin /usr/lib/qt6/bin /usr/lib/*/qt6/bin; do
+            if [[ -x "$d/$name" ]]; then result="$d/$name"; break; fi
+        done
+    fi
+    printf '%s' "$result"
+}
+QMLLINT="$(resolve_tool qmllint)"
+QMLFORMAT="$(resolve_tool qmlformat)"
 
 rust_section() {
     echo "==> Rust (rustfmt + clippy)"
@@ -111,24 +127,39 @@ qml_section() {
         fail
         return
     fi
+    if [[ -z "$QMLLINT" ]]; then
+        echo "!! QML: qmllint not found (install the Qt6 QML tooling)"
+        fail
+        return
+    fi
     if [[ $FORMAT_FIX == true ]]; then
-        qmlformat -i -f "${QML_ONLY[@]}"
+        if [[ -z "$QMLFORMAT" ]]; then
+            echo "!! QML: qmlformat not found (install the Qt6 QML tooling)"
+            fail
+            return
+        fi
+        "$QMLFORMAT" -i -f "${QML_ONLY[@]}"
     fi
     local -a qmllint_args=(-I "${ROOT}/qml")
     local d
     for d in "${QT_QML_IMPORT_DIRS[@]}"; do
         qmllint_args+=(-I "$d")
     done
-    if ! qmllint "${qmllint_args[@]}" "${QML_FILES[@]}"; then
+    if ! "$QMLLINT" "${qmllint_args[@]}" "${QML_FILES[@]}"; then
         echo "!! QML: qmllint errors"
         fail
     fi
     if [[ $FORMAT != true ]]; then
         return
     fi
+    if [[ -z "$QMLFORMAT" ]]; then
+        echo "!! QML: qmlformat not found (install the Qt6 QML tooling)"
+        fail
+        return
+    fi
     local unformatted=0 f
     for f in "${QML_ONLY[@]}"; do
-        if ! cmp -s <(qmlformat "$f") "$f"; then
+        if ! cmp -s <("$QMLFORMAT" "$f") "$f"; then
             echo "!! QML: not formatted: ${f}"
             unformatted=1
         fi

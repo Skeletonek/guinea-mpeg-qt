@@ -204,22 +204,17 @@ package-flatpak-aarch64:
 
 lint:
   stage: lint
-  image: debian:trixie-slim
+  image: fedora:44
   # Advisory only: never blocks package/release pipelines on the same push.
   allow_failure: true
   needs: []
   rules:
     - if: $CI_PIPELINE_SOURCE == "push"
   before_script:
-    - apt-get update -qq && apt-get install -y -qq --no-install-recommends
-      ca-certificates rustc cargo rustfmt rust-clippy qt6-declarative-dev-tools clang-format
-      qml6-module-qtquick qml6-module-qtquick-controls qml6-module-qtquick-dialogs
-      qml6-module-qtquick-layouts qml6-module-qtmultimedia qml6-module-qttest
-    # Debian ships qmllint/qmlformat under /usr/lib/qt6/bin, not in PATH.
-    - export PATH="$PATH:/usr/lib/qt6/bin"
+    - dnf -y install qt6-qtdeclarative-devel qt6-qtdeclarative qt6-qtquickcontrols2
+      qt6-qtmultimedia rust clang-tools-extra
+    - export LANG=C.UTF-8
   script:
-    # qmlformat is opt-in (--format/--format-fix) because its output differs across Qt
-    # versions (host 6.11 vs trixie 6.8); CI runs qmllint only.
     - ./build/run-lint.sh
 
 release:

@@ -325,6 +325,7 @@ function Invoke-CMakeConfigure {
         "-DCMAKE_CXX_COMPILER=cl" `
         "-DPACKAGE_TARGET=windows" `
         "-DRUST_TARGET=$RustTarget" `
+        "-DBUILD_TESTING=OFF" `
         $consoleFlag
     Assert-LastExitCode "CMake configuration"
 }
