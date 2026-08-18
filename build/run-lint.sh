@@ -90,14 +90,15 @@ done
 
 resolve_tool() {
     local name="$1" result=""
-    result="$(command -v "$name" 2>/dev/null || true)"
+    local d
+    for d in /usr/lib64/qt6/bin /usr/lib/qt6/bin /usr/lib/*/qt6/bin; do
+        if [[ -x "$d/$name" ]]; then result="$d/$name"; break; fi
+    done
     if [[ -z "$result" ]]; then
         result="$(command -v "${name}-qt6" 2>/dev/null || true)"
     fi
     if [[ -z "$result" ]]; then
-        for d in /usr/lib64/qt6/bin /usr/lib/qt6/bin /usr/lib/*/qt6/bin; do
-            if [[ -x "$d/$name" ]]; then result="$d/$name"; break; fi
-        done
+        result="$(command -v "$name" 2>/dev/null || true)"
     fi
     printf '%s' "$result"
 }

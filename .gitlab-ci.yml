@@ -212,7 +212,7 @@ lint:
     - if: $CI_PIPELINE_SOURCE == "push"
   before_script:
     - dnf -y install qt6-qtdeclarative-devel qt6-qtdeclarative qt6-qtquickcontrols2
-      qt6-qtmultimedia rust clang-tools-extra
+      qt6-qtmultimedia rust cargo rustfmt clippy clang-tools-extra
     - export LANG=C.UTF-8
   script:
     - ./build/run-lint.sh
