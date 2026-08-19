@@ -2,6 +2,7 @@
 - Added advanced mode for ProfileEditor allowing to freely edit ffmpeg command
 - Added container option in ProfileEditor
 - Allow resizing and collapsing the controls panel in main view
+- Allow clicking on preview to play / pause the preview
 - Added additional metadata such as file version and copyright to the Windows binary
 - Added additional metadata such as file version and copyright to the Windows installer file
 - Fixed Windows aarch64 build process

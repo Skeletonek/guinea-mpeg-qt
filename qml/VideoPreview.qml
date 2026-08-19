@@ -9,6 +9,7 @@ Rectangle {
 
     property url source: ""
     property bool hasVideo: false
+    property int _controlsBarHeight: 30
     property alias playing: player.playing
     property alias position: player.position
     property alias duration: player.duration
@@ -35,6 +36,18 @@ Rectangle {
         source: root.source
     }
 
+    MouseArea {
+        anchors.fill: parent
+        anchors.bottomMargin: root._controlsBarHeight
+        visible: root.hasVideo
+        onClicked: {
+            if (player.playing)
+                player.pause();
+            else
+                player.play();
+        }
+    }
+
     Text {
         anchors.centerIn: parent
         text: qsTr("No video loaded")
@@ -46,7 +59,7 @@ Rectangle {
     Rectangle {
         anchors.bottom: parent.bottom
         width: parent.width
-        height: 30
+        height: root._controlsBarHeight
         color: theme.bg
         visible: root.hasVideo
 
