@@ -146,8 +146,11 @@ qml_section() {
     for d in "${QT_QML_IMPORT_DIRS[@]}"; do
         qmllint_args+=(-I "$d")
     done
-    if ! "$QMLLINT" "${qmllint_args[@]}" "${QML_FILES[@]}"; then
-        echo "!! QML: qmllint errors"
+    local qmllint_output qmllint_status=0
+    qmllint_output="$("$QMLLINT" "${qmllint_args[@]}" "${QML_FILES[@]}" 2>&1)" || qmllint_status=$?
+    if [[ $qmllint_status -ne 0 || -n "$qmllint_output" ]]; then
+        printf '%s\n' "$qmllint_output" >&2
+        echo "!! QML: qmllint emitted errors, warnings or info messages"
         fail
     fi
     if [[ $FORMAT != true ]]; then
