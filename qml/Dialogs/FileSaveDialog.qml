@@ -5,7 +5,7 @@ import QtQuick.Dialogs
 FileDialog {
     id: root
 
-    property QtObject appWindow: null
+    property var appWindow: null
 
     title: qsTr("Save Transcoded Video As")
     acceptLabel: qsTr("Save")

@@ -13,7 +13,7 @@ Column {
     readonly property bool audioForbidden: currentCodecKey === "gif" || currentCodecKey === "webp"
     readonly property alias audioEnabled: audioEnabledSwitch.checked
 
-    signal changed()
+    signal changed
 
     function getData() {
         var idx = audioCodecCombo.currentIndex;
@@ -69,12 +69,9 @@ Column {
                 onCheckedChanged: {
                     if (!root.loading)
                         root.changed();
-
                 }
             }
-
         }
-
     }
 
     Label {
@@ -110,7 +107,6 @@ Column {
             onCurrentIndexChanged: {
                 if (!root.loading)
                     root.changed();
-
             }
         }
 
@@ -127,7 +123,6 @@ Column {
                 onTextChanged: {
                     if (!root.loading)
                         root.changed();
-
                 }
             }
 
@@ -139,14 +134,12 @@ Column {
                 onTextChanged: {
                     if (!root.loading)
                         root.changed();
-
                 }
 
                 validator: IntValidator {
                     bottom: 0
                     top: 8
                 }
-
             }
 
             LabeledTextField {
@@ -157,18 +150,13 @@ Column {
                 onTextChanged: {
                     if (!root.loading)
                         root.changed();
-
                 }
 
                 validator: IntValidator {
                     bottom: 0
                     top: 192000
                 }
-
             }
-
         }
-
     }
-
 }

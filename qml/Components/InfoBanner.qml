@@ -1,5 +1,4 @@
 import QtQuick 2.15
-import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 
 Rectangle {
@@ -16,7 +15,6 @@ Rectangle {
         root.opacity = 1;
         if (root.autoHideMs > 0)
             hideTimer.start();
-
     }
 
     function hide() {
@@ -82,7 +80,6 @@ Rectangle {
             spacing: 8
             visible: buttonsRow.children.length > 0
         }
-
     }
 
     Timer {
@@ -103,7 +100,5 @@ Rectangle {
         NumberAnimation {
             duration: 200
         }
-
     }
-
 }

@@ -6,8 +6,7 @@ Dialog {
 
     property var codecLabels: []
     property var codecKeys: []
-    property var availableEncoders: ({
-    })
+    property var availableEncoders: ({})
 
     title: qsTr("Available Encoders")
     standardButtons: Dialog.Ok
@@ -48,13 +47,8 @@ Dialog {
                         font.pixelSize: 11
                         leftPadding: 8
                     }
-
                 }
-
             }
-
         }
-
     }
-
 }

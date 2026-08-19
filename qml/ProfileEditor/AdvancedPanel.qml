@@ -10,15 +10,15 @@ Column {
     property string advancedCommand: ""
     property string previewText: qsTr("Adjust settings above to see the ffmpeg command preview...")
 
-    signal changed()
-    signal extraArgsChanged()
+    signal changed
+    signal extraArgsChanged
 
     function getData() {
         if (root.advancedMode)
             return {
-            "extra_args": [],
-            "custom_command": root.advancedCommand
-        };
+                "extra_args": [],
+                "custom_command": root.advancedCommand
+            };
 
         return {
             "extra_args": extraArgsField.text.trim() ? extraArgsField.text.trim().split(/\s+/) : []
@@ -65,7 +65,6 @@ Column {
 
             if (!root.loading)
                 root.changed();
-
         }
         onEditingFinished: {
             if (!root.loading)
@@ -73,7 +72,6 @@ Column {
 
             if (!root.loading)
                 root.changed();
-
         }
     }
 
@@ -117,10 +115,8 @@ Column {
 
                 if (!root.loading)
                     root.changed();
-
             }
         }
-
     }
 
     SectionHeader {
@@ -148,7 +144,5 @@ Column {
             text: root.previewText
             background: null
         }
-
     }
-
 }

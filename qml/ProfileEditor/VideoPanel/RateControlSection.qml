@@ -10,7 +10,7 @@ Column {
     property bool loading: false
     property var rateValidator: null
 
-    signal changed()
+    signal changed
 
     function getRateControlData() {
         var rcKey = Constants.rateControlKeys[rateControlCombo.currentIndex];
@@ -55,7 +55,6 @@ Column {
                     root.rateValidator = Constants.rateControlKeys[currentIndex] === "crf" ? crfValidatorInst : null;
                     if (!root.loading)
                         root.changed();
-
                 }
             }
 
@@ -68,17 +67,13 @@ Column {
                 onTextChanged: {
                     if (!root.loading)
                         root.changed();
-
                 }
                 onEditingFinished: {
                     if (!root.loading)
                         root.changed();
-
                 }
             }
-
         }
-
     }
 
     IntValidator {
@@ -87,5 +82,4 @@ Column {
         bottom: Constants.crfMin
         top: Constants.crfMax
     }
-
 }

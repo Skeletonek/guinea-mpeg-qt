@@ -7,8 +7,7 @@ import "VideoPanel"
 Column {
     id: root
 
-    property var _availableEncoders: ({
-    })
+    property var _availableEncoders: ({})
     property var _codecAvailable: []
     property bool loading: false
     readonly property alias videoEnabled: videoEnabledSwitch.checked
@@ -17,8 +16,8 @@ Column {
     readonly property var codecKeys: codecSection ? codecSection.codecKeys : []
     readonly property bool _isAnimated: codec === "gif" || codec === "webp"
 
-    signal changed()
-    signal openEncoderCompatDialog()
+    signal changed
+    signal openEncoderCompatDialog
 
     function loadAvailableEncoders() {
         var raw = backend.availableEncoders();
@@ -32,13 +31,11 @@ Column {
         if (encName === undefined)
             encName = codecSection.getCurrentEncoder();
 
-        var caps = {
-        };
+        var caps = {};
         if (encName) {
             var raw = backend.encoderCapabilities(encName);
             if (raw && raw !== "null")
                 caps = JSON.parse(raw);
-
         }
         presetTuneSection._capOverrides = caps;
         pixelFormatSection._capOverrides = caps;
@@ -78,25 +75,32 @@ Column {
             data.encoder = codecData.encoder;
             if (!root._isAnimated) {
                 var rcData = rateControlSection.getRateControlData();
-                for (var k in rcData) data[k] = rcData[k]
+                for (var k in rcData)
+                    data[k] = rcData[k];
                 var ptData = presetTuneSection.getPresetTuneData();
-                for (var k in ptData) data[k] = ptData[k]
+                for (var k in ptData)
+                    data[k] = ptData[k];
                 var pfData = pixelFormatSection.getPixelFormatData();
-                for (var k in pfData) data[k] = pfData[k]
+                for (var k in pfData)
+                    data[k] = pfData[k];
             }
             var scData = scalingSection.getScalingData();
-            for (var k in scData) data[k] = scData[k]
+            for (var k in scData)
+                data[k] = scData[k];
             if (animatedSection && root._isAnimated) {
                 var animData = animatedSection.getAnimatedData();
-                for (var k in animData) data[k] = animData[k]
+                for (var k in animData)
+                    data[k] = animData[k];
             }
             if (av1Section) {
                 var av1Data = av1Section.getAV1Data();
-                for (var k in av1Data) data[k] = av1Data[k]
+                for (var k in av1Data)
+                    data[k] = av1Data[k];
             }
             if (vp8vp9Section) {
                 var vp8vp9Data = vp8vp9Section.getVP8VP9Data();
-                for (var k in vp8vp9Data) data[k] = vp8vp9Data[k]
+                for (var k in vp8vp9Data)
+                    data[k] = vp8vp9Data[k];
             }
         }
         return data;
@@ -124,7 +128,6 @@ Column {
 
             if (vp8vp9Section)
                 vp8vp9Section.setVP8VP9Data(d);
-
         }
         root.refreshAll();
     }
@@ -161,12 +164,9 @@ Column {
                 onCheckedChanged: {
                     if (!root.loading)
                         root.changed();
-
                 }
             }
-
         }
-
     }
 
     Column {
@@ -188,7 +188,7 @@ Column {
             loading: root.loading
             onChanged: root.changed()
             onOpenEncoderCompatDialog: root.openEncoderCompatDialog()
-            onEncoderSelectionChanged: function(encName) {
+            onEncoderSelectionChanged: function (encName) {
                 root.refreshAll(encName);
             }
         }
@@ -262,7 +262,5 @@ Column {
             loading: root.loading
             onChanged: root.changed()
         }
-
     }
-
 }

@@ -15,7 +15,6 @@ Dialog {
         for (var i = 0; i < combo.model.length; i++) {
             if (combo.model[i].value === value)
                 return i;
-
         }
         return 0;
     }
@@ -29,12 +28,10 @@ Dialog {
     }
 
     function loadOptions() {
-        var opts = {
-        };
+        var opts = {};
         try {
             opts = JSON.parse(backend.getOptions());
-        } catch (e) {
-        }
+        } catch (e) {}
         _loadingOptions = true;
         languageCombo.currentIndex = _indexOfValue(languageCombo, opts.language || "system");
         themeCombo.currentIndex = _indexOfValue(themeCombo, opts.theme || "system");
@@ -82,44 +79,54 @@ Dialog {
             id: languageCombo
 
             Layout.fillWidth: true
-            model: [{
-                "text": qsTr("System default"),
-                "value": "system"
-            }, {
-                "text": "English",
-                "value": "en"
-            }, {
-                "text": "Čeština",
-                "value": "cs"
-            }, {
-                "text": "Deutsch",
-                "value": "de"
-            }, {
-                "text": "Español",
-                "value": "es"
-            }, {
-                "text": "Français",
-                "value": "fr"
-            }, {
-                "text": "Italiano",
-                "value": "it"
-            }, {
-                "text": "Polski",
-                "value": "pl_PL"
-            }, {
-                "text": "Русский",
-                "value": "ru"
-            }, {
-                "text": "Ślōnski",
-                "value": "szl"
-            }]
+            model: [
+                {
+                    "text": qsTr("System default"),
+                    "value": "system"
+                },
+                {
+                    "text": "English",
+                    "value": "en"
+                },
+                {
+                    "text": "Čeština",
+                    "value": "cs"
+                },
+                {
+                    "text": "Deutsch",
+                    "value": "de"
+                },
+                {
+                    "text": "Español",
+                    "value": "es"
+                },
+                {
+                    "text": "Français",
+                    "value": "fr"
+                },
+                {
+                    "text": "Italiano",
+                    "value": "it"
+                },
+                {
+                    "text": "Polski",
+                    "value": "pl_PL"
+                },
+                {
+                    "text": "Русский",
+                    "value": "ru"
+                },
+                {
+                    "text": "Ślōnski",
+                    "value": "szl"
+                }
+            ]
             textRole: "text"
             valueRole: "value"
-            onActivated: function(index) {
+            onActivated: function (index) {
                 var v = model[index].value;
                 if (backend.setOption("language", v))
                     root.restartRequired = true;
-
             }
         }
 
@@ -135,10 +142,12 @@ Dialog {
             textRole: "text"
             valueRole: "value"
             Component.onCompleted: {
-                var out = [{
-                    "text": qsTr("System"),
-                    "value": "system"
-                }];
+                var out = [
+                    {
+                        "text": qsTr("System"),
+                        "value": "system"
+                    }
+                ];
                 var styles = availableStyles;
                 for (var i = 0; i < styles.length; i++) {
                     var value = styles[i];
@@ -153,7 +162,7 @@ Dialog {
                 }
                 themeCombo.model = out;
             }
-            onActivated: function(index) {
+            onActivated: function (index) {
                 var v = model[index].value;
                 if (backend.setOption("theme", v))
                     root.restartRequired = true;
@@ -171,23 +180,26 @@ Dialog {
             id: colorSchemeCombo
 
             Layout.fillWidth: true
-            model: [{
-                "text": qsTr("System default"),
-                "value": "system"
-            }, {
-                "text": qsTr("Dark"),
-                "value": "dark"
-            }, {
-                "text": qsTr("Light"),
-                "value": "light"
-            }]
+            model: [
+                {
+                    "text": qsTr("System default"),
+                    "value": "system"
+                },
+                {
+                    "text": qsTr("Dark"),
+                    "value": "dark"
+                },
+                {
+                    "text": qsTr("Light"),
+                    "value": "light"
+                }
+            ]
             textRole: "text"
             valueRole: "value"
-            onActivated: function(index) {
+            onActivated: function (index) {
                 var v = model[index].value;
                 if (backend.setOption("colorScheme", v))
                     root.restartRequired = true;
-
             }
         }
 
@@ -200,41 +212,50 @@ Dialog {
             id: hwdecCombo
 
             Layout.fillWidth: true
-            model: [{
-                "text": "auto-copy",
-                "value": "auto-copy"
-            }, {
-                "text": "auto",
-                "value": "auto"
-            }, {
-                "text": qsTr("Off"),
-                "value": "no"
-            }, {
-                "text": "VAAPI",
-                "value": "vaapi"
-            }, {
-                "text": "VAAPI copy",
-                "value": "vaapi-copy"
-            }, {
-                "text": "CUDA",
-                "value": "cuda"
-            }, {
-                "text": "CUDA copy",
-                "value": "cuda-copy"
-            }, {
-                "text": "D3D11VA",
-                "value": "d3d11va"
-            }, {
-                "text": "D3D11VA copy",
-                "value": "d3d11va-copy"
-            }]
+            model: [
+                {
+                    "text": "auto-copy",
+                    "value": "auto-copy"
+                },
+                {
+                    "text": "auto",
+                    "value": "auto"
+                },
+                {
+                    "text": qsTr("Off"),
+                    "value": "no"
+                },
+                {
+                    "text": "VAAPI",
+                    "value": "vaapi"
+                },
+                {
+                    "text": "VAAPI copy",
+                    "value": "vaapi-copy"
+                },
+                {
+                    "text": "CUDA",
+                    "value": "cuda"
+                },
+                {
+                    "text": "CUDA copy",
+                    "value": "cuda-copy"
+                },
+                {
+                    "text": "D3D11VA",
+                    "value": "d3d11va"
+                },
+                {
+                    "text": "D3D11VA copy",
+                    "value": "d3d11va-copy"
+                }
+            ]
             textRole: "text"
             valueRole: "value"
-            onActivated: function(index) {
+            onActivated: function (index) {
                 var v = model[index].value;
                 if (backend.setOption("hwdec", v))
                     root.restartRequired = true;
-
             }
         }
 
@@ -262,12 +283,10 @@ Dialog {
             checked: true
             onCheckedChanged: {
                 if (root._loadingOptions)
-                    return ;
+                    return;
 
                 backend.setOption("checkForUpdates", String(checked));
             }
         }
-
     }
-
 }

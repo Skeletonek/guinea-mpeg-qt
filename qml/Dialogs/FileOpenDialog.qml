@@ -5,7 +5,7 @@ import QtQuick.Dialogs
 FileDialog {
     id: root
 
-    property QtObject appWindow: null
+    property var appWindow: null
 
     title: qsTr("Select Video File")
     nameFilters: [qsTr("Media files (*.mp4 *.mkv *.avi *.mov *.webm *.mp3 *.flac *.ogg *.opus *.wav *.aac *.m4a *.wma)")]

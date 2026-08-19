@@ -16,22 +16,25 @@ Dialog {
 
     function refreshCount() {
         var n = 0;
-        for (var i = 0; i < profilesModel.count; i++) if (profilesModel.get(i).checked) {
-            n++;
-        }
+        for (var i = 0; i < profilesModel.count; i++)
+            if (profilesModel.get(i).checked) {
+                n++;
+            }
         selectedCount = n;
     }
 
     function setAll(checked) {
-        for (var i = 0; i < profilesModel.count; i++) profilesModel.setProperty(i, "checked", checked)
+        for (var i = 0; i < profilesModel.count; i++)
+            profilesModel.setProperty(i, "checked", checked);
         refreshCount();
     }
 
     function selectedNames() {
         var arr = [];
-        for (var i = 0; i < profilesModel.count; i++) if (profilesModel.get(i).checked) {
-            arr.push(profilesModel.get(i).name);
-        }
+        for (var i = 0; i < profilesModel.count; i++)
+            if (profilesModel.get(i).checked) {
+                arr.push(profilesModel.get(i).name);
+            }
         return arr;
     }
 
@@ -51,10 +54,11 @@ Dialog {
     onOpened: {
         Utils.centerInParent(root);
         profilesModel.clear();
-        for (var i = 0; i < root.profileNames.length; i++) profilesModel.append({
-            "name": root.profileNames[i],
-            "checked": root.profileNames[i] === root.defaultCheckedName
-        })
+        for (var i = 0; i < root.profileNames.length; i++)
+            profilesModel.append({
+                "name": root.profileNames[i],
+                "checked": root.profileNames[i] === root.defaultCheckedName
+            });
         root.refreshCount();
     }
 
@@ -119,13 +123,9 @@ Dialog {
                             root.refreshCount();
                         }
                     }
-
                 }
-
             }
-
         }
-
     }
 
     footer: Item {
@@ -182,16 +182,12 @@ Dialog {
                     enabled: root.selectedCount > 0
                     onClicked: {
                         var name = encodeURIComponent(root.suggestedFileName());
-                        var folder = fileDialog.folder;
+                        var folder = fileDialog.currentFolder;
                         fileDialog.currentFile = (folder && String(folder).indexOf("undefined") < 0) ? folder + "/" + name : name;
                         fileDialog.open();
                     }
                 }
-
             }
-
         }
-
     }
-
 }

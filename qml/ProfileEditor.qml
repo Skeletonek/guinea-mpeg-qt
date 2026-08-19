@@ -17,7 +17,7 @@ Rectangle {
     property var _profileNames: []
     property bool advancedMode: false
 
-    signal back()
+    signal back
 
     function buildCurrentData() {
         return DataUtils.buildProfileData(videoPanel.getData(), audioPanel.getData(), advancedPanel.getData());
@@ -25,7 +25,7 @@ Rectangle {
 
     function updatePreview() {
         if (_loading)
-            return ;
+            return;
 
         var data = buildCurrentData();
         var json = JSON.stringify(data);
@@ -34,7 +34,7 @@ Rectangle {
             var args = JSON.parse(raw);
             if (args && args.length > 0) {
                 advancedPanel.setPreview("ffmpeg " + args.join(" "));
-                return ;
+                return;
             }
         }
         advancedPanel.setPreview(qsTr("Failed to generate preview"));
@@ -42,7 +42,7 @@ Rectangle {
 
     function enterAdvancedMode() {
         if (_loading || root.advancedMode)
-            return ;
+            return;
 
         var snapshot = buildCurrentData();
         _loading = true;
@@ -59,7 +59,7 @@ Rectangle {
 
     function exitAdvancedMode() {
         if (!root.advancedMode)
-            return ;
+            return;
 
         exitAdvancedDialog.open();
     }
@@ -115,11 +115,11 @@ Rectangle {
         if (!d) {
             if (_profileNames.length > 0) {
                 loadProfile(_profileNames[0]);
-                return ;
+                return;
             }
             resetToNew();
             _loading = false;
-            return ;
+            return;
         }
         _loadedProfileName = name;
         profileNameField.text = name;
@@ -139,7 +139,6 @@ Rectangle {
             var args = JSON.parse(previewRaw);
             if (args && args.length > 0)
                 advancedPanel.setPreview("ffmpeg " + args.join(" "));
-
         }
     }
 
@@ -184,7 +183,7 @@ Rectangle {
         var name = profileNameField.text.trim();
         if (!name) {
             profileNameField.placeholderText = qsTr("Name is required!");
-            return ;
+            return;
         }
         var data = buildCurrentData();
         data.name = name;
@@ -245,7 +244,7 @@ Rectangle {
         _loading = true;
         _profileNames = JSON.parse(backend.availableProfiles());
         _defaultNames = JSON.parse(backend.defaultProfileNames());
-        Qt.callLater(function() {
+        Qt.callLater(function () {
             loadProfile(profileName);
             _loading = false;
         });
@@ -287,7 +286,6 @@ Rectangle {
                     color: theme.text
                     bottomPadding: 4
                 }
-
             }
 
             Flow {
@@ -321,11 +319,10 @@ Rectangle {
                     displayText: currentIndex < 0 ? qsTr("New profile") : currentText
                     onCurrentTextChanged: {
                         if (_loading)
-                            return ;
+                            return;
 
                         if (currentText && currentText !== _loadedProfileName)
                             loadProfile(currentText);
-
                     }
                 }
 
@@ -398,9 +395,7 @@ Rectangle {
                         text: qsTr("Restore Defaults")
                         onClicked: restoreDialog.open()
                     }
-
                 }
-
             }
 
             Label {
@@ -446,7 +441,6 @@ Rectangle {
                     currentCodecKey: videoPanel.codec
                     onChanged: updatePreview()
                 }
-
             }
 
             Rectangle {
@@ -464,7 +458,6 @@ Rectangle {
                 onAdvancedCommandChanged: updatePreview()
                 onExtraArgsChanged: updatePreview()
             }
-
         }
 
         ScrollBar.vertical: ScrollBar {
@@ -472,7 +465,6 @@ Rectangle {
 
             policy: ScrollBar.AsNeeded
         }
-
     }
 
     RestoreDefaultsDialog {
@@ -497,7 +489,7 @@ Rectangle {
     ProfileExportDialog {
         id: exportDialog
 
-        onExportFinished: function(count) {
+        onExportFinished: function (count) {
             showNotification(qsTr("Exported %1 profile(s)").arg(count), theme.accent);
         }
     }
@@ -505,15 +497,15 @@ Rectangle {
     ProfileImportDialog {
         id: importDialog
 
-        onConflictsFound: function(path, conflicts) {
+        onConflictsFound: function (path, conflicts) {
             conflictDialog.importPath = path;
             conflictDialog.conflicts = conflicts;
             conflictDialog.open();
         }
-        onImportFinished: function(summary) {
+        onImportFinished: function (summary) {
             handleImportSummary(summary);
         }
-        onImportFailed: function(message) {
+        onImportFailed: function (message) {
             showNotification(qsTr("Import failed: %1").arg(message), "#e66");
         }
     }
@@ -521,10 +513,10 @@ Rectangle {
     ProfileImportConflictDialog {
         id: conflictDialog
 
-        onImportFinished: function(summary) {
+        onImportFinished: function (summary) {
             handleImportSummary(summary);
         }
-        onImportFailed: function(message) {
+        onImportFailed: function (message) {
             showNotification(qsTr("Import failed: %1").arg(message), "#e66");
         }
     }
@@ -544,5 +536,4 @@ Rectangle {
 
         target: videoPanel
     }
-
 }

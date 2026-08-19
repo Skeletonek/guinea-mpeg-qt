@@ -1,8 +1,6 @@
 import "Components"
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Layouts
-import "Utils/Constants.js" as Constants
 import "Utils/DataUtils.js" as DataUtils
 import "Utils/FormatUtils.js" as FormatUtils
 
@@ -13,12 +11,12 @@ Item {
     property Item playerItem: null
     property var _profileNames: []
 
-    signal openVideoClicked()
-    signal profileEditorClicked()
-    signal browseOutputClicked()
-    signal viewTranscodeClicked()
-    signal settingsClicked()
-    signal aboutClicked()
+    signal openVideoClicked
+    signal profileEditorClicked
+    signal browseOutputClicked
+    signal viewTranscodeClicked
+    signal settingsClicked
+    signal aboutClicked
 
     function refreshProfiles() {
         var p = backend.availableProfiles();
@@ -95,7 +93,6 @@ Item {
                 ScrollBar.vertical: ScrollBar {
                     policy: ScrollBar.AsNeeded
                 }
-
             }
 
             Label {
@@ -127,14 +124,12 @@ Item {
                         text: hostWindow ? _streamText(hostWindow.videoStreams[index], index, "video") : ""
                         onClicked: {
                             if (!hostWindow)
-                                return ;
+                                return;
 
                             hostWindow.selectedVideoIndices = _toggleSelection(index, checked, hostWindow.selectedVideoIndices);
                         }
                     }
-
                 }
-
             }
 
             Label {
@@ -158,14 +153,12 @@ Item {
                         text: hostWindow ? _streamText(hostWindow.audioStreams[index], index, "audio") : ""
                         onClicked: {
                             if (!hostWindow)
-                                return ;
+                                return;
 
                             hostWindow.selectedAudioIndices = _toggleSelection(index, checked, hostWindow.selectedAudioIndices);
                         }
                     }
-
                 }
-
             }
 
             Label {
@@ -212,21 +205,19 @@ Item {
                 endTime: hostWindow ? hostWindow.endTime : 0
                 onStartTimeChanged: {
                     if (!hostWindow || hostWindow.settingTimeline)
-                        return ;
+                        return;
 
                     hostWindow.startTime = startTime;
                     if (playerItem)
                         playerItem.position = startTime;
-
                 }
                 onEndTimeChanged: {
                     if (!hostWindow || hostWindow.settingTimeline)
-                        return ;
+                        return;
 
                     hostWindow.endTime = endTime;
                     if (playerItem)
                         playerItem.position = endTime;
-
                 }
             }
 
@@ -249,7 +240,6 @@ Item {
                     onTextChanged: {
                         if (hostWindow)
                             hostWindow.outputFilePath = text;
-
                     }
                     width: parent.width - 40 - parent.spacing
                 }
@@ -261,7 +251,6 @@ Item {
                     width: 40
                     onClicked: root.browseOutputClicked()
                 }
-
             }
 
             Button {
@@ -273,7 +262,6 @@ Item {
 
                     if (hostWindow)
                         hostWindow.startTranscoding();
-
                 }
                 width: parent.width
             }
@@ -290,9 +278,7 @@ Item {
                     cursorShape: Qt.PointingHandCursor
                     onClicked: root.viewTranscodeClicked()
                 }
-
             }
-
         }
 
         ScrollBar.vertical: ScrollBar {
@@ -300,7 +286,6 @@ Item {
 
             policy: ScrollBar.AsNeeded
         }
-
     }
 
     UpdateBanner {
@@ -343,5 +328,4 @@ Item {
         display: Button.IconOnly
         onClicked: root.aboutClicked()
     }
-
 }

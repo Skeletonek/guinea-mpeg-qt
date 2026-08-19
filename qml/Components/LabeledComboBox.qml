@@ -27,5 +27,4 @@ LabeledRow {
         onCurrentIndexChanged: root.currentIndex = currentIndex
         onCurrentTextChanged: root.currentText = currentText
     }
-
 }

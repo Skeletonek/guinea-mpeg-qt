@@ -5,7 +5,7 @@ import QtQuick.Controls 2.15
 Dialog {
     id: root
 
-    signal exitRequested()
+    signal exitRequested
 
     title: qsTr("Exit Advanced Mode")
     standardButtons: Dialog.Yes | Dialog.No
@@ -24,5 +24,4 @@ Dialog {
         color: theme.text
         wrapMode: Text.WordWrap
     }
-
 }

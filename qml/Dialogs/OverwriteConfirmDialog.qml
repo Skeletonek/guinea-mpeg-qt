@@ -7,7 +7,7 @@ Dialog {
 
     property string filePath: ""
 
-    signal overwriteRequested()
+    signal overwriteRequested
 
     title: qsTr("Overwrite File")
     standardButtons: Dialog.Yes | Dialog.No
@@ -30,5 +30,4 @@ Dialog {
         wrapMode: Text.WordWrap
         elide: Text.ElideMiddle
     }
-
 }

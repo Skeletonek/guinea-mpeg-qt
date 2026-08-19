@@ -7,16 +7,15 @@ import QtQuick.Controls 2.15
 Column {
     id: root
 
-    property var _availableEncoders: ({
-    })
+    property var _availableEncoders: ({})
     property var _codecAvailable: []
     property bool loading: false
     readonly property var codec: Constants.codecKeys[codecCombo.currentIndex]
     readonly property var codecLabels: Constants.codecLabels
     readonly property var codecKeys: Constants.codecKeys
 
-    signal changed()
-    signal openEncoderCompatDialog()
+    signal changed
+    signal openEncoderCompatDialog
     signal encoderSelectionChanged(string encName)
 
     function rebuildCodecItems() {
@@ -37,7 +36,6 @@ Column {
             var text = encoderCombo.textAt(idx);
             if (text)
                 return text;
-
         }
         return encoderCombo.currentText || "";
     }
@@ -49,11 +47,11 @@ Column {
         encoderCombo.model = encs;
         if (encs.length === 0) {
             encoderCombo.currentIndex = -1;
-            return ;
+            return;
         }
         if (!forceDefault && prev && encs.indexOf(prev) >= 0) {
             encoderCombo.currentIndex = encs.indexOf(prev);
-            return ;
+            return;
         }
         var defEnc = Constants.defaultEncoders[codec] || Constants.defaultEncoders["h264"];
         var ei = encs.indexOf(defEnc);
@@ -99,7 +97,7 @@ Column {
             onCurrentIndexChanged: {
                 if (!root._codecAvailable[currentIndex]) {
                     root.encoderSelectionChanged("");
-                    return ;
+                    return;
                 }
                 rebuildEncoderModel();
                 root.encoderSelectionChanged(root._currentEncoderText());
@@ -111,9 +109,7 @@ Column {
                 opacity: root._codecAvailable[index] ? 1 : 0.4
                 palette.text: enabled ? theme.text : theme.textDim
             }
-
         }
-
     }
 
     LabeledRow {
@@ -147,15 +143,11 @@ Column {
                 onEditTextChanged: {
                     if (!root.loading)
                         root.changed();
-
                 }
                 onAccepted: {
                     root.encoderSelectionChanged(root._currentEncoderText());
                 }
             }
-
         }
-
     }
-
 }

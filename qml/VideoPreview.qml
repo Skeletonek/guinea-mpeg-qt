@@ -109,9 +109,6 @@ Rectangle {
                 verticalAlignment: Text.AlignVCenter
                 Layout.fillHeight: true
             }
-
         }
-
     }
-
 }

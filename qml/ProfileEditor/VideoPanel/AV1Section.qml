@@ -1,5 +1,4 @@
 import "../../Components"
-import "../../Utils/Constants.js" as Constants
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 
@@ -9,7 +8,7 @@ Column {
     property string codecKey: ""
     property bool loading: false
 
-    signal changed()
+    signal changed
 
     function getAV1Data() {
         return {
@@ -52,14 +51,12 @@ Column {
             onTextChanged: {
                 if (!root.loading)
                     root.changed();
-
             }
 
             validator: IntValidator {
                 bottom: 0
                 top: 8
             }
-
         }
 
         Label {
@@ -75,16 +72,13 @@ Column {
             onTextChanged: {
                 if (!root.loading)
                     root.changed();
-
             }
 
             validator: IntValidator {
                 bottom: 0
                 top: 8
             }
-
         }
-
     }
 
     CheckBox {
@@ -94,8 +88,6 @@ Column {
         onCheckedChanged: {
             if (!root.loading)
                 root.changed();
-
         }
     }
-
 }

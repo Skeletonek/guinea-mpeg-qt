@@ -5,7 +5,7 @@ import QtQuick.Controls 2.15
 Dialog {
     id: root
 
-    signal restoreRequested()
+    signal restoreRequested
 
     title: qsTr("Restore Default Profiles")
     standardButtons: Dialog.Yes | Dialog.No
@@ -24,5 +24,4 @@ Dialog {
         color: theme.text
         wrapMode: Text.WordWrap
     }
-
 }

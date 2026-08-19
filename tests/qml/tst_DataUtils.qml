@@ -110,7 +110,7 @@ TestCase {
         var items = ["a", "b", "c"];
         var combo = {
             "count": items.length,
-            "textAt": function(i) {
+            "textAt": function (i) {
                 return items[i];
             },
             "currentIndex": 0,
@@ -130,7 +130,7 @@ TestCase {
         var items = ["a", "b", "c"];
         var combo = {
             "count": items.length,
-            "textAt": function(i) {
+            "textAt": function (i) {
                 return items[i];
             },
             "currentIndex": 0,

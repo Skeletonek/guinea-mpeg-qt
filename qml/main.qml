@@ -3,7 +3,6 @@ import "Dialogs"
 import GuineaMpeg 1.0
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Layouts
 import "Utils/Constants.js" as Constants
 import "Utils/DataUtils.js" as DataUtils
 import "Utils/FormatUtils.js" as FormatUtils
@@ -12,8 +11,7 @@ ApplicationWindow {
     id: appWindow
 
     property string currentVideoPath: ""
-    property var currentVideoInfo: ({
-    })
+    property var currentVideoInfo: ({})
     property string currentProfile: "H.264 High"
     property string currentCodec: Constants.codecKeys[0]
     property int videoDuration: 0
@@ -43,22 +41,22 @@ ApplicationWindow {
         videoStreams = info.video_streams || [];
         audioStreams = info.audio_streams || [];
         var vi = [];
-        for (var v = 0; v < videoStreams.length; v++) vi.push(v)
+        for (var v = 0; v < videoStreams.length; v++)
+            vi.push(v);
         selectedVideoIndices = vi;
         var ai = [];
-        for (var a = 0; a < audioStreams.length; a++) ai.push(a)
+        for (var a = 0; a < audioStreams.length; a++)
+            ai.push(a);
         selectedAudioIndices = ai;
         var name = FormatUtils.getFilename(filePath);
         var fps = FormatUtils.formatFps(info.fps || "0/1");
         videoInfoText = qsTr("File: %1\nDuration: %2s\nResolution: %3x%4\nFPS: %5\nVideo: %6\nAudio: %7").arg(name).arg(info.duration.toFixed(1)).arg(info.width).arg(info.height).arg(fps).arg(info.codec).arg(info.audio_codec || "N/A");
         var base = FormatUtils.getBaseFilename(name);
         var dir = FormatUtils.getDirectory(filePath);
-        var profileData = {
-        };
+        var profileData = {};
         try {
             profileData = JSON.parse(backend.loadProfile(currentProfile));
-        } catch (e) {
-        }
+        } catch (e) {}
         appWindow.outputFilePath = dir + base + "_transcoded." + getExtensionForProfile(profileData);
     }
 
@@ -77,8 +75,7 @@ ApplicationWindow {
         } catch (e) {
             currentCodec = Constants.codecKeys[0];
         }
-        var ext = getExtensionForProfile(d || {
-        });
+        var ext = getExtensionForProfile(d || {});
         var dot = appWindow.outputFilePath.lastIndexOf(".");
         appWindow.outputFilePath = appWindow.outputFilePath.substring(0, dot >= 0 ? dot : 0) + "." + ext;
     }
@@ -86,12 +83,12 @@ ApplicationWindow {
     function startTranscoding() {
         if (appWindow.outputFilePath === "") {
             videoInfoText = qsTr("Please set an output file path first");
-            return ;
+            return;
         }
         if (backend.fileExists(appWindow.outputFilePath)) {
             overwriteDialog.filePath = appWindow.outputFilePath;
             overwriteDialog.open();
-            return ;
+            return;
         }
         enqueueTranscoding();
     }
@@ -120,7 +117,7 @@ ApplicationWindow {
 
     function processTranscodeQueue() {
         if (activeJob !== null || transcodeQueue.length === 0)
-            return ;
+            return;
 
         var job = transcodeQueue[0];
         activeJob = job;
@@ -165,11 +162,11 @@ ApplicationWindow {
                     anchors.fill: parent
                     onEntered: dragOverlay.visible = true
                     onExited: dragOverlay.visible = false
-                    onDropped: function(drop) {
+                    onDropped: function (drop) {
                         dragOverlay.visible = false;
                         var url = String(drop.urls[0]);
                         if (url.length === 0)
-                            return ;
+                            return;
 
                         var path = DataUtils.toLocalPath(url);
                         appWindow.loadVideo(path, url);
@@ -222,11 +219,8 @@ ApplicationWindow {
                         onSettingsClicked: optionsDialog.open()
                         onAboutClicked: aboutDialog.open()
                     }
-
                 }
-
             }
-
         }
 
         Component {
@@ -236,9 +230,7 @@ ApplicationWindow {
                 profileName: currentProfile
                 onBack: stackView.pop()
             }
-
         }
-
     }
 
     FileOpenDialog {
@@ -296,7 +288,7 @@ ApplicationWindow {
     Connections {
         function onTranscodingChanged() {
             if (backend.transcoding)
-                return ;
+                return;
 
             if (transcodeQueue.length > 0) {
                 transcodeQueue = transcodeQueue.slice(1);
@@ -307,5 +299,4 @@ ApplicationWindow {
 
         target: backend
     }
-
 }

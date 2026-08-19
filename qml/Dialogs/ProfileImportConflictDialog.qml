@@ -13,12 +13,10 @@ Dialog {
     signal importFailed(string message)
 
     function doImport(overwrite) {
-        var summary = {
-        };
+        var summary = {};
         try {
             summary = JSON.parse(backend.importProfiles(root.importPath, overwrite));
-        } catch (e) {
-        }
+        } catch (e) {}
         root.close();
         if (summary.error)
             root.importFailed(summary.error);
@@ -71,13 +69,9 @@ Dialog {
                             wrapMode: Text.ElideRight
                             width: parent.width
                         }
-
                     }
-
                 }
-
             }
-
         }
 
         Label {
@@ -86,7 +80,6 @@ Dialog {
             wrapMode: Text.WordWrap
             Layout.fillWidth: true
         }
-
     }
 
     footer: DialogButtonBox {
@@ -105,7 +98,5 @@ Dialog {
             text: qsTr("Cancel")
             onClicked: root.reject()
         }
-
     }
-
 }

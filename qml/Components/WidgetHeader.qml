@@ -31,7 +31,5 @@ Rectangle {
             font.pixelSize: root.pixelSize
             verticalAlignment: Text.AlignVCenter
         }
-
     }
-
 }
