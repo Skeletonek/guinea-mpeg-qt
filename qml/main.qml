@@ -153,6 +153,10 @@ ApplicationWindow {
                 width: stackView.width
                 height: stackView.height
                 color: theme.bg
+                property int _panelWidth: Constants.controlsPanelDefaultWidth
+                property bool _panelCollapsed: false
+                property int _panelStartWidth: 0
+                property int _panelStartX: 0
                 StackView.onActivated: {
                     controlsPanel.refreshProfiles();
                     appWindow.updateCodec();
@@ -188,22 +192,108 @@ ApplicationWindow {
                 Row {
                     anchors.fill: parent
                     anchors.margins: 8
-                    spacing: 8
+                    spacing: 0
 
                     VideoPreview {
                         id: player
 
-                        width: Math.max(100, parent.width - 300 - parent.spacing)
+                        width: Math.max(100, parent.width - splitterHandle.width - controlsPanel.width)
                         height: parent.height
                         source: appWindow.videoSource
                         hasVideo: currentVideoPath !== ""
                     }
 
+                    Item {
+                        id: splitterHandle
+
+                        width: Constants.splitterHandleWidth
+                        height: parent.height
+                        activeFocusOnTab: true
+
+                        Rectangle {
+                            anchors.top: parent.top
+                            anchors.bottom: parent.bottom
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            width: 1
+                            color: "transparent"
+                        }
+
+                        Label {
+                            anchors.centerIn: parent
+                            text: "«"
+                            color: theme.accent
+                            font.bold: true
+                            font.pixelSize: 12
+                            visible: _panelCollapsed
+                            rotation: 0
+                        }
+
+                        MouseArea {
+                            id: splitterMouse
+
+                            anchors.fill: parent
+                            cursorShape: _panelCollapsed ? Qt.PointingHandCursor : Qt.SplitHCursor
+                            onPressed: function(mouse) {
+                                _panelStartX = splitterMouse.mapToItem(null, mouse.x, 0).x;
+                                _panelStartWidth = controlsPanel.width;
+                            }
+                            onPositionChanged: function(mouse) {
+                                if (!pressed || _panelCollapsed)
+                                    return;
+
+                                var newW = _panelStartWidth - Math.round(splitterMouse.mapToItem(null, mouse.x, 0).x - _panelStartX);
+                                if (newW < Constants.controlsPanelCollapseThreshold) {
+                                    _panelCollapsed = true;
+                                    _panelWidth = 0;
+                                } else {
+                                    _panelWidth = Math.min(newW, Constants.controlsPanelMaxWidth);
+                                }
+                            }
+                            onReleased: {
+                                if (!_panelCollapsed && _panelWidth < Constants.controlsPanelMinWidth)
+                                    _panelWidth = Constants.controlsPanelMinWidth;
+                            }
+                            onClicked: {
+                                if (_panelCollapsed) {
+                                    _panelCollapsed = false;
+                                    _panelWidth = Constants.controlsPanelMinWidth;
+                                }
+                            }
+                            onDoubleClicked: {
+                                if (!_panelCollapsed) {
+                                    _panelCollapsed = true;
+                                    _panelWidth = 0;
+                                }
+                            }
+                        }
+
+                        Keys.onLeftPressed: {
+                            if (_panelCollapsed)
+                                return;
+
+                            _panelWidth = Math.min(Constants.controlsPanelMaxWidth, _panelWidth + 16);
+                        }
+                        Keys.onRightPressed: {
+                            if (_panelCollapsed) {
+                                _panelCollapsed = false;
+                                _panelWidth = Constants.controlsPanelMinWidth;
+                                return;
+                            }
+                            if (_panelWidth <= Constants.controlsPanelMinWidth) {
+                                _panelCollapsed = true;
+                                _panelWidth = 0;
+                                return;
+                            }
+                            _panelWidth = Math.max(Constants.controlsPanelMinWidth, _panelWidth - 16);
+                        }
+                    }
+
                     ControlsPanel {
                         id: controlsPanel
 
-                        width: 300
+                        width: _panelWidth
                         height: parent.height
+                        visible: !_panelCollapsed
                         hostWindow: appWindow
                         playerItem: player
                         onOpenVideoClicked: fileDialog.open()

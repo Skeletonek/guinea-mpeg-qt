@@ -93,3 +93,10 @@ var timelineSelectionOpacity = 0.5
 // Validation constants
 var crfMin = 0
 var crfMax = 63
+
+// Controls panel splitter
+var controlsPanelDefaultWidth = 300
+var controlsPanelMinWidth = 300
+var controlsPanelMaxWidth = 640
+var controlsPanelCollapseThreshold = 140
+var splitterHandleWidth = 8
