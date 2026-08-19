@@ -27,9 +27,10 @@ Column {
         var model = [Constants.SENTINEL_DEFAULT];
         for (var i = 0; i < keys.length; i++)
             model.push(keys[i]);
+        var prev = DataUtils.comboValue(containerCombo);
         containerCombo.model = model;
-        if (containerCombo.currentIndex >= model.length)
-            containerCombo.currentIndex = 0;
+        var idx = model.indexOf(prev);
+        containerCombo.currentIndex = idx >= 0 ? idx : 0;
     }
 
     spacing: 8
@@ -44,12 +45,14 @@ Column {
             id: containerCombo
 
             width: parent.width - parent.effectiveLabelWidth - parent.spacing
+            editable: true
             onCurrentIndexChanged: {
                 root._container = root.getContainer() || "";
                 if (!root.loading)
                     root.changed();
             }
-            onActivated: {
+            onEditTextChanged: {
+                root._container = root.getContainer() || "";
                 if (!root.loading)
                     root.changed();
             }

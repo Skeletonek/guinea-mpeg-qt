@@ -52,9 +52,9 @@ Rectangle {
             args = JSON.parse(raw);
 
         advancedPanel.setCommand(DataUtils.advancedTemplateFromArgs(args));
+        advancedPanel.setContainer(snapshot.container);
         root.advancedMode = true;
         _loading = false;
-        updatePreview();
     }
 
     function exitAdvancedMode() {
