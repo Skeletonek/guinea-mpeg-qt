@@ -1,8 +1,11 @@
 ### 0.11.0 (In progress)
 - Added advanced mode for ProfileEditor allowing to freely edit ffmpeg command
 - Added container option in ProfileEditor
-- Allow resizing and collapsing the controls panel in main view
-- Allow clicking on preview to play / pause the preview
+- Added resizing and collapsing the controls panel in main view
+- Added clicking on preview to play / pause the preview
+- Added keybindings for preview volume management and seeking using arrows and "vim keys"
+- Added preview volume management using scrollwheel
+- Added tooltips to some buttons
 - Added additional metadata such as file version and copyright to the Windows binary
 - Added additional metadata such as file version and copyright to the Windows installer file
 - Fixed Windows aarch64 build process

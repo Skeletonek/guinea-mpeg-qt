@@ -311,6 +311,8 @@ Item {
         icon.width: 32
         icon.height: 32
         display: Button.IconOnly
+        ToolTip.text: qsTr("Settings")
+        ToolTip.visible: hovered
         onClicked: root.settingsClicked()
     }
 
@@ -326,6 +328,8 @@ Item {
         icon.width: 32
         icon.height: 32
         display: Button.IconOnly
+        ToolTip.text: qsTr("About")
+        ToolTip.visible: hovered
         onClicked: root.aboutClicked()
     }
 }
