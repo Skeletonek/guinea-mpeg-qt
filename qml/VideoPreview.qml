@@ -46,6 +46,12 @@ Rectangle {
             else
                 player.play();
         }
+        onWheel: function (wheel) {
+            var delta = wheel.angleDelta.y > 0 ? 2 : -2;
+            player.volume = Math.max(0, Math.min(100, player.volume + delta));
+            backend.setOption("previewVolume", player.volume);
+            wheel.accepted = true;
+        }
     }
 
     Text {
@@ -106,6 +112,17 @@ Rectangle {
                     backend.setOption("previewVolume", value);
                 }
                 Layout.fillHeight: true
+
+                MouseArea {
+                    anchors.fill: parent
+                    acceptedButtons: Qt.NoButton
+                    onWheel: function (wheel) {
+                        var delta = wheel.angleDelta.y > 0 ? 2 : -2;
+                        player.volume = Math.max(0, Math.min(100, player.volume + delta));
+                        backend.setOption("previewVolume", player.volume);
+                        wheel.accepted = true;
+                    }
+                }
             }
 
             Label {
