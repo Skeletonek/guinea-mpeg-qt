@@ -439,6 +439,7 @@ Rectangle {
                     loading: root._loading
                     videoEnabled: videoPanel.videoEnabled
                     currentCodecKey: videoPanel.codec
+                    container: videoPanel.container
                     onChanged: updatePreview()
                 }
             }

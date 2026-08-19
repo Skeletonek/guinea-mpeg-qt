@@ -15,6 +15,7 @@ Column {
     readonly property var codecLabels: codecSection ? codecSection.codecLabels : []
     readonly property var codecKeys: codecSection ? codecSection.codecKeys : []
     readonly property bool _isAnimated: codec === "gif" || codec === "webp"
+    readonly property string container: containerSection ? containerSection.container : ""
 
     signal changed
     signal openEncoderCompatDialog
@@ -67,7 +68,8 @@ Column {
     function getData() {
         var data = {
             "video_enabled": videoEnabledSwitch.checked,
-            "codec": root.codec
+            "codec": root.codec,
+            "container": containerSection ? containerSection.getContainer() : null
         };
         if (videoEnabledSwitch.checked) {
             var codecData = codecSection.getCodecData();
@@ -116,6 +118,7 @@ Column {
                 "codec": d.codec,
                 "encoder": d.encoder
             });
+            containerSection.setContainerData(d);
             rateControlSection.setRateControlData(d);
             presetTuneSection.setPresetTuneData(d);
             pixelFormatSection.setPixelFormatData(d);
@@ -191,6 +194,15 @@ Column {
             onEncoderSelectionChanged: function (encName) {
                 root.refreshAll(encName);
             }
+        }
+
+        ContainerSection {
+            id: containerSection
+
+            width: parent.width
+            codecKey: root.codec
+            loading: root.loading
+            onChanged: root.changed()
         }
 
         SectionHeader {

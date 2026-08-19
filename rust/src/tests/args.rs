@@ -251,6 +251,21 @@ fn audio_codec_explicit() {
 }
 
 #[test]
+fn container_selects_audio_codec() {
+    let args = args_for(r#"{"codec":"av1","container":"mp4"}"#);
+    assert!(contains_pair(&args, "-c:a", "aac"));
+    let args = args_for(r#"{"codec":"av1","container":"webm"}"#);
+    assert!(contains_pair(&args, "-c:a", "libopus"));
+    let args = args_for(r#"{"codec":"h264","container":"mkv"}"#);
+    assert!(contains_pair(&args, "-c:a", "aac"));
+    let args = args_for(r#"{"codec":"av1","container":"ogg"}"#);
+    assert!(contains_pair(&args, "-c:a", "libvorbis"));
+    // Explicit audio codec wins over container.
+    let args = args_for(r#"{"codec":"av1","container":"mp4","audio_codec":"opus"}"#);
+    assert!(contains_pair(&args, "-c:a", "libopus"));
+}
+
+#[test]
 fn audio_parameters() {
     let args = args_for(
         r#"{"codec":"h264","audio_bitrate":"192k","audio_channels":1,"audio_sample_rate":44100}"#,

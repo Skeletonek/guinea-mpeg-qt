@@ -1,3 +1,12 @@
+### 0.11.0 (In progress)
+- Added advanced mode for ProfileEditor allowing to freely edit ffmpeg command
+- Added container option in ProfileEditor
+- Allow resizing and collapsing the controls panel in main view
+- Added additional metadata such as file version and copyright to the Windows binary
+- Added additional metadata such as file version and copyright to the Windows installer file
+- Fixed Windows aarch64 build process
+- Additional codebase cleanups
+
 ### 0.10.1
 - Fixed preview controls not working on Windows
 - Fixed profile exporting not working in Profile Editor on Windows

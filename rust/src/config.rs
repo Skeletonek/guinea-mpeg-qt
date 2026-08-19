@@ -10,6 +10,7 @@ pub struct VideoProfile {
     #[serde(default)]
     pub name: String,
     pub codec: String,
+    pub container: Option<String>,
     pub crf: Option<i32>,
     pub bitrate: Option<String>,
     pub preset: Option<String>,

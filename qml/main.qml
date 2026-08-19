@@ -61,6 +61,9 @@ ApplicationWindow {
     }
 
     function getExtensionForProfile(d) {
+        if (d.container)
+            return d.container;
+
         if (d.video_enabled !== false)
             return Constants.profileExtensions[d.codec] || "webm";
 

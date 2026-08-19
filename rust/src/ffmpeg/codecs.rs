@@ -19,9 +19,16 @@ pub(crate) fn audio_codec_for_profile(profile: &VideoProfile) -> &str {
             _ => "aac",
         }
     } else {
-        match profile.codec.as_str() {
-            "h264" | "hevc" => "aac",
-            _ => "libopus",
+        match profile.container.as_deref() {
+            Some("mp4") | Some("mov") | Some("m4a") => "aac",
+            Some("webm") | Some("opus") => "libopus",
+            Some("ogg") => "libvorbis",
+            Some("mp3") => "libmp3lame",
+            Some("flac") => "flac",
+            _ => match profile.codec.as_str() {
+                "h264" | "hevc" => "aac",
+                _ => "libopus",
+            },
         }
     }
 }
