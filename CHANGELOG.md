@@ -1,4 +1,4 @@
-### 0.11.0 (In progress)
+### 0.11.0
 - Added advanced mode for ProfileEditor allowing to freely edit ffmpeg command
 - Added container option in ProfileEditor
 - Added resizing and collapsing the controls panel in main view
