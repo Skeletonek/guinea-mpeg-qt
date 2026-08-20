@@ -234,6 +234,30 @@ pub extern "C" fn guinea_mpeg_mpv_volume(ptr: *mut c_void) -> i32 {
 }
 
 #[no_mangle]
+pub extern "C" fn guinea_mpeg_mpv_set_mute(ptr: *mut c_void, mute: bool) {
+    if !ptr.is_null() {
+        backend_from_ptr(ptr).set_string("mute", if mute { "yes" } else { "no" });
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn guinea_mpeg_mpv_mute(ptr: *mut c_void) -> bool {
+    if ptr.is_null() {
+        return false;
+    }
+    let mut flag: i32 = 0;
+    unsafe {
+        mpv_get_property(
+            backend_from_ptr(ptr).handle,
+            CString::new("mute").unwrap().as_ptr(),
+            FORMAT_FLAG,
+            &mut flag as *mut _ as *mut c_void,
+        );
+    }
+    flag != 0
+}
+
+#[no_mangle]
 pub extern "C" fn guinea_mpeg_mpv_process_events(ptr: *mut c_void) -> i32 {
     if ptr.is_null() {
         return 0;

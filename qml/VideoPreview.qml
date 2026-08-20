@@ -174,10 +174,16 @@ Rectangle {
             }
 
             Label {
-                text: "🔊"
+                text: player.muted ? "🔇" : "🔊"
                 color: theme.text
                 verticalAlignment: Text.AlignVCenter
                 Layout.fillHeight: true
+
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: player.toggleMute()
+                }
             }
 
             Label {
@@ -186,6 +192,12 @@ Rectangle {
                 Layout.preferredWidth: 30
                 verticalAlignment: Text.AlignVCenter
                 Layout.fillHeight: true
+
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: player.toggleMute()
+                }
             }
         }
     }

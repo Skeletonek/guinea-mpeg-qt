@@ -1,4 +1,3 @@
-import "../Utils/Centering.js" as Utils
 import "../Utils/DataUtils.js" as DataUtils
 import QtQuick 2.15
 import QtQuick.Controls 2.15
@@ -50,9 +49,8 @@ Dialog {
     padding: 16
     topPadding: 8
     implicitHeight: implicitHeaderHeight + mainLayout.implicitHeight + implicitFooterHeight + 24
-    Component.onCompleted: Utils.centerInParent(root)
+    anchors.centerIn: Overlay.overlay
     onOpened: {
-        Utils.centerInParent(root);
         profilesModel.clear();
         for (var i = 0; i < root.profileNames.length; i++)
             profilesModel.append({

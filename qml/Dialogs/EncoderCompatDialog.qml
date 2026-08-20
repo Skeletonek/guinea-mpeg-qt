@@ -14,38 +14,47 @@ Dialog {
     padding: 16
     modal: true
     anchors.centerIn: Overlay.overlay
-    implicitHeight: implicitHeaderHeight + contentCol.implicitHeight + implicitFooterHeight + 24
+    implicitHeight: implicitHeaderHeight + scroll.height + implicitFooterHeight + 24
 
-    Column {
-        id: contentCol
+    ScrollView {
+        id: scroll
 
-        anchors.fill: parent
-        spacing: 8
+        anchors.left: parent.left
+        anchors.right: parent.right
+        height: Math.min(440, contentCol.implicitHeight + 8)
+        clip: true
 
-        Repeater {
-            model: root.codecLabels.length
+        Column {
+            id: contentCol
 
-            delegate: Column {
-                readonly property var encs: root.availableEncoders[root.codecKeys[index]] || []
+            width: scroll.availableWidth
+            spacing: 8
 
-                spacing: 4
-                visible: encs.length > 0
+            Repeater {
+                model: root.codecLabels.length
 
-                Label {
-                    text: root.codecLabels[index] + " (" + encs.length + ")"
-                    color: theme.text
-                    font.bold: true
-                    font.pixelSize: 12
-                }
+                delegate: Column {
+                    readonly property var encs: root.availableEncoders[root.codecKeys[index]] || []
 
-                Repeater {
-                    model: encs
+                    spacing: 4
+                    visible: encs.length > 0
 
-                    delegate: Label {
-                        text: "\u2022 " + modelData
-                        color: theme.textSecondary
-                        font.pixelSize: 11
-                        leftPadding: 8
+                    Label {
+                        text: root.codecLabels[index] + " (" + encs.length + ")"
+                        color: theme.text
+                        font.bold: true
+                        font.pixelSize: 12
+                    }
+
+                    Repeater {
+                        model: encs
+
+                        delegate: Label {
+                            text: "\u2022 " + modelData
+                            color: theme.textSecondary
+                            font.pixelSize: 11
+                            leftPadding: 8
+                        }
                     }
                 }
             }

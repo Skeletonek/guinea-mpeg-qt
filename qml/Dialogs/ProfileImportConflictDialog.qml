@@ -1,4 +1,3 @@
-import "../Utils/Centering.js" as Utils
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
@@ -30,8 +29,7 @@ Dialog {
     padding: 16
     topPadding: 8
     implicitHeight: implicitHeaderHeight + mainLayout.implicitHeight + implicitFooterHeight + 24
-    Component.onCompleted: Utils.centerInParent(root)
-    onOpened: Utils.centerInParent(root)
+    anchors.centerIn: Overlay.overlay
 
     ColumnLayout {
         id: mainLayout
