@@ -7,7 +7,7 @@ labels:
   backend: docker
 
 services:
-  - name: docker
+  docker:
     image: docker:29-dind
     privileged: true
     commands:
