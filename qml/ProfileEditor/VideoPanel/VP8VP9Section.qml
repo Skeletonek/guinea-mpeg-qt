@@ -10,7 +10,7 @@ Column {
     property string codecKey: ""
     property bool loading: false
 
-    signal changed()
+    signal changed
 
     function getVP8VP9Data() {
         var cpuUsedTmp = DataUtils.comboText(cpuUsedCombo, Constants.SENTINEL_DEFAULT);
@@ -43,15 +43,11 @@ Column {
             onCurrentIndexChanged: {
                 if (!root.loading)
                     root.changed();
-
             }
             onEditTextChanged: {
                 if (!root.loading)
                     root.changed();
-
             }
         }
-
     }
-
 }

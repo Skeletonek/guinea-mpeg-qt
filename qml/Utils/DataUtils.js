@@ -116,3 +116,30 @@ function buildProfileData() {
     }
     return data
 }
+
+/**
+ * Builds an editable advanced-mode command template from a preview argument
+ * array (which uses [input]/[output] placeholders). Arguments containing
+ * whitespace or quotes are shell-quoted so they round-trip through the
+ * tokenizer, and -ss {start} -t {duration} are injected right after the input.
+ * @param {Array} args - The preview argument array
+ * @returns {string} Full ffmpeg command line with {input}/{output}/{start}/{duration}
+ */
+function advancedTemplateFromArgs(args) {
+    if (!args)
+        return ""
+    var parts = []
+    for (var i = 0; i < args.length; i++) {
+        var a = String(args[i])
+        if (a.indexOf(" ") >= 0 || a.indexOf("\"") >= 0)
+            a = "\"" + a.replace(/\"/g, "\\\"") + "\""
+        parts.push(a)
+    }
+    for (var i = 0; i < parts.length; i++) {
+        if (parts[i] === "-i") {
+            parts.splice(i + 2, 0, "-ss", "{start}", "-t", "{duration}")
+            break
+        }
+    }
+    return "ffmpeg " + parts.join(" ").replace(/\[input\]/g, "{input}").replace(/\[output\]/g, "{output}")
+}

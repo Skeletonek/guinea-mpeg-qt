@@ -79,6 +79,17 @@ var audioExtensions = {
     "Vorbis": "ogg"
 }
 
+// Output containers per video codec; "default" (sentinel) = codec-based extension
+var containerKeysByCodec = {
+    "h264": ["mp4", "mkv", "mov", "mpegts", "avi"],
+    "hevc": ["mp4", "mkv", "mov", "mpegts", "avi"],
+    "vp8": ["webm", "mkv"],
+    "vp9": ["webm", "mkv"],
+    "av1": ["webm", "mkv", "mp4"],
+    "gif": ["gif"],
+    "webp": ["webp"]
+}
+
 // Color constants
 var colorPrimary = "#4a9eff"
 var colorSecondary = "#ff6b4a"
@@ -93,3 +104,10 @@ var timelineSelectionOpacity = 0.5
 // Validation constants
 var crfMin = 0
 var crfMax = 63
+
+// Controls panel splitter
+var controlsPanelDefaultWidth = 300
+var controlsPanelMinWidth = 300
+var controlsPanelMaxWidth = 640
+var controlsPanelCollapseThreshold = 140
+var splitterHandleWidth = 8

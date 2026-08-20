@@ -251,6 +251,21 @@ fn audio_codec_explicit() {
 }
 
 #[test]
+fn container_selects_audio_codec() {
+    let args = args_for(r#"{"codec":"av1","container":"mp4"}"#);
+    assert!(contains_pair(&args, "-c:a", "aac"));
+    let args = args_for(r#"{"codec":"av1","container":"webm"}"#);
+    assert!(contains_pair(&args, "-c:a", "libopus"));
+    let args = args_for(r#"{"codec":"h264","container":"mkv"}"#);
+    assert!(contains_pair(&args, "-c:a", "aac"));
+    let args = args_for(r#"{"codec":"av1","container":"ogg"}"#);
+    assert!(contains_pair(&args, "-c:a", "libvorbis"));
+    // Explicit audio codec wins over container.
+    let args = args_for(r#"{"codec":"av1","container":"mp4","audio_codec":"opus"}"#);
+    assert!(contains_pair(&args, "-c:a", "libopus"));
+}
+
+#[test]
 fn audio_parameters() {
     let args = args_for(
         r#"{"codec":"h264","audio_bitrate":"192k","audio_channels":1,"audio_sample_rate":44100}"#,
@@ -303,4 +318,98 @@ fn preview_uses_placeholders() {
     assert!(args.contains(&"[input]".to_string()));
     assert_eq!(args.last().unwrap(), "[output]");
     assert!(contains_pair(&args, "-crf", "18"));
+}
+
+#[test]
+fn custom_command_overrides_generated_args() {
+    let args = args_for(
+        r#"{"codec":"h264","crf":18,"custom_command":"-c:v libx264 -crf 23 -preset fast -y {output}"}"#,
+    );
+    assert!(contains_pair(&args, "-c:v", "libx264"));
+    assert!(contains_pair(&args, "-crf", "23"));
+    assert!(contains_pair(&args, "-preset", "fast"));
+    assert_eq!(args.last().unwrap(), "output.mp4");
+    assert!(!contains_flag(&args, "-map"));
+}
+
+#[test]
+fn custom_command_substitutes_placeholders() {
+    let args = build_command(
+        "in.mp4",
+        "out.mkv",
+        0.0,
+        0.0,
+        &profile(r#"{"codec":"h264","custom_command":"-i {input} -c:v libx264 -y {output}"}"#),
+    );
+    assert_eq!(args[0], "-i");
+    assert_eq!(args[1], "in.mp4");
+    assert!(args.contains(&"out.mkv".to_string()));
+}
+
+#[test]
+fn custom_command_strips_leading_ffmpeg() {
+    let args = args_for(r#"{"codec":"h264","custom_command":"ffmpeg -c:v libx264"}"#);
+    assert!(contains_pair(&args, "-c:v", "libx264"));
+    assert!(!args.contains(&"ffmpeg".to_string()));
+}
+
+#[test]
+fn custom_command_respects_quotes() {
+    let args = args_for(
+        r#"{"codec":"h264","custom_command":"-vf \"scale=-2:720,setpts=PTS/2\" -c:v libx264"}"#,
+    );
+    assert!(contains_pair(&args, "-vf", "scale=-2:720,setpts=PTS/2"));
+}
+
+#[test]
+fn custom_command_drops_trim_when_no_trim() {
+    let args = args_for(
+        r#"{"codec":"h264","custom_command":"-i {input} -ss {start} -t {duration} -y {output}"}"#,
+    );
+    assert!(!contains_flag(&args, "-ss"));
+    assert!(!contains_flag(&args, "-t"));
+    assert_eq!(args[1], "input.mp4");
+    assert_eq!(args.last().unwrap(), "output.mp4");
+}
+
+#[test]
+fn custom_command_keeps_trim_when_trimmed() {
+    let args = build_command(
+        "in.mp4",
+        "out.mp4",
+        10.0,
+        16.0,
+        &profile(
+            r#"{"codec":"h264","custom_command":"-i {input} -ss {start} -t {duration} -y {output}"}"#,
+        ),
+    );
+    assert!(contains_pair(&args, "-ss", "10"));
+    assert!(contains_pair(&args, "-t", "6.000"));
+}
+
+#[test]
+fn custom_command_empty_falls_back_to_generated() {
+    let args = args_for(r#"{"codec":"h264","crf":18,"custom_command":""}"#);
+    assert!(contains_pair(&args, "-crf", "18"));
+    assert!(contains_flag(&args, "-i"));
+}
+
+#[test]
+fn custom_command_preview_uses_placeholders() {
+    let args = build_preview(&profile(
+        r#"{"codec":"h264","custom_command":"-i {input} -c:v libx264 -y {output}"}"#,
+    ));
+    assert!(args.contains(&"[input]".to_string()));
+    assert_eq!(args.last().unwrap(), "[output]");
+    assert!(contains_pair(&args, "-c:v", "libx264"));
+}
+
+#[test]
+fn tokenize_handles_quotes_and_escapes() {
+    assert_eq!(crate::ffmpeg::tokenize("a b c"), vec!["a", "b", "c"]);
+    assert_eq!(crate::ffmpeg::tokenize("'a b' c"), vec!["a b", "c"]);
+    assert_eq!(crate::ffmpeg::tokenize("\"a b\" c"), vec!["a b", "c"]);
+    assert_eq!(crate::ffmpeg::tokenize("a\\ b c"), vec!["a b", "c"]);
+    assert_eq!(crate::ffmpeg::tokenize("a \"x\\\"y\""), vec!["a", "x\"y"]);
+    assert_eq!(crate::ffmpeg::tokenize("'unbalanced"), vec!["unbalanced"]);
 }

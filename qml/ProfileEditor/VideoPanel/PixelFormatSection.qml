@@ -8,10 +8,9 @@ Column {
     id: root
 
     property bool loading: false
-    property var _capOverrides: ({
-    })
+    property var _capOverrides: ({})
 
-    signal changed()
+    signal changed
 
     function rebuildPixfmtModel(caps) {
         caps = caps || root._capOverrides;
@@ -49,15 +48,11 @@ Column {
             onCurrentIndexChanged: {
                 if (!root.loading)
                     root.changed();
-
             }
             onEditTextChanged: {
                 if (!root.loading)
                     root.changed();
-
             }
         }
-
     }
-
 }

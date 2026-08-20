@@ -13,26 +13,22 @@ FileDialog {
     nameFilters: [qsTr("TOML files (*.toml)")]
     onAccepted: {
         var path = DataUtils.toLocalPath(root.selectedFile);
-        var preview = {
-        };
+        var preview = {};
         try {
             preview = JSON.parse(backend.importProfilesPreview(path));
-        } catch (e) {
-        }
+        } catch (e) {}
         if (preview.error) {
             root.importFailed(preview.error);
-            return ;
+            return;
         }
         if (preview.conflicts && preview.conflicts.length > 0) {
             root.conflictsFound(path, preview.conflicts);
-            return ;
+            return;
         }
-        var summary = {
-        };
+        var summary = {};
         try {
             summary = JSON.parse(backend.importProfiles(path, false));
-        } catch (e) {
-        }
+        } catch (e) {}
         root.importFinished(summary);
     }
 }

@@ -1,3 +1,20 @@
+### 0.11.0 (In progress)
+- Added advanced mode for ProfileEditor allowing to freely edit ffmpeg command
+- Added container option in ProfileEditor
+- Added resizing and collapsing the controls panel in main view
+- Added muting the preview on clicking the volume label
+- Added clicking on preview to play / pause the preview
+- Added keybindings for preview volume management and seeking using arrows and "vim keys"
+- Added preview volume management using scrollwheel
+- Added tooltips to some buttons
+- Added additional metadata such as file version and copyright to the Windows binary
+- Added additional metadata such as file version and copyright to the Windows installer file
+- Change available encoders list to a scrollable list
+- Fixed import and export dialogs rendering below at first launch in some Qt Quick Styles such as Fusion
+- Fixed preview controls covering up a preview window
+- Fixed Windows aarch64 build process
+- Additional codebase cleanups
+
 ### 0.10.1
 - Fixed preview controls not working on Windows
 - Fixed profile exporting not working in Profile Editor on Windows

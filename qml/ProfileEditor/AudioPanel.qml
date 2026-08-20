@@ -9,11 +9,13 @@ Column {
     readonly property var audioCodecLabels: Constants.audioCodecLabels
     property bool videoEnabled: true
     property string currentCodecKey: "h264"
+    property string container: ""
     property bool loading: false
     readonly property bool audioForbidden: currentCodecKey === "gif" || currentCodecKey === "webp"
     readonly property alias audioEnabled: audioEnabledSwitch.checked
+    property string _autoCodecLabel: ""
 
-    signal changed()
+    signal changed
 
     function getData() {
         var idx = audioCodecCombo.currentIndex;
@@ -42,7 +44,34 @@ Column {
         }
     }
 
+    function _updateAutoCodecLabel() {
+        switch (root.container) {
+        case "mp4":
+        case "mov":
+        case "m4a":
+            root._autoCodecLabel = "AAC";
+            return;
+        case "webm":
+        case "opus":
+            root._autoCodecLabel = "Opus";
+            return;
+        case "ogg":
+            root._autoCodecLabel = "Vorbis";
+            return;
+        case "mp3":
+            root._autoCodecLabel = "MP3";
+            return;
+        case "flac":
+            root._autoCodecLabel = "FLAC";
+            return;
+        }
+        root._autoCodecLabel = (currentCodecKey === "h264" || currentCodecKey === "hevc") ? "AAC" : "Opus";
+    }
+
     spacing: 8
+    onContainerChanged: _updateAutoCodecLabel()
+    onCurrentCodecKeyChanged: _updateAutoCodecLabel()
+    Component.onCompleted: _updateAutoCodecLabel()
 
     WidgetHeader {
         width: parent.width
@@ -69,12 +98,9 @@ Column {
                 onCheckedChanged: {
                     if (!root.loading)
                         root.changed();
-
                 }
             }
-
         }
-
     }
 
     Label {
@@ -93,7 +119,7 @@ Column {
         LabeledRow {
             visible: videoEnabled
             labelWidth: parent.width
-            label: qsTr("Codec: Auto (%1)").arg((currentCodecKey === "h264" || currentCodecKey === "hevc") ? "AAC" : "Opus")
+            label: qsTr("Codec: Auto (%1)").arg(root._autoCodecLabel)
         }
 
         SectionHeader {
@@ -110,7 +136,6 @@ Column {
             onCurrentIndexChanged: {
                 if (!root.loading)
                     root.changed();
-
             }
         }
 
@@ -127,7 +152,6 @@ Column {
                 onTextChanged: {
                     if (!root.loading)
                         root.changed();
-
                 }
             }
 
@@ -139,14 +163,12 @@ Column {
                 onTextChanged: {
                     if (!root.loading)
                         root.changed();
-
                 }
 
                 validator: IntValidator {
                     bottom: 0
                     top: 8
                 }
-
             }
 
             LabeledTextField {
@@ -157,18 +179,13 @@ Column {
                 onTextChanged: {
                     if (!root.loading)
                         root.changed();
-
                 }
 
                 validator: IntValidator {
                     bottom: 0
                     top: 192000
                 }
-
             }
-
         }
-
     }
-
 }

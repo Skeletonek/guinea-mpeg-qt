@@ -1,5 +1,4 @@
 import "../../Components"
-import "../../Utils/Constants.js" as Constants
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 
@@ -9,7 +8,7 @@ Column {
     property string codecKey: ""
     property bool loading: false
 
-    signal changed()
+    signal changed
 
     function getAnimatedData() {
         return {
@@ -39,14 +38,12 @@ Column {
         onTextChanged: {
             if (!root.loading)
                 root.changed();
-
         }
 
         validator: IntValidator {
             bottom: 0
             top: 100
         }
-
     }
 
     LabeledRow {
@@ -59,10 +56,7 @@ Column {
             onCheckedChanged: {
                 if (!root.loading)
                     root.changed();
-
             }
         }
-
     }
-
 }

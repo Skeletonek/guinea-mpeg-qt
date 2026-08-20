@@ -9,7 +9,7 @@ Column {
 
     property bool loading: false
 
-    signal changed()
+    signal changed
 
     function getScalingData() {
         var fpsText = fpsCombo.editText.trim();
@@ -48,15 +48,12 @@ Column {
             onCurrentIndexChanged: {
                 if (!root.loading)
                     root.changed();
-
             }
             onActivated: {
                 if (!root.loading)
                     root.changed();
-
             }
         }
-
     }
 
     LabeledRow {
@@ -71,21 +68,16 @@ Column {
             onCurrentIndexChanged: {
                 if (!root.loading)
                     root.changed();
-
             }
             onEditTextChanged: {
                 if (!root.loading)
                     root.changed();
-
             }
 
             validator: DoubleValidator {
                 bottom: 0
                 top: 120
             }
-
         }
-
     }
-
 }

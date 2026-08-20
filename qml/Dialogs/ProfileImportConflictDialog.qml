@@ -1,4 +1,3 @@
-import "../Utils/Centering.js" as Utils
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
@@ -13,12 +12,10 @@ Dialog {
     signal importFailed(string message)
 
     function doImport(overwrite) {
-        var summary = {
-        };
+        var summary = {};
         try {
             summary = JSON.parse(backend.importProfiles(root.importPath, overwrite));
-        } catch (e) {
-        }
+        } catch (e) {}
         root.close();
         if (summary.error)
             root.importFailed(summary.error);
@@ -32,8 +29,7 @@ Dialog {
     padding: 16
     topPadding: 8
     implicitHeight: implicitHeaderHeight + mainLayout.implicitHeight + implicitFooterHeight + 24
-    Component.onCompleted: Utils.centerInParent(root)
-    onOpened: Utils.centerInParent(root)
+    anchors.centerIn: Overlay.overlay
 
     ColumnLayout {
         id: mainLayout
@@ -71,13 +67,9 @@ Dialog {
                             wrapMode: Text.ElideRight
                             width: parent.width
                         }
-
                     }
-
                 }
-
             }
-
         }
 
         Label {
@@ -86,7 +78,6 @@ Dialog {
             wrapMode: Text.WordWrap
             Layout.fillWidth: true
         }
-
     }
 
     footer: DialogButtonBox {
@@ -105,7 +96,5 @@ Dialog {
             text: qsTr("Cancel")
             onClicked: root.reject()
         }
-
     }
-
 }

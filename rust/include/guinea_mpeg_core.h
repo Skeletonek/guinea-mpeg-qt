@@ -58,6 +58,8 @@ void  guinea_mpeg_mpv_stop(void* handle);
 void  guinea_mpeg_mpv_seek(void* handle, int pos_ms);
 void  guinea_mpeg_mpv_set_volume(void* handle, int vol);
 int   guinea_mpeg_mpv_volume(void* handle);
+void  guinea_mpeg_mpv_set_mute(void* handle, bool mute);
+bool  guinea_mpeg_mpv_mute(void* handle);
 
 /* Returns bitmask: 1=position, 2=duration, 4=playing */
 int   guinea_mpeg_mpv_process_events(void* handle);

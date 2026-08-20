@@ -3,7 +3,6 @@ import "Dialogs"
 import GuineaMpeg 1.0
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Layouts
 import "Utils/Constants.js" as Constants
 import "Utils/DataUtils.js" as DataUtils
 import "Utils/FormatUtils.js" as FormatUtils
@@ -12,8 +11,7 @@ ApplicationWindow {
     id: appWindow
 
     property string currentVideoPath: ""
-    property var currentVideoInfo: ({
-    })
+    property var currentVideoInfo: ({})
     property string currentProfile: "H.264 High"
     property string currentCodec: Constants.codecKeys[0]
     property int videoDuration: 0
@@ -43,26 +41,29 @@ ApplicationWindow {
         videoStreams = info.video_streams || [];
         audioStreams = info.audio_streams || [];
         var vi = [];
-        for (var v = 0; v < videoStreams.length; v++) vi.push(v)
+        for (var v = 0; v < videoStreams.length; v++)
+            vi.push(v);
         selectedVideoIndices = vi;
         var ai = [];
-        for (var a = 0; a < audioStreams.length; a++) ai.push(a)
+        for (var a = 0; a < audioStreams.length; a++)
+            ai.push(a);
         selectedAudioIndices = ai;
         var name = FormatUtils.getFilename(filePath);
         var fps = FormatUtils.formatFps(info.fps || "0/1");
         videoInfoText = qsTr("File: %1\nDuration: %2s\nResolution: %3x%4\nFPS: %5\nVideo: %6\nAudio: %7").arg(name).arg(info.duration.toFixed(1)).arg(info.width).arg(info.height).arg(fps).arg(info.codec).arg(info.audio_codec || "N/A");
         var base = FormatUtils.getBaseFilename(name);
         var dir = FormatUtils.getDirectory(filePath);
-        var profileData = {
-        };
+        var profileData = {};
         try {
             profileData = JSON.parse(backend.loadProfile(currentProfile));
-        } catch (e) {
-        }
+        } catch (e) {}
         appWindow.outputFilePath = dir + base + "_transcoded." + getExtensionForProfile(profileData);
     }
 
     function getExtensionForProfile(d) {
+        if (d.container)
+            return d.container;
+
         if (d.video_enabled !== false)
             return Constants.profileExtensions[d.codec] || "webm";
 
@@ -77,8 +78,7 @@ ApplicationWindow {
         } catch (e) {
             currentCodec = Constants.codecKeys[0];
         }
-        var ext = getExtensionForProfile(d || {
-        });
+        var ext = getExtensionForProfile(d || {});
         var dot = appWindow.outputFilePath.lastIndexOf(".");
         appWindow.outputFilePath = appWindow.outputFilePath.substring(0, dot >= 0 ? dot : 0) + "." + ext;
     }
@@ -86,12 +86,12 @@ ApplicationWindow {
     function startTranscoding() {
         if (appWindow.outputFilePath === "") {
             videoInfoText = qsTr("Please set an output file path first");
-            return ;
+            return;
         }
         if (backend.fileExists(appWindow.outputFilePath)) {
             overwriteDialog.filePath = appWindow.outputFilePath;
             overwriteDialog.open();
-            return ;
+            return;
         }
         enqueueTranscoding();
     }
@@ -120,7 +120,7 @@ ApplicationWindow {
 
     function processTranscodeQueue() {
         if (activeJob !== null || transcodeQueue.length === 0)
-            return ;
+            return;
 
         var job = transcodeQueue[0];
         activeJob = job;
@@ -156,6 +156,10 @@ ApplicationWindow {
                 width: stackView.width
                 height: stackView.height
                 color: theme.bg
+                property int _panelWidth: Constants.controlsPanelDefaultWidth
+                property bool _panelCollapsed: false
+                property int _panelStartWidth: 0
+                property int _panelStartX: 0
                 StackView.onActivated: {
                     controlsPanel.refreshProfiles();
                     appWindow.updateCodec();
@@ -165,11 +169,11 @@ ApplicationWindow {
                     anchors.fill: parent
                     onEntered: dragOverlay.visible = true
                     onExited: dragOverlay.visible = false
-                    onDropped: function(drop) {
+                    onDropped: function (drop) {
                         dragOverlay.visible = false;
                         var url = String(drop.urls[0]);
                         if (url.length === 0)
-                            return ;
+                            return;
 
                         var path = DataUtils.toLocalPath(url);
                         appWindow.loadVideo(path, url);
@@ -191,22 +195,108 @@ ApplicationWindow {
                 Row {
                     anchors.fill: parent
                     anchors.margins: 8
-                    spacing: 8
+                    spacing: 0
 
                     VideoPreview {
                         id: player
 
-                        width: Math.max(100, parent.width - 300 - parent.spacing)
+                        width: Math.max(100, parent.width - splitterHandle.width - controlsPanel.width)
                         height: parent.height
                         source: appWindow.videoSource
                         hasVideo: currentVideoPath !== ""
                     }
 
+                    Item {
+                        id: splitterHandle
+
+                        width: Constants.splitterHandleWidth
+                        height: parent.height
+                        activeFocusOnTab: true
+
+                        Rectangle {
+                            anchors.top: parent.top
+                            anchors.bottom: parent.bottom
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            width: 1
+                            color: "transparent"
+                        }
+
+                        Label {
+                            anchors.centerIn: parent
+                            text: "«"
+                            color: theme.accent
+                            font.bold: true
+                            font.pixelSize: 12
+                            visible: _panelCollapsed
+                            rotation: 0
+                        }
+
+                        MouseArea {
+                            id: splitterMouse
+
+                            anchors.fill: parent
+                            cursorShape: _panelCollapsed ? Qt.PointingHandCursor : Qt.SplitHCursor
+                            onPressed: function(mouse) {
+                                _panelStartX = splitterMouse.mapToItem(null, mouse.x, 0).x;
+                                _panelStartWidth = controlsPanel.width;
+                            }
+                            onPositionChanged: function(mouse) {
+                                if (!pressed || _panelCollapsed)
+                                    return;
+
+                                var newW = _panelStartWidth - Math.round(splitterMouse.mapToItem(null, mouse.x, 0).x - _panelStartX);
+                                if (newW < Constants.controlsPanelCollapseThreshold) {
+                                    _panelCollapsed = true;
+                                    _panelWidth = 0;
+                                } else {
+                                    _panelWidth = Math.min(newW, Constants.controlsPanelMaxWidth);
+                                }
+                            }
+                            onReleased: {
+                                if (!_panelCollapsed && _panelWidth < Constants.controlsPanelMinWidth)
+                                    _panelWidth = Constants.controlsPanelMinWidth;
+                            }
+                            onClicked: {
+                                if (_panelCollapsed) {
+                                    _panelCollapsed = false;
+                                    _panelWidth = Constants.controlsPanelMinWidth;
+                                }
+                            }
+                            onDoubleClicked: {
+                                if (!_panelCollapsed) {
+                                    _panelCollapsed = true;
+                                    _panelWidth = 0;
+                                }
+                            }
+                        }
+
+                        Keys.onLeftPressed: {
+                            if (_panelCollapsed)
+                                return;
+
+                            _panelWidth = Math.min(Constants.controlsPanelMaxWidth, _panelWidth + 16);
+                        }
+                        Keys.onRightPressed: {
+                            if (_panelCollapsed) {
+                                _panelCollapsed = false;
+                                _panelWidth = Constants.controlsPanelMinWidth;
+                                return;
+                            }
+                            if (_panelWidth <= Constants.controlsPanelMinWidth) {
+                                _panelCollapsed = true;
+                                _panelWidth = 0;
+                                return;
+                            }
+                            _panelWidth = Math.max(Constants.controlsPanelMinWidth, _panelWidth - 16);
+                        }
+                    }
+
                     ControlsPanel {
                         id: controlsPanel
 
-                        width: 300
+                        width: _panelWidth
                         height: parent.height
+                        visible: !_panelCollapsed
                         hostWindow: appWindow
                         playerItem: player
                         onOpenVideoClicked: fileDialog.open()
@@ -222,11 +312,8 @@ ApplicationWindow {
                         onSettingsClicked: optionsDialog.open()
                         onAboutClicked: aboutDialog.open()
                     }
-
                 }
-
             }
-
         }
 
         Component {
@@ -236,9 +323,7 @@ ApplicationWindow {
                 profileName: currentProfile
                 onBack: stackView.pop()
             }
-
         }
-
     }
 
     FileOpenDialog {
@@ -296,7 +381,7 @@ ApplicationWindow {
     Connections {
         function onTranscodingChanged() {
             if (backend.transcoding)
-                return ;
+                return;
 
             if (transcodeQueue.length > 0) {
                 transcodeQueue = transcodeQueue.slice(1);
@@ -307,5 +392,4 @@ ApplicationWindow {
 
         target: backend
     }
-
 }

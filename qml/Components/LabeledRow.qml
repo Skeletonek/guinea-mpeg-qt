@@ -28,5 +28,4 @@ Row {
         verticalAlignment: Text.AlignVCenter
         visible: root.label !== ""
     }
-
 }

@@ -1,10 +1,11 @@
 ; GuineaMPEG InnoSetup Installer
-; Requires InnoSetup 6+
+; Requires InnoSetup 6.3+
 
 #define MyAppName "GuineaMPEG"
 #define MyAppPublisher "Skeletonek"
 #define MyAppURL "https://gitlab.com/Skeletonek/guinea-mpeg-qt"
 #define MyAppExeName "guinea-mpeg.exe"
+#define MyAppCopyrightYear GetDateTimeString('yyyy', '', '')
 
 #ifndef AppVersion
     #define AppVersion "0.10.1"
@@ -34,6 +35,12 @@ AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
+VersionInfoVersion={#AppVersion}
+VersionInfoCompany={#MyAppPublisher}
+VersionInfoCopyright=Copyright © {#MyAppCopyrightYear} Skeletonek
+VersionInfoDescription={#MyAppName} Installer
+VersionInfoProductName={#MyAppName}
+VersionInfoProductVersion={#AppVersion}
 DefaultDirName={autopf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes

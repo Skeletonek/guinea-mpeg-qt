@@ -10,6 +10,7 @@ pub struct VideoProfile {
     #[serde(default)]
     pub name: String,
     pub codec: String,
+    pub container: Option<String>,
     pub crf: Option<i32>,
     pub bitrate: Option<String>,
     pub preset: Option<String>,
@@ -39,6 +40,8 @@ pub struct VideoProfile {
     pub video_stream_indices: Vec<u32>,
     #[serde(default)]
     pub audio_stream_indices: Vec<u32>,
+    #[serde(default)]
+    pub custom_command: Option<String>,
 }
 
 fn default_audio_bitrate() -> String {

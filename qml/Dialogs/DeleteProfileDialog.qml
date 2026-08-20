@@ -7,7 +7,7 @@ Dialog {
 
     property string profileName: ""
 
-    signal deleteRequested()
+    signal deleteRequested
 
     title: qsTr("Delete Profile")
     standardButtons: Dialog.Yes | Dialog.No
@@ -26,5 +26,4 @@ Dialog {
         color: theme.text
         wrapMode: Text.WordWrap
     }
-
 }

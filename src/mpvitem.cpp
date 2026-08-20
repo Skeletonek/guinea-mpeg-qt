@@ -79,6 +79,7 @@ MpvItem::MpvItem() {
 
     m_mpv = static_cast<mpv_handle*>(guinea_mpeg_mpv_raw_handle(m_backend));
     m_volume = guinea_mpeg_mpv_volume(m_backend);
+    m_muted = guinea_mpeg_mpv_mute(m_backend);
 
     mpv_set_wakeup_callback(m_mpv, wakeup, this);
     connect(this, &MpvItem::onMpvEvents, this, &MpvItem::handleMpvEvents, Qt::QueuedConnection);
@@ -179,6 +180,19 @@ void MpvItem::setVolume(qreal vol) {
         guinea_mpeg_mpv_set_volume(m_backend, v);
     }
     emit volumeChanged();
+}
+
+void MpvItem::setMuted(bool muted) {
+    if (m_muted == muted)
+        return;
+    m_muted = muted;
+    if (m_backend)
+        guinea_mpeg_mpv_set_mute(m_backend, muted);
+    emit mutedChanged();
+}
+
+void MpvItem::toggleMute() {
+    setMuted(!m_muted);
 }
 
 QQuickFramebufferObject::Renderer* MpvItem::createRenderer() const {

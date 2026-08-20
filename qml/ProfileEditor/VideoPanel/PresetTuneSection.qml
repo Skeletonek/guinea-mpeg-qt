@@ -8,11 +8,10 @@ Column {
     id: root
 
     property bool loading: false
-    property var _capOverrides: ({
-    })
+    property var _capOverrides: ({})
     property string currentCodecKey: "h264"
 
-    signal changed()
+    signal changed
 
     function rebuildPresetModel(caps) {
         caps = caps || root._capOverrides;
@@ -39,10 +38,10 @@ Column {
     function getPresetTuneData() {
         if (root._capOverrides.uses_compression_level === true)
             return {
-            "preset": null,
-            "tune": null,
-            "compression_level": compressionLevelField.text || null
-        };
+                "preset": null,
+                "tune": null,
+                "compression_level": compressionLevelField.text || null
+            };
 
         return {
             "preset": DataUtils.comboText(presetCombo, Constants.SENTINEL_DEFAULT),
@@ -55,7 +54,6 @@ Column {
         DataUtils.setComboText(tuneCombo, d.tune, Constants.SENTINEL_DEFAULT);
         if (d.compression_level !== undefined)
             compressionLevelField.text = d.compression_level || "";
-
     }
 
     spacing: 8
@@ -75,15 +73,12 @@ Column {
             onCurrentIndexChanged: {
                 if (!root.loading)
                     root.changed();
-
             }
             onEditTextChanged: {
                 if (!root.loading)
                     root.changed();
-
             }
         }
-
     }
 
     LabeledRow {
@@ -100,15 +95,12 @@ Column {
             onCurrentIndexChanged: {
                 if (!root.loading)
                     root.changed();
-
             }
             onEditTextChanged: {
                 if (!root.loading)
                     root.changed();
-
             }
         }
-
     }
 
     LabeledRow {
@@ -124,10 +116,7 @@ Column {
             onTextChanged: {
                 if (!root.loading)
                     root.changed();
-
             }
         }
-
     }
-
 }

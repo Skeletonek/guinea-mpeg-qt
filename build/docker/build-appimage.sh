@@ -42,7 +42,7 @@ copy_stripped() {
 build_binary() {
     echo "=== Building AppImage (version $VERSION) ==="
     mkdir -p /tmp/home "$APPDIR/usr/bin" /source/out/appimage
-    cmake -S /source -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE="$CMAKE_BUILD_TYPE" -DPACKAGE_TARGET=appimage
+    cmake -S /source -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE="$CMAKE_BUILD_TYPE" -DPACKAGE_TARGET=appimage -DBUILD_TESTING=OFF
     cmake --build "$BUILD_DIR"
 
     copy_stripped "$BUILD_DIR/src/guinea-mpeg" "$APPDIR/usr/bin/"

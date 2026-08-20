@@ -289,6 +289,12 @@ pub(crate) fn build_command(
     end_time: f64,
     profile: &VideoProfile,
 ) -> Vec<String> {
+    if let Some(cmd) = &profile.custom_command {
+        if !cmd.trim().is_empty() {
+            return super::command::build_custom_command(cmd, input, output, start_time, end_time);
+        }
+    }
+
     let mut args = Vec::new();
 
     let video_enabled = profile.video_enabled.unwrap_or(true);

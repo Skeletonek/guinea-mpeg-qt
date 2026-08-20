@@ -17,6 +17,7 @@ class MpvItem : public QQuickFramebufferObject {
     Q_PROPERTY(int duration READ duration NOTIFY durationChanged)
     Q_PROPERTY(bool playing READ isPlaying NOTIFY playingChanged)
     Q_PROPERTY(qreal volume READ volume WRITE setVolume NOTIFY volumeChanged)
+    Q_PROPERTY(bool muted READ isMuted WRITE setMuted NOTIFY mutedChanged)
 
   public:
     MpvItem();
@@ -41,12 +42,17 @@ class MpvItem : public QQuickFramebufferObject {
     qreal volume() const {
         return m_volume;
     }
+    bool isMuted() const {
+        return m_muted;
+    }
 
     Q_INVOKABLE void play();
     Q_INVOKABLE void pause();
     Q_INVOKABLE void stop();
+    Q_INVOKABLE void toggleMute();
 
     void setVolume(qreal vol);
+    void setMuted(bool muted);
 
     Renderer* createRenderer() const override;
 
@@ -56,6 +62,7 @@ class MpvItem : public QQuickFramebufferObject {
     void durationChanged();
     void playingChanged();
     void volumeChanged();
+    void mutedChanged();
     void onMpvEvents();
 
   private slots:
@@ -70,6 +77,7 @@ class MpvItem : public QQuickFramebufferObject {
     int m_duration = 0;
     bool m_playing = false;
     qreal m_volume = 100.0;
+    bool m_muted = false;
     void* m_backend = nullptr;
     mpv_handle* m_mpv = nullptr;
     bool m_renderReady = false;

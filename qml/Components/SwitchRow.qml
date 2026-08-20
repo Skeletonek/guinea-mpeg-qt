@@ -36,5 +36,4 @@ Row {
         checked: root.checked
         onCheckedChanged: root.checked = checked
     }
-
 }

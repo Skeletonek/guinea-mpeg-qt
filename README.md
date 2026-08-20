@@ -76,7 +76,7 @@ sudo pacman -S --needed base-devel cmake \
   - `Qt QuickControls2`
 - 7-Zip (required by the mpv-dev download script): `winget install 7zip.7zip`
 - Ninja (optional, auto-detected): `winget install Ninja-build.Ninja`
-- InnoSetup 6 (optional, for installer) — download from [jrsoftware.org](https://jrsoftware.org/isdl.php)
+- InnoSetup 6.3+ (optional, for installer) — download from [jrsoftware.org](https://jrsoftware.org/isdl.php)
 
 For building **Windows on ARM (ARM64)** on x86 hosts you need to additionally install:
 - The `MSVC v143 - VS 2022 C++ ARM64 build tools` component in the VS 2022 installer

@@ -252,6 +252,7 @@ int main(int argc, char* argv[]) {
         theme["accent"] = hex(pal.color(QPalette::Highlight));
         theme["accentEnd"] = hex(pal.color(QPalette::Highlight));
         theme["black"] = "#000000";
+        theme["warning"] = "#e6a23c";
 
         QColor overlayCol = txtCol;
         overlayCol.setAlpha(darkTheme ? 128 : 64);

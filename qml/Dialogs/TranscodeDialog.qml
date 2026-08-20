@@ -7,7 +7,7 @@ import QtQuick.Layouts
 Dialog {
     id: root
 
-    property QtObject appWindow: null
+    property var appWindow: null
     property int _lastOutputLen: 0
     property double _progress: 0
     property double _totalFrames: 0
@@ -18,7 +18,7 @@ Dialog {
         var job = appWindow ? appWindow.activeJob : null;
         if (!job) {
             _totalFrames = 0;
-            return ;
+            return;
         }
         var fps = job.targetFps > 0 ? job.targetFps : job.sourceFps;
         _totalFrames = fps > 0 ? Math.round(fps * job.durationMs / 1000) : 0;
@@ -30,16 +30,16 @@ Dialog {
         _lastOutputLen = fullText.length;
         var re = /frame=\s*(\d+)/g;
         var match, lastMatch;
-        while ((match = re.exec(newText)) !== null)lastMatch = match
+        while ((match = re.exec(newText)) !== null)
+            lastMatch = match;
         if (!lastMatch)
-            return ;
+            return;
 
         var frame = parseInt(lastMatch[1]);
         if (_totalFrames > 0) {
             var p = Math.min(frame / _totalFrames, 1);
             if (p > _progress)
                 _progress = p;
-
         }
     }
 
@@ -107,11 +107,8 @@ Dialog {
                         color: index === 0 ? theme.accent : theme.textSecondary
                         font.pixelSize: 12
                     }
-
                 }
-
             }
-
         }
 
         Rectangle {
@@ -131,19 +128,17 @@ Dialog {
                 boundsBehavior: Flickable.StopAtBounds
                 onContentYChanged: {
                     if (height <= 0)
-                        return ;
+                        return;
 
                     wasAtBottom = (contentY >= contentHeight - height - 1);
                 }
                 onContentHeightChanged: {
                     if (height > 0 && wasAtBottom)
                         contentY = contentHeight - height;
-
                 }
                 onHeightChanged: {
                     if (height > 0 && wasAtBottom && contentHeight > 0)
                         contentY = contentHeight - height;
-
                 }
 
                 TextEdit {
@@ -163,9 +158,7 @@ Dialog {
                 ScrollBar.vertical: ScrollBar {
                     policy: ScrollBar.AsNeeded
                 }
-
             }
-
         }
 
         RowLayout {
@@ -187,7 +180,6 @@ Dialog {
                 font.pixelSize: 12
                 horizontalAlignment: Text.AlignRight
             }
-
         }
 
         RowLayout {
@@ -207,9 +199,7 @@ Dialog {
                 visible: backend.transcoding
                 onClicked: backend.cancelTranscode()
             }
-
         }
-
     }
 
     background: Rectangle {
@@ -250,9 +240,6 @@ Dialog {
                 implicitHeight: 28
                 onClicked: root.close()
             }
-
         }
-
     }
-
 }

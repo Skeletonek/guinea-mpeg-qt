@@ -13,7 +13,7 @@ Dialog {
 
     function spawnLettuce() {
         if (easterEggActivated)
-            return ;
+            return;
 
         easterEggActivated = true;
         lettuceItem.visible = true;
@@ -75,7 +75,7 @@ Dialog {
         focus: true
         width: 0
         height: 0
-        Keys.onPressed: function(event) {
+        Keys.onPressed: function (event) {
             if (!easterEggActivated) {
                 if (event.key === konamiSequence[konamiIndex]) {
                     konamiIndex++;
@@ -120,9 +120,7 @@ Dialog {
                 onReleased: checkLettuceDrop(lettuceItem)
                 onCanceled: hideLettuce()
             }
-
         }
-
     }
 
     ColumnLayout {
@@ -147,7 +145,6 @@ Dialog {
                     color: theme.textSecondary
                     font.pixelSize: 12
                 }
-
             }
 
             Item {
@@ -167,14 +164,12 @@ Dialog {
                     sourceSize.height: 80
                     fillMode: Image.PreserveAspectFit
                 }
-
             }
-
         }
 
         Rectangle {
             Layout.fillWidth: true
-            height: 1
+            Layout.preferredHeight: 1
             color: theme.widgetBorder
             Layout.topMargin: 4
             Layout.bottomMargin: 4
@@ -201,7 +196,6 @@ Dialog {
                         cursorShape: Qt.PointingHandCursor
                         onClicked: Qt.openUrlExternally("https://www.skeletonek.com/")
                     }
-
                 }
 
                 Label {
@@ -237,7 +231,6 @@ Dialog {
                     color: theme.textMuted
                     font.pixelSize: 11
                 }
-
             }
 
             Item {
@@ -251,12 +244,11 @@ Dialog {
                 fillMode: Image.PreserveAspectFit
                 Layout.alignment: Qt.AlignTop
             }
-
         }
 
         Rectangle {
             Layout.fillWidth: true
-            height: 1
+            Layout.preferredHeight: 1
             color: theme.widgetBorder
             Layout.topMargin: 4
             Layout.bottomMargin: 4
@@ -287,7 +279,6 @@ Dialog {
         Item {
             Layout.fillHeight: true
         }
-
     }
 
     footer: Item {
@@ -317,9 +308,6 @@ Dialog {
                 text: qsTr("OK")
                 onClicked: root.accept()
             }
-
         }
-
     }
-
 }

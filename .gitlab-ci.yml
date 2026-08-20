@@ -204,17 +204,16 @@ package-flatpak-aarch64:
 
 lint:
   stage: lint
-  image: debian:trixie-slim
+  image: fedora:44
   # Advisory only: never blocks package/release pipelines on the same push.
   allow_failure: true
   needs: []
   rules:
     - if: $CI_PIPELINE_SOURCE == "push"
   before_script:
-    - apt-get update -qq && apt-get install -y -qq --no-install-recommends
-      ca-certificates rustc cargo rustfmt rust-clippy qt6-declarative-dev-tools clang-format
-    # Debian ships qmllint/qmlformat under /usr/lib/qt6/bin, not in PATH.
-    - export PATH="$PATH:/usr/lib/qt6/bin"
+    - dnf -y install qt6-qtdeclarative-devel qt6-qtdeclarative qt6-qtquickcontrols2
+      qt6-qtmultimedia rust cargo rustfmt clippy clang-tools-extra
+    - export LANG=C.UTF-8
   script:
     - ./build/run-lint.sh
 

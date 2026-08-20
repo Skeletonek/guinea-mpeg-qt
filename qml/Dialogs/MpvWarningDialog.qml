@@ -25,11 +25,9 @@ Dialog {
             wrapMode: Text.Wrap
             width: 400
         }
-
     }
 
     background: Rectangle {
         color: theme.surface
     }
-
 }

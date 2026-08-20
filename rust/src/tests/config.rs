@@ -140,6 +140,20 @@ fn save_then_load_profile_roundtrip() {
 }
 
 #[test]
+fn custom_command_survives_save_load_roundtrip() {
+    with_config_dir(tempdir().unwrap().path(), |_dir| {
+        let json = r#"{"codec":"h264","custom_command":"-i {input} -c:v libx264 -y {output}"}"#;
+        assert!(save_profile("Advanced", json).is_ok());
+        let loaded = load_profile("Advanced").unwrap();
+        assert_eq!(
+            loaded.custom_command.as_deref(),
+            Some("-i {input} -c:v libx264 -y {output}")
+        );
+        assert_eq!(loaded.codec, "h264");
+    });
+}
+
+#[test]
 fn overwrite_existing_profile_updates() {
     with_config_dir(tempdir().unwrap().path(), |_dir| {
         save_profile("P", r#"{"codec":"h264","crf":20}"#).unwrap();

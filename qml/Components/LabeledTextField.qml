@@ -24,5 +24,4 @@ LabeledRow {
         onTextChanged: root.text = text
         onEditingFinished: root.text = text
     }
-
 }

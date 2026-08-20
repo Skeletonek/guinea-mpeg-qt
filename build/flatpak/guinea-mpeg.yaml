@@ -67,6 +67,7 @@ modules:
       - -DCMAKE_BUILD_TYPE=Release
       - -DCMAKE_INSTALL_PREFIX=/app
       - -DPACKAGE_TARGET=flatpak
+      - -DBUILD_TESTING=OFF
     sources:
       - type: dir
         path: ../../
