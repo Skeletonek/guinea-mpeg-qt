@@ -11,6 +11,7 @@
 - Added additional metadata such as file version and copyright to the Windows installer file
 - Change available encoders list to a scrollable list
 - Fixed import and export dialogs rendering below at first launch in some Qt Quick Styles such as Fusion
+- Fixed preview controls covering up a preview window
 - Fixed Windows aarch64 build process
 - Additional codebase cleanups
 

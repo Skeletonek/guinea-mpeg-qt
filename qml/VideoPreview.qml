@@ -32,6 +32,7 @@ Rectangle {
         id: player
 
         anchors.fill: parent
+        anchors.bottomMargin: root._controlsBarHeight
         visible: root.hasVideo
         source: root.source
     }
