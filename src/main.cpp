@@ -139,7 +139,21 @@ static Qt::ColorScheme detectSystemColorScheme() {
     return scheme;
 }
 
+// MangoHud (Vulkan layer / GL hook) crashes this app at startup when MANGOHUD is
+// set. It is only evaluated per Vulkan-instance creation, so clearing MANGOHUD
+// from this process before any GL/Vulkan context is created avoids the crash
+// while leaving the user's global environment untouched.
+static void dropMangoHudFromEnvironment() {
+#ifdef Q_OS_LINUX
+    const QString mh = QString::fromLocal8Bit(qgetenv("MANGOHUD"));
+    if (mh.trimmed().isEmpty() || mh.trimmed() == QStringLiteral("0"))
+        return;
+    qunsetenv("MANGOHUD");
+#endif
+}
+
 int main(int argc, char* argv[]) {
+    dropMangoHudFromEnvironment();
     attachParentConsole();
     QApplication app(argc, argv);
 #ifdef Q_OS_LINUX
