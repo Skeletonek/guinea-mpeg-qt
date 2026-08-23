@@ -1,4 +1,5 @@
 .pragma library
+.import "Constants.js" as Constants
 
 /**
  * Data handling utilities for GuineaMPEG
@@ -115,6 +116,21 @@ function buildProfileData() {
         }
     }
     return data
+}
+
+/**
+ * Determines the output file extension for a profile data object
+ * @param {Object} d - Profile data object
+ * @returns {string} File extension without the leading dot
+ */
+function getExtensionForProfile(d) {
+    if (!d)
+        return "webm"
+    if (d.container)
+        return d.container
+    if (d.video_enabled !== false)
+        return Constants.profileExtensions[d.codec] || "webm"
+    return Constants.audioExtensions[d.audio_codec] || "ogg"
 }
 
 /**

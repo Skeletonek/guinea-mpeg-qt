@@ -3,13 +3,23 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import "Utils/FormatUtils.js" as FormatUtils
+import "Utils/DataUtils.js" as DataUtils
 
 Rectangle {
     id: root
 
     property url source: ""
     property bool hasVideo: false
-    property int _controlsBarHeight: 30
+    property string videoPath: ""
+    property string profileName: ""
+    property int startTimeMs: 0
+    property bool previewActive: false
+    property bool previewGenerating: false
+    property bool previewAvailable: false
+    property url previewSource: ""
+    property int pendingSeekMs: -1
+    property int _seekRetries: 0
+    property int _controlsBarHeight: 36
     property alias playing: player.playing
     property alias position: player.position
     property alias duration: player.duration
@@ -23,6 +33,45 @@ Rectangle {
         player.play();
     }
 
+    function generatePreview() {
+        player.pause();
+        var pj = backend.loadProfile(root.profileName);
+        if (!pj)
+            return;
+        var ext = "";
+        try {
+            ext = DataUtils.getExtensionForProfile(JSON.parse(pj));
+        } catch (e) {
+            ext = "";
+        }
+        root.previewAvailable = false;
+        root.previewGenerating = true;
+        backend.startPreview(root.videoPath, pj, root.startTimeMs, 5000, ext);
+    }
+
+    function togglePreview() {
+        if (root.previewActive) {
+            root.pendingSeekMs = root.startTimeMs;
+            root.previewActive = false;
+            return;
+        }
+        root.pendingSeekMs = -1;
+        if (root.previewAvailable) {
+            root.previewActive = true;
+            return;
+        }
+        root.generatePreview();
+    }
+
+    onSourceChanged: {
+        root.previewActive = false;
+        root.previewGenerating = false;
+        root.previewAvailable = false;
+        root.previewSource = "";
+        backend.cancelPreview();
+    }
+
+
     color: theme.black
     border.color: theme.widgetBorder
     border.width: 1
@@ -34,7 +83,7 @@ Rectangle {
         anchors.fill: parent
         anchors.bottomMargin: root._controlsBarHeight
         visible: root.hasVideo
-        source: root.source
+        source: root.previewActive ? root.previewSource : root.source
     }
 
     MouseArea {
@@ -151,6 +200,21 @@ Rectangle {
                 Layout.fillHeight: true
             }
 
+            Button {
+                text: root.previewActive ? qsTr("Preview Mode") : qsTr("Source Mode")
+                enabled: root.previewActive || !root.previewGenerating
+                Layout.fillHeight: true
+                onClicked: root.togglePreview()
+            }
+
+            Button {
+                text: qsTr("Regenerate")
+                visible: root.previewActive
+                enabled: !root.previewGenerating
+                Layout.fillHeight: true
+                onClicked: root.generatePreview()
+            }
+
             Slider {
                 from: 0
                 to: 100
@@ -199,6 +263,74 @@ Rectangle {
                     cursorShape: Qt.PointingHandCursor
                     onClicked: player.toggleMute()
                 }
+            }
+        }
+    }
+
+    Rectangle {
+        id: previewBusy
+
+        anchors.fill: parent
+        color: theme.black
+        opacity: 0.7
+        visible: root.previewGenerating
+
+        BusyIndicator {
+            id: previewSpinner
+
+            running: root.previewGenerating
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.verticalCenterOffset: -16
+        }
+
+        Text {
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.top: previewSpinner.bottom
+            anchors.topMargin: 8
+            text: qsTr("Generating preview…")
+            color: theme.text
+            font.pixelSize: 14
+        }
+    }
+
+    Connections {
+        target: backend
+
+        function onPreviewGenerated(path) {
+            root.previewGenerating = false;
+            root.previewSource = "file://" + encodeURI(path);
+            root.previewAvailable = true;
+            root.previewActive = true;
+        }
+
+        function onPreviewFailed() {
+            root.previewGenerating = false;
+            root.previewAvailable = false;
+            root.previewActive = false;
+        }
+    }
+
+    Connections {
+        target: player
+
+        function onDurationChanged() {
+            if (root.pendingSeekMs >= 0 && player.duration > 0) {
+                player.position = root.pendingSeekMs;
+                root._seekRetries = 0;
+            }
+        }
+
+        function onPositionChanged() {
+            if (root.pendingSeekMs < 0 || player.duration <= 0)
+                return;
+            // Seek lost during the async load (still at/near start while we
+            // wanted to jump further in): retry a few times, then give up.
+            if (player.position < 500 && root.pendingSeekMs > 1000 && root._seekRetries < 5) {
+                player.position = root.pendingSeekMs;
+                root._seekRetries++;
+            } else {
+                root.pendingSeekMs = -1;
             }
         }
     }

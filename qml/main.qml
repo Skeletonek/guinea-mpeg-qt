@@ -57,17 +57,7 @@ ApplicationWindow {
         try {
             profileData = JSON.parse(backend.loadProfile(currentProfile));
         } catch (e) {}
-        appWindow.outputFilePath = dir + base + "_transcoded." + getExtensionForProfile(profileData);
-    }
-
-    function getExtensionForProfile(d) {
-        if (d.container)
-            return d.container;
-
-        if (d.video_enabled !== false)
-            return Constants.profileExtensions[d.codec] || "webm";
-
-        return Constants.audioExtensions[d.audio_codec] || "ogg";
+        appWindow.outputFilePath = dir + base + "_transcoded." + DataUtils.getExtensionForProfile(profileData);
     }
 
     function updateCodec() {
@@ -78,7 +68,7 @@ ApplicationWindow {
         } catch (e) {
             currentCodec = Constants.codecKeys[0];
         }
-        var ext = getExtensionForProfile(d || {});
+        var ext = DataUtils.getExtensionForProfile(d || {});
         var dot = appWindow.outputFilePath.lastIndexOf(".");
         appWindow.outputFilePath = appWindow.outputFilePath.substring(0, dot >= 0 ? dot : 0) + "." + ext;
     }
@@ -204,6 +194,9 @@ ApplicationWindow {
                         height: parent.height
                         source: appWindow.videoSource
                         hasVideo: currentVideoPath !== ""
+                        videoPath: appWindow.currentVideoPath
+                        profileName: appWindow.currentProfile
+                        startTimeMs: appWindow.startTime
                     }
 
                     Item {

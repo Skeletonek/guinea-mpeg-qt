@@ -1,3 +1,7 @@
+### 0.12.0 (In progress)
+- Added a 5-second preview generation
+- Workaround Mangohud crashing the app
+
 ### 0.11.0
 - Added advanced mode for ProfileEditor allowing to freely edit ffmpeg command
 - Added container option in ProfileEditor

@@ -14,6 +14,7 @@ class GuineaMpegBackendExt : public QObject {
     Q_OBJECT
     Q_PROPERTY(QString transcodeOutput READ transcodeOutput WRITE setTranscodeOutput NOTIFY transcodeOutputUpdated)
     Q_PROPERTY(bool transcoding READ transcoding WRITE setTranscoding NOTIFY transcodingChanged)
+    Q_PROPERTY(bool previewGenerating READ previewGenerating WRITE setPreviewGenerating NOTIFY previewGeneratingChanged)
   public:
     explicit GuineaMpegBackendExt(QObject* parent = nullptr);
     ~GuineaMpegBackendExt();
@@ -27,6 +28,11 @@ class GuineaMpegBackendExt : public QObject {
         return m_transcoding;
     }
     void setTranscoding(bool v);
+
+    bool previewGenerating() const {
+        return m_previewGenerating;
+    }
+    void setPreviewGenerating(bool v);
 
     Q_INVOKABLE QString availableProfiles();
     Q_INVOKABLE QString userProfileNames();
@@ -56,13 +62,19 @@ class GuineaMpegBackendExt : public QObject {
     Q_INVOKABLE QString encoderCapabilities(const QString& encoderName);
     Q_INVOKABLE void copyToClipboard(const QString& text);
     Q_INVOKABLE QString startTranscode(const QString& rawInput, const QString& rawOutput, double startTime,
-                                       double endTime, const QString& profileJson);
+                                        double endTime, const QString& profileJson);
     Q_INVOKABLE void cancelTranscode();
+    Q_INVOKABLE QString startPreview(const QString& rawInput, const QString& profileJson, double startTimeMs,
+                                     double durationMs, const QString& extension);
+    Q_INVOKABLE void cancelPreview();
 
   signals:
     void transcodeOutputUpdated();
     void transcodingChanged();
     void transcodeFinished(bool success);
+    void previewGeneratingChanged();
+    void previewGenerated(const QString& path);
+    void previewFailed();
 
   private:
     void connectOutputCapture(QProcess* proc);
@@ -71,7 +83,9 @@ class GuineaMpegBackendExt : public QObject {
 
     QString m_transcodeOutput;
     bool m_transcoding = false;
+    bool m_previewGenerating = false;
     std::unique_ptr<QProcess> m_currentTranscode;
+    std::unique_ptr<QProcess> m_currentPreview;
 #ifdef Q_OS_WIN
     QSystemTrayIcon* m_trayIcon = nullptr;
 #endif

@@ -77,6 +77,7 @@ GuineaMpegBackendExt::GuineaMpegBackendExt(QObject* parent) : QObject(parent) {
 
 GuineaMpegBackendExt::~GuineaMpegBackendExt() {
     killTranscodeProcess(m_currentTranscode);
+    killTranscodeProcess(m_currentPreview);
 }
 
 void GuineaMpegBackendExt::setTranscodeOutput(const QString& v) {
@@ -87,6 +88,11 @@ void GuineaMpegBackendExt::setTranscodeOutput(const QString& v) {
 void GuineaMpegBackendExt::setTranscoding(bool v) {
     m_transcoding = v;
     emit transcodingChanged();
+}
+
+void GuineaMpegBackendExt::setPreviewGenerating(bool v) {
+    m_previewGenerating = v;
+    emit previewGeneratingChanged();
 }
 
 QString GuineaMpegBackendExt::defaultProfileNames() {
@@ -282,6 +288,50 @@ void GuineaMpegBackendExt::cancelTranscode() {
     killTranscodeProcess(m_currentTranscode);
     appendTranscodeOutput(tr("\n--- Transcoding cancelled ---\n"));
     setTranscoding(false);
+}
+
+QString GuineaMpegBackendExt::startPreview(const QString& rawInput, const QString& profileJson, double startTimeMs,
+                                           double durationMs, const QString& extension) {
+    QString input = QDir::cleanPath(rawInput);
+    QString ext = extension.isEmpty() ? QStringLiteral("mkv") : extension;
+    static quint64 s_previewCounter = 0;
+    QString output = QDir::cleanPath(QDir::tempPath() + QStringLiteral("/guinea_mpeg_preview_") +
+                                     QString::number(++s_previewCounter) + "." + ext);
+
+    killTranscodeProcess(m_currentPreview);
+    setPreviewGenerating(true);
+
+    double startTime = startTimeMs / 1000.0;
+    double endTime = (startTimeMs + durationMs) / 1000.0;
+
+    QStringList args = buildArgsFromProfile(input, output, startTime, endTime, profileJson);
+    if (args.isEmpty()) {
+        setPreviewGenerating(false);
+        emit previewFailed();
+        return "failed";
+    }
+
+    m_currentPreview = std::make_unique<QProcess>();
+    QProcess* proc = m_currentPreview.get();
+    connect(proc, &QProcess::finished, this, [this, proc, output](int exitCode, QProcess::ExitStatus) {
+        proc->deleteLater();
+        if (m_currentPreview.get() == proc)
+            m_currentPreview.release(); // NOLINT: ownership moves to deleteLater
+        setPreviewGenerating(false);
+        if (exitCode == 0)
+            emit previewGenerated(output);
+        else
+            emit previewFailed();
+    });
+    m_currentPreview->start("ffmpeg", args);
+    return "started";
+}
+
+void GuineaMpegBackendExt::cancelPreview() {
+    if (!m_currentPreview)
+        return;
+    killTranscodeProcess(m_currentPreview);
+    setPreviewGenerating(false);
 }
 
 void GuineaMpegBackendExt::sendNotification(const QString& title, const QString& body) {
