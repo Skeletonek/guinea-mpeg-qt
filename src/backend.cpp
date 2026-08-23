@@ -95,6 +95,15 @@ void GuineaMpegBackendExt::setPreviewGenerating(bool v) {
     emit previewGeneratingChanged();
 }
 
+void GuineaMpegBackendExt::resetPreview() {
+    if (m_lastPreviewPath.isEmpty() && m_lastPreviewSize == 0)
+        return;
+    m_lastPreviewPath.clear();
+    m_lastPreviewSize = 0;
+    emit lastPreviewPathChanged();
+    emit lastPreviewSizeChanged();
+}
+
 QString GuineaMpegBackendExt::defaultProfileNames() {
     return takeRustString(guinea_mpeg_default_profile_names());
 }
@@ -300,6 +309,10 @@ QString GuineaMpegBackendExt::startPreview(const QString& rawInput, const QStrin
 
     killTranscodeProcess(m_currentPreview);
     setPreviewGenerating(true);
+    m_lastPreviewPath.clear();
+    m_lastPreviewSize = 0;
+    emit lastPreviewPathChanged();
+    emit lastPreviewSizeChanged();
 
     double startTime = startTimeMs / 1000.0;
     double endTime = (startTimeMs + durationMs) / 1000.0;
@@ -318,10 +331,19 @@ QString GuineaMpegBackendExt::startPreview(const QString& rawInput, const QStrin
         if (m_currentPreview.get() == proc)
             m_currentPreview.release(); // NOLINT: ownership moves to deleteLater
         setPreviewGenerating(false);
-        if (exitCode == 0)
+        if (exitCode == 0) {
+            m_lastPreviewPath = output;
+            m_lastPreviewSize = QFileInfo(output).size();
+            emit lastPreviewPathChanged();
+            emit lastPreviewSizeChanged();
             emit previewGenerated(output);
-        else
+        } else {
+            m_lastPreviewPath.clear();
+            m_lastPreviewSize = 0;
+            emit lastPreviewPathChanged();
+            emit lastPreviewSizeChanged();
             emit previewFailed();
+        }
     });
     m_currentPreview->start("ffmpeg", args);
     return "started";

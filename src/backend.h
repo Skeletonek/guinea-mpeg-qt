@@ -15,6 +15,8 @@ class GuineaMpegBackendExt : public QObject {
     Q_PROPERTY(QString transcodeOutput READ transcodeOutput WRITE setTranscodeOutput NOTIFY transcodeOutputUpdated)
     Q_PROPERTY(bool transcoding READ transcoding WRITE setTranscoding NOTIFY transcodingChanged)
     Q_PROPERTY(bool previewGenerating READ previewGenerating WRITE setPreviewGenerating NOTIFY previewGeneratingChanged)
+    Q_PROPERTY(QString lastPreviewPath READ lastPreviewPath NOTIFY lastPreviewPathChanged)
+    Q_PROPERTY(qint64 lastPreviewSize READ lastPreviewSize NOTIFY lastPreviewSizeChanged)
   public:
     explicit GuineaMpegBackendExt(QObject* parent = nullptr);
     ~GuineaMpegBackendExt();
@@ -33,6 +35,14 @@ class GuineaMpegBackendExt : public QObject {
         return m_previewGenerating;
     }
     void setPreviewGenerating(bool v);
+
+    QString lastPreviewPath() const {
+        return m_lastPreviewPath;
+    }
+    qint64 lastPreviewSize() const {
+        return m_lastPreviewSize;
+    }
+    Q_INVOKABLE void resetPreview();
 
     Q_INVOKABLE QString availableProfiles();
     Q_INVOKABLE QString userProfileNames();
@@ -62,7 +72,7 @@ class GuineaMpegBackendExt : public QObject {
     Q_INVOKABLE QString encoderCapabilities(const QString& encoderName);
     Q_INVOKABLE void copyToClipboard(const QString& text);
     Q_INVOKABLE QString startTranscode(const QString& rawInput, const QString& rawOutput, double startTime,
-                                        double endTime, const QString& profileJson);
+                                       double endTime, const QString& profileJson);
     Q_INVOKABLE void cancelTranscode();
     Q_INVOKABLE QString startPreview(const QString& rawInput, const QString& profileJson, double startTimeMs,
                                      double durationMs, const QString& extension);
@@ -75,6 +85,8 @@ class GuineaMpegBackendExt : public QObject {
     void previewGeneratingChanged();
     void previewGenerated(const QString& path);
     void previewFailed();
+    void lastPreviewPathChanged();
+    void lastPreviewSizeChanged();
 
   private:
     void connectOutputCapture(QProcess* proc);
@@ -84,6 +96,8 @@ class GuineaMpegBackendExt : public QObject {
     QString m_transcodeOutput;
     bool m_transcoding = false;
     bool m_previewGenerating = false;
+    QString m_lastPreviewPath;
+    qint64 m_lastPreviewSize = 0;
     std::unique_ptr<QProcess> m_currentTranscode;
     std::unique_ptr<QProcess> m_currentPreview;
 #ifdef Q_OS_WIN

@@ -27,8 +27,10 @@ ApplicationWindow {
     property var selectedAudioIndices: []
     property var transcodeQueue: []
     property var activeJob: null
+    property string previewProfile: ""
 
     function loadVideo(filePath, fileUrl) {
+        backend.resetPreview();
         currentVideoPath = filePath;
         appWindow.videoSource = fileUrl || ("file://" + encodeURI(filePath));
         var info = backend.getVideoInfo(filePath);
@@ -381,6 +383,10 @@ ApplicationWindow {
                 activeJob = null;
             }
             processTranscodeQueue();
+        }
+
+        function onPreviewGenerated(path) {
+            appWindow.previewProfile = appWindow.currentProfile;
         }
 
         target: backend

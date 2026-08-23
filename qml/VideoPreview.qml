@@ -84,6 +84,24 @@ Rectangle {
         anchors.bottomMargin: root._controlsBarHeight
         visible: root.hasVideo
         source: root.previewActive ? root.previewSource : root.source
+
+        onDurationChanged: {
+            if (root.pendingSeekMs >= 0 && duration > 0) {
+                position = root.pendingSeekMs;
+                root._seekRetries = 0;
+            }
+        }
+
+        onPositionChanged: {
+            if (root.pendingSeekMs < 0 || duration <= 0)
+                return;
+            if (position < 500 && root.pendingSeekMs > 1000 && root._seekRetries < 5) {
+                position = root.pendingSeekMs;
+                root._seekRetries++;
+            } else {
+                root.pendingSeekMs = -1;
+            }
+        }
     }
 
     MouseArea {
@@ -308,30 +326,6 @@ Rectangle {
             root.previewGenerating = false;
             root.previewAvailable = false;
             root.previewActive = false;
-        }
-    }
-
-    Connections {
-        target: player
-
-        function onDurationChanged() {
-            if (root.pendingSeekMs >= 0 && player.duration > 0) {
-                player.position = root.pendingSeekMs;
-                root._seekRetries = 0;
-            }
-        }
-
-        function onPositionChanged() {
-            if (root.pendingSeekMs < 0 || player.duration <= 0)
-                return;
-            // Seek lost during the async load (still at/near start while we
-            // wanted to jump further in): retry a few times, then give up.
-            if (player.position < 500 && root.pendingSeekMs > 1000 && root._seekRetries < 5) {
-                player.position = root.pendingSeekMs;
-                root._seekRetries++;
-            } else {
-                root.pendingSeekMs = -1;
-            }
         }
     }
 }

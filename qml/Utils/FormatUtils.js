@@ -110,3 +110,20 @@ function formatFps(fps) {
     }
     return String(fps)
 }
+
+/**
+ * Formats a byte count into a human-readable size (binary units)
+ * @param {number} bytes - Size in bytes
+ * @returns {string} Formatted size string (e.g. "12.3 MB")
+ */
+function formatSize(bytes) {
+    if (!bytes || bytes <= 0) return "0 B";
+    var units = ["B", "KB", "MB", "GB", "TB"];
+    var i = 0;
+    var n = bytes;
+    while (n >= 1024 && i < units.length - 1) {
+        n /= 1024;
+        i++;
+    }
+    return (i === 0 ? Math.round(n).toString() : n.toFixed(1)) + " " + units[i];
+}
