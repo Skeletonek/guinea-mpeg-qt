@@ -3,6 +3,8 @@
 - Added an output file size estimation based on the 5-second preview clip
 - Increased height of preview control bar by a tiny ammount
 - Workaround Mangohud crashing the app
+- Fixed wrong app icon on some Linux environments like GNOME
+- Fixed app and author icons rendering outside of the AboutDialog if, for example, OS name label is too long
 
 ### 0.11.0
 - Added advanced mode for ProfileEditor allowing to freely edit ffmpeg command

@@ -133,17 +133,21 @@ Dialog {
             spacing: 8
 
             ColumnLayout {
+                Layout.fillWidth: true
+
                 Label {
                     text: "GuineaMPEG"
                     font.pixelSize: 20
                     font.bold: true
                     color: theme.text
+                    wrapMode: Text.Wrap
                 }
 
                 Label {
                     text: qsTr("FFmpeg Frontend with Rust Core")
                     color: theme.textSecondary
                     font.pixelSize: 12
+                    wrapMode: Text.Wrap
                 }
             }
 
@@ -180,16 +184,21 @@ Dialog {
             spacing: 8
 
             ColumnLayout {
+                Layout.fillWidth: true
                 spacing: 8
 
                 Label {
                     text: qsTr("Version: %1").arg(buildInfo.version)
                     color: theme.text
+                    wrapMode: Text.Wrap
+                    Layout.fillWidth: true
                 }
 
                 Label {
                     text: qsTr("Author: %1").arg(buildInfo.author)
                     color: theme.text
+                    wrapMode: Text.Wrap
+                    Layout.fillWidth: true
 
                     MouseArea {
                         anchors.fill: parent
@@ -201,35 +210,47 @@ Dialog {
                 Label {
                     text: qsTr("License: %1").arg(buildInfo.license)
                     color: theme.text
+                    wrapMode: Text.Wrap
+                    Layout.fillWidth: true
                 }
 
                 Label {
                     text: qsTr("OS name: %1").arg(buildInfo.distroName)
                     color: theme.text
+                    wrapMode: Text.Wrap
+                    Layout.fillWidth: true
                 }
 
                 Label {
                     text: qsTr("Package: %1").arg(buildInfo.packageTarget)
                     color: theme.textMuted
                     font.pixelSize: 11
+                    wrapMode: Text.Wrap
+                    Layout.fillWidth: true
                 }
 
                 Label {
                     text: qsTr("Architecture: %1").arg(buildInfo.cpuArch)
                     color: theme.textMuted
                     font.pixelSize: 11
+                    wrapMode: Text.Wrap
+                    Layout.fillWidth: true
                 }
 
                 Label {
                     text: qsTr("Build: %1").arg(buildInfo.buildDate)
                     color: theme.textMuted
                     font.pixelSize: 11
+                    wrapMode: Text.Wrap
+                    Layout.fillWidth: true
                 }
 
                 Label {
                     text: "Copyright © " + buildInfo.copyright
                     color: theme.textMuted
                     font.pixelSize: 11
+                    wrapMode: Text.Wrap
+                    Layout.fillWidth: true
                 }
             }
 
