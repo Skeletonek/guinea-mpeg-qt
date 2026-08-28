@@ -7,6 +7,6 @@ Terminal=false
 Type=Application
 Categories=AudioVideo;AudioVideoEditing;
 Keywords=ffmpeg;video;transcode;
-MimeType=video/mp4;video/x-matroska;video/webm;video/x-msvideo;video/quicktime;video/ogg;
+MimeType=video/mp4;video/x-m4v;video/x-matroska;video/webm;video/x-msvideo;video/quicktime;video/ogg;video/x-flv;video/mpeg;video/mp2t;video/x-ms-wmv;video/x-ms-asf;video/3gpp;video/divx;audio/mpeg;audio/mp2;audio/flac;audio/ogg;audio/opus;audio/x-wav;audio/aac;audio/x-ms-wma;audio/x-aiff;audio/x-matroska;audio/ac3;audio/x-dts;audio/amr;audio/midi;audio/x-ape;audio/x-wavpack;audio/x-caf;audio/basic;audio/x-tta;
 StartupNotify=true
 StartupWMClass=guinea-mpeg

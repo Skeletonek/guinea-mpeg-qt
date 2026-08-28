@@ -1,6 +1,7 @@
 ### 0.12.0 (In progress)
 - Added a 5-second preview generation
 - Added an output file size estimation based on the 5-second preview clip
+- Added support for more mimetypes
 - Increased height of preview control bar by a tiny ammount
 - Workaround Mangohud crashing the app
 - Fixed wrong app icon on some Linux environments like GNOME
