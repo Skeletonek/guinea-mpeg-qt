@@ -14,14 +14,8 @@ Column {
 
     function rebuildPixfmtModel(caps) {
         caps = caps || root._capOverrides;
-        var list = caps.pix_fmts ? caps.pix_fmts.slice() : Constants.pixfmtOptions.slice();
-        if (list.indexOf(Constants.SENTINEL_DEFAULT) < 0)
-            list.unshift(Constants.SENTINEL_DEFAULT);
-
-        var prev = DataUtils.comboValue(pixfmtCombo);
-        pixfmtCombo.model = list;
-        var idx = list.indexOf(prev);
-        pixfmtCombo.currentIndex = idx >= 0 ? idx : 0;
+        var items = caps.pix_fmts || Constants.pixfmtOptions;
+        DataUtils.rebuildComboModel(pixfmtCombo, items, Constants.SENTINEL_DEFAULT);
     }
 
     function getPixelFormatData() {

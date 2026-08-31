@@ -1,5 +1,6 @@
 import "../Components"
 import "../Utils/Constants.js" as Constants
+import "../Utils/DataUtils.js" as DataUtils
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import "VideoPanel"
@@ -76,34 +77,16 @@ Column {
             data.codec = codecData.codec;
             data.encoder = codecData.encoder;
             if (!root._isAnimated) {
-                var rcData = rateControlSection.getRateControlData();
-                for (var k in rcData)
-                    data[k] = rcData[k];
-                var ptData = presetTuneSection.getPresetTuneData();
-                for (var k in ptData)
-                    data[k] = ptData[k];
-                var pfData = pixelFormatSection.getPixelFormatData();
-                for (var k in pfData)
-                    data[k] = pfData[k];
+                data = DataUtils.buildProfileData(data, rateControlSection.getRateControlData(),
+                    presetTuneSection.getPresetTuneData(), pixelFormatSection.getPixelFormatData());
             }
-            var scData = scalingSection.getScalingData();
-            for (var k in scData)
-                data[k] = scData[k];
-            if (animatedSection && root._isAnimated) {
-                var animData = animatedSection.getAnimatedData();
-                for (var k in animData)
-                    data[k] = animData[k];
-            }
-            if (av1Section) {
-                var av1Data = av1Section.getAV1Data();
-                for (var k in av1Data)
-                    data[k] = av1Data[k];
-            }
-            if (vp8vp9Section) {
-                var vp8vp9Data = vp8vp9Section.getVP8VP9Data();
-                for (var k in vp8vp9Data)
-                    data[k] = vp8vp9Data[k];
-            }
+            data = DataUtils.buildProfileData(data, scalingSection.getScalingData());
+            if (animatedSection && root._isAnimated)
+                data = DataUtils.buildProfileData(data, animatedSection.getAnimatedData());
+            if (av1Section)
+                data = DataUtils.buildProfileData(data, av1Section.getAV1Data());
+            if (vp8vp9Section)
+                data = DataUtils.buildProfileData(data, vp8vp9Section.getVP8VP9Data());
         }
         return data;
     }

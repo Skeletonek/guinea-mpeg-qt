@@ -63,6 +63,16 @@ Rectangle {
         root.generatePreview();
     }
 
+    function setPreviewVolume(v) {
+        var c = Math.max(0, Math.min(100, v));
+        player.volume = c;
+        backend.setOption("previewVolume", c);
+    }
+
+    function adjustVolume(delta) {
+        setPreviewVolume(player.volume + delta);
+    }
+
     onSourceChanged: {
         root.previewActive = false;
         root.previewGenerating = false;
@@ -117,8 +127,7 @@ Rectangle {
         }
         onWheel: function (wheel) {
             var delta = wheel.angleDelta.y > 0 ? 2 : -2;
-            player.volume = Math.max(0, Math.min(100, player.volume + delta));
-            backend.setOption("previewVolume", player.volume);
+            root.adjustVolume(delta);
             wheel.accepted = true;
         }
     }
@@ -153,8 +162,7 @@ Rectangle {
             else if (event.key === Qt.Key_Up || event.key === Qt.Key_K)
                 volumeDelta = 2;
             if (volumeDelta !== 0) {
-                player.volume = Math.max(0, Math.min(100, player.volume + volumeDelta));
-                backend.setOption("previewVolume", player.volume);
+                root.adjustVolume(volumeDelta);
                 event.accepted = true;
             }
         }
@@ -238,10 +246,7 @@ Rectangle {
                 to: 100
                 value: player.volume
                 Layout.preferredWidth: 60
-                onMoved: {
-                    player.volume = value;
-                    backend.setOption("previewVolume", value);
-                }
+                onMoved: root.setPreviewVolume(value)
                 Layout.fillHeight: true
 
                 MouseArea {
@@ -249,8 +254,7 @@ Rectangle {
                     acceptedButtons: Qt.NoButton
                     onWheel: function (wheel) {
                         var delta = wheel.angleDelta.y > 0 ? 2 : -2;
-                        player.volume = Math.max(0, Math.min(100, player.volume + delta));
-                        backend.setOption("previewVolume", player.volume);
+                        root.adjustVolume(delta);
                         wheel.accepted = true;
                     }
                 }

@@ -64,6 +64,34 @@ void killTranscodeProcess(std::unique_ptr<QProcess>& proc) {
     proc.reset();
 }
 
+void releaseProcess(std::unique_ptr<QProcess>& slot, QProcess* proc) {
+    proc->deleteLater();
+    if (slot.get() == proc)
+        slot.release(); // NOLINT: ownership moves to deleteLater
+}
+
+QVariantMap makeVideoStreamMap(int idx, const QJsonObject& stream) {
+    QVariantMap m;
+    m["index"] = idx;
+    m["codec"] = stream["codec_name"].toString();
+    m["width"] = stream["width"].toInt();
+    m["height"] = stream["height"].toInt();
+    m["fps"] = stream["r_frame_rate"].toString();
+    return m;
+}
+
+QVariantMap makeAudioStreamMap(int idx, const QJsonObject& stream) {
+    const QJsonObject tags = stream["tags"].toObject();
+    QVariantMap m;
+    m["index"] = idx;
+    m["codec"] = stream["codec_name"].toString();
+    m["channels"] = stream["channels"].toInt();
+    m["sample_rate"] = stream["sample_rate"].toString();
+    m["language"] = tags["language"].toString();
+    m["title"] = tags["title"].toString();
+    return m;
+}
+
 } // namespace
 
 GuineaMpegBackendExt::GuineaMpegBackendExt(QObject* parent) : QObject(parent) {
@@ -207,25 +235,11 @@ QVariantMap GuineaMpegBackendExt::getVideoInfo(const QString& rawPath) {
                 info["fps"] = stream["r_frame_rate"].toString();
                 info["bitrate"] = jsonInt64(stream["bit_rate"]);
             }
-            QVariantMap vs;
-            vs["index"] = videoTypeIdx++;
-            vs["codec"] = stream["codec_name"].toString();
-            vs["width"] = stream["width"].toInt();
-            vs["height"] = stream["height"].toInt();
-            vs["fps"] = stream["r_frame_rate"].toString();
-            videoStreams.append(vs);
+            videoStreams.append(makeVideoStreamMap(videoTypeIdx++, stream));
         } else if (type == "audio") {
             if (!info.contains("audio_codec"))
                 info["audio_codec"] = stream["codec_name"].toString();
-            const QJsonObject tags = stream["tags"].toObject();
-            QVariantMap as;
-            as["index"] = audioTypeIdx++;
-            as["codec"] = stream["codec_name"].toString();
-            as["channels"] = stream["channels"].toInt();
-            as["sample_rate"] = stream["sample_rate"].toString();
-            as["language"] = tags["language"].toString();
-            as["title"] = tags["title"].toString();
-            audioStreams.append(as);
+            audioStreams.append(makeAudioStreamMap(audioTypeIdx++, stream));
         }
     }
     info["video_streams"] = videoStreams;
@@ -327,9 +341,7 @@ QString GuineaMpegBackendExt::startPreview(const QString& rawInput, const QStrin
     m_currentPreview = std::make_unique<QProcess>();
     QProcess* proc = m_currentPreview.get();
     connect(proc, &QProcess::finished, this, [this, proc, output](int exitCode, QProcess::ExitStatus) {
-        proc->deleteLater();
-        if (m_currentPreview.get() == proc)
-            m_currentPreview.release(); // NOLINT: ownership moves to deleteLater
+        releaseProcess(m_currentPreview, proc);
         setPreviewGenerating(false);
         if (exitCode == 0) {
             m_lastPreviewPath = output;
@@ -391,8 +403,6 @@ void GuineaMpegBackendExt::connectOutputCapture(QProcess* proc) {
                                        : tr("Transcoding exited with code %1").arg(exitCode));
         emit transcodeFinished(exitCode == 0);
         setTranscoding(false);
-        proc->deleteLater();
-        if (m_currentTranscode.get() == proc)
-            m_currentTranscode.release(); // NOLINT: ownership moves to deleteLater
+        releaseProcess(m_currentTranscode, proc);
     });
 }

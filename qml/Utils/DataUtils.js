@@ -119,6 +119,23 @@ function buildProfileData() {
 }
 
 /**
+ * Rebuilds an editable ComboBox model preserving the previous selection.
+ * DRY helper for encoder capability rebuilds (presets/tunes/pix_fmts).
+ * @param {ComboBox} combo - ComboBox to update
+ * @param {Array} items - Source items (already sliced if needed)
+ * @param {string} sentinel - Sentinel value to prepend if missing (e.g. "default")
+ */
+function rebuildComboModel(combo, items, sentinel) {
+    var list = items.slice()
+    if (sentinel && list.indexOf(sentinel) < 0)
+        list.unshift(sentinel)
+    var prev = comboValue(combo)
+    combo.model = list
+    var idx = list.indexOf(prev)
+    combo.currentIndex = idx >= 0 ? idx : 0
+}
+
+/**
  * Determines the output file extension for a profile data object
  * @param {Object} d - Profile data object
  * @returns {string} File extension without the leading dot

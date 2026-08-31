@@ -1,17 +1,14 @@
-use std::ffi::{CStr, CString};
+use std::ffi::CString;
 use std::os::raw::c_char;
 
+use crate::ffmpeg::{cstr, to_c_string};
+
 fn to_json<T: serde::Serialize>(val: &T) -> *mut c_char {
-    CString::new(serde_json::to_string(val).unwrap_or_default())
-        .unwrap()
-        .into_raw()
+    to_c_string(serde_json::to_string(val).unwrap_or_default())
 }
 
 unsafe fn from_cstr<'a>(ptr: *const c_char) -> &'a str {
-    if ptr.is_null() {
-        return "";
-    }
-    CStr::from_ptr(ptr).to_str().unwrap_or("")
+    cstr(ptr)
 }
 
 #[no_mangle]

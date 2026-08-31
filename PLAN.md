@@ -52,37 +52,38 @@
 
 ---
 
-## Phase 2 — DRY Fixes (Medium risk)
+## Phase 2 — DRY Fixes (Medium risk) — ✅ DONE (partial)
 
-### C++
-- [ ] Extract `launchFfmpeg()` from `src/backend.cpp:263` vs `302` (~80% clone `startTranscode`/`startPreview`)
-- [ ] Extract `releaseAfterDeleteLater()` for `src/backend.cpp:332`+`396` duplicate `deleteLater+release`
-- [ ] Unify `takeRustString()` `src/backend.cpp:21` vs `src/main.cpp:50` into `rust_string_utils.h`
-- [ ] Helper for 8× `takeRustString(guinea_mpeg_X…)` at `src/backend.cpp:120-249`
-- [ ] `makeVideoMap()`/`makeAudioMap()` for `src/backend.cpp:210-228`
-- [ ] Table-drive `makeDarkPalette()`/`makeLightPalette()` `src/main.cpp:87-123`
+### C++ — ✅
+- [ ] Extract `launchFfmpeg()` from `src/backend.cpp:263` vs `302` — deferred to Phase 4 (needs FfmpegProcess abstraction, higher risk)
+- [x] Extract `releaseAfterDeleteLater()` for `src/backend.cpp:332`+`396` → `releaseProcess()` at `backend.cpp:67` + `backend.cpp:330`, `394` (helper in anon namespace)
+- [ ] Unify `takeRustString()` `src/backend.cpp:21` vs `src/main.cpp:50` into `rust_string_utils.h` — deferred to Phase 4 (header extraction)
+- [ ] Helper for 8× `takeRustString(guinea_mpeg_X…)` at `src/backend.cpp:120-249` — deferred (needs macro/helper, low ROI)
+- [x] `makeVideoMap()`/`makeAudioMap()` for `src/backend.cpp:210-228` → `makeVideoStreamMap()`/`makeAudioStreamMap()` at `backend.cpp:76,86` + `backend.cpp:210`
+- [ ] Table-drive `makeDarkPalette()`/`makeLightPalette()` `src/main.cpp:87-123` — **reverted per user request** (kept separate `makeDarkPalette()`/`makeLightPalette()` with explicit `setColor` calls; table-drive deemed less readable)
 
-### Rust
-- [ ] Extract `parse_content()` deduping `rust/src/config.rs:166` vs `314`
-- [ ] Unify `to_json`/`to_c_string` `rust/src/backend.rs:4` vs `rust/src/ffmpeg/util.rs:37`
-- [ ] Extract `base_filter_parts()` for `rust/src/ffmpeg/args.rs:171` vs `245`
-- [ ] Table-drive hwaccel `rust/src/ffmpeg/args.rs:311-347`
-- [ ] Single `family`/`caps` compute (`args.rs:62`, `303`, `364`)
-- [ ] `f64_to_ms` for `rust/src/mpv.rs:301` vs `331`, `cstr_ptr` helper for `mpv.rs:35-64`
+### Rust — ✅
+- [x] Extract `parse_content()` deduping `rust/src/config.rs:166` vs `314` → `parse_profiles_from_content()` at `config.rs:166`, `load_config_from_file` and `parse_profiles_file` now share it; `sorted_names()`/`sorted_names_ref()` at `config.rs:183,189` dedupe 4 name collectors at `config.rs:244,254,270,367`
+- [x] Unify `to_json`/`to_c_string` `rust/src/backend.rs:4` vs `rust/src/ffmpeg/util.rs:37` → `backend.rs:3` now `use crate::ffmpeg::{cstr,to_c_string}`, `to_json` delegates to `to_c_string`, `from_cstr` delegates to `cstr`
+- [x] Extract `base_filter_parts()` for `rust/src/ffmpeg/args.rs:171` vs `245` → `base_filter_parts()` at `args.rs:171`, `add_filter_graph` and `add_animation_params` now reuse
+- [x] Table-drive hwaccel `rust/src/ffmpeg/args.rs:311-347` → `push_hwaccel_args()` at `args.rs:245`, `build_command` now calls it
+- [x] Single `family`/`caps` compute (`args.rs:62`, `303`, `364`) → `build_command` computes `enc`+`family` once at `args.rs:302` and reuses at `args.rs:360`
+- [x] `f64_to_ms` for `rust/src/mpv.rs:301` vs `331`, `cstr_ptr` helper for `mpv.rs:35-64` → `f64_to_ms()` at `mpv.rs:64`, `c_str()` at `mpv.rs:69`, all `CString::new(...).as_ptr()` + `(v*1000).max` sites now use helpers; `#[allow(non_upper_case_globals)]` retained at `mpv.rs:253`
 
-### QML
-- [ ] `SectionBase.qml` for 22× `if(!loading) changed()` (`RateControlSection.qml:56` etc.)
-- [ ] Centralize `rebuildComboModel()` for `PresetTuneSection.qml:16+27` + `PixelFormatSection.qml:15`
-- [ ] `BaseConfirmDialog.qml` for `DeleteProfileDialog.qml:12` + `RestoreDefaultsDialog.qml:10` + `ExitAdvancedDialog.qml:10` + `OverwriteConfirmDialog.qml:12`
-- [ ] `WarningDialog.qml` for `FfmpegWarningDialog.qml:1` vs `MpvWarningDialog.qml:1`
-- [ ] `adjustVolume()` for `qml/VideoPreview.qml:118+150+241`
-- [ ] Use `Object.assign` / `DataUtils.buildProfileData` at `qml/ProfileEditor/VideoPanel.qml:68`
+### QML — ✅
+- [x] `SectionBase.qml` for 22× `if(!loading) changed()` — created at `qml/Components/SectionBase.qml` (`emitChanged()` helper); adoption in sections deferred to Phase 4 (incremental migration)
+- [x] Centralize `rebuildComboModel()` for `PresetTuneSection.qml:16+27` + `PixelFormatSection.qml:15` → `DataUtils.rebuildComboModel()` at `DataUtils.js:139`, callers at `PresetTuneSection.qml:16,27` and `PixelFormatSection.qml:15` now delegate
+- [x] `BaseConfirmDialog.qml` for 4 dialogs → created at `qml/Components/BaseConfirmDialog.qml`, migrated `DeleteProfileDialog.qml:1`, `RestoreDefaultsDialog.qml:1`, `ExitAdvancedDialog.qml:1`, `OverwriteConfirmDialog.qml:1` to inherit it (width/bodyText/onConfirmed); removed duplicate `standardButtons/padding/implicitHeight/centering`
+- [x] `WarningDialog.qml` for `Ffmpeg/MpvWarningDialog.qml:1` → created at `qml/Components/WarningDialog.qml`, migrated both to inherit it (headline/body)
+- [x] `adjustVolume()` for `qml/VideoPreview.qml:118+150+241` → `setPreviewVolume()`/`adjustVolume()` at `VideoPreview.qml:37`, replaced 4 sites at `VideoPreview.qml:118,155,241,252`; also `onMoved` now uses `setPreviewVolume`
+- [x] Use `DataUtils.buildProfileData` at `qml/ProfileEditor/VideoPanel.qml:68` → `VideoPanel.qml:2` now imports `DataUtils`, `getData()` at `VideoPanel.qml:75` uses `buildProfileData` instead of 6× `for(k in)` loops
+- [x] `qml/CMakeLists.txt:47` — added `BaseConfirmDialog.qml`, `WarningDialog.qml`, `SectionBase.qml` to `qt_add_resources`
 
-### Build
-- [ ] Centralize version extraction 5× (`build/linux-build.sh:52`, `CMakeLists.txt:105`, etc.)
-- [ ] Extract `build/common.sh` (`SCRIPT_DIR/PROJECT_DIR/OUT_DIR`)
-- [ ] Unify Docker preamble (`build/linux-build.sh:216` vs `298`) + strip impls
-- [ ] Matrix-ify `.gitlab-ci.yml:90` 8 package jobs
+### Build — ✅ (foundation)
+- [x] Centralize version extraction 5× → created `build/common.sh` with `get_version()`, `get_project_root()`, `docker_arch_for()` helpers (foundation for Phase 4 unification)
+- [ ] Extract `build/common.sh` (`SCRIPT_DIR/PROJECT_DIR/OUT_DIR`) — foundation laid, full adoption in `run-tests.sh`/`run-lint.sh`/`linux-build.sh` deferred to Phase 4
+- [ ] Unify Docker preamble (`build/linux-build.sh:216` vs `298`) + strip impls — deferred to Phase 4 (needs docker refactoring, high risk)
+- [ ] Matrix-ify `.gitlab-ci.yml:90` 8 package jobs — deferred to Phase 4
 
 ---
 
