@@ -1,3 +1,4 @@
+import "../Utils/Constants.js" as Constants
 import "../Utils/DataUtils.js" as DataUtils
 import QtQuick 2.15
 import QtQuick.Controls 2.15
@@ -45,7 +46,7 @@ Dialog {
 
     title: qsTr("Export Profiles")
     modal: true
-    width: 460
+    width: Constants.dialogWidthLarge
     padding: 16
     topPadding: 8
     implicitHeight: implicitHeaderHeight + mainLayout.implicitHeight + implicitFooterHeight + 24
@@ -141,7 +142,7 @@ Dialog {
                 id: errorLabel
 
                 text: qsTr("Export failed. Please check the destination path.")
-                color: "#e66"
+                color: Constants.errorColor
                 visible: false
                 wrapMode: Text.WordWrap
                 width: parent.width

@@ -16,23 +16,15 @@ Column {
     function rebuildPresetModel(caps) {
         caps = caps || root._capOverrides;
         var codec = root.currentCodecKey;
-        var list = (caps.presets || Constants.presetDefaults[codec] || []).slice();
-        list.unshift(Constants.SENTINEL_DEFAULT);
-        var prev = DataUtils.comboValue(presetCombo);
-        presetCombo.model = list;
-        var idx = list.indexOf(prev);
-        presetCombo.currentIndex = idx >= 0 ? idx : 0;
+        var items = caps.presets || Constants.presetDefaults[codec] || [];
+        DataUtils.rebuildComboModel(presetCombo, items, Constants.SENTINEL_DEFAULT);
     }
 
     function rebuildTuneModel(caps) {
         caps = caps || root._capOverrides;
         var codec = root.currentCodecKey;
-        var tunes = (caps.tunes || Constants.tuneDefaults[codec] || []).slice();
-        tunes.unshift(Constants.SENTINEL_DEFAULT);
-        var prev = DataUtils.comboValue(tuneCombo);
-        tuneCombo.model = tunes;
-        var idx = tunes.indexOf(prev);
-        tuneCombo.currentIndex = idx >= 0 ? idx : 0;
+        var items = caps.tunes || Constants.tuneDefaults[codec] || [];
+        DataUtils.rebuildComboModel(tuneCombo, items, Constants.SENTINEL_DEFAULT);
     }
 
     function getPresetTuneData() {

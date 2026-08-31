@@ -1,33 +1,11 @@
+import "../Components" as Components
 import QtQuick
-import QtQuick.Controls
 
-Dialog {
+Components.WarningDialog {
     id: root
 
     title: qsTr("MPV Video Backend Not Available")
-    standardButtons: Dialog.Ok
-    modal: true
+    headline: qsTr("The MPV video player backend could not be initialized.")
+    body: qsTr("GuineaMPEG requires libmpv to preview videos.\n\nInstall it with your package manager, e.g.:\n  sudo pacman -S mpv    (Arch Linux)\n  sudo apt install libmpv-dev  (Debian/Ubuntu)\n  sudo dnf install mpv-libs  (Fedora)")
     onAccepted: Qt.quit()
-
-    Column {
-        spacing: 8
-        padding: 16
-
-        Label {
-            text: qsTr("The MPV video player backend could not be initialized.")
-            color: theme.text
-            font.bold: true
-        }
-
-        Label {
-            text: qsTr("GuineaMPEG requires libmpv to preview videos.\n\nInstall it with your package manager, e.g.:\n  sudo pacman -S mpv    (Arch Linux)\n  sudo apt install libmpv-dev  (Debian/Ubuntu)\n  sudo dnf install mpv-libs  (Fedora)")
-            color: theme.text
-            wrapMode: Text.Wrap
-            width: 400
-        }
-    }
-
-    background: Rectangle {
-        color: theme.surface
-    }
 }

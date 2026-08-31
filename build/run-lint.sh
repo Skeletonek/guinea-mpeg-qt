@@ -139,7 +139,13 @@ qml_section() {
             fail
             return
         fi
-        "$QMLFORMAT" -i -f "${QML_ONLY[@]}"
+        # qmlformat 6.11+ dropped -f/--force (e.g. /usr/lib/qt6/bin/qmlformat on Qt 6.11),
+        # while older builds (Qt 5 / Qt 6.8) still require it. Probe to stay compatible.
+        if "$QMLFORMAT" --help 2>&1 | grep -qE -- '-f[, ]+--force'; then
+            "$QMLFORMAT" -i -f "${QML_ONLY[@]}"
+        else
+            "$QMLFORMAT" -i "${QML_ONLY[@]}"
+        fi
     fi
     local -a qmllint_args=(-I "${ROOT}/qml")
     local d

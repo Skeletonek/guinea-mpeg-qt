@@ -259,10 +259,7 @@ Item {
                 property bool hasPreview: backend.lastPreviewSize > 0
                 property bool stale: hasPreview && (hostWindow.previewProfile !== hostWindow.currentProfile)
                 property bool hasTrim: hostWindow && (hostWindow.endTime - hostWindow.startTime) > 0
-                text: hasPreview && hasTrim
-                      ? qsTr("Estimated size: %1 (based on 5s preview)").arg(
-                            FormatUtils.formatSize(backend.lastPreviewSize * (hostWindow.endTime - hostWindow.startTime) / 5000))
-                      : ""
+                text: hasPreview && hasTrim ? qsTr("Estimated size: %1 (based on 5s preview)").arg(FormatUtils.formatSize(backend.lastPreviewSize * (hostWindow.endTime - hostWindow.startTime) / 5000)) : ""
                 color: theme.text
                 font.pixelSize: 12
                 opacity: stale ? 0.5 : 1.0

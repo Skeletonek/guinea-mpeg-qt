@@ -3,6 +3,10 @@ use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
+const DEFAULT_SYSTEM_PROFILES_PATH: &str = "/usr/share/guinea-mpeg/default_profiles.toml";
+const MAX_VOLUME: f64 = 100.0;
+const MIN_VOLUME: f64 = 0.0;
+
 static CONFIG: Mutex<Option<AppConfig>> = Mutex::new(None);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -147,7 +151,7 @@ fn defaults_path() -> PathBuf {
             }
         }
     }
-    PathBuf::from("/usr/share/guinea-mpeg/default_profiles.toml")
+    PathBuf::from(DEFAULT_SYSTEM_PROFILES_PATH)
 }
 
 fn dirs_or_fallback() -> PathBuf {
@@ -163,29 +167,47 @@ fn migrate_codec_key(profiles: &mut [VideoProfile]) {
     }
 }
 
-pub(crate) fn load_config_from_file(path: &Path) -> AppConfig {
-    let content = std::fs::read_to_string(path).unwrap_or_default();
-
-    // Canonical format: [[profiles]] array + optional [options] table
-    if let Ok(mut cfg) = toml::from_str::<AppConfig>(&content) {
-        migrate_codec_key(&mut cfg.profiles);
-        return cfg;
-    }
-
-    // Legacy format: [profiles."name"] map (options default)
+fn parse_profiles_from_content(content: &str) -> Option<Vec<VideoProfile>> {
     #[derive(Deserialize)]
     struct MapConfig {
         profiles: HashMap<String, VideoProfile>,
     }
-    if let Ok(cfg) = toml::from_str::<MapConfig>(&content) {
+    if let Ok(mut cfg) = toml::from_str::<AppConfig>(content) {
+        migrate_codec_key(&mut cfg.profiles);
+        return Some(cfg.profiles);
+    }
+    if let Ok(cfg) = toml::from_str::<MapConfig>(content) {
         let mut profiles: Vec<VideoProfile> = cfg.profiles.into_values().collect();
         migrate_codec_key(&mut profiles);
+        return Some(profiles);
+    }
+    None
+}
+
+fn sorted_names(profiles: Vec<VideoProfile>) -> Vec<String> {
+    let mut names: Vec<String> = profiles.into_iter().map(|p| p.name).collect();
+    names.sort();
+    names
+}
+
+fn sorted_names_ref(profiles: &[VideoProfile]) -> Vec<String> {
+    let mut names: Vec<String> = profiles.iter().map(|p| p.name.clone()).collect();
+    names.sort();
+    names
+}
+
+pub(crate) fn load_config_from_file(path: &Path) -> AppConfig {
+    let content = std::fs::read_to_string(path).unwrap_or_default();
+    if let Ok(mut cfg) = toml::from_str::<AppConfig>(&content) {
+        migrate_codec_key(&mut cfg.profiles);
+        return cfg;
+    }
+    if let Some(profiles) = parse_profiles_from_content(&content) {
         return AppConfig {
             profiles,
             options: AppOptions::default(),
         };
     }
-
     AppConfig::default()
 }
 
@@ -224,24 +246,11 @@ pub(crate) fn set_config(config: AppConfig) {
 }
 
 pub fn default_profile_names() -> Vec<String> {
-    let mut names = load_defaults()
-        .profiles
-        .into_iter()
-        .map(|p| p.name.clone())
-        .collect::<Vec<_>>();
-    names.sort();
-    names
+    sorted_names(load_defaults().profiles)
 }
 
 pub fn available_profiles() -> Vec<String> {
-    let config = get_config();
-    let mut names = config
-        .profiles
-        .iter()
-        .map(|p| p.name.clone())
-        .collect::<Vec<_>>();
-    names.sort();
-    names
+    sorted_names_ref(&get_config().profiles)
 }
 
 pub fn load_profile(name: &str) -> Option<VideoProfile> {
@@ -250,13 +259,7 @@ pub fn load_profile(name: &str) -> Option<VideoProfile> {
 }
 
 pub fn user_profile_names() -> Vec<String> {
-    let mut names = load_user_config()
-        .profiles
-        .into_iter()
-        .map(|p| p.name.clone())
-        .collect::<Vec<_>>();
-    names.sort();
-    names
+    sorted_names(load_user_config().profiles)
 }
 
 pub fn save_profile(name: &str, json: &str) -> anyhow::Result<()> {
@@ -313,23 +316,8 @@ pub fn export_profiles(path: &str, names: &[String]) -> anyhow::Result<()> {
 
 fn parse_profiles_file(path: &Path) -> anyhow::Result<Vec<VideoProfile>> {
     let content = std::fs::read_to_string(path)?;
-
-    if let Ok(mut cfg) = toml::from_str::<AppConfig>(&content) {
-        migrate_codec_key(&mut cfg.profiles);
-        return Ok(cfg.profiles);
-    }
-
-    #[derive(Deserialize)]
-    struct MapConfig {
-        profiles: HashMap<String, VideoProfile>,
-    }
-    if let Ok(cfg) = toml::from_str::<MapConfig>(&content) {
-        let mut profiles: Vec<VideoProfile> = cfg.profiles.into_values().collect();
-        migrate_codec_key(&mut profiles);
-        return Ok(profiles);
-    }
-
-    anyhow::bail!("not a valid profiles file")
+    parse_profiles_from_content(&content)
+        .ok_or_else(|| anyhow::anyhow!("not a valid profiles file"))
 }
 
 #[derive(Debug, Clone, Default, Serialize)]
@@ -432,7 +420,7 @@ pub fn set_option(key: &str, value: &str) -> anyhow::Result<()> {
             let v: f64 = value
                 .parse()
                 .map_err(|_| anyhow::anyhow!("invalid numeric value"))?;
-            cfg.options.preview_volume = v.clamp(0.0, 100.0);
+            cfg.options.preview_volume = v.clamp(MIN_VOLUME, MAX_VOLUME);
         }
         "checkForUpdates" => {
             let v: bool = value

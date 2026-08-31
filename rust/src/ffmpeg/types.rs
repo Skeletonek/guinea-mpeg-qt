@@ -17,7 +17,5 @@ pub(crate) struct EncoderCapabilities {
     pub(crate) uses_tune: bool,
     pub(crate) uses_compression_level: bool,
     pub(crate) crf_flag: String,
-    pub(crate) vbr_flag: String,
-    pub(crate) cbr_flag: String,
     pub(crate) rc_flag: Option<String>,
 }

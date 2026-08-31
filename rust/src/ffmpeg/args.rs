@@ -4,6 +4,8 @@ use crate::ffmpeg::{
     normalize_path, video_codec, EncoderFamily,
 };
 
+const DEFAULT_QUALITY: u32 = 75;
+
 fn push_rc_flag(
     args: &mut Vec<String>,
     family: EncoderFamily,
@@ -168,18 +170,23 @@ fn resolution_scale(res: &str) -> Option<String> {
     None
 }
 
-fn add_filter_graph(args: &mut Vec<String>, profile: &VideoProfile, family: EncoderFamily) {
-    let mut filter_parts = Vec::new();
+fn base_filter_parts(profile: &VideoProfile) -> Vec<String> {
+    let mut parts = Vec::new();
     if let Some(fps) = profile.framerate {
         if fps > 0.0 {
-            filter_parts.push(format!("fps={}", fps));
+            parts.push(format!("fps={}", fps));
         }
     }
     if let Some(res) = &profile.resolution {
         if let Some(scale) = resolution_scale(res) {
-            filter_parts.push(scale);
+            parts.push(scale);
         }
     }
+    parts
+}
+
+fn add_filter_graph(args: &mut Vec<String>, profile: &VideoProfile, family: EncoderFamily) {
+    let mut filter_parts = base_filter_parts(profile);
     if family == EncoderFamily::Vulkan {
         filter_parts.insert(0, "format=nv12".to_string());
         filter_parts.push("hwupload".to_string());
@@ -191,6 +198,42 @@ fn add_filter_graph(args: &mut Vec<String>, profile: &VideoProfile, family: Enco
     if !filter_parts.is_empty() {
         args.push("-vf".to_string());
         args.push(filter_parts.join(","));
+    }
+}
+
+fn push_hwaccel_args(args: &mut Vec<String>, family: EncoderFamily) {
+    match family {
+        EncoderFamily::Vaapi => {
+            args.push("-hwaccel".to_string());
+            args.push("vaapi".to_string());
+            args.push("-hwaccel_output_format".to_string());
+            args.push("vaapi".to_string());
+            if let Some(dev) = detect_vaapi_device() {
+                args.push("-vaapi_device".to_string());
+                args.push(dev);
+            }
+        }
+        EncoderFamily::Nvenc => {
+            args.push("-hwaccel".to_string());
+            args.push("cuda".to_string());
+            args.push("-hwaccel_output_format".to_string());
+            args.push("cuda".to_string());
+        }
+        EncoderFamily::Qsv => {
+            args.push("-init_hw_device".to_string());
+            args.push("qsv=qsv".to_string());
+            args.push("-hwaccel".to_string());
+            args.push("qsv".to_string());
+            args.push("-hwaccel_output_format".to_string());
+            args.push("qsv".to_string());
+        }
+        EncoderFamily::Amf => {
+            args.push("-hwaccel".to_string());
+            args.push("amf".to_string());
+            args.push("-hwaccel_output_format".to_string());
+            args.push("amf".to_string());
+        }
+        _ => {}
     }
 }
 
@@ -243,20 +286,10 @@ fn add_av1_params(args: &mut Vec<String>, profile: &VideoProfile) {
 }
 
 fn add_animation_params(args: &mut Vec<String>, profile: &VideoProfile) {
-    let q = profile.quality.unwrap_or(75).clamp(0, 100);
+    let q = profile.quality.unwrap_or(DEFAULT_QUALITY).clamp(0, 100);
     let looping = profile.loop_enabled.unwrap_or(true);
 
-    let mut parts: Vec<String> = Vec::new();
-    if let Some(fps) = profile.framerate {
-        if fps > 0.0 {
-            parts.push(format!("fps={}", fps));
-        }
-    }
-    if let Some(res) = &profile.resolution {
-        if let Some(scale) = resolution_scale(res) {
-            parts.push(scale);
-        }
-    }
+    let mut parts = base_filter_parts(profile);
 
     if profile.codec == "gif" {
         let colors = (((q as f32 / 100.0) * 256.0).round() as u32).clamp(2, 256);
@@ -282,115 +315,46 @@ fn add_animation_params(args: &mut Vec<String>, profile: &VideoProfile) {
     }
 }
 
-pub(crate) fn build_command(
-    input: &str,
-    output: &str,
-    start_time: f64,
-    end_time: f64,
-    profile: &VideoProfile,
-) -> Vec<String> {
-    if let Some(cmd) = &profile.custom_command {
-        if !cmd.trim().is_empty() {
-            return super::command::build_custom_command(cmd, input, output, start_time, end_time);
-        }
-    }
-
-    let mut args = Vec::new();
-
-    let video_enabled = profile.video_enabled.unwrap_or(true);
-
-    if video_enabled {
-        let enc = video_codec(profile);
-        let family = if profile.encoder.is_some() {
-            encoder_family(&enc)
-        } else {
-            EncoderFamily::Software
-        };
-
-        match family {
-            EncoderFamily::Vaapi => {
-                args.push("-hwaccel".to_string());
-                args.push("vaapi".to_string());
-                args.push("-hwaccel_output_format".to_string());
-                args.push("vaapi".to_string());
-                if let Some(dev) = detect_vaapi_device() {
-                    args.push("-vaapi_device".to_string());
-                    args.push(dev);
-                }
-            }
-            EncoderFamily::Nvenc => {
-                args.push("-hwaccel".to_string());
-                args.push("cuda".to_string());
-                args.push("-hwaccel_output_format".to_string());
-                args.push("cuda".to_string());
-            }
-            EncoderFamily::Qsv => {
-                args.push("-init_hw_device".to_string());
-                args.push("qsv=qsv".to_string());
-                args.push("-hwaccel".to_string());
-                args.push("qsv".to_string());
-                args.push("-hwaccel_output_format".to_string());
-                args.push("qsv".to_string());
-            }
-            EncoderFamily::Amf => {
-                args.push("-hwaccel".to_string());
-                args.push("amf".to_string());
-                args.push("-hwaccel_output_format".to_string());
-                args.push("amf".to_string());
-            }
-            //EncoderFamily::Vulkan => {
-            //    args.push("-init_hw_device".to_string());
-            //    args.push("vulkan".to_string());
-            //}
-            _ => {}
-        }
-    }
-
+fn add_input_and_trim(args: &mut Vec<String>, input: &str, start_time: f64, end_time: f64) {
     if start_time > 0.0 {
         args.push("-ss".to_string());
         args.push(format!("{}", start_time));
     }
     args.push("-i".to_string());
     args.push(normalize_path(input));
-
     if end_time > start_time {
         args.push("-t".to_string());
         args.push(format!("{:.3}", end_time - start_time));
     }
+}
 
-    add_stream_mapping(&mut args, profile);
-
-    if video_enabled {
-        let enc = video_codec(profile);
-        let family = if profile.encoder.is_some() {
-            encoder_family(&enc)
-        } else {
-            EncoderFamily::Software
-        };
-
-        args.push("-c:v".to_string());
-        args.push(enc.clone());
-
-        if is_animated_codec(&profile.codec) {
-            add_animation_params(&mut args, profile);
-        } else {
-            add_rate_control(&mut args, profile, &enc);
-            add_codec_specific(&mut args, profile, &enc);
-            add_filter_graph(&mut args, profile, family);
-            add_av1_params(&mut args, profile);
-        }
-
-        for arg in &profile.extra_args {
-            args.push(arg.clone());
-        }
+fn add_video_branch(
+    args: &mut Vec<String>,
+    profile: &VideoProfile,
+    enc: &str,
+    family: EncoderFamily,
+) {
+    args.push("-c:v".to_string());
+    args.push(enc.to_string());
+    if is_animated_codec(&profile.codec) {
+        add_animation_params(args, profile);
+    } else {
+        add_rate_control(args, profile, enc);
+        add_codec_specific(args, profile, enc);
+        add_filter_graph(args, profile, family);
+        add_av1_params(args, profile);
     }
+    for arg in &profile.extra_args {
+        args.push(arg.clone());
+    }
+}
 
+fn add_audio_branch(args: &mut Vec<String>, profile: &VideoProfile) {
     if is_animated_codec(&profile.codec) || !profile.audio_enabled.unwrap_or(true) {
         args.push("-an".to_string());
     } else {
         args.push("-c:a".to_string());
         args.push(audio_codec_for_profile(profile).to_string());
-
         if !profile.audio_bitrate.is_empty() {
             args.push("-b:a".to_string());
             args.push(profile.audio_bitrate.clone());
@@ -404,6 +368,42 @@ pub(crate) fn build_command(
             args.push(sr.to_string());
         }
     }
+}
+
+pub(crate) fn build_command(
+    input: &str,
+    output: &str,
+    start_time: f64,
+    end_time: f64,
+    profile: &VideoProfile,
+) -> Vec<String> {
+    if let Some(cmd) = &profile.custom_command {
+        if !cmd.trim().is_empty() {
+            return super::command::build_custom_command(cmd, input, output, start_time, end_time);
+        }
+    }
+
+    let video_enabled = profile.video_enabled.unwrap_or(true);
+    let enc = video_codec(profile);
+    let family = if profile.encoder.is_some() {
+        encoder_family(&enc)
+    } else {
+        EncoderFamily::Software
+    };
+    let mut args = Vec::new();
+
+    if video_enabled {
+        push_hwaccel_args(&mut args, family);
+    }
+
+    add_input_and_trim(&mut args, input, start_time, end_time);
+    add_stream_mapping(&mut args, profile);
+
+    if video_enabled {
+        add_video_branch(&mut args, profile, &enc, family);
+    }
+
+    add_audio_branch(&mut args, profile);
 
     args.push("-y".to_string());
     args.push(normalize_path(output));

@@ -1,6 +1,7 @@
 import "Components"
 import "Dialogs"
 import "ProfileEditor"
+import "Utils/Constants.js" as Constants
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
@@ -207,7 +208,7 @@ Rectangle {
         else
             resetToNew();
         _loading = false;
-        showNotification(qsTr("Profile \"%1\" deleted").arg(deletedName), "#e66");
+        showNotification(qsTr("Profile \"%1\" deleted").arg(deletedName), Constants.errorColor);
     }
 
     function restoreSingleProfile() {
@@ -507,7 +508,7 @@ Rectangle {
             handleImportSummary(summary);
         }
         onImportFailed: function (message) {
-            showNotification(qsTr("Import failed: %1").arg(message), "#e66");
+            showNotification(qsTr("Import failed: %1").arg(message), Constants.errorColor);
         }
     }
 
@@ -518,7 +519,7 @@ Rectangle {
             handleImportSummary(summary);
         }
         onImportFailed: function (message) {
-            showNotification(qsTr("Import failed: %1").arg(message), "#e66");
+            showNotification(qsTr("Import failed: %1").arg(message), Constants.errorColor);
         }
     }
 

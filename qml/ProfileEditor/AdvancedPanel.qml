@@ -9,9 +9,16 @@ Column {
     property bool advancedMode: false
     property string advancedCommand: ""
     property string previewText: qsTr("Adjust settings above to see the ffmpeg command preview...")
+    property var _missingCache: ({
+            "essential": [],
+            "trim": []
+        })
 
     signal changed
     signal extraArgsChanged
+
+    onAdvancedCommandChanged: _missingCache = missingParts()
+    Component.onCompleted: _missingCache = missingParts()
 
     function getData() {
         if (root.advancedMode)
@@ -144,18 +151,18 @@ Column {
     }
 
     Label {
-        visible: root.advancedMode && root.missingParts().essential.length > 0
+        visible: root.advancedMode && root._missingCache.essential.length > 0
         width: parent.width
-        text: qsTr("Missing essential parts: %1").arg(root.missingParts().essential.join(", "))
+        text: qsTr("Missing essential parts: %1").arg(root._missingCache.essential.join(", "))
         color: theme.warning
         font.pixelSize: 11
         wrapMode: Text.WordWrap
     }
 
     Label {
-        visible: root.advancedMode && root.missingParts().trim.length > 0
+        visible: root.advancedMode && root._missingCache.trim.length > 0
         width: parent.width
-        text: qsTr("Trim placeholders missing: %1 (the selected trim range will not be applied)").arg(root.missingParts().trim.join(", "))
+        text: qsTr("Trim placeholders missing: %1 (the selected trim range will not be applied)").arg(root._missingCache.trim.join(", "))
         color: theme.accent
         font.pixelSize: 11
         wrapMode: Text.WordWrap

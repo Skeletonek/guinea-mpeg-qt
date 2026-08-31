@@ -1,5 +1,6 @@
 import "../Utils/FormatUtils.js" as FormatUtils
 import GuineaMpeg 1.0
+import "../Utils/Constants.js" as Constants
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -45,8 +46,8 @@ Dialog {
 
     modal: false
     closePolicy: Popup.CloseOnEscape
-    width: 700
-    height: 500
+    width: Constants.dialogWidthTranscode
+    height: Constants.dialogHeightTranscode
     onAboutToShow: {
         x = (appWindow.width - width) / 2;
         y = (appWindow.height - height) / 2;

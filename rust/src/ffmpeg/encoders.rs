@@ -1,7 +1,7 @@
 use crate::ffmpeg::{EncoderCapabilities, EncoderFamily};
 
 pub(crate) fn encoder_family(encoder: &str) -> EncoderFamily {
-    if encoder.starts_with("libx26")
+    if matches!(encoder, "libx264" | "libx265")
         || encoder.starts_with("libvpx")
         || encoder == "libsvtav1"
         || encoder == "libaom-av1"
@@ -24,8 +24,9 @@ pub(crate) fn encoder_family(encoder: &str) -> EncoderFamily {
 }
 
 pub(crate) fn encoder_capabilities(encoder: &str) -> Option<EncoderCapabilities> {
-    Some(match encoder_family(encoder) {
-        EncoderFamily::Nvenc => EncoderCapabilities {
+    match encoder_family(encoder) {
+        EncoderFamily::Software => None,
+        EncoderFamily::Nvenc => Some(EncoderCapabilities {
             presets: Some(
                 vec!["p1", "p2", "p3", "p4", "p5", "p6", "p7"]
                     .into_iter()
@@ -48,11 +49,9 @@ pub(crate) fn encoder_capabilities(encoder: &str) -> Option<EncoderCapabilities>
             uses_tune: true,
             uses_compression_level: false,
             crf_flag: "-cq".into(),
-            vbr_flag: "-b:v".into(),
-            cbr_flag: "-b:v".into(),
             rc_flag: Some("-rc".into()),
-        },
-        EncoderFamily::Qsv => EncoderCapabilities {
+        }),
+        EncoderFamily::Qsv => Some(EncoderCapabilities {
             presets: Some(
                 vec!["veryfast", "faster", "fast", "medium", "slow", "slower"]
                     .into_iter()
@@ -75,11 +74,9 @@ pub(crate) fn encoder_capabilities(encoder: &str) -> Option<EncoderCapabilities>
             uses_tune: true,
             uses_compression_level: false,
             crf_flag: "-global_quality".into(),
-            vbr_flag: "-b:v".into(),
-            cbr_flag: "-b:v".into(),
             rc_flag: Some("-rc".into()),
-        },
-        EncoderFamily::Vaapi => EncoderCapabilities {
+        }),
+        EncoderFamily::Vaapi => Some(EncoderCapabilities {
             presets: None,
             tunes: None,
             pix_fmts: Some(
@@ -92,11 +89,9 @@ pub(crate) fn encoder_capabilities(encoder: &str) -> Option<EncoderCapabilities>
             uses_tune: false,
             uses_compression_level: true,
             crf_flag: "-qp".into(),
-            vbr_flag: "-b:v".into(),
-            cbr_flag: "-b:v".into(),
             rc_flag: Some("-rc_mode".into()),
-        },
-        EncoderFamily::Amf => EncoderCapabilities {
+        }),
+        EncoderFamily::Amf => Some(EncoderCapabilities {
             presets: Some(
                 vec!["speed", "balanced", "quality"]
                     .into_iter()
@@ -119,11 +114,9 @@ pub(crate) fn encoder_capabilities(encoder: &str) -> Option<EncoderCapabilities>
             uses_tune: true,
             uses_compression_level: false,
             crf_flag: "-quality".into(),
-            vbr_flag: "-b:v".into(),
-            cbr_flag: "-b:v".into(),
             rc_flag: Some("-rc".into()),
-        },
-        EncoderFamily::Vulkan => EncoderCapabilities {
+        }),
+        EncoderFamily::Vulkan => Some(EncoderCapabilities {
             presets: None,
             tunes: None,
             pix_fmts: Some(
@@ -136,12 +129,9 @@ pub(crate) fn encoder_capabilities(encoder: &str) -> Option<EncoderCapabilities>
             uses_tune: false,
             uses_compression_level: false,
             crf_flag: "-crf".into(),
-            vbr_flag: "-b:v".into(),
-            cbr_flag: "-b:v".into(),
             rc_flag: None,
-        },
-        EncoderFamily::Software => return None,
-    })
+        }),
+    }
 }
 
 pub(crate) fn software_video_codec(codec: &str) -> &str {

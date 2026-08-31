@@ -70,7 +70,7 @@ Rectangle {
 
             width: parent.width - parent.leftPadding - parent.rightPadding
             height: 20
-            color: "#555555"
+            color: Constants.timelineTrackColor
             radius: 4
 
             Rectangle {
@@ -92,7 +92,7 @@ Rectangle {
                 color: Constants.colorPrimary
                 radius: 3
                 border.width: activeFocus ? 1 : 0
-                border.color: "#ffffff"
+                border.color: Constants.timelineHandleBorder
                 activeFocusOnTab: true
                 Keys.onLeftPressed: function (event) {
                     event.accepted = true;
@@ -144,7 +144,7 @@ Rectangle {
                 color: Constants.colorSecondary
                 radius: 3
                 border.width: activeFocus ? 1 : 0
-                border.color: "#ffffff"
+                border.color: Constants.timelineHandleBorder
                 activeFocusOnTab: true
                 Keys.onLeftPressed: function (event) {
                     event.accepted = true;

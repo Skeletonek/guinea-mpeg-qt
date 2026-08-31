@@ -1,4 +1,3 @@
-import "../Utils/Constants.js" as Constants
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 
@@ -11,7 +10,6 @@ Row {
 
     property string label: ""
     property int labelWidth: 170
-    property color labelColor: Constants.colorPrimary
     // Actual width given to the label; grows to fit long translations so the
     // text never overlaps the control next to it.
     readonly property int effectiveLabelWidth: Math.max(labelWidth, labelLabel.implicitWidth)

@@ -8,6 +8,17 @@
 struct mpv_handle;
 struct mpv_render_context;
 
+constexpr int kMpvPollIntervalMs = 50;
+constexpr int kRewindThresholdMs = 500;
+constexpr int kDefaultVolume = 100;
+constexpr int kMinVolume = 0;
+constexpr int kMaxVolume = 100;
+
+enum class MpvEventFlag : int { Position = 1, Duration = 2, Playing = 4 };
+inline bool hasMpvFlag(int value, MpvEventFlag flag) {
+    return (value & static_cast<int>(flag)) != 0;
+}
+
 class MpvRenderer;
 
 class MpvItem : public QQuickFramebufferObject {
@@ -76,7 +87,7 @@ class MpvItem : public QQuickFramebufferObject {
     int m_position = 0;
     int m_duration = 0;
     bool m_playing = false;
-    qreal m_volume = 100.0;
+    qreal m_volume = kDefaultVolume;
     bool m_muted = false;
     void* m_backend = nullptr;
     mpv_handle* m_mpv = nullptr;

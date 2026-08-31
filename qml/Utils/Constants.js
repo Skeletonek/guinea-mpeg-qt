@@ -111,3 +111,25 @@ var controlsPanelMinWidth = 300
 var controlsPanelMaxWidth = 640
 var controlsPanelCollapseThreshold = 140
 var splitterHandleWidth = 8
+
+// Window
+var windowDefaultWidth = 1024
+var windowDefaultHeight = 800
+var windowMinWidth = 900
+var windowMinHeight = 700
+
+// Dialog sizes
+var dialogWidthSmall = 380
+var dialogWidthMedium = 400
+var dialogWidthLarge = 460
+var dialogWidthAbout = 430
+var dialogWidthCompat = 360
+var dialogWidthTranscode = 700
+var dialogHeightTranscode = 500
+
+// Timeline / UI colors
+var timelineTrackColor = "#555555"
+var timelineHandleBorder = "#ffffff"
+var errorColor = "#e66"
+var previewGeneratingTextSize = 14
+var noVideoPlaceholderSize = 18

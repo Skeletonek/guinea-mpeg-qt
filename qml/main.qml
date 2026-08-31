@@ -120,10 +120,10 @@ ApplicationWindow {
         transcodeDialog.open();
     }
 
-    width: 1024
-    height: 800
-    minimumWidth: 900
-    minimumHeight: 700
+    width: Constants.windowDefaultWidth
+    height: Constants.windowDefaultHeight
+    minimumWidth: Constants.windowMinWidth
+    minimumHeight: Constants.windowMinHeight
     visible: true
     title: "GuineaMPEG"
     Component.onCompleted: {
@@ -231,11 +231,11 @@ ApplicationWindow {
 
                             anchors.fill: parent
                             cursorShape: _panelCollapsed ? Qt.PointingHandCursor : Qt.SplitHCursor
-                            onPressed: function(mouse) {
+                            onPressed: function (mouse) {
                                 _panelStartX = splitterMouse.mapToItem(null, mouse.x, 0).x;
                                 _panelStartWidth = controlsPanel.width;
                             }
-                            onPositionChanged: function(mouse) {
+                            onPositionChanged: function (mouse) {
                                 if (!pressed || _panelCollapsed)
                                     return;
 
