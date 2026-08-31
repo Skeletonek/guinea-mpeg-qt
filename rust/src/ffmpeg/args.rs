@@ -338,10 +338,6 @@ pub(crate) fn build_command(
                 args.push("-hwaccel_output_format".to_string());
                 args.push("amf".to_string());
             }
-            //EncoderFamily::Vulkan => {
-            //    args.push("-init_hw_device".to_string());
-            //    args.push("vulkan".to_string());
-            //}
             _ => {}
         }
     }

@@ -3,13 +3,6 @@ use std::os::raw::{c_char, c_void};
 
 use libmpv2_sys::*;
 
-const EVENT_NONE: mpv_event_id = mpv_event_id_MPV_EVENT_NONE;
-const EVENT_PLAYBACK_RESTART: mpv_event_id = mpv_event_id_MPV_EVENT_PLAYBACK_RESTART;
-const EVENT_END_FILE: mpv_event_id = mpv_event_id_MPV_EVENT_END_FILE;
-const EVENT_PROPERTY_CHANGE: mpv_event_id = mpv_event_id_MPV_EVENT_PROPERTY_CHANGE;
-const FORMAT_DOUBLE: mpv_format = mpv_format_MPV_FORMAT_DOUBLE;
-const FORMAT_FLAG: mpv_format = mpv_format_MPV_FORMAT_FLAG;
-
 pub struct MpvBackend {
     handle: *mut mpv_handle,
     position: i32,
@@ -84,9 +77,9 @@ pub extern "C" fn guinea_mpeg_mpv_create() -> *mut c_void {
 
     unsafe { mpv_initialize(handle) };
 
-    observe(handle, "time-pos", FORMAT_DOUBLE);
-    observe(handle, "duration", FORMAT_DOUBLE);
-    observe(handle, "pause", FORMAT_FLAG);
+    observe(handle, "time-pos", mpv_format_MPV_FORMAT_DOUBLE);
+    observe(handle, "duration", mpv_format_MPV_FORMAT_DOUBLE);
+    observe(handle, "pause", mpv_format_MPV_FORMAT_FLAG);
 
     let backend = Box::new(MpvBackend {
         handle,
@@ -226,7 +219,7 @@ pub extern "C" fn guinea_mpeg_mpv_volume(ptr: *mut c_void) -> i32 {
         mpv_get_property(
             backend_from_ptr(ptr).handle,
             CString::new("volume").unwrap().as_ptr(),
-            FORMAT_DOUBLE,
+            mpv_format_MPV_FORMAT_DOUBLE,
             &mut vol as *mut _ as *mut c_void,
         );
     }
@@ -250,13 +243,14 @@ pub extern "C" fn guinea_mpeg_mpv_mute(ptr: *mut c_void) -> bool {
         mpv_get_property(
             backend_from_ptr(ptr).handle,
             CString::new("mute").unwrap().as_ptr(),
-            FORMAT_FLAG,
+            mpv_format_MPV_FORMAT_FLAG,
             &mut flag as *mut _ as *mut c_void,
         );
     }
     flag != 0
 }
 
+#[allow(non_upper_case_globals)]
 #[no_mangle]
 pub extern "C" fn guinea_mpeg_mpv_process_events(ptr: *mut c_void) -> i32 {
     if ptr.is_null() {
@@ -268,17 +262,17 @@ pub extern "C" fn guinea_mpeg_mpv_process_events(ptr: *mut c_void) -> i32 {
     unsafe {
         loop {
             let event = mpv_wait_event(backend.handle, 0.0);
-            if (*event).event_id == EVENT_NONE {
+            if (*event).event_id == mpv_event_id_MPV_EVENT_NONE {
                 break;
             }
 
             match (*event).event_id {
-                EVENT_PLAYBACK_RESTART => {
+                mpv_event_id_MPV_EVENT_PLAYBACK_RESTART => {
                     let mut paused: i32 = 0;
                     mpv_get_property(
                         backend.handle,
                         CString::new("pause").unwrap().as_ptr(),
-                        FORMAT_FLAG,
+                        mpv_format_MPV_FORMAT_FLAG,
                         &mut paused as *mut _ as *mut c_void,
                     );
                     let new_playing = paused == 0;
@@ -287,31 +281,31 @@ pub extern "C" fn guinea_mpeg_mpv_process_events(ptr: *mut c_void) -> i32 {
                         changed |= 4;
                     }
                 }
-                EVENT_END_FILE => {
+                mpv_event_id_MPV_EVENT_END_FILE => {
                     if backend.playing {
                         backend.playing = false;
                         backend.position = 0;
                         changed |= 6;
                     }
                 }
-                EVENT_PROPERTY_CHANGE => {
+                mpv_event_id_MPV_EVENT_PROPERTY_CHANGE => {
                     let prop = &*((*event).data as *const mpv_event_property);
                     let name = CStr::from_ptr(prop.name).to_str().unwrap_or("");
-                    if name == "time-pos" && prop.format == FORMAT_DOUBLE {
+                    if name == "time-pos" && prop.format == mpv_format_MPV_FORMAT_DOUBLE {
                         let pos = *(prop.data as *const f64);
                         let new_pos = (pos * 1000.0).max(0.0) as i32;
                         if new_pos != backend.position {
                             backend.position = new_pos;
                             changed |= 1;
                         }
-                    } else if name == "duration" && prop.format == FORMAT_DOUBLE {
+                    } else if name == "duration" && prop.format == mpv_format_MPV_FORMAT_DOUBLE {
                         let dur = *(prop.data as *const f64);
                         let new_dur = (dur * 1000.0).max(0.0) as i32;
                         if new_dur != backend.duration {
                             backend.duration = new_dur;
                             changed |= 2;
                         }
-                    } else if name == "pause" && prop.format == FORMAT_FLAG {
+                    } else if name == "pause" && prop.format == mpv_format_MPV_FORMAT_FLAG {
                         let flag = *(prop.data as *const i32);
                         let new_playing = flag == 0;
                         if new_playing != backend.playing {
@@ -333,7 +327,7 @@ pub extern "C" fn guinea_mpeg_mpv_process_events(ptr: *mut c_void) -> i32 {
         if mpv_get_property(
             backend.handle,
             CString::new("time-pos").unwrap().as_ptr(),
-            FORMAT_DOUBLE,
+            mpv_format_MPV_FORMAT_DOUBLE,
             &mut pos as *mut _ as *mut c_void,
         ) == 0
         {
@@ -348,7 +342,7 @@ pub extern "C" fn guinea_mpeg_mpv_process_events(ptr: *mut c_void) -> i32 {
         if mpv_get_property(
             backend.handle,
             CString::new("duration").unwrap().as_ptr(),
-            FORMAT_DOUBLE,
+            mpv_format_MPV_FORMAT_DOUBLE,
             &mut dur as *mut _ as *mut c_void,
         ) == 0
         {
@@ -363,7 +357,7 @@ pub extern "C" fn guinea_mpeg_mpv_process_events(ptr: *mut c_void) -> i32 {
         if mpv_get_property(
             backend.handle,
             CString::new("pause").unwrap().as_ptr(),
-            FORMAT_FLAG,
+            mpv_format_MPV_FORMAT_FLAG,
             &mut paused as *mut _ as *mut c_void,
         ) == 0
         {

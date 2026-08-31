@@ -22,7 +22,6 @@
 #include <QSysInfo>
 #include <QUrl>
 #include <clocale>
-#include <ranges>
 
 #ifdef Q_OS_WIN
 #include <cstdio>
@@ -345,7 +344,8 @@ int main(int argc, char* argv[]) {
 
     QString initialFilePath;
     const auto args = app.arguments();
-    for (const QString& a : args | std::views::drop(1)) {
+    for (int i = 1; i < args.size(); ++i) {
+        const QString& a = args.at(i);
         if (a.startsWith("@@") || a.startsWith('-'))
             continue;
         QString path = QUrl(a).toLocalFile();

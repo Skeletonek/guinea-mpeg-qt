@@ -48,8 +48,6 @@ pub(crate) fn encoder_capabilities(encoder: &str) -> Option<EncoderCapabilities>
             uses_tune: true,
             uses_compression_level: false,
             crf_flag: "-cq".into(),
-            vbr_flag: "-b:v".into(),
-            cbr_flag: "-b:v".into(),
             rc_flag: Some("-rc".into()),
         },
         EncoderFamily::Qsv => EncoderCapabilities {
@@ -75,8 +73,6 @@ pub(crate) fn encoder_capabilities(encoder: &str) -> Option<EncoderCapabilities>
             uses_tune: true,
             uses_compression_level: false,
             crf_flag: "-global_quality".into(),
-            vbr_flag: "-b:v".into(),
-            cbr_flag: "-b:v".into(),
             rc_flag: Some("-rc".into()),
         },
         EncoderFamily::Vaapi => EncoderCapabilities {
@@ -92,8 +88,6 @@ pub(crate) fn encoder_capabilities(encoder: &str) -> Option<EncoderCapabilities>
             uses_tune: false,
             uses_compression_level: true,
             crf_flag: "-qp".into(),
-            vbr_flag: "-b:v".into(),
-            cbr_flag: "-b:v".into(),
             rc_flag: Some("-rc_mode".into()),
         },
         EncoderFamily::Amf => EncoderCapabilities {
@@ -119,8 +113,6 @@ pub(crate) fn encoder_capabilities(encoder: &str) -> Option<EncoderCapabilities>
             uses_tune: true,
             uses_compression_level: false,
             crf_flag: "-quality".into(),
-            vbr_flag: "-b:v".into(),
-            cbr_flag: "-b:v".into(),
             rc_flag: Some("-rc".into()),
         },
         EncoderFamily::Vulkan => EncoderCapabilities {
@@ -136,8 +128,6 @@ pub(crate) fn encoder_capabilities(encoder: &str) -> Option<EncoderCapabilities>
             uses_tune: false,
             uses_compression_level: false,
             crf_flag: "-crf".into(),
-            vbr_flag: "-b:v".into(),
-            cbr_flag: "-b:v".into(),
             rc_flag: None,
         },
         EncoderFamily::Software => return None,

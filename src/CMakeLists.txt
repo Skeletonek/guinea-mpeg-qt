@@ -1,6 +1,5 @@
+set(GUINEA_APP_SOURCES main.cpp backend.cpp)
 if(WIN32)
-    set(GUINEA_APP_SOURCES main.cpp backend.cpp)
-
     # Windows version resource (icon + VERSIONINFO). Substituted at configure
     # time so the Details tab shows the version, copyright and publisher
     # (CompanyName) instead of 0.0.0.0/empty.
@@ -13,8 +12,6 @@ if(WIN32)
     set(FILE_VERSION_TUPLE "${PROJECT_VERSION_MAJOR},${PROJECT_VERSION_MINOR},${PROJECT_VERSION_PATCH},0")
     configure_file(app.rc.in ${CMAKE_CURRENT_BINARY_DIR}/app.rc @ONLY)
     list(APPEND GUINEA_APP_SOURCES ${CMAKE_CURRENT_BINARY_DIR}/app.rc)
-else()
-    set(GUINEA_APP_SOURCES main.cpp backend.cpp)
 endif()
 
 qt_add_executable(guinea-mpeg

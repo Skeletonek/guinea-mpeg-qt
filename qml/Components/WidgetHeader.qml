@@ -12,7 +12,6 @@ Rectangle {
     property color textColor: theme.text
     property bool bold: true
     property int pixelSize: 14
-    property real topPadding: 0
 
     width: parent.width
     height: 28

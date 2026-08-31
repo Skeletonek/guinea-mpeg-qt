@@ -57,6 +57,7 @@ void MpvRenderer::render() {
 }
 
 void MpvRenderer::synchronize(QQuickFramebufferObject*) {
+    // No sync needed — MpvItem state is polled via FFI in handleMpvEvents().
 }
 
 void* MpvRenderer::getProcAddr(void*, const char* name) {
