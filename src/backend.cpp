@@ -95,6 +95,36 @@ QVariantMap makeAudioStreamMap(int idx, const QJsonObject& stream) {
     return m;
 }
 
+QJsonObject parseProbeRoot(const char* json) {
+    QJsonObject root = QJsonDocument::fromJson(QByteArray(json)).object();
+    guinea_mpeg_free_string(json);
+    return root;
+}
+
+void collectStreams(const QJsonArray& streams, QVariantMap& info, QVariantList& videoStreams,
+                    QVariantList& audioStreams) {
+    int videoTypeIdx = 0;
+    int audioTypeIdx = 0;
+    for (const auto& s : streams) {
+        const QJsonObject stream = s.toObject();
+        const QString type = stream["codec_type"].toString();
+        if (type == "video") {
+            if (!info.contains("codec")) {
+                info["width"] = stream["width"].toInt();
+                info["height"] = stream["height"].toInt();
+                info["codec"] = stream["codec_name"].toString();
+                info["fps"] = stream["r_frame_rate"].toString();
+                info["bitrate"] = jsonInt64(stream["bit_rate"]);
+            }
+            videoStreams.append(makeVideoStreamMap(videoTypeIdx++, stream));
+        } else if (type == "audio") {
+            if (!info.contains("audio_codec"))
+                info["audio_codec"] = stream["codec_name"].toString();
+            audioStreams.append(makeAudioStreamMap(audioTypeIdx++, stream));
+        }
+    }
+}
+
 } // namespace
 
 GuineaMpegBackendExt::GuineaMpegBackendExt(QObject* parent) : QObject(parent) {
@@ -215,36 +245,11 @@ QVariantMap GuineaMpegBackendExt::getVideoInfo(const QString& rawPath) {
         info["duration"] = 0.0;
         return info;
     }
-
-    const QJsonObject root = QJsonDocument::fromJson(QByteArray(json)).object();
-    guinea_mpeg_free_string(json);
-
+    const QJsonObject root = parseProbeRoot(json);
     info["duration"] = jsonDouble(root["format"].toObject()["duration"]);
-
     QVariantList videoStreams;
     QVariantList audioStreams;
-    int videoTypeIdx = 0;
-    int audioTypeIdx = 0;
-
-    const QJsonArray streams = root["streams"].toArray();
-    for (const auto& s : streams) {
-        const QJsonObject stream = s.toObject();
-        const QString type = stream["codec_type"].toString();
-        if (type == "video") {
-            if (!info.contains("codec")) {
-                info["width"] = stream["width"].toInt();
-                info["height"] = stream["height"].toInt();
-                info["codec"] = stream["codec_name"].toString();
-                info["fps"] = stream["r_frame_rate"].toString();
-                info["bitrate"] = jsonInt64(stream["bit_rate"]);
-            }
-            videoStreams.append(makeVideoStreamMap(videoTypeIdx++, stream));
-        } else if (type == "audio") {
-            if (!info.contains("audio_codec"))
-                info["audio_codec"] = stream["codec_name"].toString();
-            audioStreams.append(makeAudioStreamMap(audioTypeIdx++, stream));
-        }
-    }
+    collectStreams(root["streams"].toArray(), info, videoStreams, audioStreams);
     info["video_streams"] = videoStreams;
     info["audio_streams"] = audioStreams;
     return info;

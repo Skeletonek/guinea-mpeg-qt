@@ -151,6 +151,107 @@ static void dropMangoHudFromEnvironment() {
 #endif
 }
 
+static QString osReleasePretty(const QString& path) {
+    QFile f(path);
+    if (!f.open(QIODevice::ReadOnly))
+        return {};
+    while (!f.atEnd()) {
+        QString line = QString::fromUtf8(f.readLine()).trimmed();
+        if (!line.startsWith("PRETTY_NAME="))
+            continue;
+        QString val = line.mid(12).trimmed();
+        if (val.size() >= 2 && val.startsWith('"') && val.endsWith('"'))
+            val = val.mid(1, val.size() - 2);
+        return val;
+    }
+    return {};
+}
+
+static QString getHostOsName() {
+    const bool isFlatpak = QStringLiteral(PACKAGE_TARGET) == QStringLiteral("flatpak");
+    QString name;
+    if (isFlatpak)
+        name = osReleasePretty(QStringLiteral("/run/host/etc/os-release"));
+    if (name.isEmpty())
+        name = osReleasePretty(QStringLiteral("/etc/os-release"));
+    if (!name.isEmpty())
+        return name;
+    return QSysInfo::prettyProductName();
+}
+
+static QVariantMap buildThemeMap(const QPalette& pal, bool darkTheme) {
+    auto hex = [](const QColor& c) { return c.name(QColor::HexArgb); };
+    QColor bgCol = pal.color(QPalette::Window);
+    QColor txtCol = pal.color(QPalette::WindowText);
+    QColor btnCol = pal.color(QPalette::Button);
+    auto blend = [](const QColor& a, const QColor& b, double t) {
+        return QColor(int(a.red() * (1 - t) + b.red() * t), int(a.green() * (1 - t) + b.green() * t),
+                      int(a.blue() * (1 - t) + b.blue() * t), int(a.alpha() * (1 - t) + b.alpha() * t));
+    };
+    QVariantMap theme;
+    theme["bg"] = hex(bgCol);
+    theme["surface"] = hex(pal.color(QPalette::Base));
+    theme["widget"] = hex(btnCol);
+    theme["widgetBorder"] = hex(pal.color(QPalette::Mid));
+    theme["text"] = hex(txtCol);
+    theme["textSecondary"] = hex(blend(txtCol, bgCol, 0.4));
+    theme["textMuted"] = hex(blend(txtCol, bgCol, 0.65));
+    theme["textHeader"] = hex(txtCol);
+    theme["textDim"] = hex(blend(txtCol, bgCol, 0.8));
+    theme["accent"] = hex(pal.color(QPalette::Highlight));
+    theme["accentEnd"] = hex(pal.color(QPalette::Highlight));
+    theme["black"] = "#000000";
+    theme["warning"] = "#e6a23c";
+    QColor overlayCol = txtCol;
+    overlayCol.setAlpha(darkTheme ? 128 : 64);
+    theme["overlay"] = hex(overlayCol);
+    return theme;
+}
+
+static QVariantMap buildBuildInfoMap(const QString& hostOs) {
+    QVariantMap buildInfo;
+    buildInfo["author"] = "Skeletonek";
+    buildInfo["license"] = "BSD 3-Clause";
+#ifdef QT_NO_DEBUG
+    buildInfo["debugBuild"] = false;
+    buildInfo["version"] = PROJECT_VERSION_FULL;
+#else
+    buildInfo["debugBuild"] = true;
+    buildInfo["version"] = QStringLiteral(PROJECT_VERSION_FULL) + QStringLiteral(" (development build)");
+#endif
+    buildInfo["buildDate"] = __DATE__ " " __TIME__;
+    buildInfo["packageTarget"] = PACKAGE_TARGET;
+    buildInfo["distroName"] = hostOs;
+    buildInfo["qtVersion"] = qVersion();
+#if defined(__aarch64__) || defined(_M_ARM64)
+    buildInfo["cpuArch"] = QStringLiteral("aarch64");
+#elif defined(__x86_64__) || defined(_M_X64) || defined(_M_AMD64)
+    buildInfo["cpuArch"] = QStringLiteral("x86_64");
+#else
+    buildInfo["cpuArch"] = QSysInfo::currentCpuArchitecture();
+#endif
+    buildInfo["copyright"] =
+        buildInfo["author"].toString() + QStringLiteral(" ") + QString::fromLatin1(__DATE__).right(4);
+    return buildInfo;
+}
+
+static QString parseInitialFilePath(const QStringList& args) {
+    for (int i = 1; i < args.size(); ++i) {
+        const QString& a = args.at(i);
+        if (a.startsWith("@@") || a.startsWith('-'))
+            continue;
+        QString path = QUrl(a).toLocalFile();
+        if (path.isEmpty())
+            path = a;
+#ifdef Q_OS_WIN
+        if (path.size() >= 3 && path[0] == '/' && path[2] == ':')
+            path = path.mid(1);
+#endif
+        return QDir::cleanPath(path);
+    }
+    return {};
+}
+
 int main(int argc, char* argv[]) {
     dropMangoHudFromEnvironment();
     attachParentConsole();
@@ -238,93 +339,11 @@ int main(int argc, char* argv[]) {
 #endif
     }
 
-    QVariantMap theme;
-    {
-        QPalette pal = app.palette();
-
-        auto hex = [](const QColor& c) { return c.name(QColor::HexArgb); };
-
-        QColor bgCol = pal.color(QPalette::Window);
-        QColor txtCol = pal.color(QPalette::WindowText);
-        QColor btnCol = pal.color(QPalette::Button);
-
-        auto blend = [](const QColor& a, const QColor& b, double t) {
-            return QColor(int(a.red() * (1 - t) + b.red() * t), int(a.green() * (1 - t) + b.green() * t),
-                          int(a.blue() * (1 - t) + b.blue() * t), int(a.alpha() * (1 - t) + b.alpha() * t));
-        };
-
-        theme["bg"] = hex(bgCol);
-        theme["surface"] = hex(pal.color(QPalette::Base));
-        theme["widget"] = hex(btnCol);
-        theme["widgetBorder"] = hex(pal.color(QPalette::Mid));
-        theme["text"] = hex(txtCol);
-        theme["textSecondary"] = hex(blend(txtCol, bgCol, 0.4));
-        theme["textMuted"] = hex(blend(txtCol, bgCol, 0.65));
-        theme["textHeader"] = hex(txtCol);
-        theme["textDim"] = hex(blend(txtCol, bgCol, 0.8));
-        theme["accent"] = hex(pal.color(QPalette::Highlight));
-        theme["accentEnd"] = hex(pal.color(QPalette::Highlight));
-        theme["black"] = "#000000";
-        theme["warning"] = "#e6a23c";
-
-        QColor overlayCol = txtCol;
-        overlayCol.setAlpha(darkTheme ? 128 : 64);
-        theme["overlay"] = hex(overlayCol);
-    }
+    QVariantMap theme = buildThemeMap(app.palette(), darkTheme);
 
     QQuickWindow::setGraphicsApi(QSGRendererInterface::OpenGL);
 
-    static auto osReleasePretty = [](const QString& path) {
-        QFile f(path);
-        if (!f.open(QIODevice::ReadOnly))
-            return QString();
-        while (!f.atEnd()) {
-            QString line = QString::fromUtf8(f.readLine()).trimmed();
-            if (!line.startsWith("PRETTY_NAME="))
-                continue;
-            QString val = line.mid(12).trimmed();
-            if (val.size() >= 2 && val.startsWith('"') && val.endsWith('"'))
-                val = val.mid(1, val.size() - 2);
-            return val;
-        }
-        return QString();
-    };
-
-    static auto hostOsName = [] {
-        const bool isFlatpak = QStringLiteral(PACKAGE_TARGET) == QStringLiteral("flatpak");
-        QString name;
-        if (isFlatpak)
-            name = osReleasePretty(QStringLiteral("/run/host/etc/os-release"));
-        if (name.isEmpty())
-            name = osReleasePretty(QStringLiteral("/etc/os-release"));
-        if (!name.isEmpty())
-            return name;
-        return QSysInfo::prettyProductName();
-    };
-
-    QVariantMap buildInfo;
-    buildInfo["author"] = "Skeletonek";
-    buildInfo["license"] = "BSD 3-Clause";
-#ifdef QT_NO_DEBUG
-    buildInfo["debugBuild"] = false;
-    buildInfo["version"] = PROJECT_VERSION_FULL;
-#else
-    buildInfo["debugBuild"] = true;
-    buildInfo["version"] = QStringLiteral(PROJECT_VERSION_FULL) + QStringLiteral(" (development build)");
-#endif
-    buildInfo["buildDate"] = __DATE__ " " __TIME__;
-    buildInfo["packageTarget"] = PACKAGE_TARGET;
-    buildInfo["distroName"] = hostOsName();
-    buildInfo["qtVersion"] = qVersion();
-#if defined(__aarch64__) || defined(_M_ARM64)
-    buildInfo["cpuArch"] = QStringLiteral("aarch64");
-#elif defined(__x86_64__) || defined(_M_X64) || defined(_M_AMD64)
-    buildInfo["cpuArch"] = QStringLiteral("x86_64");
-#else
-    buildInfo["cpuArch"] = QSysInfo::currentCpuArchitecture();
-#endif
-    buildInfo["copyright"] =
-        buildInfo["author"].toString() + QStringLiteral(" ") + QString::fromLatin1(__DATE__).right(4);
+    QVariantMap buildInfo = buildBuildInfoMap(getHostOsName());
 
     QQmlApplicationEngine engine;
     engine.addImportPath("qrc:/qml");
@@ -342,22 +361,7 @@ int main(int argc, char* argv[]) {
     engine.rootContext()->setContextProperty("availableStyles", availableStyles);
     engine.rootContext()->setContextProperty("colorSchemeLockedStyles", colorSchemeLockedStyles);
 
-    QString initialFilePath;
-    const auto args = app.arguments();
-    for (int i = 1; i < args.size(); ++i) {
-        const QString& a = args.at(i);
-        if (a.startsWith("@@") || a.startsWith('-'))
-            continue;
-        QString path = QUrl(a).toLocalFile();
-        if (path.isEmpty())
-            path = a;
-#ifdef Q_OS_WIN
-        if (path.size() >= 3 && path[0] == '/' && path[2] == ':')
-            path = path.mid(1);
-#endif
-        initialFilePath = QDir::cleanPath(path);
-        break;
-    }
+    QString initialFilePath = parseInitialFilePath(app.arguments());
     engine.rootContext()->setContextProperty("initialFilePath", QVariant(initialFilePath));
 
     QObject::connect(

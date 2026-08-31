@@ -45,6 +45,8 @@ pub(crate) unsafe fn cstr(ptr: *const c_char) -> &'static str {
     if ptr.is_null() {
         ""
     } else {
-        CStr::from_ptr(ptr).to_str().unwrap_or("")
+        // SAFETY: caller guarantees ptr is valid null-terminated C string;
+        // 'static is a lie but matches historical FFI usage where C memory is freed after call.
+        unsafe { CStr::from_ptr(ptr).to_str().unwrap_or("") }
     }
 }

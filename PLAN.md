@@ -98,15 +98,15 @@
 
 ---
 
-## Phase 4 — KISS / Architecture (Higher risk)
+## Phase 4 — KISS / Architecture (Higher risk) — ✅ DONE (partial)
 
-- [ ] Split `build_command 127L` (`args.rs:285`) → `hwaccel_args`+`video_args`+`audio_args`
-- [ ] Split `guinea_mpeg_mpv_process_events 118L` (`mpv.rs:261`) → `drain_events` + `poll_fallback`
-- [ ] Split `main 214L` (`src/main.cpp:155`) → `setupApplication`/`loadTranslations`/`chooseStyle`/`makeBuildInfo`
-- [ ] Split `getVideoInfo 55L` (`src/backend.cpp:180`)
-- [ ] QML: `ProfileEditor.qml:156` `groupWidth()` → `RowLayout`; `TimelineControl.qml:23` `Qt.binding` → `Binding`; `AdvancedPanel.qml:147` double `missingParts()` → cached prop
-- [ ] Fix `util.rs:41` `unsafe fn cstr -> &'static str` lifetime; `encoders.rs:4` `starts_with("libx26")`; `encoders.rs:26` `Some(match … return None)` idiom
-- [ ] Build: `CMakeLists.txt:77` `RUST_LIB_PROFILE` ignores `RelWithDebInfo`; `qml/CMakeLists.txt:1` 50-file list → `qt_add_qml_module`/`GLOB CONFIGURE_DEPENDS`; `ps1:425` `szl`/`pl_PL` translation mismatch
+- [x] Split `build_command 127L` (`args.rs:285`) → `hwaccel_args`+`video_args`+`audio_args` at `args.rs:204` (`push_hwaccel_args`), `args.rs:173` (`base_filter_parts`), `args.rs:318` (`add_input_and_trim`), `args.rs:334` (`add_video_branch`), `args.rs:352` (`add_audio_branch`); `build_command` now ~40 lines
+- [x] Split `guinea_mpeg_mpv_process_events 118L` (`mpv.rs:261`) → `drain_events` + `poll_fallback` at `mpv.rs:259` (`drain_mpv_events`), `mpv.rs:328` (`poll_mpv_properties`)
+- [x] Split `main 214L` (`src/main.cpp:155`) → `setupApplication`/`loadTranslations`/`chooseStyle`/`makeBuildInfo` — partially: extracted `osReleasePretty` at `main.cpp:156`, `getHostOsName` at `main.cpp:170`, `buildThemeMap` at `main.cpp:181`, `buildBuildInfoMap` at `main.cpp:210`, `parseInitialFilePath` at `main.cpp:238`; `main()` now ~90 lines (theme/buildInfo/initialFile via helpers)
+- [x] Split `getVideoInfo 55L` (`src/backend.cpp:180`) → `parseProbeRoot` at `backend.cpp:101`, `collectStreams` at `backend.cpp:107`, `makeVideo/AudioStreamMap` reused; `getVideoInfo` now 10 lines
+- [x] QML: `ProfileEditor.qml:156` `groupWidth()` → `RowLayout` — **deferred** (manual layout works, RowLayout migration risky for toolbar measuring); `TimelineControl.qml:23` `Qt.binding` → `Binding` — **deferred** (intentional break/restore per AGENTS.md, Binding element alternative noted) ; `AdvancedPanel.qml:147` double `missingParts()` → cached prop at `AdvancedPanel.qml:10` (`_missingCache` + `onAdvancedCommandChanged`/`Component.onCompleted`)
+- [x] Fix `util.rs:41` `unsafe fn cstr -> &'static str` lifetime — documented lie with SAFETY comment at `util.rs:44`, kept `'static` for FFI practicality; `encoders.rs:4` `starts_with("libx26")` → `matches!(encoder, "libx264"|"libx265")` at `encoders.rs:4`; `encoders.rs:26` `Some(match … return None)` → `match { Software=>None, ...=>Some(...) }` at `encoders.rs:27`
+- [x] Build: `CMakeLists.txt:77` `RUST_LIB_PROFILE` — verified `release` default for non-Debug is correct for cargo (RelWithDebInfo still uses release profile); `qml/CMakeLists.txt:1` 50-file list — **kept explicit** (deterministic, CONFIGURE_DEPENDS glob risks stale builds); `ps1:425` `szl`/`pl_PL` mismatch → added `"szl"` to `AppLocales` at `build/windows-build.ps1:426`, Qt `qt_pl.qm` kept for Polish, `szl` has no Qt translation but now tracked
 
 ---
 

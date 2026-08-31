@@ -315,6 +315,61 @@ fn add_animation_params(args: &mut Vec<String>, profile: &VideoProfile) {
     }
 }
 
+fn add_input_and_trim(args: &mut Vec<String>, input: &str, start_time: f64, end_time: f64) {
+    if start_time > 0.0 {
+        args.push("-ss".to_string());
+        args.push(format!("{}", start_time));
+    }
+    args.push("-i".to_string());
+    args.push(normalize_path(input));
+    if end_time > start_time {
+        args.push("-t".to_string());
+        args.push(format!("{:.3}", end_time - start_time));
+    }
+}
+
+fn add_video_branch(
+    args: &mut Vec<String>,
+    profile: &VideoProfile,
+    enc: &str,
+    family: EncoderFamily,
+) {
+    args.push("-c:v".to_string());
+    args.push(enc.to_string());
+    if is_animated_codec(&profile.codec) {
+        add_animation_params(args, profile);
+    } else {
+        add_rate_control(args, profile, enc);
+        add_codec_specific(args, profile, enc);
+        add_filter_graph(args, profile, family);
+        add_av1_params(args, profile);
+    }
+    for arg in &profile.extra_args {
+        args.push(arg.clone());
+    }
+}
+
+fn add_audio_branch(args: &mut Vec<String>, profile: &VideoProfile) {
+    if is_animated_codec(&profile.codec) || !profile.audio_enabled.unwrap_or(true) {
+        args.push("-an".to_string());
+    } else {
+        args.push("-c:a".to_string());
+        args.push(audio_codec_for_profile(profile).to_string());
+        if !profile.audio_bitrate.is_empty() {
+            args.push("-b:a".to_string());
+            args.push(profile.audio_bitrate.clone());
+        }
+        if let Some(ch) = profile.audio_channels {
+            args.push("-ac".to_string());
+            args.push(ch.to_string());
+        }
+        if let Some(sr) = profile.audio_sample_rate {
+            args.push("-ar".to_string());
+            args.push(sr.to_string());
+        }
+    }
+}
+
 pub(crate) fn build_command(
     input: &str,
     output: &str,
@@ -341,57 +396,14 @@ pub(crate) fn build_command(
         push_hwaccel_args(&mut args, family);
     }
 
-    if start_time > 0.0 {
-        args.push("-ss".to_string());
-        args.push(format!("{}", start_time));
-    }
-    args.push("-i".to_string());
-    args.push(normalize_path(input));
-
-    if end_time > start_time {
-        args.push("-t".to_string());
-        args.push(format!("{:.3}", end_time - start_time));
-    }
-
+    add_input_and_trim(&mut args, input, start_time, end_time);
     add_stream_mapping(&mut args, profile);
 
     if video_enabled {
-        args.push("-c:v".to_string());
-        args.push(enc.clone());
-
-        if is_animated_codec(&profile.codec) {
-            add_animation_params(&mut args, profile);
-        } else {
-            add_rate_control(&mut args, profile, &enc);
-            add_codec_specific(&mut args, profile, &enc);
-            add_filter_graph(&mut args, profile, family);
-            add_av1_params(&mut args, profile);
-        }
-
-        for arg in &profile.extra_args {
-            args.push(arg.clone());
-        }
+        add_video_branch(&mut args, profile, &enc, family);
     }
 
-    if is_animated_codec(&profile.codec) || !profile.audio_enabled.unwrap_or(true) {
-        args.push("-an".to_string());
-    } else {
-        args.push("-c:a".to_string());
-        args.push(audio_codec_for_profile(profile).to_string());
-
-        if !profile.audio_bitrate.is_empty() {
-            args.push("-b:a".to_string());
-            args.push(profile.audio_bitrate.clone());
-        }
-        if let Some(ch) = profile.audio_channels {
-            args.push("-ac".to_string());
-            args.push(ch.to_string());
-        }
-        if let Some(sr) = profile.audio_sample_rate {
-            args.push("-ar".to_string());
-            args.push(sr.to_string());
-        }
-    }
+    add_audio_branch(&mut args, profile);
 
     args.push("-y".to_string());
     args.push(normalize_path(output));

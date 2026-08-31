@@ -423,7 +423,7 @@ function Trim-Staging {
     }
     # Keep only Qt translations for the locales the app ships; windeployqt
     # copies all of them otherwise.
-    $AppLocales = @("cs", "de", "es", "fr", "it", "pl", "ru")
+    $AppLocales = @("cs", "de", "es", "fr", "it", "pl", "ru", "szl")
     $TranslationsDir = Join-Path $OutputDir "translations"
     if (Test-Path $TranslationsDir) {
         $KeepFiles = @($AppLocales | ForEach-Object { "qt_$_.qm" })

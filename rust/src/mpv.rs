@@ -257,6 +257,115 @@ pub extern "C" fn guinea_mpeg_mpv_mute(ptr: *mut c_void) -> bool {
 }
 
 #[allow(non_upper_case_globals)]
+unsafe fn drain_mpv_events(backend: &mut MpvBackend) -> i32 {
+    let mut changed = 0i32;
+    loop {
+        let event = mpv_wait_event(backend.handle, 0.0);
+        if (*event).event_id == mpv_event_id_MPV_EVENT_NONE {
+            break;
+        }
+        match (*event).event_id {
+            mpv_event_id_MPV_EVENT_PLAYBACK_RESTART => {
+                let mut paused: i32 = 0;
+                mpv_get_property(
+                    backend.handle,
+                    c_str("pause").as_ptr(),
+                    mpv_format_MPV_FORMAT_FLAG,
+                    &mut paused as *mut _ as *mut c_void,
+                );
+                let new_playing = paused == 0;
+                if new_playing != backend.playing {
+                    backend.playing = new_playing;
+                    changed |= CHANGED_PLAYING;
+                }
+            }
+            mpv_event_id_MPV_EVENT_END_FILE => {
+                if backend.playing {
+                    backend.playing = false;
+                    backend.position = 0;
+                    changed |= CHANGED_DURATION | CHANGED_PLAYING;
+                }
+            }
+            mpv_event_id_MPV_EVENT_PROPERTY_CHANGE => {
+                let prop = &*((*event).data as *const mpv_event_property);
+                let name = CStr::from_ptr(prop.name).to_str().unwrap_or("");
+                if name == "time-pos" && prop.format == mpv_format_MPV_FORMAT_DOUBLE {
+                    let pos = *(prop.data as *const f64);
+                    let new_pos = f64_to_ms(pos);
+                    if new_pos != backend.position {
+                        backend.position = new_pos;
+                        changed |= CHANGED_POSITION;
+                    }
+                } else if name == "duration" && prop.format == mpv_format_MPV_FORMAT_DOUBLE {
+                    let dur = *(prop.data as *const f64);
+                    let new_dur = f64_to_ms(dur);
+                    if new_dur != backend.duration {
+                        backend.duration = new_dur;
+                        changed |= CHANGED_DURATION;
+                    }
+                } else if name == "pause" && prop.format == mpv_format_MPV_FORMAT_FLAG {
+                    let flag = *(prop.data as *const i32);
+                    let new_playing = flag == 0;
+                    if new_playing != backend.playing {
+                        backend.playing = new_playing;
+                        changed |= CHANGED_PLAYING;
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+    changed
+}
+
+unsafe fn poll_mpv_properties(backend: &mut MpvBackend) -> i32 {
+    let mut changed = 0i32;
+    let mut pos: f64 = 0.0;
+    if mpv_get_property(
+        backend.handle,
+        c_str("time-pos").as_ptr(),
+        mpv_format_MPV_FORMAT_DOUBLE,
+        &mut pos as *mut _ as *mut c_void,
+    ) == 0
+    {
+        let new_pos = f64_to_ms(pos);
+        if new_pos != backend.position {
+            backend.position = new_pos;
+            changed |= CHANGED_POSITION;
+        }
+    }
+    let mut dur: f64 = 0.0;
+    if mpv_get_property(
+        backend.handle,
+        c_str("duration").as_ptr(),
+        mpv_format_MPV_FORMAT_DOUBLE,
+        &mut dur as *mut _ as *mut c_void,
+    ) == 0
+    {
+        let new_dur = f64_to_ms(dur);
+        if new_dur != backend.duration {
+            backend.duration = new_dur;
+            changed |= CHANGED_DURATION;
+        }
+    }
+    let mut paused: i32 = 0;
+    if mpv_get_property(
+        backend.handle,
+        c_str("pause").as_ptr(),
+        mpv_format_MPV_FORMAT_FLAG,
+        &mut paused as *mut _ as *mut c_void,
+    ) == 0
+    {
+        let new_playing = paused == 0;
+        if new_playing != backend.playing {
+            backend.playing = new_playing;
+            changed |= CHANGED_PLAYING;
+        }
+    }
+    changed
+}
+
+#[allow(non_upper_case_globals)]
 #[no_mangle]
 pub extern "C" fn guinea_mpeg_mpv_process_events(ptr: *mut c_void) -> i32 {
     if ptr.is_null() {
@@ -264,117 +373,15 @@ pub extern "C" fn guinea_mpeg_mpv_process_events(ptr: *mut c_void) -> i32 {
     }
     let backend = backend_from_ptr(ptr);
     let mut changed = 0i32;
-
     unsafe {
-        loop {
-            let event = mpv_wait_event(backend.handle, 0.0);
-            if (*event).event_id == mpv_event_id_MPV_EVENT_NONE {
-                break;
-            }
-
-            match (*event).event_id {
-                mpv_event_id_MPV_EVENT_PLAYBACK_RESTART => {
-                    let mut paused: i32 = 0;
-                    mpv_get_property(
-                        backend.handle,
-                        c_str("pause").as_ptr(),
-                        mpv_format_MPV_FORMAT_FLAG,
-                        &mut paused as *mut _ as *mut c_void,
-                    );
-                    let new_playing = paused == 0;
-                    if new_playing != backend.playing {
-                        backend.playing = new_playing;
-                        changed |= CHANGED_PLAYING;
-                    }
-                }
-                mpv_event_id_MPV_EVENT_END_FILE => {
-                    if backend.playing {
-                        backend.playing = false;
-                        backend.position = 0;
-                        changed |= CHANGED_DURATION | CHANGED_PLAYING;
-                    }
-                }
-                mpv_event_id_MPV_EVENT_PROPERTY_CHANGE => {
-                    let prop = &*((*event).data as *const mpv_event_property);
-                    let name = CStr::from_ptr(prop.name).to_str().unwrap_or("");
-                    if name == "time-pos" && prop.format == mpv_format_MPV_FORMAT_DOUBLE {
-                        let pos = *(prop.data as *const f64);
-                        let new_pos = f64_to_ms(pos);
-                        if new_pos != backend.position {
-                            backend.position = new_pos;
-                            changed |= CHANGED_POSITION;
-                        }
-                    } else if name == "duration" && prop.format == mpv_format_MPV_FORMAT_DOUBLE {
-                        let dur = *(prop.data as *const f64);
-                        let new_dur = f64_to_ms(dur);
-                        if new_dur != backend.duration {
-                            backend.duration = new_dur;
-                            changed |= CHANGED_DURATION;
-                        }
-                    } else if name == "pause" && prop.format == mpv_format_MPV_FORMAT_FLAG {
-                        let flag = *(prop.data as *const i32);
-                        let new_playing = flag == 0;
-                        if new_playing != backend.playing {
-                            backend.playing = new_playing;
-                            changed |= CHANGED_PLAYING;
-                        }
-                    }
-                }
-                _ => {}
-            }
-        }
+        changed |= drain_mpv_events(backend);
     }
-
-    // Fallback: property observation events can be missed (e.g. lost wakeups
+    // Fallback poll: property observation events can be missed (e.g. lost wakeups
     // on some platforms), so poll the observed properties directly as well.
     // Reads are cheap and only report a change when the cached value differs.
     unsafe {
-        let mut pos: f64 = 0.0;
-        if mpv_get_property(
-            backend.handle,
-            c_str("time-pos").as_ptr(),
-            mpv_format_MPV_FORMAT_DOUBLE,
-            &mut pos as *mut _ as *mut c_void,
-        ) == 0
-        {
-            let new_pos = f64_to_ms(pos);
-            if new_pos != backend.position {
-                backend.position = new_pos;
-                changed |= CHANGED_POSITION;
-            }
-        }
-
-        let mut dur: f64 = 0.0;
-        if mpv_get_property(
-            backend.handle,
-            c_str("duration").as_ptr(),
-            mpv_format_MPV_FORMAT_DOUBLE,
-            &mut dur as *mut _ as *mut c_void,
-        ) == 0
-        {
-            let new_dur = f64_to_ms(dur);
-            if new_dur != backend.duration {
-                backend.duration = new_dur;
-                changed |= CHANGED_DURATION;
-            }
-        }
-
-        let mut paused: i32 = 0;
-        if mpv_get_property(
-            backend.handle,
-            c_str("pause").as_ptr(),
-            mpv_format_MPV_FORMAT_FLAG,
-            &mut paused as *mut _ as *mut c_void,
-        ) == 0
-        {
-            let new_playing = paused == 0;
-            if new_playing != backend.playing {
-                backend.playing = new_playing;
-                changed |= CHANGED_PLAYING;
-            }
-        }
+        changed |= poll_mpv_properties(backend);
     }
-
     changed
 }
 
