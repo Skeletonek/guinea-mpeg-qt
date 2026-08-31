@@ -3,6 +3,10 @@ use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
+const DEFAULT_SYSTEM_PROFILES_PATH: &str = "/usr/share/guinea-mpeg/default_profiles.toml";
+const MAX_VOLUME: f64 = 100.0;
+const MIN_VOLUME: f64 = 0.0;
+
 static CONFIG: Mutex<Option<AppConfig>> = Mutex::new(None);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -147,7 +151,7 @@ fn defaults_path() -> PathBuf {
             }
         }
     }
-    PathBuf::from("/usr/share/guinea-mpeg/default_profiles.toml")
+    PathBuf::from(DEFAULT_SYSTEM_PROFILES_PATH)
 }
 
 fn dirs_or_fallback() -> PathBuf {
@@ -416,7 +420,7 @@ pub fn set_option(key: &str, value: &str) -> anyhow::Result<()> {
             let v: f64 = value
                 .parse()
                 .map_err(|_| anyhow::anyhow!("invalid numeric value"))?;
-            cfg.options.preview_volume = v.clamp(0.0, 100.0);
+            cfg.options.preview_volume = v.clamp(MIN_VOLUME, MAX_VOLUME);
         }
         "checkForUpdates" => {
             let v: bool = value

@@ -90,7 +90,7 @@ MpvItem::MpvItem() {
     // on a fixed interval. The drain is cheap when the queue is empty and
     // guarantees position/duration updates even if the wakeup path fails.
     m_eventTimer = new QTimer(this);
-    m_eventTimer->setInterval(50);
+    m_eventTimer->setInterval(kMpvPollIntervalMs);
     connect(m_eventTimer, &QTimer::timeout, this, &MpvItem::handleMpvEvents);
     m_eventTimer->start();
 }
@@ -146,7 +146,7 @@ void MpvItem::setPosition(int pos) {
 void MpvItem::play() {
     if (!m_backend)
         return;
-    if (m_duration > 0 && m_position >= m_duration - 500) {
+    if (m_duration > 0 && m_position >= m_duration - kRewindThresholdMs) {
         guinea_mpeg_mpv_seek(m_backend, 0);
         m_position = 0;
         emit positionChanged();
@@ -177,7 +177,7 @@ void MpvItem::stop() {
 void MpvItem::setVolume(qreal vol) {
     m_volume = vol;
     if (m_backend) {
-        const int v = std::clamp(static_cast<int>(vol), 0, 100);
+        const int v = std::clamp(static_cast<int>(vol), kMinVolume, kMaxVolume);
         guinea_mpeg_mpv_set_volume(m_backend, v);
     }
     emit volumeChanged();
@@ -206,15 +206,15 @@ void MpvItem::handleMpvEvents() {
 
     int changed = guinea_mpeg_mpv_process_events(m_backend);
 
-    if (changed & 1) {
+    if (hasMpvFlag(changed, MpvEventFlag::Position)) {
         m_position = guinea_mpeg_mpv_position(m_backend);
         emit positionChanged();
     }
-    if (changed & 2) {
+    if (hasMpvFlag(changed, MpvEventFlag::Duration)) {
         m_duration = guinea_mpeg_mpv_duration(m_backend);
         emit durationChanged();
     }
-    if (changed & 4) {
+    if (hasMpvFlag(changed, MpvEventFlag::Playing)) {
         m_playing = guinea_mpeg_mpv_is_playing(m_backend);
         emit playingChanged();
     }

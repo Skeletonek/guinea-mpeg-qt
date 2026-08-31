@@ -3,6 +3,13 @@ use std::os::raw::{c_char, c_void};
 
 use libmpv2_sys::*;
 
+const MS_PER_SEC: f64 = 1000.0;
+const MAX_VOLUME: i32 = 100;
+const MIN_VOLUME: i32 = 0;
+const CHANGED_POSITION: i32 = 1;
+const CHANGED_DURATION: i32 = 2;
+const CHANGED_PLAYING: i32 = 4;
+
 pub struct MpvBackend {
     handle: *mut mpv_handle,
     position: i32,
@@ -54,7 +61,7 @@ fn backend_from_ptr(ptr: *mut c_void) -> &'static mut MpvBackend {
 
 #[inline]
 fn f64_to_ms(v: f64) -> i32 {
-    (v * 1000.0).max(0.0) as i32
+    (v * MS_PER_SEC).max(0.0) as i32
 }
 
 #[inline]
@@ -194,7 +201,7 @@ pub extern "C" fn guinea_mpeg_mpv_stop(ptr: *mut c_void) {
 #[no_mangle]
 pub extern "C" fn guinea_mpeg_mpv_seek(ptr: *mut c_void, pos_ms: i32) {
     if !ptr.is_null() {
-        let cmd = c_str(&format!("seek {} absolute", pos_ms as f64 / 1000.0));
+        let cmd = c_str(&format!("seek {} absolute", pos_ms as f64 / MS_PER_SEC));
         unsafe {
             mpv_command_string(backend_from_ptr(ptr).handle, cmd.as_ptr());
         }
@@ -204,7 +211,7 @@ pub extern "C" fn guinea_mpeg_mpv_seek(ptr: *mut c_void, pos_ms: i32) {
 #[no_mangle]
 pub extern "C" fn guinea_mpeg_mpv_set_volume(ptr: *mut c_void, vol: i32) {
     if !ptr.is_null() {
-        backend_from_ptr(ptr).set_string("volume", &vol.clamp(0, 100).to_string());
+        backend_from_ptr(ptr).set_string("volume", &vol.clamp(MIN_VOLUME, MAX_VOLUME).to_string());
     }
 }
 
@@ -277,14 +284,14 @@ pub extern "C" fn guinea_mpeg_mpv_process_events(ptr: *mut c_void) -> i32 {
                     let new_playing = paused == 0;
                     if new_playing != backend.playing {
                         backend.playing = new_playing;
-                        changed |= 4;
+                        changed |= CHANGED_PLAYING;
                     }
                 }
                 mpv_event_id_MPV_EVENT_END_FILE => {
                     if backend.playing {
                         backend.playing = false;
                         backend.position = 0;
-                        changed |= 6;
+                        changed |= CHANGED_DURATION | CHANGED_PLAYING;
                     }
                 }
                 mpv_event_id_MPV_EVENT_PROPERTY_CHANGE => {
@@ -295,21 +302,21 @@ pub extern "C" fn guinea_mpeg_mpv_process_events(ptr: *mut c_void) -> i32 {
                         let new_pos = f64_to_ms(pos);
                         if new_pos != backend.position {
                             backend.position = new_pos;
-                            changed |= 1;
+                            changed |= CHANGED_POSITION;
                         }
                     } else if name == "duration" && prop.format == mpv_format_MPV_FORMAT_DOUBLE {
                         let dur = *(prop.data as *const f64);
                         let new_dur = f64_to_ms(dur);
                         if new_dur != backend.duration {
                             backend.duration = new_dur;
-                            changed |= 2;
+                            changed |= CHANGED_DURATION;
                         }
                     } else if name == "pause" && prop.format == mpv_format_MPV_FORMAT_FLAG {
                         let flag = *(prop.data as *const i32);
                         let new_playing = flag == 0;
                         if new_playing != backend.playing {
                             backend.playing = new_playing;
-                            changed |= 4;
+                            changed |= CHANGED_PLAYING;
                         }
                     }
                 }
@@ -333,7 +340,7 @@ pub extern "C" fn guinea_mpeg_mpv_process_events(ptr: *mut c_void) -> i32 {
             let new_pos = f64_to_ms(pos);
             if new_pos != backend.position {
                 backend.position = new_pos;
-                changed |= 1;
+                changed |= CHANGED_POSITION;
             }
         }
 
@@ -348,7 +355,7 @@ pub extern "C" fn guinea_mpeg_mpv_process_events(ptr: *mut c_void) -> i32 {
             let new_dur = f64_to_ms(dur);
             if new_dur != backend.duration {
                 backend.duration = new_dur;
-                changed |= 2;
+                changed |= CHANGED_DURATION;
             }
         }
 
@@ -363,7 +370,7 @@ pub extern "C" fn guinea_mpeg_mpv_process_events(ptr: *mut c_void) -> i32 {
             let new_playing = paused == 0;
             if new_playing != backend.playing {
                 backend.playing = new_playing;
-                changed |= 4;
+                changed |= CHANGED_PLAYING;
             }
         }
     }

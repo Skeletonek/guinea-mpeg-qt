@@ -2,6 +2,7 @@ import GuineaMpeg 1.0
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import "Utils/Constants.js" as Constants
 import "Utils/FormatUtils.js" as FormatUtils
 import "Utils/DataUtils.js" as DataUtils
 
@@ -173,7 +174,7 @@ Rectangle {
         text: qsTr("No video loaded")
         color: theme.text
         visible: !root.hasVideo
-        font.pixelSize: 18
+        font.pixelSize: Constants.noVideoPlaceholderSize
     }
 
     Rectangle {
@@ -312,7 +313,7 @@ Rectangle {
             anchors.topMargin: 8
             text: qsTr("Generating preview…")
             color: theme.text
-            font.pixelSize: 14
+            font.pixelSize: Constants.previewGeneratingTextSize
         }
     }
 

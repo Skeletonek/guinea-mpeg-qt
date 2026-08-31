@@ -18,6 +18,9 @@
 
 namespace {
 
+constexpr int kKillTimeoutMs = 3000;
+constexpr int kNotificationTimeoutMs = 5000;
+
 QString takeRustString(const char* s, const QString& fallback = QString()) {
     if (!s)
         return fallback;
@@ -60,7 +63,7 @@ void killTranscodeProcess(std::unique_ptr<QProcess>& proc) {
         return;
     proc->disconnect();
     proc->kill();
-    proc->waitForFinished(3000);
+    proc->waitForFinished(kKillTimeoutMs);
     proc.reset();
 }
 
@@ -374,11 +377,11 @@ void GuineaMpegBackendExt::sendNotification(const QString& title, const QString&
         QStringLiteral("org.freedesktop.Notifications"), QStringLiteral("/org/freedesktop/Notifications"),
         QStringLiteral("org.freedesktop.Notifications"), QStringLiteral("Notify"));
     msg.setArguments({QStringLiteral("GuineaMPEG"), 0u, QStringLiteral("guinea-mpeg"), title, body, QStringList(),
-                      QVariantMap(), 5000});
+                      QVariantMap(), kNotificationTimeoutMs});
     QDBusConnection::sessionBus().asyncCall(msg);
 #elif defined(Q_OS_WIN)
     if (m_trayIcon)
-        m_trayIcon->showMessage(title, body, QSystemTrayIcon::Information, 5000);
+        m_trayIcon->showMessage(title, body, QSystemTrayIcon::Information, kNotificationTimeoutMs);
 #endif
 }
 

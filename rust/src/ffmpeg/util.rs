@@ -2,6 +2,9 @@ use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
 use std::process::Command;
 
+#[cfg(target_os = "windows")]
+const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+
 // On Windows, without CREATE_NO_WINDOW each child flashes a console window.
 pub(crate) fn quiet_command(prog: &str) -> Command {
     #[cfg_attr(not(target_os = "windows"), allow(unused_mut))]
@@ -9,7 +12,7 @@ pub(crate) fn quiet_command(prog: &str) -> Command {
     #[cfg(target_os = "windows")]
     {
         use std::os::windows::process::CommandExt;
-        cmd.creation_flags(0x0800_0000); // CREATE_NO_WINDOW
+        cmd.creation_flags(CREATE_NO_WINDOW);
     }
     cmd
 }

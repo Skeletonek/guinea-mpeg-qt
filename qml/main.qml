@@ -120,10 +120,10 @@ ApplicationWindow {
         transcodeDialog.open();
     }
 
-    width: 1024
-    height: 800
-    minimumWidth: 900
-    minimumHeight: 700
+    width: Constants.windowDefaultWidth
+    height: Constants.windowDefaultHeight
+    minimumWidth: Constants.windowMinWidth
+    minimumHeight: Constants.windowMinHeight
     visible: true
     title: "GuineaMPEG"
     Component.onCompleted: {

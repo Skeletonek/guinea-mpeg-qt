@@ -1,5 +1,6 @@
 import "../Utils/Centering.js" as Utils
 import QtMultimedia
+import "../Utils/Constants.js" as Constants
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -53,7 +54,7 @@ Dialog {
     }
 
     title: qsTr("About GuineaMPEG")
-    width: 430
+    width: Constants.dialogWidthAbout
     padding: 16
     topPadding: 8
     implicitHeight: implicitHeaderHeight + mainLayout.implicitHeight + implicitFooterHeight + 24

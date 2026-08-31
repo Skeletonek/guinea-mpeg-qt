@@ -1,3 +1,4 @@
+import "../Utils/Constants.js" as Constants
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 
@@ -10,7 +11,7 @@ Dialog {
 
     title: qsTr("Available Encoders")
     standardButtons: Dialog.Ok
-    width: 360
+    width: Constants.dialogWidthCompat
     padding: 16
     modal: true
     anchors.centerIn: Overlay.overlay

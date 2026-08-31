@@ -1,4 +1,5 @@
 import "../Components" as Components
+import "../Utils/Constants.js" as Constants
 import QtQuick 2.15
 
 Components.BaseConfirmDialog {
@@ -9,7 +10,7 @@ Components.BaseConfirmDialog {
     signal deleteRequested
 
     title: qsTr("Delete Profile")
-    width: 380
+    width: Constants.dialogWidthSmall
     bodyText: qsTr("Delete profile \"%1\"?\n\nThis cannot be undone.").arg(root.profileName)
     onConfirmed: deleteRequested()
 }

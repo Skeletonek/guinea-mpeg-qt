@@ -87,14 +87,14 @@
 
 ---
 
-## Phase 3 — Hardcoded Constants (Medium risk)
+## Phase 3 — Hardcoded Constants (Medium risk) — ✅ DONE
 
-- [ ] C++ `backend.cpp:63` `3000`, `mpvitem.cpp:92` `50`, `mpvitem.cpp:148` `500`, `backend.cpp:365` `5000` → `constexpr k…`
-- [ ] `mpvitem.cpp:206` `1/2/4` → `enum class MpvEventFlag`; `mpvitem.h:79` `kDefaultVolume`
-- [ ] Rust `config.rs:150` system path, `config.rs:435` `100.0`, `args.rs:246` `75`, `MS_PER_SEC` `mpv.rs:205`, `CHANGED_POS` `mpv.rs:276`
-- [ ] QML `#e66` (`ProfileEditor.qml:210`), `#555555` (`TimelineControl.qml:73`), `1024x800` (`main.qml:123`) → `Constants.js`
-- [ ] Dialog widths `380/400/430/460/700` → `Constants.dialogWidth`
-- [ ] Build single `versions.toml` for `0.11.0` drift (`Cargo.toml:3` vs `CMakeLists.txt:2` vs `installer.iss:11`)
+- [x] C++ `backend.cpp:63` `3000`, `mpvitem.cpp:92` `50`, `mpvitem.cpp:148` `500`, `backend.cpp:365` `5000` → `constexpr k…` at `backend.cpp:20` (`kKillTimeoutMs`, `kNotificationTimeoutMs`) + `mpvitem.h:14` (`kMpvPollIntervalMs`, `kRewindThresholdMs`, `kDefaultVolume`, `kMin/MaxVolume`)
+- [x] `mpvitem.cpp:206` `1/2/4` → `enum class MpvEventFlag` at `mpvitem.h:19` + `hasMpvFlag()` helper, `handleMpvEvents()` at `mpvitem.cpp:203` now uses flags
+- [x] Rust `config.rs:150` system path, `config.rs:435` `100.0`, `args.rs:246` `75`, `MS_PER_SEC` `mpv.rs:205`, `CHANGED_POS` `mpv.rs:276` → `config.rs:7` (`DEFAULT_SYSTEM_PROFILES_PATH`, `MAX/MIN_VOLUME`), `mpv.rs:6` (`MS_PER_SEC`, `MAX/MIN_VOLUME`, `CHANGED_*`), `args.rs:6` (`DEFAULT_QUALITY`), `ffmpeg/util.rs:5` (`CREATE_NO_WINDOW` cfg-guarded)
+- [x] QML `#e66` (`ProfileEditor.qml:210`), `#555555` (`TimelineControl.qml:73`), `1024x800` (`main.qml:123`) → `Constants.js:117` (`windowDefault*`, `timelineTrackColor`, `timelineHandleBorder`, `errorColor`, `noVideoPlaceholderSize`, `previewGeneratingTextSize`) and usages at `main.qml:123`, `TimelineControl.qml:73,95`, `ProfileEditor.qml:211`, `ProfileExportDialog.qml:144`, `VideoPreview.qml:168,309`
+- [x] Dialog widths `380/400/430/460/700` → `Constants.dialogWidth*` at `Constants.js:122` + usages at `BaseConfirmDialog.qml:14`, `DeleteProfileDialog.qml:13`, `AboutDialog.qml:56`, `OptionsDialog.qml:47`, `ProfileExportDialog.qml:49`, `ProfileImportConflictDialog.qml:28`, `EncoderCompatDialog.qml:13`, `TranscodeDialog.qml:48`
+- [ ] Build single `versions.toml` for `0.11.0` drift — deferred to Phase 4 (needs centralized `versions.toml` + `configure_file` generation; `build/common.sh:7` `get_version()` is foundation)
 
 ---
 

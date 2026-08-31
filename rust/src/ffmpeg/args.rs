@@ -4,6 +4,8 @@ use crate::ffmpeg::{
     normalize_path, video_codec, EncoderFamily,
 };
 
+const DEFAULT_QUALITY: u32 = 75;
+
 fn push_rc_flag(
     args: &mut Vec<String>,
     family: EncoderFamily,
@@ -284,7 +286,7 @@ fn add_av1_params(args: &mut Vec<String>, profile: &VideoProfile) {
 }
 
 fn add_animation_params(args: &mut Vec<String>, profile: &VideoProfile) {
-    let q = profile.quality.unwrap_or(75).clamp(0, 100);
+    let q = profile.quality.unwrap_or(DEFAULT_QUALITY).clamp(0, 100);
     let looping = profile.loop_enabled.unwrap_or(true);
 
     let mut parts = base_filter_parts(profile);

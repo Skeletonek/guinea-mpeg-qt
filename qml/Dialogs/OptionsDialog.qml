@@ -1,5 +1,6 @@
 import "../Components"
 import "../Utils/Centering.js" as Utils
+import "../Utils/Constants.js" as Constants
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -44,7 +45,7 @@ Dialog {
     }
 
     title: qsTr("Options")
-    width: 400
+    width: Constants.dialogWidthMedium
     padding: 16
     topPadding: 8
     implicitHeight: implicitHeaderHeight + mainLayout.implicitHeight + implicitFooterHeight + 24
