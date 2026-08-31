@@ -77,8 +77,7 @@ Column {
             data.codec = codecData.codec;
             data.encoder = codecData.encoder;
             if (!root._isAnimated) {
-                data = DataUtils.buildProfileData(data, rateControlSection.getRateControlData(),
-                    presetTuneSection.getPresetTuneData(), pixelFormatSection.getPixelFormatData());
+                data = DataUtils.buildProfileData(data, rateControlSection.getRateControlData(), presetTuneSection.getPresetTuneData(), pixelFormatSection.getPixelFormatData());
             }
             data = DataUtils.buildProfileData(data, scalingSection.getScalingData());
             if (animatedSection && root._isAnimated)

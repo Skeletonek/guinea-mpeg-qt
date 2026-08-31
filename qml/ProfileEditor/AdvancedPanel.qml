@@ -9,7 +9,10 @@ Column {
     property bool advancedMode: false
     property string advancedCommand: ""
     property string previewText: qsTr("Adjust settings above to see the ffmpeg command preview...")
-    property var _missingCache: ({"essential": [], "trim": []})
+    property var _missingCache: ({
+            "essential": [],
+            "trim": []
+        })
 
     signal changed
     signal extraArgsChanged

@@ -9,7 +9,7 @@ Column {
 
     function emitChanged() {
         if (!root.loading)
-            root.changed()
+            root.changed();
     }
 
     spacing: 8

@@ -82,7 +82,6 @@ Rectangle {
         backend.cancelPreview();
     }
 
-
     color: theme.black
     border.color: theme.widgetBorder
     border.width: 1

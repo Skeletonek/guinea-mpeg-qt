@@ -231,11 +231,11 @@ ApplicationWindow {
 
                             anchors.fill: parent
                             cursorShape: _panelCollapsed ? Qt.PointingHandCursor : Qt.SplitHCursor
-                            onPressed: function(mouse) {
+                            onPressed: function (mouse) {
                                 _panelStartX = splitterMouse.mapToItem(null, mouse.x, 0).x;
                                 _panelStartWidth = controlsPanel.width;
                             }
-                            onPositionChanged: function(mouse) {
+                            onPositionChanged: function (mouse) {
                                 if (!pressed || _panelCollapsed)
                                     return;
 
