@@ -1,4 +1,4 @@
-### 0.12.0 (In progress)
+### 0.12.0
 - Added a 5-second preview generation
 - Added an output file size estimation based on the 5-second preview clip
 - Added support for more mimetypes
@@ -6,6 +6,8 @@
 - Workaround Mangohud crashing the app
 - Fixed wrong app icon on some Linux environments like GNOME
 - Fixed app and author icons rendering outside of the AboutDialog if, for example, OS name label is too long
+- Codebase cleanup
+- Updated translations
 
 ### 0.11.0
 - Added advanced mode for ProfileEditor allowing to freely edit ffmpeg command
