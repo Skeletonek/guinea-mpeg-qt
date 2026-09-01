@@ -39,7 +39,7 @@ if(WIN32)
         PRIVATE mpv::mpv
         PRIVATE OpenGL::GL
     )
-    target_link_libraries(guinea-mpeg PRIVATE "${RUST_SYSROOT_DIR}/${RUST_LIB_PROFILE}/guinea_mpeg_core.dll.lib")
+    target_link_libraries(guinea-mpeg PRIVATE "${RUST_LIB_IMPLIB}")
 
     add_custom_command(TARGET guinea-mpeg POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different

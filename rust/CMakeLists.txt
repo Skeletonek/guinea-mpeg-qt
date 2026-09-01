@@ -8,11 +8,16 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
     list(APPEND _cargo_profile_args --release)
 endif()
 
+if(WIN32)
+    set(_rust_byproducts ${RUST_LIB} ${RUST_LIB_IMPLIB} ${RUST_LIB_EXP})
+else()
+    set(_rust_byproducts ${RUST_LIB})
+endif()
 add_custom_target(rust_lib ALL
     COMMAND ${CARGO} build ${_cargo_profile_args} ${_cargo_target_args}
     WORKING_DIRECTORY ${RUST_PROJECT_DIR}
     COMMENT "Building Rust library"
-    BYPRODUCTS ${RUST_LIB}
+    BYPRODUCTS ${_rust_byproducts}
 )
 
 add_custom_command(TARGET rust_lib POST_BUILD

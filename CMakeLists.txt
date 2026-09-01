@@ -97,6 +97,8 @@ endif()
 
 if(WIN32)
     set(RUST_LIB "${RUST_SYSROOT_DIR}/${RUST_LIB_PROFILE}/guinea_mpeg_core.dll")
+    set(RUST_LIB_IMPLIB "${RUST_SYSROOT_DIR}/${RUST_LIB_PROFILE}/guinea_mpeg_core.dll.lib")
+    set(RUST_LIB_EXP "${RUST_SYSROOT_DIR}/${RUST_LIB_PROFILE}/guinea_mpeg_core.dll.exp")
 else()
     set(RUST_LIB "${RUST_SYSROOT_DIR}/${RUST_LIB_PROFILE}/libguinea_mpeg_core.so")
 endif()
