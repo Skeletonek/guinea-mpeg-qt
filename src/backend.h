@@ -13,6 +13,7 @@
 class GuineaMpegBackendExt : public QObject {
     Q_OBJECT
     Q_PROPERTY(QString transcodeOutput READ transcodeOutput WRITE setTranscodeOutput NOTIFY transcodeOutputUpdated)
+    Q_PROPERTY(QString transcodeError READ transcodeError NOTIFY transcodeErrorChanged)
     Q_PROPERTY(bool transcoding READ transcoding WRITE setTranscoding NOTIFY transcodingChanged)
     Q_PROPERTY(bool previewGenerating READ previewGenerating WRITE setPreviewGenerating NOTIFY previewGeneratingChanged)
     Q_PROPERTY(QString lastPreviewPath READ lastPreviewPath NOTIFY lastPreviewPathChanged)
@@ -25,6 +26,11 @@ class GuineaMpegBackendExt : public QObject {
         return m_transcodeOutput;
     }
     void setTranscodeOutput(const QString& v);
+
+    QString transcodeError() const {
+        return m_transcodeError;
+    }
+    void setTranscodeError(const QString& v);
 
     bool transcoding() const {
         return m_transcoding;
@@ -80,6 +86,7 @@ class GuineaMpegBackendExt : public QObject {
 
   signals:
     void transcodeOutputUpdated();
+    void transcodeErrorChanged();
     void transcodingChanged();
     void transcodeFinished(bool success);
     void previewGeneratingChanged();
@@ -94,10 +101,12 @@ class GuineaMpegBackendExt : public QObject {
     void sendNotification(const QString& title, const QString& body);
 
     QString m_transcodeOutput;
+    QString m_transcodeError;
     bool m_transcoding = false;
     bool m_previewGenerating = false;
     QString m_lastPreviewPath;
     qint64 m_lastPreviewSize = 0;
+    QString extractTranscodeError(const QString& output) const;
     std::unique_ptr<QProcess> m_currentTranscode;
     std::unique_ptr<QProcess> m_currentPreview;
 #ifdef Q_OS_WIN

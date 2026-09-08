@@ -146,9 +146,53 @@ void GuineaMpegBackendExt::setTranscodeOutput(const QString& v) {
     emit transcodeOutputUpdated();
 }
 
+void GuineaMpegBackendExt::setTranscodeError(const QString& v) {
+    if (m_transcodeError == v)
+        return;
+    m_transcodeError = v;
+    emit transcodeErrorChanged();
+}
+
 void GuineaMpegBackendExt::setTranscoding(bool v) {
     m_transcoding = v;
     emit transcodingChanged();
+}
+
+QString GuineaMpegBackendExt::extractTranscodeError(const QString& output) const {
+    const QStringList lines = output.split('\n');
+    QStringList candidates;
+    // First pass: lines containing error keywords (most relevant)
+    for (int i = lines.size() - 1; i >= 0 && candidates.size() < 3; --i) {
+        const QString trimmed = lines[i].trimmed();
+        if (trimmed.isEmpty())
+            continue;
+        if (trimmed.contains("--- Transcoding finished"))
+            continue;
+        const QString lower = trimmed.toLower();
+        const bool isError = lower.contains("error") || lower.contains("invalid") || lower.contains("failed") ||
+                             lower.contains("unable") || lower.contains("no such") || lower.contains("unknown") ||
+                             lower.contains("not found") || lower.contains("cannot") ||
+                             lower.contains("conversion failed");
+        if (isError) {
+            candidates.prepend(trimmed);
+        }
+    }
+    if (!candidates.isEmpty()) {
+        return candidates.join('\n');
+    }
+    // Fallback: last 2 non-empty, non-banner lines
+    QStringList fallback;
+    for (int i = lines.size() - 1; i >= 0 && fallback.size() < 2; --i) {
+        const QString trimmed = lines[i].trimmed();
+        if (trimmed.isEmpty())
+            continue;
+        if (trimmed.contains("--- Transcoding finished"))
+            continue;
+        if (trimmed.startsWith("ffmpeg "))
+            continue;
+        fallback.prepend(trimmed);
+    }
+    return fallback.join('\n');
 }
 
 void GuineaMpegBackendExt::setPreviewGenerating(bool v) {
@@ -289,18 +333,23 @@ QString GuineaMpegBackendExt::startTranscode(const QString& rawInput, const QStr
     killTranscodeProcess(m_currentTranscode);
 
     setTranscodeOutput({});
+    setTranscodeError({});
     setTranscoding(true);
 
     QJsonDocument doc = QJsonDocument::fromJson(profileJson.toUtf8());
     QStringList args = doc.isArray() ? jsonArgsToStringList(profileJson.toUtf8())
                                      : buildArgsFromProfile(input, output, startTime, endTime, profileJson);
     if (doc.isObject() && args.isEmpty()) {
-        setTranscodeOutput(tr("Error: failed to build ffmpeg command from profile"));
+        const QString msg = tr("Error: failed to build ffmpeg command from profile");
+        setTranscodeOutput(msg);
+        setTranscodeError(msg);
         setTranscoding(false);
         return "failed";
     }
     if (args.isEmpty()) {
-        setTranscodeOutput(tr("Error: profile produced no ffmpeg arguments"));
+        const QString msg = tr("Error: profile produced no ffmpeg arguments");
+        setTranscodeOutput(msg);
+        setTranscodeError(msg);
         setTranscoding(false);
         return "failed";
     }
@@ -401,11 +450,22 @@ void GuineaMpegBackendExt::appendTranscodeOutput(const QString& chunk) {
 void GuineaMpegBackendExt::connectOutputCapture(QProcess* proc) {
     connect(proc, &QProcess::readyReadStandardError, this,
             [this, proc]() { appendTranscodeOutput(QString::fromUtf8(proc->readAllStandardError())); });
+    connect(proc, &QProcess::readyReadStandardOutput, this,
+            [this, proc]() { appendTranscodeOutput(QString::fromUtf8(proc->readAllStandardOutput())); });
     connect(proc, &QProcess::finished, this, [this, proc](int exitCode, QProcess::ExitStatus) {
-        if (exitCode == 0)
+        if (exitCode == 0) {
             appendTranscodeOutput(tr("\n--- Transcoding finished: SUCCESS ---\n"));
-        else
+            setTranscodeError({});
+        } else {
             appendTranscodeOutput(tr("\n--- Transcoding finished: FAILED (exit code %1) ---\n").arg(exitCode));
+            const QString err = extractTranscodeError(m_transcodeOutput);
+            if (!err.isEmpty()) {
+                appendTranscodeOutput(tr("Detected error details:\n") + err + "\n");
+                setTranscodeError(err);
+            } else {
+                setTranscodeError(tr("Unknown error (exit code %1)").arg(exitCode));
+            }
+        }
         sendNotification(exitCode == 0 ? tr("Transcoding Complete") : tr("Transcoding Failed"),
                          exitCode == 0 ? tr("Your video has been transcoded successfully.")
                                        : tr("Transcoding exited with code %1").arg(exitCode));
