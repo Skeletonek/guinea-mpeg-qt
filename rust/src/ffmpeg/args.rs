@@ -336,7 +336,9 @@ fn add_video_branch(
 ) {
     args.push("-c:v".to_string());
     args.push(enc.to_string());
-    if is_animated_codec(&profile.codec) {
+    if enc == "copy" {
+        // stream copy: no re-encode params, no filters
+    } else if is_animated_codec(&profile.codec) {
         add_animation_params(args, profile);
     } else {
         add_rate_control(args, profile, enc);
@@ -353,19 +355,24 @@ fn add_audio_branch(args: &mut Vec<String>, profile: &VideoProfile) {
     if is_animated_codec(&profile.codec) || !profile.audio_enabled.unwrap_or(true) {
         args.push("-an".to_string());
     } else {
+        let audio_codec = audio_codec_for_profile(profile);
         args.push("-c:a".to_string());
-        args.push(audio_codec_for_profile(profile).to_string());
-        if !profile.audio_bitrate.is_empty() {
-            args.push("-b:a".to_string());
-            args.push(profile.audio_bitrate.clone());
-        }
-        if let Some(ch) = profile.audio_channels {
-            args.push("-ac".to_string());
-            args.push(ch.to_string());
-        }
-        if let Some(sr) = profile.audio_sample_rate {
-            args.push("-ar".to_string());
-            args.push(sr.to_string());
+        args.push(audio_codec.to_string());
+        if audio_codec == "copy" {
+            // stream copy: no bitrate/channels/rate overrides
+        } else {
+            if !profile.audio_bitrate.is_empty() {
+                args.push("-b:a".to_string());
+                args.push(profile.audio_bitrate.clone());
+            }
+            if let Some(ch) = profile.audio_channels {
+                args.push("-ac".to_string());
+                args.push(ch.to_string());
+            }
+            if let Some(sr) = profile.audio_sample_rate {
+                args.push("-ar".to_string());
+                args.push(sr.to_string());
+            }
         }
     }
 }
@@ -392,7 +399,8 @@ pub(crate) fn build_command(
     };
     let mut args = Vec::new();
 
-    if video_enabled {
+    let video_is_copy = video_enabled && enc == "copy";
+    if video_enabled && !video_is_copy {
         push_hwaccel_args(&mut args, family);
     }
 

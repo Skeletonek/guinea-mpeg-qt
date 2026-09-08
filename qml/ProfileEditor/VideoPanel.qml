@@ -16,6 +16,7 @@ Column {
     readonly property var codecLabels: codecSection ? codecSection.codecLabels : []
     readonly property var codecKeys: codecSection ? codecSection.codecKeys : []
     readonly property bool _isAnimated: codec === "gif" || codec === "webp"
+    readonly property bool _isCopy: codec === "copy"
     readonly property string container: containerSection ? containerSection.container : ""
 
     signal changed
@@ -51,7 +52,13 @@ Column {
         if (codecSection) {
             var avail = [];
             for (var i = 0; i < Constants.codecKeys.length; i++) {
-                avail.push(root._encodersForKey(Constants.codecKeys[i]).length > 0);
+                var key = Constants.codecKeys[i];
+                if (key === "copy")
+                    avail.push(true);
+                else if (key === "gif" || key === "webp")
+                    avail.push(true);
+                else
+                    avail.push(root._encodersForKey(key).length > 0);
             }
             root._codecAvailable = avail;
             codecSection._codecAvailable = root._codecAvailable;
@@ -76,16 +83,36 @@ Column {
             var codecData = codecSection.getCodecData();
             data.codec = codecData.codec;
             data.encoder = codecData.encoder;
-            if (!root._isAnimated) {
+            if (root._isCopy) {
+                // stream copy: skip encoding params, null them out so preview omits them
+                data.crf = null;
+                data.bitrate = null;
+                data.preset = null;
+                data.tune = null;
+                data.pixel_format = null;
+                data.resolution = null;
+                data.framerate = null;
+                data.tile_rows = null;
+                data.tile_columns = null;
+                data.enable_qm = null;
+                data.cpu_used = null;
+                data.compression_level = null;
+                data.rate_control = null;
+                data.encoder = null;
+            } else if (!root._isAnimated) {
                 data = DataUtils.buildProfileData(data, rateControlSection.getRateControlData(), presetTuneSection.getPresetTuneData(), pixelFormatSection.getPixelFormatData());
             }
-            data = DataUtils.buildProfileData(data, scalingSection.getScalingData());
-            if (animatedSection && root._isAnimated)
-                data = DataUtils.buildProfileData(data, animatedSection.getAnimatedData());
-            if (av1Section)
-                data = DataUtils.buildProfileData(data, av1Section.getAV1Data());
-            if (vp8vp9Section)
-                data = DataUtils.buildProfileData(data, vp8vp9Section.getVP8VP9Data());
+            if (!root._isCopy) {
+                data = DataUtils.buildProfileData(data, scalingSection.getScalingData());
+                if (animatedSection && root._isAnimated)
+                    data = DataUtils.buildProfileData(data, animatedSection.getAnimatedData());
+                if (av1Section)
+                    data = DataUtils.buildProfileData(data, av1Section.getAV1Data());
+                if (vp8vp9Section)
+                    data = DataUtils.buildProfileData(data, vp8vp9Section.getVP8VP9Data());
+            } else {
+                // preserve scaling as nulls already
+            }
         }
         return data;
     }
@@ -195,7 +222,7 @@ Column {
             id: rateControlSection
 
             width: parent.width
-            visible: !root._isAnimated
+            visible: !root._isAnimated && !root._isCopy
             loading: root.loading
             onChanged: root.changed()
         }
@@ -204,7 +231,7 @@ Column {
             id: presetTuneSection
 
             width: parent.width
-            visible: !root._isAnimated
+            visible: !root._isAnimated && !root._isCopy
             loading: root.loading
             onChanged: root.changed()
         }
@@ -213,21 +240,33 @@ Column {
             id: pixelFormatSection
 
             width: parent.width
-            visible: !root._isAnimated
+            visible: !root._isAnimated && !root._isCopy
             loading: root.loading
             onChanged: root.changed()
         }
 
         SectionHeader {
             text: qsTr("Scaling")
+            visible: !root._isCopy
         }
 
         ScalingSection {
             id: scalingSection
 
+            enabled: !root._isCopy
+            opacity: root._isCopy ? 0.4 : 1.0
             width: parent.width
             loading: root.loading
             onChanged: root.changed()
+        }
+
+        Label {
+            width: parent.width
+            visible: root._isCopy
+            text: qsTr("Scaling, rate control and codec options are disabled for Copy (stream copy).")
+            color: theme.textSecondary
+            font.pixelSize: 11
+            wrapMode: Text.WordWrap
         }
 
         AnimatedSection {
@@ -243,6 +282,7 @@ Column {
             id: av1Section
 
             width: parent.width
+            visible: !root._isCopy
             codecKey: root.codec
             loading: root.loading
             onChanged: root.changed()
@@ -252,6 +292,7 @@ Column {
             id: vp8vp9Section
 
             width: parent.width
+            visible: !root._isCopy
             codecKey: root.codec
             loading: root.loading
             onChanged: root.changed()

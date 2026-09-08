@@ -21,7 +21,11 @@ Column {
     function rebuildCodecItems() {
         var avail = [];
         for (var i = 0; i < Constants.codecKeys.length; i++) {
-            avail.push(root._encodersForKey(Constants.codecKeys[i]).length > 0);
+            var key = Constants.codecKeys[i];
+            if (key === "copy" || key === "gif" || key === "webp")
+                avail.push(true);
+            else
+                avail.push(root._encodersForKey(key).length > 0);
         }
         root._codecAvailable = avail;
     }
@@ -42,6 +46,12 @@ Column {
 
     function rebuildEncoderModel(forceDefault) {
         var codec = Constants.codecKeys[codecCombo.currentIndex];
+        if (codec === "copy") {
+            encoderCombo.model = [];
+            encoderCombo.currentIndex = -1;
+            encoderCombo.editText = "";
+            return;
+        }
         var encs = root._encodersForKey(codec);
         var prev = root._currentEncoderText();
         encoderCombo.model = encs;
@@ -59,13 +69,22 @@ Column {
     }
 
     function getCodecData() {
+        var key = Constants.codecKeys[codecCombo.currentIndex];
+        if (key === "copy")
+            return {
+                "codec": "copy",
+                "encoder": null
+            };
         return {
-            "codec": Constants.codecKeys[codecCombo.currentIndex],
+            "codec": key,
             "encoder": root._currentEncoderText() || null
         };
     }
 
     function getCurrentEncoder() {
+        var key = Constants.codecKeys[codecCombo.currentIndex];
+        if (key === "copy")
+            return "copy";
         var text = root._currentEncoderText();
         return text || null;
     }
@@ -73,6 +92,8 @@ Column {
     function setCodecData(d) {
         DataUtils.setIndex(Constants.codecKeys, codecCombo, d.codec);
         root.rebuildEncoderModel(true);
+        if (d.codec === "copy")
+            return;
         if (d.encoder) {
             var encs = root._encodersForKey(d.codec);
             var ei = encs.indexOf(d.encoder);
@@ -99,8 +120,12 @@ Column {
                     root.encoderSelectionChanged("");
                     return;
                 }
+                var key = Constants.codecKeys[currentIndex];
                 rebuildEncoderModel();
-                root.encoderSelectionChanged(root._currentEncoderText());
+                if (key === "copy")
+                    root.encoderSelectionChanged("copy");
+                else
+                    root.encoderSelectionChanged(root._currentEncoderText());
             }
 
             delegate: ItemDelegate {
@@ -114,6 +139,8 @@ Column {
 
     LabeledRow {
         label: qsTr("Encoder")
+        enabled: Constants.codecKeys[codecCombo.currentIndex] !== "copy"
+        opacity: enabled ? 1.0 : 0.4
 
         Row {
             spacing: 8
@@ -127,6 +154,7 @@ Column {
                 text: "?"
                 font.bold: true
                 font.pixelSize: 15
+                enabled: Constants.codecKeys[codecCombo.currentIndex] !== "copy"
                 onClicked: root.openEncoderCompatDialog()
                 ToolTip.visible: hovered
                 ToolTip.text: qsTr("Show available encoders")
@@ -137,6 +165,7 @@ Column {
 
                 width: parent.width - compatInfoBtn.width - root.spacing
                 editable: true
+                enabled: Constants.codecKeys[codecCombo.currentIndex] !== "copy"
                 onCurrentIndexChanged: {
                     root.encoderSelectionChanged(root._currentEncoderText());
                 }

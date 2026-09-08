@@ -138,15 +138,43 @@ function rebuildComboModel(combo, items, sentinel) {
 /**
  * Determines the output file extension for a profile data object
  * @param {Object} d - Profile data object
+ * @param {string} inputPath - Optional source path for container="copy" or codec="copy"
  * @returns {string} File extension without the leading dot
  */
-function getExtensionForProfile(d) {
+function getExtensionForProfile(d, inputPath) {
+    function extFromPath(p) {
+        if (!p) return ""
+        var slash = p.lastIndexOf("/")
+        var name = slash >= 0 ? p.substring(slash + 1) : p
+        var dot = name.lastIndexOf(".")
+        if (dot >= 0 && dot < name.length - 1)
+            return name.substring(dot + 1).toLowerCase()
+        return ""
+    }
     if (!d)
         return "webm"
-    if (d.container)
+    if (d.container) {
+        if (d.container === "copy") {
+            var e = extFromPath(inputPath)
+            if (e) return e
+            // fallback: codec mapping or generic
+            if (d.video_enabled !== false)
+                return Constants.profileExtensions[d.codec] || "mkv"
+            return Constants.audioExtensions[d.audio_codec] || "mkv"
+        }
         return d.container
-    if (d.video_enabled !== false)
+    }
+    if (d.video_enabled !== false) {
+        if (d.codec === "copy") {
+            var ce = extFromPath(inputPath)
+            if (ce) return ce
+        }
         return Constants.profileExtensions[d.codec] || "webm"
+    }
+    if (d.audio_codec && d.audio_codec.toLowerCase() === "copy") {
+        var ae = extFromPath(inputPath)
+        if (ae) return ae
+    }
     return Constants.audioExtensions[d.audio_codec] || "ogg"
 }
 

@@ -2,6 +2,9 @@ use crate::config::VideoProfile;
 use crate::ffmpeg::software_video_codec;
 
 pub(crate) fn video_codec(profile: &VideoProfile) -> String {
+    if profile.codec.to_lowercase() == "copy" {
+        return "copy".to_string();
+    }
     profile
         .encoder
         .clone()
@@ -11,6 +14,7 @@ pub(crate) fn video_codec(profile: &VideoProfile) -> String {
 pub(crate) fn audio_codec_for_profile(profile: &VideoProfile) -> &str {
     if let Some(ref ac) = profile.audio_codec {
         match ac.to_lowercase().as_str() {
+            "copy" => "copy",
             "aac" => "aac",
             "opus" => "libopus",
             "mp3" => "libmp3lame",

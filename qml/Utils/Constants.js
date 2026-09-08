@@ -9,11 +9,11 @@ var rateControlKeys = ["crf", "vbr", "cbr"]
 var rateControlLabels = ["CRF", "VBR", "CBR"]
 
 // Video codec definitions
-var codecKeys = ["h264", "hevc", "vp8", "vp9", "av1", "gif", "webp"]
-var codecLabels = ["H.264", "H.265/HEVC", "VP8", "VP9", "AV1", "GIF", "WebP"]
+var codecKeys = ["h264", "hevc", "vp8", "vp9", "av1", "gif", "webp", "copy"]
+var codecLabels = ["H.264", "H.265/HEVC", "VP8", "VP9", "AV1", "GIF", "WebP", "Copy"]
 
 // Audio codec definitions
-var audioCodecLabels = ["AAC", "Opus", "MP3", "FLAC", "Vorbis"]
+var audioCodecLabels = ["AAC", "Opus", "MP3", "FLAC", "Vorbis", "Copy"]
 
 // Resolution options
 var resOptions = ["native", "360p", "480p", "720p", "1080p", "1440p", "2160p"]
@@ -86,6 +86,7 @@ var containerKeysByCodec = {
     "vp8": ["webm", "mkv"],
     "vp9": ["webm", "mkv"],
     "av1": ["webm", "mkv", "mp4"],
+    "copy": ["copy", "mp4", "mkv", "mov", "webm", "avi", "mpegts", "flac", "mp3", "m4a", "ogg", "opus"],
     "gif": ["gif"],
     "webp": ["webp"]
 }

@@ -59,7 +59,7 @@ ApplicationWindow {
         try {
             profileData = JSON.parse(backend.loadProfile(currentProfile));
         } catch (e) {}
-        appWindow.outputFilePath = dir + base + "_transcoded." + DataUtils.getExtensionForProfile(profileData);
+        appWindow.outputFilePath = dir + base + "_transcoded." + DataUtils.getExtensionForProfile(profileData, filePath);
     }
 
     function updateCodec() {
@@ -70,7 +70,7 @@ ApplicationWindow {
         } catch (e) {
             currentCodec = Constants.codecKeys[0];
         }
-        var ext = DataUtils.getExtensionForProfile(d || {});
+        var ext = DataUtils.getExtensionForProfile(d || {}, appWindow.currentVideoPath);
         var dot = appWindow.outputFilePath.lastIndexOf(".");
         appWindow.outputFilePath = appWindow.outputFilePath.substring(0, dot >= 0 ? dot : 0) + "." + ext;
     }
