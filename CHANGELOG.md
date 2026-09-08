@@ -1,3 +1,12 @@
+### 0.13.0 (In progress)
+- Added option to copy video & audio codecs, and containers in profile editor
+- Added option to choose audio codec when encoding with video
+- Logs now persist between transcodings
+- Added option to clear transcoding log
+- Transcoding dialog stays available after transcoding finishes
+- Improved error capture, by printing detected errors below "TRANSCODING COMPLETE: FAILED" message
+- Fixed crash caused by a race condition when transcoding next clip in the queue
+
 ### 0.12.0
 - Added a 5-second preview generation
 - Added an output file size estimation based on the 5-second preview clip

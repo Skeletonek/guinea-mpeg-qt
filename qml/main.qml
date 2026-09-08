@@ -378,11 +378,15 @@ ApplicationWindow {
             if (backend.transcoding)
                 return;
 
-            if (transcodeQueue.length > 0) {
-                transcodeQueue = transcodeQueue.slice(1);
-                activeJob = null;
-            }
-            processTranscodeQueue();
+            // Defer to next event loop to avoid reentrancy inside
+            // QProcess::finished (backend.cpp:connectOutputCapture).
+            Qt.callLater(function () {
+                if (transcodeQueue.length > 0) {
+                    transcodeQueue = transcodeQueue.slice(1);
+                    activeJob = null;
+                }
+                processTranscodeQueue();
+            });
         }
 
         function onPreviewGenerated(path) {

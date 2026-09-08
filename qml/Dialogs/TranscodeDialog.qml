@@ -23,25 +23,44 @@ Dialog {
         }
         var fps = job.targetFps > 0 ? job.targetFps : job.sourceFps;
         _totalFrames = fps > 0 ? Math.round(fps * job.durationMs / 1000) : 0;
+        // Preserve log history: set offset to start of current job so progress
+        // is not polluted by previous jobs. When a new job starts,
+        // onActiveJobChanged will have already set _lastOutputLen to the old
+        // output length (see below), so we keep it; only for initial show
+        // where _lastOutputLen is still 0 we keep it at 0.
+    }
+
+    function currentJobText() {
+        var fullText = backend.transcodeOutput;
+        var marker = "===== Job:";
+        var idx = fullText.lastIndexOf(marker);
+        if (idx >= 0) {
+            var end = fullText.indexOf("\n", idx);
+            if (end >= 0)
+                return fullText.slice(end + 1);
+        }
+        return fullText;
     }
 
     function parseProgress() {
-        var fullText = backend.transcodeOutput;
-        var newText = fullText.slice(_lastOutputLen);
-        _lastOutputLen = fullText.length;
+        var jobText = currentJobText();
+        // For history mode we scan only the current job's text. Using
+        // incremental slice would require tracking job-relative offset,
+        // so just scan the whole current job text.
         var re = /frame=\s*(\d+)/g;
         var match, lastMatch;
-        while ((match = re.exec(newText)) !== null)
+        while ((match = re.exec(jobText)) !== null)
             lastMatch = match;
         if (!lastMatch)
             return;
-
         var frame = parseInt(lastMatch[1]);
         if (_totalFrames > 0) {
             var p = Math.min(frame / _totalFrames, 1);
             if (p > _progress)
                 _progress = p;
         }
+        // Keep _lastOutputLen in sync for auto-scroll logic (not used for progress now)
+        _lastOutputLen = backend.transcodeOutput.length;
     }
 
     modal: false
@@ -193,6 +212,12 @@ Dialog {
 
             Item {
                 Layout.fillWidth: true
+            }
+
+            Button {
+                text: qsTr("Clear")
+                visible: !backend.transcoding && backend.transcodeOutput !== ""
+                onClicked: backend.clearTranscodeOutput()
             }
 
             Button {

@@ -80,6 +80,7 @@ class GuineaMpegBackendExt : public QObject {
     Q_INVOKABLE QString startTranscode(const QString& rawInput, const QString& rawOutput, double startTime,
                                        double endTime, const QString& profileJson);
     Q_INVOKABLE void cancelTranscode();
+    Q_INVOKABLE void clearTranscodeOutput();
     Q_INVOKABLE QString startPreview(const QString& rawInput, const QString& profileJson, double startTimeMs,
                                      double durationMs, const QString& extension);
     Q_INVOKABLE void cancelPreview();

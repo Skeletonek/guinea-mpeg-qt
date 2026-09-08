@@ -20,6 +20,7 @@ namespace {
 
 constexpr int kKillTimeoutMs = 3000;
 constexpr int kNotificationTimeoutMs = 5000;
+constexpr int kMaxLogLines = 5000;
 
 QString takeRustString(const char* s, const QString& fallback = QString()) {
     if (!s)
@@ -332,7 +333,11 @@ QString GuineaMpegBackendExt::startTranscode(const QString& rawInput, const QStr
     QString output = QDir::cleanPath(rawOutput);
     killTranscodeProcess(m_currentTranscode);
 
-    setTranscodeOutput({});
+    if (m_transcodeOutput.isEmpty()) {
+        setTranscodeOutput({});
+    } else {
+        appendTranscodeOutput("\n\n" + tr("===== Job: %1 \u2192 %2 =====").arg(input).arg(output) + "\n\n");
+    }
     setTranscodeError({});
     setTranscoding(true);
 
@@ -341,14 +346,14 @@ QString GuineaMpegBackendExt::startTranscode(const QString& rawInput, const QStr
                                      : buildArgsFromProfile(input, output, startTime, endTime, profileJson);
     if (doc.isObject() && args.isEmpty()) {
         const QString msg = tr("Error: failed to build ffmpeg command from profile");
-        setTranscodeOutput(msg);
+        appendTranscodeOutput(msg + "\n");
         setTranscodeError(msg);
         setTranscoding(false);
         return "failed";
     }
     if (args.isEmpty()) {
         const QString msg = tr("Error: profile produced no ffmpeg arguments");
-        setTranscodeOutput(msg);
+        appendTranscodeOutput(msg + "\n");
         setTranscodeError(msg);
         setTranscoding(false);
         return "failed";
@@ -368,6 +373,11 @@ void GuineaMpegBackendExt::cancelTranscode() {
     killTranscodeProcess(m_currentTranscode);
     appendTranscodeOutput(tr("\n--- Transcoding cancelled ---\n"));
     setTranscoding(false);
+}
+
+void GuineaMpegBackendExt::clearTranscodeOutput() {
+    setTranscodeOutput({});
+    setTranscodeError({});
 }
 
 QString GuineaMpegBackendExt::startPreview(const QString& rawInput, const QString& profileJson, double startTimeMs,
@@ -444,6 +454,18 @@ void GuineaMpegBackendExt::appendTranscodeOutput(const QString& chunk) {
         return;
     m_transcodeOutput.reserve(m_transcodeOutput.size() + chunk.size());
     m_transcodeOutput += chunk;
+    const int lineCount = m_transcodeOutput.count('\n');
+    if (lineCount > kMaxLogLines) {
+        const QStringList lines = m_transcodeOutput.split('\n');
+        // Keep last kMaxLogLines-1 lines and prepend a single truncation notice
+        const int keep = kMaxLogLines - 1;
+        QStringList kept = lines.mid(lines.size() - keep);
+        // Avoid stacking notices: if the oldest kept line is already a truncation notice, drop it
+        if (!kept.isEmpty() && kept.first().startsWith("[log truncated"))
+            kept.removeFirst();
+        kept.prepend(tr("[log truncated - showing last %1 lines]").arg(kMaxLogLines));
+        m_transcodeOutput = kept.join('\n');
+    }
     emit transcodeOutputUpdated();
 }
 
@@ -466,11 +488,18 @@ void GuineaMpegBackendExt::connectOutputCapture(QProcess* proc) {
                 setTranscodeError(tr("Unknown error (exit code %1)").arg(exitCode));
             }
         }
+        // Release the QProcess before notifying QML to avoid reentrancy:
+        // QML's onTranscodingChanged starts the next queued job which calls
+        // startTranscode() -> killTranscodeProcess(m_currentTranscode). If we
+        // still hold the old proc in m_currentTranscode at that point, we would
+        // try to kill/delete the same QProcess that is currently emitting
+        // finished (use-after-free -> SEGV at deleteLater). Releasing first
+        // makes m_currentTranscode null so the next job starts cleanly.
+        releaseProcess(m_currentTranscode, proc);
         sendNotification(exitCode == 0 ? tr("Transcoding Complete") : tr("Transcoding Failed"),
                          exitCode == 0 ? tr("Your video has been transcoded successfully.")
                                        : tr("Transcoding exited with code %1").arg(exitCode));
         emit transcodeFinished(exitCode == 0);
         setTranscoding(false);
-        releaseProcess(m_currentTranscode, proc);
     });
 }

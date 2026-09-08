@@ -291,9 +291,10 @@ Item {
             }
 
             Label {
-                text: hostWindow && hostWindow.transcodeQueue.length > 1 ? qsTr("Transcoding in progress... (%1 queued, click to view)").arg(hostWindow.transcodeQueue.length - 1) : qsTr("Transcoding in progress... (click to view)")
+                readonly property bool hasLog: backend.transcodeOutput !== ""
+                text: backend.transcoding ? (hostWindow && hostWindow.transcodeQueue.length > 1 ? qsTr("Transcoding in progress... (%1 queued, click to view)").arg(hostWindow.transcodeQueue.length - 1) : qsTr("Transcoding in progress... (click to view)")) : (hasLog ? qsTr("Transcoding complete (click to view)") : "")
                 color: theme.accent
-                visible: backend.transcoding
+                visible: backend.transcoding || hasLog
                 width: parent.width
                 wrapMode: Text.WordWrap
 
