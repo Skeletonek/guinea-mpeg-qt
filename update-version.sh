@@ -27,8 +27,13 @@ sed -i "s/^major = .*/major = $MAJOR/" "$ROOT/update.toml"
 sed -i "s/^minor = .*/minor = $MINOR/" "$ROOT/update.toml"
 sed -i "s/^patch = .*/patch = $PATCH/" "$ROOT/update.toml"
 
+# build/flatpak metainfo — AppStream release carrying the Flatpak version string
+TODAY="$(date +%F)"
+sed -i "0,/<release version=\"[^\"]*\" date=\"[^\"]*\"/ s//<release version=\"$VERSION\" date=\"$TODAY\"/" "$ROOT/build/flatpak/com.skeletonek.guinea-mpeg.metainfo.xml"
+
 echo "Version updated to $VERSION in:"
 echo "  rust/Cargo.toml"
 echo "  CMakeLists.txt"
 echo "  build/windows/installer.iss"
 echo "  update.toml"
+echo "  build/flatpak/com.skeletonek.guinea-mpeg.metainfo.xml"

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>com.skeletonek.guinea-mpeg</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>BSD-3-Clause</project_license>
+  <name>GuineaMPEG</name>
+  <summary>FFmpeg GUI frontend</summary>
+  <description>
+    <p>GuineaMPEG is a graphical frontend for FFmpeg for trimming and transcoding video and audio files.</p>
+  </description>
+  <developer id="com.skeletonek">
+    <name>Skeletonek</name>
+  </developer>
+  <launchable type="desktop-id">com.skeletonek.guinea-mpeg.desktop</launchable>
+  <url type="homepage">https://gitlab.com/Skeletonek/guinea-mpeg-qt</url>
+  <provides>
+    <binary>guinea-mpeg</binary>
+  </provides>
+  <categories>
+    <category>AudioVideo</category>
+    <category>AudioVideoEditing</category>
+  </categories>
+  <releases>
+    <release version="0.12.0" date="2026-09-08"/>
+  </releases>
+</component>

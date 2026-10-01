@@ -469,11 +469,17 @@ build_flatpak() {
     flatpak-builder --force-clean \
         --install-deps-from flathub \
         --repo="$repo_dir" \
+        --subject="$VERSION" \
         "$build_dir" "$manifest" || {
             rm -rf "$build_dir" "$repo_dir"
             echo "ERROR: Flatpak build failed" >&2
             return 1
         }
+    flatpak build-update-repo "$repo_dir" || {
+        rm -rf "$build_dir" "$repo_dir"
+        echo "ERROR: Flatpak build-update-repo failed" >&2
+        return 1
+    }
     flatpak build-bundle "$repo_dir" "$bundle" \
         com.skeletonek.guinea-mpeg master
     rm -rf "$build_dir"
