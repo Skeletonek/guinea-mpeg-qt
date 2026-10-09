@@ -3,6 +3,7 @@
 - Added option to choose audio codec when encoding with video
 - Logs now persist between transcodings
 - Added option to clear transcoding log
+- Added metainfo file for flatpak bundle, for showing application details in GUI package managers like Discover, GNOME Software or Bazaar
 - Transcoding dialog stays available after transcoding finishes
 - Improved error capture, by printing detected errors below "TRANSCODING COMPLETE: FAILED" message
 - Fixed crash caused by a race condition when transcoding next clip in the queue
