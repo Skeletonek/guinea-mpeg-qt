@@ -135,7 +135,17 @@ fn nvenc_uses_cq() {
     assert!(contains_pair(&args, "-c:v", "h264_nvenc"));
     assert!(contains_pair(&args, "-cq", "18"));
     assert!(!contains_flag(&args, "-crf"));
-    assert!(contains_pair(&args, "-hwaccel", "cuda"));
+    // software decode; the encoder uploads frames itself
+    assert!(!contains_flag(&args, "-hwaccel"));
+}
+
+#[test]
+fn nvenc_with_filters_needs_no_hwupload() {
+    let args = args_for(r#"{"codec":"h264","encoder":"h264_nvenc","crf":18,"framerate":30.0}"#);
+    let vf = &args[args.iter().position(|a| a == "-vf").unwrap() + 1];
+    assert_eq!(vf, "fps=30");
+    assert!(!contains_flag(&args, "-hwdownload"));
+    assert!(!contains_flag(&args, "-hwupload"));
 }
 
 #[test]

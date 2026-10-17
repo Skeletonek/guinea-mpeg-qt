@@ -222,8 +222,8 @@ fn add_filter_graph(args: &mut Vec<String>, profile: &VideoProfile, family: Enco
     } else if !filter_parts.is_empty()
         && family != EncoderFamily::Software
         && family != EncoderFamily::Amf
+        && family != EncoderFamily::Nvenc
     {
-        // AMF encoders accept system-memory frames, so no hwdownload/hwupload
         filter_parts.insert(0, "format=nv12".to_string());
         filter_parts.insert(0, "hwdownload".to_string());
         filter_parts.push("hwupload".to_string());
@@ -246,12 +246,6 @@ fn push_hwaccel_args(args: &mut Vec<String>, family: EncoderFamily) {
                 args.push(dev);
             }
         }
-        EncoderFamily::Nvenc => {
-            args.push("-hwaccel".to_string());
-            args.push("cuda".to_string());
-            args.push("-hwaccel_output_format".to_string());
-            args.push("cuda".to_string());
-        }
         EncoderFamily::Qsv => {
             args.push("-init_hw_device".to_string());
             args.push("qsv=qsv".to_string());
@@ -260,8 +254,8 @@ fn push_hwaccel_args(args: &mut Vec<String>, family: EncoderFamily) {
             args.push("-hwaccel_output_format".to_string());
             args.push("qsv".to_string());
         }
-        // AMF: "amf" is no decode hwaccel in any ffmpeg version, so decode was
-        // software anyway; the encoder uploads system-memory frames itself
+        // AMF/NVENC: software decode — the encoder accepts system-memory frames
+        // and uploads itself; a hwupload in filters would need a device reference
         _ => {}
     }
 }

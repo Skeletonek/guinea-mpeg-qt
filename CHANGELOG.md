@@ -2,6 +2,7 @@
 - Add info banner when preview generation fails
 - Fixed CRF/Quality settings for AMF encoder in Windows
 - Fixed tune settings for QSV encoder in Windows
+- Fixed frame decoding for AMF and NVENC in Windows
 - Fixed preview not working in Windows due to wrong URL conversion
 - Fixed AV1 and VP8/VP9 specific settings being visible all the time
 
