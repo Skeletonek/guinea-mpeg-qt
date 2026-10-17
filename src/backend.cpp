@@ -202,12 +202,16 @@ void GuineaMpegBackendExt::setPreviewGenerating(bool v) {
 }
 
 void GuineaMpegBackendExt::resetPreview() {
-    if (m_lastPreviewPath.isEmpty() && m_lastPreviewSize == 0)
+    bool changed = !m_lastPreviewPath.isEmpty() || m_lastPreviewSize != 0 || !m_lastPreviewError.isEmpty();
+    if (!changed)
         return;
     m_lastPreviewPath.clear();
     m_lastPreviewSize = 0;
+    m_previewStderr.clear();
+    m_lastPreviewError.clear();
     emit lastPreviewPathChanged();
     emit lastPreviewSizeChanged();
+    emit lastPreviewErrorChanged();
 }
 
 QString GuineaMpegBackendExt::defaultProfileNames() {
@@ -392,8 +396,11 @@ QString GuineaMpegBackendExt::startPreview(const QString& rawInput, const QStrin
     setPreviewGenerating(true);
     m_lastPreviewPath.clear();
     m_lastPreviewSize = 0;
+    m_previewStderr.clear();
+    m_lastPreviewError.clear();
     emit lastPreviewPathChanged();
     emit lastPreviewSizeChanged();
+    emit lastPreviewErrorChanged();
 
     double startTime = startTimeMs / 1000.0;
     double endTime = (startTimeMs + durationMs) / 1000.0;
@@ -407,6 +414,13 @@ QString GuineaMpegBackendExt::startPreview(const QString& rawInput, const QStrin
 
     m_currentPreview = std::make_unique<QProcess>();
     QProcess* proc = m_currentPreview.get();
+    connect(proc, &QProcess::readyReadStandardError, this, [this, proc]() {
+        m_previewStderr += QString::fromUtf8(proc->readAllStandardError());
+        // Errors are at the end of ffmpeg's stderr; keep only the tail
+        const int max = 16384;
+        if (m_previewStderr.size() > max)
+            m_previewStderr = m_previewStderr.right(max);
+    });
     connect(proc, &QProcess::finished, this, [this, proc, output](int exitCode, QProcess::ExitStatus) {
         releaseProcess(m_currentPreview, proc);
         setPreviewGenerating(false);
@@ -419,8 +433,11 @@ QString GuineaMpegBackendExt::startPreview(const QString& rawInput, const QStrin
         } else {
             m_lastPreviewPath.clear();
             m_lastPreviewSize = 0;
+            const QString err = extractTranscodeError(m_previewStderr);
+            m_lastPreviewError = err.isEmpty() ? tr("Unknown error (exit code %1)").arg(exitCode) : err;
             emit lastPreviewPathChanged();
             emit lastPreviewSizeChanged();
+            emit lastPreviewErrorChanged();
             emit previewFailed();
         }
     });

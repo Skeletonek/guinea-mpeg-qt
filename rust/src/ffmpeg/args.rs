@@ -219,7 +219,11 @@ fn add_filter_graph(args: &mut Vec<String>, profile: &VideoProfile, family: Enco
     if family == EncoderFamily::Vulkan {
         filter_parts.insert(0, "format=nv12".to_string());
         filter_parts.push("hwupload".to_string());
-    } else if !filter_parts.is_empty() && family != EncoderFamily::Software {
+    } else if !filter_parts.is_empty()
+        && family != EncoderFamily::Software
+        && family != EncoderFamily::Amf
+    {
+        // AMF encoders accept system-memory frames, so no hwdownload/hwupload
         filter_parts.insert(0, "format=nv12".to_string());
         filter_parts.insert(0, "hwdownload".to_string());
         filter_parts.push("hwupload".to_string());
@@ -256,12 +260,8 @@ fn push_hwaccel_args(args: &mut Vec<String>, family: EncoderFamily) {
             args.push("-hwaccel_output_format".to_string());
             args.push("qsv".to_string());
         }
-        EncoderFamily::Amf => {
-            args.push("-hwaccel".to_string());
-            args.push("amf".to_string());
-            args.push("-hwaccel_output_format".to_string());
-            args.push("amf".to_string());
-        }
+        // AMF: "amf" is no decode hwaccel in any ffmpeg version, so decode was
+        // software anyway; the encoder uploads system-memory frames itself
         _ => {}
     }
 }

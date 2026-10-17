@@ -201,7 +201,18 @@ fn amf_crf_maps_to_cqp() {
     assert!(contains_pair(&args, "-quality", "balanced"));
     assert!(!contains_flag(&args, "-preset"));
     assert!(!contains_pair(&args, "-quality", "22"));
-    assert!(contains_pair(&args, "-hwaccel", "amf"));
+    // AMF takes system-memory frames: no hwaccel, no hwupload plumbing
+    assert!(!contains_flag(&args, "-hwaccel"));
+}
+
+#[test]
+fn amf_with_filters_needs_no_hwdownload() {
+    let args = args_for(r#"{"codec":"h264","encoder":"h264_amf","crf":22,"framerate":30.0}"#);
+    let vf = &args[args.iter().position(|a| a == "-vf").unwrap() + 1];
+    assert_eq!(vf, "fps=30");
+    assert!(!contains_flag(&args, "-hwdownload"));
+    assert!(!contains_flag(&args, "-hwupload"));
+    assert!(!contains_flag(&args, "-hwaccel"));
 }
 
 #[test]

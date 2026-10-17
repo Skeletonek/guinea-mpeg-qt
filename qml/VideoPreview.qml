@@ -2,6 +2,7 @@ import GuineaMpeg 1.0
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import "Components"
 import "Utils/Constants.js" as Constants
 import "Utils/FormatUtils.js" as FormatUtils
 import "Utils/DataUtils.js" as DataUtils
@@ -36,6 +37,7 @@ Rectangle {
 
     function generatePreview() {
         player.pause();
+        previewFailureBanner.hide();
         var pj = backend.loadProfile(root.profileName);
         if (!pj)
             return;
@@ -79,6 +81,7 @@ Rectangle {
         root.previewGenerating = false;
         root.previewAvailable = false;
         root.previewSource = "";
+        previewFailureBanner.hide();
         backend.cancelPreview();
     }
 
@@ -289,6 +292,21 @@ Rectangle {
         }
     }
 
+    InfoBanner {
+        id: previewFailureBanner
+
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.margins: 16
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: root._controlsBarHeight + 8
+        text: qsTr("Preview generation failed")
+        subText: backend.lastPreviewError
+        autoHideMs: 8000
+        visible: false
+        z: 10
+    }
+
     Rectangle {
         id: previewBusy
 
@@ -330,6 +348,7 @@ Rectangle {
             root.previewGenerating = false;
             root.previewAvailable = false;
             root.previewActive = false;
+            previewFailureBanner.show();
         }
     }
 }

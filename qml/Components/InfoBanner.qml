@@ -11,6 +11,10 @@ Rectangle {
     default property alias actions: buttonsRow.children
 
     function show() {
+        // Stop timers left over from a previous hide(): a collapseTimer still
+        // pending would flip visible back to false right after show()
+        hideTimer.stop();
+        collapseTimer.stop();
         root.visible = true;
         root.opacity = 1;
         if (root.autoHideMs > 0)
