@@ -1,4 +1,4 @@
-### 0.13.0 (In progress)
+### 0.13.0
 - Added option to copy video & audio codecs, and containers in profile editor
 - Added option to choose audio codec when encoding with video
 - Logs now persist between transcodings
