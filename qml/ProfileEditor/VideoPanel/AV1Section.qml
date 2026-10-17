@@ -6,6 +6,7 @@ Column {
     id: root
 
     property string codecKey: ""
+    property bool isCopy: false
     property bool loading: false
 
     signal changed
@@ -25,7 +26,7 @@ Column {
     }
 
     width: parent.width
-    visible: codecKey === "av1"
+    visible: codecKey === "av1" && !isCopy
     spacing: 8
 
     SectionHeader {

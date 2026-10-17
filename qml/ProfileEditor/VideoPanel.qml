@@ -282,7 +282,7 @@ Column {
             id: av1Section
 
             width: parent.width
-            visible: !root._isCopy
+            isCopy: root._isCopy
             codecKey: root.codec
             loading: root.loading
             onChanged: root.changed()
@@ -292,7 +292,7 @@ Column {
             id: vp8vp9Section
 
             width: parent.width
-            visible: !root._isCopy
+            isCopy: root._isCopy
             codecKey: root.codec
             loading: root.loading
             onChanged: root.changed()

@@ -38,6 +38,7 @@ default_profiles.toml
 
 ## Gotchas
 - **QML binding rule**: never `property = value` in JS — it silently destroys the binding. Debug with `QT_LOGGING_RULES="qt.qml.binding.removal.info=true"`.
+- **Outer assignment kills child bindings**: assigning `visible` (or any property) on a child instantiation permanently replaces the child component's own binding. Compose child visibility via plain props down to the child (e.g. `AV1Section { isCopy: root._isCopy }`, child: `visible: codecKey === "av1" && !isCopy`) — never `visible: ...` on components whose internal binding drives it (hit AV1/VP8VP9 sections).
 - Propagate `var` props parent→child via `on_*Changed` handlers (sync JS), NOT bindings — children that write their own value overwrite the binding (e.g. `_capOverrides` VideoPanel → sections).
 - Encoder ComboBox one-step-behind: in `onCurrentIndexChanged`/`onAccepted` read via `_currentEncoderText()` (`textAt(currentIndex)`), never `combo.currentText`.
 - `_loading` guard around model/list updates suppresses spurious `onCurrentTextChanged` → `loadProfile`; set before populating combos in `Component.onCompleted`, defer `loadProfile` via `Qt.callLater`. `applyEncoderCapabilities()` must NOT be `_loading`-guarded.

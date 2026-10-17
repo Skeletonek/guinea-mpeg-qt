@@ -1,3 +1,10 @@
+### 0.14.0 (In progress)
+- Add info banner when preview generation fails
+- Fixed CRF/Quality settings for AMF encoder in Windows
+- Fixed tune settings for QSV encoder in Windows
+- Fixed preview not working in Windows due to wrong URL conversion
+- Fixed AV1 and VP8/VP9 specific settings being visible all the time
+
 ### 0.13.0
 - Added option to copy video & audio codecs, and containers in profile editor
 - Added option to choose audio codec when encoding with video
