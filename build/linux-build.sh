@@ -131,6 +131,7 @@ if $CROSS_ARCH; then
     ARCH_SUFFIX="-$ARCH"
 fi
 PKGNAME="guinea-mpeg"
+APPNAME="GuineaMPEG"
 DESCRIPTION="FFmpeg GUI Frontend with Rust Core"
 
 HAS_PKG_FLAG=false
@@ -427,16 +428,28 @@ build_fpm_package() {
         pacman) pkg_ext="pkg.tar.zst" ;;
     esac
 
+    # Canonical filenames per format: deb uses underscores + Debian arch names,
+    # rpm/pacman need a release/pkgrel component
+    local deb_arch="$ARCH"
+    [ "$deb_arch" = "x86_64" ] && deb_arch="amd64"
+    [ "$deb_arch" = "aarch64" ] && deb_arch="arm64"
+    local pkg_file
+    case "$target" in
+        deb)    pkg_file="${PKGNAME}_${VERSION}_${deb_arch}.${pkg_ext}" ;;
+        rpm)    pkg_file="${PKGNAME}-${VERSION}-1.${ARCH}.${pkg_ext}" ;;
+        pacman) pkg_file="${PKGNAME}-${VERSION}-1-${ARCH}.${pkg_ext}" ;;
+    esac
+
     echo "=== Building .${pkg_ext} ==="
     fpm "${FPM_BASE[@]}" -t "$target" "${deps[@]}" \
         -C "$staging" \
-        -p "$artifacts_dir/${PKGNAME}-${VERSION}-${ARCH}.${pkg_ext}" \
+        -p "$artifacts_dir/$pkg_file" \
         usr/ || echo "WARNING: .${pkg_ext} build failed" >&2
 }
 
 build_generic_tar() {
     local generic_dir="$OUT_DIR/generic$ARCH_SUFFIX"
-    local archive_name="${PKGNAME}-${VERSION}-${ARCH}"
+    local archive_name="${APPNAME}-${VERSION}-${ARCH}"
     local archive_file="$generic_dir/${archive_name}.tar.gz"
 
     if [ ! -f "$generic_dir/guinea-mpeg" ]; then
@@ -462,7 +475,7 @@ build_flatpak() {
     local build_dir="$OUT_DIR/.flatpak-build"
     local repo_dir="$OUT_DIR/.flatpak-repo"
     local bundle_dir="$OUT_DIR/flatpak"
-    local bundle="$bundle_dir/${PKGNAME}-${VERSION}-${ARCH}.flatpak"
+    local bundle="$bundle_dir/com.skeletonek.guinea-mpeg-${VERSION}-${ARCH}.flatpak"
     mkdir -p "$bundle_dir"
     rm -rf "$repo_dir"
     echo "=== Building Flatpak ==="

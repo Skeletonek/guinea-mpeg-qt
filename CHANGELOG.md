@@ -6,6 +6,7 @@
 - Added metainfo file for flatpak bundle, for showing application details in GUI package managers like Discover, GNOME Software or Bazaar
 - Transcoding dialog stays available after transcoding finishes
 - Improved error capture, by printing detected errors below "TRANSCODING COMPLETE: FAILED" message
+- Changed naming conventions across all package formats
 - Fixed crash caused by a race condition when transcoding next clip in the queue
 
 ### 0.12.0

@@ -24,7 +24,7 @@
 #endif
 
 #ifndef OutputFilename
-    #define OutputFilename "guinea-mpeg-" + AppVersion + "-" + AppArchitecture
+    #define OutputFilename "GuineaMPEG-" + AppVersion + "-" + AppArchitecture
 #endif
 
 [Setup]

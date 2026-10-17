@@ -144,8 +144,8 @@ Use `.\build\download-vendor.ps1 -Arch arm64` to fetch arm64 bundles
 | Artifact | Path |
 |----------|------|
 | Executable | `out/windows/guinea-mpeg.exe` |
-| Portable ZIP | `out/guinea-mpeg-{version}-x86_64.zip` (or `-arm64`) |
-| Installer (exe) | `out/guinea-mpeg-{version}-x86_64.exe` (or `-arm64`) |
+| Portable ZIP | `out/GuineaMPEG-{version}-x86_64.zip` (or `-arm64`) |
+| Installer (exe) | `out/GuineaMPEG-{version}-x86_64.exe` (or `-arm64`) |
 
 ## CI/CD
 

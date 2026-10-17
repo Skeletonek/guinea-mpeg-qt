@@ -444,7 +444,7 @@ function New-Package {
 
     $CargoToml = Join-Path (Join-Path $ProjectRoot "rust") "Cargo.toml"
     $Version = Select-String -Path $CargoToml '^version = "(.+)"' | ForEach-Object { $_.Matches.Groups[1].Value }
-    $ArchiveName = "guinea-mpeg-$Version-$ArchSuffix"
+    $ArchiveName = "GuineaMPEG-$Version-$ArchSuffix"
 
     $ZipPath = Join-Path (Split-Path $OutputDir -Parent) "$ArchiveName.zip"
     Write-Host "Creating portable ZIP: $ZipPath" -ForegroundColor Cyan

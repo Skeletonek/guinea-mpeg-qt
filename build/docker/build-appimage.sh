@@ -151,7 +151,7 @@ package_appimage() {
         "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage" \
         /tmp/appimagetool-root
     echo "=== Creating AppImage ==="
-    (cd /source/out/appimage && /tmp/appimagetool-root/AppRun --no-appstream "$APPDIR" "guinea-mpeg-${VERSION}-x86_64.AppImage")
+    (cd /source/out/appimage && /tmp/appimagetool-root/AppRun --no-appstream "$APPDIR" "GuineaMPEG-${VERSION}-x86_64.AppImage")
 }
 
 build_binary
@@ -165,4 +165,4 @@ package_appimage
 
 rm -rf "$APPDIR"
 
-echo "=== AppImage created: /source/out/appimage/guinea-mpeg-${VERSION}-x86_64.AppImage ==="
+echo "=== AppImage created: /source/out/appimage/GuineaMPEG-${VERSION}-x86_64.AppImage ==="
