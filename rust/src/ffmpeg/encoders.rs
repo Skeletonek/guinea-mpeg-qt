@@ -53,17 +53,15 @@ pub(crate) fn encoder_capabilities(encoder: &str) -> Option<EncoderCapabilities>
         }),
         EncoderFamily::Qsv => Some(EncoderCapabilities {
             presets: Some(
-                vec!["veryfast", "faster", "fast", "medium", "slow", "slower"]
-                    .into_iter()
-                    .map(String::from)
-                    .collect(),
+                vec![
+                    "veryfast", "faster", "fast", "medium", "slow", "slower", "veryslow",
+                ]
+                .into_iter()
+                .map(String::from)
+                .collect(),
             ),
-            tunes: Some(
-                vec!["film", "animation", "grain"]
-                    .into_iter()
-                    .map(String::from)
-                    .collect(),
-            ),
+            // QSV has no -tune option
+            tunes: None,
             pix_fmts: Some(
                 vec!["nv12", "yuv420p", "p010le"]
                     .into_iter()
@@ -71,10 +69,11 @@ pub(crate) fn encoder_capabilities(encoder: &str) -> Option<EncoderCapabilities>
                     .collect(),
             ),
             uses_preset: true,
-            uses_tune: true,
+            uses_tune: false,
             uses_compression_level: false,
             crf_flag: "-global_quality".into(),
-            rc_flag: Some("-rc".into()),
+            // QSV has no -rc option: ffmpeg picks CBR/VBR from -b:v/-maxrate
+            rc_flag: None,
         }),
         EncoderFamily::Vaapi => Some(EncoderCapabilities {
             presets: None,
@@ -98,12 +97,8 @@ pub(crate) fn encoder_capabilities(encoder: &str) -> Option<EncoderCapabilities>
                     .map(String::from)
                     .collect(),
             ),
-            tunes: Some(
-                vec!["film", "animation", "grain"]
-                    .into_iter()
-                    .map(String::from)
-                    .collect(),
-            ),
+            // AMF has no -tune option
+            tunes: None,
             pix_fmts: Some(
                 vec!["nv12", "yuv420p"]
                     .into_iter()
@@ -111,9 +106,10 @@ pub(crate) fn encoder_capabilities(encoder: &str) -> Option<EncoderCapabilities>
                     .collect(),
             ),
             uses_preset: true,
-            uses_tune: true,
+            uses_tune: false,
             uses_compression_level: false,
-            crf_flag: "-quality".into(),
+            // no CRF on AMF: add_rate_control() maps the value to -rc cqp + -qp_*
+            crf_flag: "-qp_i".into(),
             rc_flag: Some("-rc".into()),
         }),
         EncoderFamily::Vulkan => Some(EncoderCapabilities {

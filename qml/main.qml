@@ -32,7 +32,7 @@ ApplicationWindow {
     function loadVideo(filePath, fileUrl) {
         backend.resetPreview();
         currentVideoPath = filePath;
-        appWindow.videoSource = fileUrl || ("file://" + encodeURI(filePath));
+        appWindow.videoSource = fileUrl || DataUtils.toFileUrl(filePath);
         var info = backend.getVideoInfo(filePath);
         currentVideoInfo = info;
         videoDuration = Math.round(info.duration * 1000);
@@ -300,7 +300,7 @@ ApplicationWindow {
                             stackView.push(profileEditorPage);
                         }
                         onBrowseOutputClicked: {
-                            saveDialog.currentFile = "file://" + encodeURI(appWindow.outputFilePath);
+                            saveDialog.currentFile = DataUtils.toFileUrl(appWindow.outputFilePath);
                             saveDialog.open();
                         }
                         onViewTranscodeClicked: transcodeDialog.open()

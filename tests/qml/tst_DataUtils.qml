@@ -17,6 +17,14 @@ TestCase {
         compare(DataUtils.toLocalPath("file:"), "file:");
     }
 
+    function test_toFileUrl() {
+        compare(DataUtils.toFileUrl("/home/user/video.mp4"), "file:///home/user/video.mp4");
+        compare(DataUtils.toFileUrl("/home/user/my video.mp4"), "file:///home/user/my%20video.mp4");
+        // file:///C:/... required — "file://C:/..." parses the drive letter as a hostname
+        compare(DataUtils.toFileUrl("C:/Users/user/video.mp4"), "file:///C:/Users/user/video.mp4");
+        compare(DataUtils.toFileUrl("file:///already/a/url.mp4"), "file:///already/a/url.mp4");
+    }
+
     function test_toggleSelection() {
         var sel = DataUtils.toggleSelection(2, true, [0, 1]);
         compare(sel.length, 3);

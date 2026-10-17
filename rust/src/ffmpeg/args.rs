@@ -17,14 +17,33 @@ fn push_rc_flag(
         args.push(mode.to_uppercase());
     } else if let Some(ref caps) = caps {
         if let Some(ref rc_flag) = caps.rc_flag {
-            let rc_mode = if rc_flag == "-rc" {
+            let mut rc_mode = if rc_flag == "-rc" {
                 mode.to_lowercase()
             } else {
                 mode.to_uppercase()
             };
+            // AMF has no plain "vbr": peak-constrained VBR is the equivalent
+            if family == EncoderFamily::Amf && rc_mode == "vbr" {
+                rc_mode = "vbr_peak".to_string();
+            }
             args.push(rc_flag.clone());
             args.push(rc_mode);
         }
+    }
+}
+
+/// AMF has no CRF mode: map the profile's CRF (x264 0-51 scale) to constant-QP.
+fn push_amf_cqp(args: &mut Vec<String>, crf: i32, enc: &str) {
+    let qp = crf.clamp(0, 51).to_string();
+    args.push("-rc".to_string());
+    args.push("cqp".to_string());
+    args.push("-qp_i".to_string());
+    args.push(qp.clone());
+    args.push("-qp_p".to_string());
+    args.push(qp.clone());
+    if enc != "hevc_amf" {
+        args.push("-qp_b".to_string());
+        args.push(qp);
     }
 }
 
@@ -95,9 +114,13 @@ fn add_rate_control(args: &mut Vec<String>, profile: &VideoProfile, enc: &str) {
         }
         _ => {
             if let Some(crf) = profile.crf {
-                let crf_flag = caps.as_ref().map(|c| c.crf_flag.as_str()).unwrap_or("-crf");
-                args.push(crf_flag.to_string());
-                args.push(crf.to_string());
+                if family == EncoderFamily::Amf {
+                    push_amf_cqp(args, crf, enc);
+                } else {
+                    let crf_flag = caps.as_ref().map(|c| c.crf_flag.as_str()).unwrap_or("-crf");
+                    args.push(crf_flag.to_string());
+                    args.push(crf.to_string());
+                }
             }
             if profile.rate_control.is_none() {
                 if let Some(bitrate) = &profile.bitrate {
@@ -113,6 +136,7 @@ fn add_rate_control(args: &mut Vec<String>, profile: &VideoProfile, enc: &str) {
 
 fn add_codec_specific(args: &mut Vec<String>, profile: &VideoProfile, enc: &str) {
     let caps = encoder_capabilities(enc);
+    let family = encoder_family(enc);
 
     match profile.codec.as_str() {
         "vp8" | "vp9" => {
@@ -129,7 +153,12 @@ fn add_codec_specific(args: &mut Vec<String>, profile: &VideoProfile, enc: &str)
             if let Some(preset) = &profile.preset {
                 let can_preset = caps.as_ref().map(|c| c.uses_preset).unwrap_or(true);
                 if can_preset {
-                    args.push("-preset".to_string());
+                    // AMF takes the preset via -quality ("-preset" is only a recent alias)
+                    if family == EncoderFamily::Amf {
+                        args.push("-quality".to_string());
+                    } else {
+                        args.push("-preset".to_string());
+                    }
                     args.push(preset.clone());
                 }
             }
@@ -237,8 +266,9 @@ fn push_hwaccel_args(args: &mut Vec<String>, family: EncoderFamily) {
     }
 }
 
-fn add_av1_params(args: &mut Vec<String>, profile: &VideoProfile) {
-    if profile.codec != "av1" {
+fn add_av1_params(args: &mut Vec<String>, profile: &VideoProfile, enc: &str) {
+    // -svtav1-params is libsvtav1-only
+    if profile.codec != "av1" || enc != "libsvtav1" {
         return;
     }
     let mut svt = Vec::new();
@@ -344,7 +374,7 @@ fn add_video_branch(
         add_rate_control(args, profile, enc);
         add_codec_specific(args, profile, enc);
         add_filter_graph(args, profile, family);
-        add_av1_params(args, profile);
+        add_av1_params(args, profile, enc);
     }
     for arg in &profile.extra_args {
         args.push(arg.clone());

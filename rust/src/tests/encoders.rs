@@ -85,14 +85,22 @@ fn qsv_capabilities() {
     let caps = encoder_capabilities("hevc_qsv").unwrap();
     assert_eq!(caps.crf_flag, "-global_quality");
     assert!(caps.uses_preset);
-    assert!(caps.uses_tune);
+    assert!(!caps.uses_tune);
+    assert!(caps.tunes.is_none());
+    assert!(caps.rc_flag.is_none());
+    assert!(caps
+        .presets
+        .as_ref()
+        .unwrap()
+        .contains(&"veryslow".to_string()));
 }
 
 #[test]
 fn amf_and_vulkan_capabilities() {
     let amf = encoder_capabilities("h264_amf").unwrap();
-    assert_eq!(amf.crf_flag, "-quality");
     assert!(amf.uses_preset);
+    assert!(!amf.uses_tune);
+    assert!(amf.tunes.is_none());
     let vulkan = encoder_capabilities("av1_vulkan").unwrap();
     assert_eq!(vulkan.crf_flag, "-crf");
     assert!(vulkan.rc_flag.is_none());

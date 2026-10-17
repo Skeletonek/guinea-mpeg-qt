@@ -173,6 +173,61 @@ fn qsv_uses_global_quality() {
 }
 
 #[test]
+fn qsv_bitrate_modes_have_no_rc_flag() {
+    // QSV has no -rc option: ffmpeg auto-selects CBR (minrate == maxrate == b:v)
+    // or VBR (b:v alone) from the bitrate options
+    let cbr =
+        args_for(r#"{"codec":"hevc","encoder":"hevc_qsv","bitrate":"4M","rate_control":"cbr"}"#);
+    assert!(contains_pair(&cbr, "-b:v", "4M"));
+    assert!(contains_pair(&cbr, "-minrate", "4M"));
+    assert!(!contains_flag(&cbr, "-rc"));
+    let vbr =
+        args_for(r#"{"codec":"hevc","encoder":"hevc_qsv","bitrate":"4M","rate_control":"vbr"}"#);
+    assert!(contains_pair(&vbr, "-b:v", "4M"));
+    assert!(!contains_flag(&vbr, "-rc"));
+    assert!(!contains_flag(&vbr, "-tune"));
+}
+
+#[test]
+fn amf_crf_maps_to_cqp() {
+    let args = args_for(r#"{"codec":"hevc","encoder":"hevc_amf","crf":22,"preset":"balanced"}"#);
+    assert!(contains_pair(&args, "-c:v", "hevc_amf"));
+    assert!(contains_pair(&args, "-rc", "cqp"));
+    assert!(contains_pair(&args, "-qp_i", "22"));
+    assert!(contains_pair(&args, "-qp_p", "22"));
+    // hevc_amf has no -qp_b option and no -tune; the preset goes via -quality
+    assert!(!contains_flag(&args, "-qp_b"));
+    assert!(!contains_flag(&args, "-tune"));
+    assert!(contains_pair(&args, "-quality", "balanced"));
+    assert!(!contains_flag(&args, "-preset"));
+    assert!(!contains_pair(&args, "-quality", "22"));
+    assert!(contains_pair(&args, "-hwaccel", "amf"));
+}
+
+#[test]
+fn amf_cqp_clamps_qp_and_h264_has_qp_b() {
+    let args = args_for(r#"{"codec":"h264","encoder":"h264_amf","crf":80}"#);
+    assert!(contains_pair(&args, "-qp_i", "51"));
+    assert!(contains_pair(&args, "-qp_b", "51"));
+    assert!(!contains_pair(&args, "-qp_i", "80"));
+}
+
+#[test]
+fn amf_vbr_uses_vbr_peak() {
+    let args =
+        args_for(r#"{"codec":"h264","encoder":"h264_amf","bitrate":"4M","rate_control":"vbr"}"#);
+    assert!(contains_pair(&args, "-rc", "vbr_peak"));
+    assert!(!contains_pair(&args, "-rc", "vbr"));
+}
+
+#[test]
+fn amf_av1_gets_no_svtav1_params() {
+    let args = args_for(r#"{"codec":"av1","encoder":"av1_amf","crf":30}"#);
+    assert!(!contains_flag(&args, "-svtav1-params"));
+    assert!(contains_pair(&args, "-rc", "cqp"));
+}
+
+#[test]
 fn trim_sets_ss_and_t() {
     let args = build_command(
         "in.mp4",

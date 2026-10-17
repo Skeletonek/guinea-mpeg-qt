@@ -321,7 +321,7 @@ Rectangle {
 
         function onPreviewGenerated(path) {
             root.previewGenerating = false;
-            root.previewSource = "file://" + encodeURI(path);
+            root.previewSource = DataUtils.toFileUrl(path);
             root.previewAvailable = true;
             root.previewActive = true;
         }

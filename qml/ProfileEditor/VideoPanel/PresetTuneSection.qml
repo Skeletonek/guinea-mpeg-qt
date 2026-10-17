@@ -77,7 +77,7 @@ Column {
         id: tuneRow
 
         label: qsTr("Tune")
-        visible: root._capOverrides.uses_compression_level !== true
+        visible: root._capOverrides.uses_compression_level !== true && root._capOverrides.uses_tune !== false
 
         ComboBox {
             id: tuneCombo

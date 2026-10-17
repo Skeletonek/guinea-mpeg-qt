@@ -27,6 +27,22 @@ function toLocalPath(url) {
 }
 
 /**
+ * Converts a local filesystem path to a proper file:// URL.
+ * Windows drive paths (C:/...) need the file:/// form: "file://" + path
+ * makes QUrl parse the drive letter as a hostname, breaking toLocalFile().
+ * @param {string} path - Local filesystem path or file:// URL
+ * @returns {string} file:// URL
+ */
+function toFileUrl(path) {
+    var p = String(path)
+    if (p.startsWith("file://"))
+        return p
+    if (Qt.platform.os === "windows")
+        p = p.replace(/\\/g, "/")
+    return "file://" + (p.startsWith("/") ? "" : "/") + encodeURI(p)
+}
+
+/**
  * Gets the effective text of an (editable) combo box.
  * For editable combos the edited text wins when it differs from the selected
  * item's text: this is the case for typed/custom values and for values that
