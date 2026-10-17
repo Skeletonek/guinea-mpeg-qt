@@ -141,37 +141,37 @@
 <context>
     <name>AudioPanel</name>
     <message>
-        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="86"/>
+        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="165"/>
         <source>Audio</source>
         <translation>Audio</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="108"/>
+        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="187"/>
         <source>Audio is not supported for GIF/WebP output.</source>
         <translation>Audio niy je podźyrzane dlŏ wyjściŏ GIF/WebP.</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="122"/>
-        <source>Codec: Auto (%1)</source>
-        <translation>Kodek: Auto (%1)</translation>
-    </message>
-    <message>
-        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="126"/>
+        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="199"/>
         <source>Codec</source>
         <translation>Kodek</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="149"/>
+        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="228"/>
+        <source>Audio will be copied without re-encoding (bitrate/channels/rate ignored).</source>
+        <translation>Dźwięk zostŏnie skopiowany bez ponownego kodowanio (bitrate/kanały/czyntotliwość bydą zignorowane).</translation>
+    </message>
+    <message>
+        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="243"/>
         <source>Bitrate</source>
         <translation>Bitrate</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="161"/>
+        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="255"/>
         <source>Channels</source>
         <translation>Kanały</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="177"/>
+        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="271"/>
         <source>Sample rate</source>
         <translation>Częstotliwość prōbkowaniŏ</translation>
     </message>
@@ -179,22 +179,22 @@
 <context>
     <name>CodecSection</name>
     <message>
-        <location filename="../qml/ProfileEditor/VideoPanel/CodecSection.qml" line="90"/>
+        <location filename="../qml/ProfileEditor/VideoPanel/CodecSection.qml" line="111"/>
         <source>Codec</source>
         <translation>Kodek</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/VideoPanel/CodecSection.qml" line="107"/>
+        <location filename="../qml/ProfileEditor/VideoPanel/CodecSection.qml" line="132"/>
         <source>(unavailable)</source>
         <translation>(niedostympny)</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/VideoPanel/CodecSection.qml" line="116"/>
+        <location filename="../qml/ProfileEditor/VideoPanel/CodecSection.qml" line="141"/>
         <source>Encoder</source>
         <translation>Enkoder</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/VideoPanel/CodecSection.qml" line="132"/>
+        <location filename="../qml/ProfileEditor/VideoPanel/CodecSection.qml" line="160"/>
         <source>Show available encoders</source>
         <translation>Pōkaż dostympne enkodery</translation>
     </message>
@@ -272,7 +272,7 @@
     <message>
         <location filename="../qml/ControlsPanel.qml" line="272"/>
         <source>Preview outdated — regenerate preview to refresh estimate</source>
-        <translation>Podglōnd nieaktualny — wygeneruj podglōnd zowdy, coby odświeżyć szacowanie</translation>
+        <translation>Podglōnd nieaktualny — wygeneruj podglōnd na nowo, coby odświeżyć szacowanie</translation>
     </message>
     <message>
         <location filename="../qml/ControlsPanel.qml" line="281"/>
@@ -280,22 +280,27 @@
         <translation>Zacznij transkodowanie</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="294"/>
+        <location filename="../qml/ControlsPanel.qml" line="295"/>
         <source>Transcoding in progress... (%1 queued, click to view)</source>
         <translation>Transkodowanie trwŏ... (%1 w kolejce, kliknij, coby zobaczyć)</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="294"/>
+        <location filename="../qml/ControlsPanel.qml" line="295"/>
         <source>Transcoding in progress... (click to view)</source>
         <translation>Transkodowanie trwŏ... (kliknij, coby zobaczyć)</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="338"/>
+        <location filename="../qml/ControlsPanel.qml" line="295"/>
+        <source>Transcoding complete (click to view)</source>
+        <translation>Transkodowanie skōńczōne (kliknij, coby zobaczyć)</translation>
+    </message>
+    <message>
+        <location filename="../qml/ControlsPanel.qml" line="339"/>
         <source>Settings</source>
         <translation>Nastawy</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="355"/>
+        <location filename="../qml/ControlsPanel.qml" line="356"/>
         <source>About</source>
         <translation>O programie</translation>
     </message>
@@ -413,17 +418,22 @@ Zainstaluj go za pōmocōm menedżera paketōw, np.:
 <context>
     <name>GuineaMpegBackendExt</name>
     <message>
-        <location filename="../src/backend.cpp" line="298"/>
+        <location filename="../src/backend.cpp" line="339"/>
+        <source>===== Job: %1 → %2 =====</source>
+        <translation>===== Zadanie: %1 → %2 =====</translation>
+    </message>
+    <message>
+        <location filename="../src/backend.cpp" line="348"/>
         <source>Error: failed to build ffmpeg command from profile</source>
         <translation>Błōnd: niy szło zbudować komendy ffmpeg ze profilu</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="303"/>
+        <location filename="../src/backend.cpp" line="355"/>
         <source>Error: profile produced no ffmpeg arguments</source>
         <translation>Błōnd: profil niy wytworził żodnych argumyntōw ffmpeg</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="320"/>
+        <location filename="../src/backend.cpp" line="374"/>
         <source>
 --- Transcoding cancelled ---
 </source>
@@ -432,7 +442,12 @@ Zainstaluj go za pōmocōm menedżera paketōw, np.:
 </translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="406"/>
+        <location filename="../src/backend.cpp" line="466"/>
+        <source>[log truncated - showing last %1 lines]</source>
+        <translation>[log skrōcōny - pokazywanie ôstatnich %1 liniji]</translation>
+    </message>
+    <message>
+        <location filename="../src/backend.cpp" line="479"/>
         <source>
 --- Transcoding finished: SUCCESS ---
 </source>
@@ -441,7 +456,7 @@ Zainstaluj go za pōmocōm menedżera paketōw, np.:
 </translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="408"/>
+        <location filename="../src/backend.cpp" line="482"/>
         <source>
 --- Transcoding finished: FAILED (exit code %1) ---
 </source>
@@ -450,22 +465,34 @@ Zainstaluj go za pōmocōm menedżera paketōw, np.:
 </translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="409"/>
+        <location filename="../src/backend.cpp" line="485"/>
+        <source>Detected error details:
+</source>
+        <translation>Wykryte szczegōły błōndu:
+</translation>
+    </message>
+    <message>
+        <location filename="../src/backend.cpp" line="488"/>
+        <source>Unknown error (exit code %1)</source>
+        <translation>Niypoznany błōnd (kod wyjśćio %1)</translation>
+    </message>
+    <message>
+        <location filename="../src/backend.cpp" line="499"/>
         <source>Transcoding Complete</source>
         <translation>Transkodowanie zakōńczone</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="409"/>
+        <location filename="../src/backend.cpp" line="499"/>
         <source>Transcoding Failed</source>
         <translation>Transkodowanie sie niy udało</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="410"/>
+        <location filename="../src/backend.cpp" line="500"/>
         <source>Your video has been transcoded successfully.</source>
         <translation>Twoje wideo zostało pōmyślnie przetranskodowane.</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="411"/>
+        <location filename="../src/backend.cpp" line="501"/>
         <source>Transcoding exited with code %1</source>
         <translation>Transkodowanie skōńczyło sie z kodym %1</translation>
     </message>
@@ -892,47 +919,52 @@ Kontynuować?</translation>
 <context>
     <name>TranscodeDialog</name>
     <message>
-        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="224"/>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="249"/>
         <source>Transcoding... (1 of %1)</source>
         <translation>Transkodowanie... (1 z %1)</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="224"/>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="249"/>
         <source>Transcoding...</source>
         <translation>Transkodowanie...</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="226"/>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="251"/>
         <source>Transcoding Complete</source>
         <translation>Transkodowanie zakōńczone</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="107"/>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="126"/>
         <source>Running</source>
         <translation>Pracuje</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="107"/>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="126"/>
         <source>Starting</source>
         <translation>Uruchamianie</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="107"/>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="126"/>
         <source>Waiting</source>
         <translation>Czekanie</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="190"/>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="209"/>
         <source>ffmpeg is running...</source>
         <translation>ffmpeg pracuje...</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="190"/>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="209"/>
         <source>Done. You can close this window.</source>
-        <translation>Gotowe. Możesz zawrzeć to okno.</translation>
+        <translation>Gotowe. Możesz zawrzić to okno.</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="199"/>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="218"/>
+        <source>Clear</source>
+        <translation>Wyczyść</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="224"/>
         <source>Cancel</source>
         <translation>Anuluj</translation>
     </message>
@@ -952,7 +984,7 @@ Kontynuować?</translation>
     <message>
         <location filename="../qml/Components/UpdateBanner.qml" line="74"/>
         <source>Close</source>
-        <translation>Zawarzyj</translation>
+        <translation>Zawrzij</translation>
     </message>
 </context>
 <context>
@@ -966,24 +998,29 @@ Kontynuować?</translation>
 <context>
     <name>VideoPanel</name>
     <message>
-        <location filename="../qml/ProfileEditor/VideoPanel.qml" line="138"/>
+        <location filename="../qml/ProfileEditor/VideoPanel.qml" line="165"/>
         <source>Video</source>
         <translation>Wideo</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/VideoPanel.qml" line="165"/>
+        <location filename="../qml/ProfileEditor/VideoPanel.qml" line="192"/>
         <source>Codec</source>
         <translation>Kodek</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/VideoPanel.qml" line="191"/>
+        <location filename="../qml/ProfileEditor/VideoPanel.qml" line="218"/>
         <source>Rate control</source>
         <translation>Kontrola bitrate</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/VideoPanel.qml" line="222"/>
+        <location filename="../qml/ProfileEditor/VideoPanel.qml" line="249"/>
         <source>Scaling</source>
         <translation>Skalowanie</translation>
+    </message>
+    <message>
+        <location filename="../qml/ProfileEditor/VideoPanel.qml" line="266"/>
+        <source>Scaling, rate control and codec options are disabled for Copy (stream copy).</source>
+        <translation>Opcje skalowanio, kontroli bitrate i kodeka sōm wyłōnczōne dlŏ Kopiuj (kopiowanio strumienio).</translation>
     </message>
 </context>
 <context>
@@ -1006,7 +1043,7 @@ Kontynuować?</translation>
     <message>
         <location filename="../qml/VideoPreview.qml" line="237"/>
         <source>Regenerate</source>
-        <translation>Wygeneruj zowdy</translation>
+        <translation>Wygeneruj na nowo</translation>
     </message>
     <message>
         <location filename="../qml/VideoPreview.qml" line="313"/>
