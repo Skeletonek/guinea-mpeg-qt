@@ -179,7 +179,18 @@ fn vaapi_crf_uses_qp() {
 fn qsv_uses_global_quality() {
     let args = args_for(r#"{"codec":"hevc","encoder":"hevc_qsv","crf":25}"#);
     assert!(contains_pair(&args, "-global_quality", "25"));
-    assert!(contains_flag(&args, "-init_hw_device"));
+    // software decode; the encoder uploads frames itself
+    assert!(!contains_flag(&args, "-init_hw_device"));
+    assert!(!contains_flag(&args, "-hwaccel"));
+}
+
+#[test]
+fn qsv_with_filters_needs_no_hwupload() {
+    let args = args_for(r#"{"codec":"hevc","encoder":"hevc_qsv","crf":25,"framerate":30.0}"#);
+    let vf = &args[args.iter().position(|a| a == "-vf").unwrap() + 1];
+    assert_eq!(vf, "fps=30");
+    assert!(!contains_flag(&args, "-hwdownload"));
+    assert!(!contains_flag(&args, "-hwupload"));
 }
 
 #[test]
