@@ -1,6 +1,9 @@
 FROM debian:trixie-slim
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# One big apt step previously OOM'd on dind runners; keep the heavy
+# qt6-declarative-dev/qt6-tools-dev transaction in its own cached layer.
+RUN apt-get update \
+ && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     build-essential \
     cmake \
     pkg-config \
@@ -10,8 +13,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libmpv-dev \
     qt6-base-dev \
     qt6-multimedia-dev \
-    qt6-declarative-dev \
-    qt6-tools-dev \
     qt6-xdgdesktopportal-platformtheme \
     qml6-module-qtmultimedia \
     libqt6svg6 \
@@ -23,4 +24,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     file \
     patchelf \
     ffmpeg \
-    && rm -rf /var/lib/apt/lists/*
+ && rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update \
+ && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    qt6-declarative-dev \
+    qt6-tools-dev \
+ && rm -rf /var/lib/apt/lists/*
