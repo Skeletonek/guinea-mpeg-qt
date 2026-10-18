@@ -34,6 +34,11 @@ ApplicationWindow {
     property bool lastJobSuccess: false
     property bool jobEndSeen: false
     property bool jobCancelRequested: false
+    // Result label on the controls panel stays until the user opens the transcoding log
+    property bool transcodeResultSeen: true
+    // Outcome counts of the latest batch (jobs queued after the previous batch fully drained)
+    property int batchJobCount: 0
+    property int batchFailedCount: 0
     property string previewProfile: ""
 
     function loadVideo(filePath, fileUrl) {
@@ -113,8 +118,13 @@ ApplicationWindow {
             "sourceFps": FormatUtils.fpsToDecimal(currentVideoInfo.fps || "") || 0,
             "durationMs": endTime - startTime
         };
+        if (activeJob === null && transcodeQueue.length === 0) {
+            batchJobCount = 0;
+            batchFailedCount = 0;
+        }
         transcodeQueue = transcodeQueue.concat([job]);
         processTranscodeQueue();
+        transcodeDialog.open();
     }
 
     function cancelActiveTranscode() {
@@ -132,7 +142,6 @@ ApplicationWindow {
         jobEndSeen = false;
         lastJobSuccess = false;
         backend.startTranscode(job.input, job.output, job.start, job.end, job.profile);
-        transcodeDialog.open();
     }
 
     width: Constants.windowDefaultWidth
@@ -319,7 +328,10 @@ ApplicationWindow {
                             saveDialog.currentFile = DataUtils.toFileUrl(appWindow.outputFilePath);
                             saveDialog.open();
                         }
-                        onViewTranscodeClicked: transcodeDialog.open()
+                        onViewTranscodeClicked: {
+                            transcodeResultSeen = true;
+                            transcodeDialog.open();
+                        }
                         onSettingsClicked: optionsDialog.open()
                         onAboutClicked: aboutDialog.open()
                     }
@@ -340,13 +352,13 @@ ApplicationWindow {
     FileOpenDialog {
         id: fileDialog
 
-        appWindow: appWindow
+        mainWindow: appWindow
     }
 
     FileSaveDialog {
         id: saveDialog
 
-        appWindow: appWindow
+        mainWindow: appWindow
     }
 
     AboutDialog {
@@ -372,7 +384,7 @@ ApplicationWindow {
     TranscodeDialog {
         id: transcodeDialog
 
-        appWindow: appWindow
+        mainWindow: appWindow
     }
 
     OverwriteConfirmDialog {
@@ -413,8 +425,13 @@ ApplicationWindow {
                         }]);
                     if (transcodeHistory.length > maxTranscodeHistory)
                         transcodeHistory = transcodeHistory.slice(transcodeHistory.length - maxTranscodeHistory);
+                    batchJobCount++;
+                    if (status !== "completed")
+                        batchFailedCount++;
                     // The buffer holds one job at a time; the history entry keeps its log
                     backend.clearTranscodeOutput();
+                    // Don't flash the result label when the user is already viewing the log
+                    transcodeResultSeen = transcodeDialog.visible;
                     transcodeQueue = transcodeQueue.slice(1);
                     activeJob = null;
                 }

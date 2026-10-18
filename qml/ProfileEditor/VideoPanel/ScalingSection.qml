@@ -22,7 +22,7 @@ Column {
     function setScalingData(d) {
         DataUtils.setComboText(resCombo, d.resolution, Constants.SENTINEL_NATIVE);
         if (d.framerate > 0) {
-            var fi = Constants.fpsOptions.indexOf(d.framerate);
+            const fi = Constants.fpsOptions.indexOf(d.framerate);
             if (fi >= 0) {
                 fpsCombo.currentIndex = fi;
             } else {

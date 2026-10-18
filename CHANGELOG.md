@@ -2,6 +2,9 @@
 - Reworked layout of the transcoding dialog
 - Transcoding dialog now supports showing logs from previous runs
 - Improved visibility on job status in the transcoding dialog
+- Transcode button now properly informs when a new job will be added to queue
+- Replaced click event for the transcoding status label with a "Transcoding log" button
+- Transcoding status label now shows how many jobs failed in the last batch
 - Added option to change preview length
 - Added preview generation progressbar
 - Added button and "ESC" keybind to cancel preview generation
@@ -11,6 +14,7 @@
 - Fixed frame decoding for AMF, QSV and NVENC in Windows
 - Fixed preview not working in Windows due to wrong URL conversion
 - Fixed AV1 and VP8/VP9 specific settings being visible all the time
+- Fixed issue where transcoding dialog suddenly opened when starting new job
 
 ### 0.13.0
 - Added option to copy video & audio codecs, and containers in profile editor

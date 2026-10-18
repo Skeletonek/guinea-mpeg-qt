@@ -1,6 +1,7 @@
 import "Components"
 import QtQuick
 import QtQuick.Controls
+import "Utils/Constants.js" as Constants
 import "Utils/DataUtils.js" as DataUtils
 import "Utils/FormatUtils.js" as FormatUtils
 
@@ -291,19 +292,24 @@ Item {
                 width: parent.width
             }
 
+            Button {
+                text: qsTr("Transcoding log")
+                enabled: backend.transcoding || backend.transcodeOutput !== "" || (hostWindow && hostWindow.transcodeHistory.length > 0)
+                onClicked: root.viewTranscodeClicked()
+                width: parent.width
+            }
+
             Label {
                 readonly property bool hasLog: backend.transcodeOutput !== ""
-                text: backend.transcoding ? (hostWindow && hostWindow.transcodeQueue.length > 1 ? qsTr("Transcoding in progress... (%1 queued, click to view)").arg(hostWindow.transcodeQueue.length - 1) : qsTr("Transcoding in progress... (click to view)")) : (hasLog ? qsTr("Transcoding complete (click to view)") : "")
-                color: theme.accent
-                visible: backend.transcoding || hasLog
+                readonly property bool hasResult: !backend.transcoding && hostWindow && !hostWindow.transcodeResultSeen && (hostWindow.transcodeHistory.length > 0 || hasLog)
+                readonly property bool hasFailures: hostWindow && hostWindow.batchFailedCount > 0
+                readonly property string resultText: hasFailures ? (hostWindow.batchJobCount > 1 ? qsTr("%1 of %2 jobs failed").arg(hostWindow.batchFailedCount).arg(hostWindow.batchJobCount) : qsTr("Transcoding failed")) : qsTr("Transcoding complete")
+                text: backend.transcoding ? (hostWindow && hostWindow.transcodeQueue.length > 1 ? qsTr("Transcoding in progress... (%1 queued)").arg(hostWindow.transcodeQueue.length - 1) : qsTr("Transcoding in progress...")) : (hasResult ? resultText : "")
+                color: hasFailures ? Constants.errorColor : theme.accent
+                font.pixelSize: 12
+                visible: backend.transcoding || hasResult
                 width: parent.width
                 wrapMode: Text.WordWrap
-
-                MouseArea {
-                    anchors.fill: parent
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: root.viewTranscodeClicked()
-                }
             }
         }
 

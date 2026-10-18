@@ -9,7 +9,7 @@ import QtQuick.Layouts
 Dialog {
     id: root
 
-    property var appWindow: null
+    property var mainWindow: null
     property double _progress: 0
     property double _totalFrames: 0
     // Combined history (finished jobs) + queue (active/waiting jobs)
@@ -18,7 +18,7 @@ Dialog {
 
     function recalcProgress() {
         _progress = 0;
-        var job = appWindow ? appWindow.activeJob : null;
+        var job = mainWindow ? mainWindow.activeJob : null;
         if (!job) {
             _totalFrames = 0;
             return;
@@ -29,14 +29,14 @@ Dialog {
 
     function rebuildEntries() {
         var list = [];
-        var hist = appWindow ? appWindow.transcodeHistory : [];
+        var hist = mainWindow ? mainWindow.transcodeHistory : [];
         for (var i = 0; i < hist.length; i++)
             list.push({
                 "status": hist[i].status,
                 "output": hist[i].output,
                 "log": hist[i].log
             });
-        var queue = appWindow ? appWindow.transcodeQueue : [];
+        var queue = mainWindow ? mainWindow.transcodeQueue : [];
         for (var j = 0; j < queue.length; j++)
             list.push({
                 "status": j === 0 ? (backend.transcoding ? "running" : "starting") : "waiting",
@@ -49,8 +49,8 @@ Dialog {
     }
 
     function selectDefault() {
-        var hist = appWindow ? appWindow.transcodeHistory : [];
-        if (backend.transcoding && appWindow && appWindow.transcodeQueue.length > 0)
+        var hist = mainWindow ? mainWindow.transcodeHistory : [];
+        if (backend.transcoding && mainWindow && mainWindow.transcodeQueue.length > 0)
             selectedIndex = hist.length;
         else if (hist.length > 0)
             selectedIndex = hist.length - 1;
@@ -101,10 +101,10 @@ Dialog {
     modal: false
     closePolicy: Popup.CloseOnEscape
     // Preferred size from Constants, clamped to the main window (16 margin per side)
-    width: appWindow ? Math.min(Constants.dialogWidthTranscode, appWindow.width - 32) : Constants.dialogWidthTranscode
-    height: appWindow ? Math.min(Constants.dialogHeightTranscode, appWindow.height - 32) : Constants.dialogHeightTranscode
-    x: appWindow ? Math.round((appWindow.width - width) / 2) : 0
-    y: appWindow ? Math.round((appWindow.height - height) / 2) : 0
+    width: mainWindow ? Math.min(Constants.dialogWidthTranscode, mainWindow.width - 32) : Constants.dialogWidthTranscode
+    height: mainWindow ? Math.min(Constants.dialogHeightTranscode, mainWindow.height - 32) : Constants.dialogHeightTranscode
+    x: mainWindow ? Math.round((mainWindow.width - width) / 2) : 0
+    y: mainWindow ? Math.round((mainWindow.height - height) / 2) : 0
     onAboutToShow: {
         rebuildEntries();
         selectDefault();
@@ -130,7 +130,7 @@ Dialog {
             root.rebuildEntries();
         }
 
-        target: appWindow
+        target: mainWindow
     }
 
     Connections {
@@ -298,10 +298,10 @@ Dialog {
 
             Button {
                 text: qsTr("Clear")
-                visible: !backend.transcoding && (backend.transcodeOutput !== "" || (appWindow && appWindow.transcodeHistory.length > 0))
+                visible: !backend.transcoding && (backend.transcodeOutput !== "" || (mainWindow && mainWindow.transcodeHistory.length > 0))
                 onClicked: {
-                    if (appWindow)
-                        appWindow.transcodeHistory = [];
+                    if (mainWindow)
+                        mainWindow.transcodeHistory = [];
 
                     backend.clearTranscodeOutput();
                     root.rebuildEntries();
@@ -313,7 +313,7 @@ Dialog {
             Button {
                 text: qsTr("Cancel")
                 visible: backend.transcoding
-                onClicked: appWindow.cancelActiveTranscode()
+                onClicked: mainWindow.cancelActiveTranscode()
             }
         }
     }
@@ -334,7 +334,7 @@ Dialog {
 
             Label {
                 text: {
-                    var n = appWindow ? appWindow.transcodeQueue.length : 0;
+                    var n = mainWindow ? mainWindow.transcodeQueue.length : 0;
                     if (backend.transcoding)
                         return n > 1 ? qsTr("Transcoding... (1 of %1)").arg(n) : qsTr("Transcoding...");
 

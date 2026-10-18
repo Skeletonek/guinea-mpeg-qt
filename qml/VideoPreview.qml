@@ -55,7 +55,7 @@ Rectangle {
         root.previewGenerating = true;
         var durationMs = 5000;
         try {
-            var opts = JSON.parse(backend.getOptions());
+            const opts = JSON.parse(backend.getOptions());
             if (opts.preview_duration > 0)
                 durationMs = opts.preview_duration * 1000;
         } catch (e) {}
@@ -93,7 +93,7 @@ Rectangle {
 
     function setPreviewVolume(v) {
         var c = Math.max(0, Math.min(100, v));
-        player.volume = c;
+        root.volume = c;
         backend.setOption("previewVolume", c);
     }
 
@@ -185,7 +185,7 @@ Rectangle {
             else if (event.key === Qt.Key_Right || event.key === Qt.Key_L)
                 seekDelta = seekStep;
             if (seekDelta !== 0) {
-                player.position = Math.max(0, Math.min(player.duration, player.position + seekDelta));
+                root.position = Math.max(0, Math.min(player.duration, player.position + seekDelta));
                 event.accepted = true;
                 return;
             }
@@ -237,7 +237,7 @@ Rectangle {
                 from: 0
                 to: player.duration
                 value: player.position
-                onMoved: player.position = value
+                onMoved: root.position = value
                 Layout.fillWidth: true
                 Layout.fillHeight: true
 
@@ -246,7 +246,7 @@ Rectangle {
                     acceptedButtons: Qt.NoButton
                     onWheel: function (wheel) {
                         var delta = wheel.angleDelta.y > 0 ? 1000 : -1000;
-                        player.position = Math.max(0, Math.min(player.duration, player.position + delta));
+                        root.position = Math.max(0, Math.min(player.duration, player.position + delta));
                         wheel.accepted = true;
                     }
                 }

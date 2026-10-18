@@ -14,7 +14,7 @@ Rectangle {
         var fpsStr = mainWindow && mainWindow.currentVideoInfo ? String(mainWindow.currentVideoInfo.fps || "") : "";
         var fps = 0;
         if (fpsStr.length > 0) {
-            var parts = fpsStr.split("/");
+            const parts = fpsStr.split("/");
             fps = parts.length === 2 ? (parseFloat(parts[0]) / parseFloat(parts[1])) : parseFloat(fpsStr);
         }
         return fps > 0 ? Math.max(1, Math.round(1000 / fps)) : 100;
