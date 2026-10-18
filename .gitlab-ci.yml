@@ -29,10 +29,12 @@ spec:
       default: true
       description: Build aarch64 Flatpak package (arm64 runner)
 ---
+# Create the release before the package stage, then let each package job upload
+# its own asset — one failing package can never block the others.
 stages:
   - lint
-  - package
   - release
+  - package
 
 variables:
   GIT_DEPTH: 0
@@ -56,10 +58,45 @@ workflow:
   variables:
     DOCKER_HOST: tcp://docker:2376
     DOCKER_TLS_CERTDIR: "/certs"
+    GITLAB_TOKEN: $GITLAB_ACCESS_TOKEN
   before_script:
-    - apk add --no-cache bash ruby binutils libarchive-tools rpm tar zstd patchelf
+    - apk add --no-cache bash ruby binutils libarchive-tools rpm tar zstd patchelf glab
     - gem install fpm
+  needs:
+    - job: create-release
+      artifacts: false
+
+create-release:
+  stage: release
+  image: alpine:latest
+  variables:
+    GITLAB_TOKEN: $GITLAB_ACCESS_TOKEN
+  rules:
+    - if: $CI_COMMIT_TAG
   needs: []
+  before_script:
+    - apk add --no-cache glab
+  script: |
+    set -euo pipefail
+
+    TAG="$CI_COMMIT_TAG"
+    VERSION="${TAG#v}"
+    NOTES=$(awk "/^### ${VERSION}/{flag=1; next} /^### [0-9]/{flag=0} flag" CHANGELOG.md)
+    if [ -z "$NOTES" ]; then
+      NOTES="GuineaMPEG $VERSION"
+    fi
+    printf "%s" "$NOTES" > changelog.md
+
+    if glab release view "$TAG" >/dev/null 2>&1; then
+      echo "Release $TAG already exists, skipping creation"
+    else
+      glab release create "$TAG" \
+        --name "GuineaMPEG $TAG" \
+        --notes-file changelog.md
+    fi
+  artifacts:
+    paths:
+      - changelog.md
 
 package-deb:
   <<: *dind
@@ -69,6 +106,7 @@ package-deb:
     - if: '"$[[ inputs.build_deb ]]" == "true"'
   script:
     - ./build/linux-build.sh --release --package deb
+    - glab release upload "$CI_COMMIT_TAG" out/deb/*.deb
   artifacts:
     paths:
       - out/deb/
@@ -91,6 +129,7 @@ package-deb-aarch64:
     - if: '"$[[ inputs.build_deb_aarch64 ]]" == "true"'
   script:
     - ./build/linux-build.sh --release --arch aarch64 --package deb
+    - glab release upload "$CI_COMMIT_TAG" out/deb/*.deb
   artifacts:
     paths:
       - out/deb/
@@ -104,6 +143,7 @@ package-rpm:
     - if: '"$[[ inputs.build_rpm ]]" == "true"'
   script:
     - ./build/linux-build.sh --release --package rpm
+    - glab release upload "$CI_COMMIT_TAG" out/rpm/*.rpm
   artifacts:
     paths:
       - out/rpm/
@@ -123,6 +163,7 @@ package-rpm-aarch64:
     - if: '"$[[ inputs.build_rpm_aarch64 ]]" == "true"'
   script:
     - ./build/linux-build.sh --release --arch aarch64 --package rpm
+    - glab release upload "$CI_COMMIT_TAG" out/rpm/*.rpm
   artifacts:
     paths:
       - out/rpm/
@@ -136,6 +177,7 @@ package-pacman:
     - if: '"$[[ inputs.build_pacman ]]" == "true"'
   script:
     - ./build/linux-build.sh --release --package pacman
+    - glab release upload "$CI_COMMIT_TAG" out/pacman/*.pkg.tar.zst
   artifacts:
     paths:
       - out/pacman/
@@ -144,21 +186,26 @@ package-pacman:
 package-flatpak:
   stage: package
   image: debian:trixie-slim
+  variables:
+    GITLAB_TOKEN: $GITLAB_ACCESS_TOKEN
   rules:
     - *skip-on-push
     - if: '"$[[ inputs.build_flatpak ]]" == "true"'
   before_script:
     - apt-get update -qq && apt-get install -y -qq --no-install-recommends
-      flatpak flatpak-builder git elfutils ca-certificates librsvg2-common
+      flatpak flatpak-builder git elfutils ca-certificates librsvg2-common glab
     - flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
   script:
     - ./build/linux-build.sh --release --package flatpak
+    - glab release upload "$CI_COMMIT_TAG" out/flatpak/*.flatpak
   artifacts:
     paths:
       - out/flatpak/
     expire_in: 1 week
   allow_failure: true
-  needs: []
+  needs:
+    - job: create-release
+      artifacts: false
 
 # Flatpak bundles the host architecture, so arm64 flatpak builds need a real
 # ARM64 runner (the script rejects aarch64 cross-builds).
@@ -167,21 +214,26 @@ package-flatpak-aarch64:
   image: debian:trixie-slim
   tags:
     - saas-linux-small-arm64
+  variables:
+    GITLAB_TOKEN: $GITLAB_ACCESS_TOKEN
   rules:
     - *skip-on-push
     - if: '"$[[ inputs.build_flatpak_aarch64 ]]" == "true"'
   before_script:
     - apt-get update -qq && apt-get install -y -qq --no-install-recommends
-      flatpak flatpak-builder git elfutils ca-certificates librsvg2-common
+      flatpak flatpak-builder git elfutils ca-certificates librsvg2-common glab
     - flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
   script:
     - ./build/linux-build.sh --release --arch aarch64 --package flatpak
+    - glab release upload "$CI_COMMIT_TAG" out/flatpak/*.flatpak
   artifacts:
     paths:
       - out/flatpak/
     expire_in: 1 week
   allow_failure: true
-  needs: []
+  needs:
+    - job: create-release
+      artifacts: false
 
 lint:
   stage: lint
@@ -197,56 +249,3 @@ lint:
     - export LANG=C.UTF-8
   script:
     - ./build/run-lint.sh
-
-release:
-  stage: release
-  image: alpine:latest
-  variables:
-    GITLAB_TOKEN: $GITLAB_ACCESS_TOKEN
-  rules:
-    - if: $CI_COMMIT_TAG
-  needs:
-    - job: package-deb
-      artifacts: true
-    - job: package-rpm
-      artifacts: true
-    - job: package-pacman
-      artifacts: true
-    - job: package-flatpak
-      artifacts: true
-      optional: true
-    - job: package-deb-aarch64
-      artifacts: true
-      optional: true
-    - job: package-rpm-aarch64
-      artifacts: true
-      optional: true
-    - job: package-flatpak-aarch64
-      artifacts: true
-      optional: true
-  before_script:
-    - apk add --no-cache git glab
-  script: |
-    set -euo pipefail
-
-    TAG="$CI_COMMIT_TAG"
-    VERSION="${TAG#v}"
-    NOTES=$(awk "/^### ${VERSION}/{flag=1; next} /^### [0-9]/{flag=0} flag" CHANGELOG.md)
-
-    if [ -z "$NOTES" ]; then
-      NOTES="GuineaMPEG $VERSION"
-    fi
-
-    mkdir -p release-assets
-    find out/ -type f \( -name "*.tar.gz" -o -name "*.deb" -o -name "*.rpm" -o -name "*.pkg.tar.zst" -o -name "*.flatpak" \) -exec cp {} release-assets/ \;
-
-    printf "%s" "$NOTES" > changelog.md
-    glab release create "$TAG" \
-      --name "GuineaMPEG $TAG" \
-      --notes-file changelog.md
-    if ls release-assets/* >/dev/null 2>&1; then
-      glab release upload "$TAG" release-assets/*
-    fi
-  artifacts:
-    paths:
-      - changelog.md
