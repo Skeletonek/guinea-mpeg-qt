@@ -279,7 +279,7 @@ Item {
             }
 
             Button {
-                text: qsTr("Start Transcoding")
+                text: backend.transcoding ? qsTr("Add to Transcoding Queue") : qsTr("Start Transcoding")
                 enabled: hostWindow && hostWindow.currentVideoPath !== "" && hostWindow.endTime > hostWindow.startTime
                 onClicked: {
                     if (playerItem)

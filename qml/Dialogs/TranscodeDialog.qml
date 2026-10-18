@@ -10,12 +10,13 @@ Dialog {
     id: root
 
     property var appWindow: null
-    property int _lastOutputLen: 0
     property double _progress: 0
     property double _totalFrames: 0
+    // Combined history (finished jobs) + queue (active/waiting jobs)
+    property var entries: []
+    property int selectedIndex: -1
 
     function recalcProgress() {
-        _lastOutputLen = 0;
         _progress = 0;
         var job = appWindow ? appWindow.activeJob : null;
         if (!job) {
@@ -24,46 +25,109 @@ Dialog {
         }
         var fps = job.targetFps > 0 ? job.targetFps : job.sourceFps;
         _totalFrames = fps > 0 ? Math.round(fps * job.durationMs / 1000) : 0;
-        // Preserve log history: set offset to start of current job so progress
-        // is not polluted by previous jobs. When a new job starts,
-        // onActiveJobChanged will have already set _lastOutputLen to the old
-        // output length (see below), so we keep it; only for initial show
-        // where _lastOutputLen is still 0 we keep it at 0.
     }
 
-    function currentJobText() {
-        var fullText = backend.transcodeOutput;
-        var marker = "===== Job:";
-        var idx = fullText.lastIndexOf(marker);
-        if (idx >= 0) {
-            var end = fullText.indexOf("\n", idx);
-            if (end >= 0)
-                return fullText.slice(end + 1);
+    function rebuildEntries() {
+        var list = [];
+        var hist = appWindow ? appWindow.transcodeHistory : [];
+        for (var i = 0; i < hist.length; i++)
+            list.push({
+                "status": hist[i].status,
+                "output": hist[i].output,
+                "log": hist[i].log
+            });
+        var queue = appWindow ? appWindow.transcodeQueue : [];
+        for (var j = 0; j < queue.length; j++)
+            list.push({
+                "status": j === 0 ? (backend.transcoding ? "running" : "starting") : "waiting",
+                "output": queue[j].output,
+                "log": ""
+            });
+        entries = list;
+        if (selectedIndex >= list.length)
+            selectedIndex = list.length - 1;
+    }
+
+    function selectDefault() {
+        var hist = appWindow ? appWindow.transcodeHistory : [];
+        if (backend.transcoding && appWindow && appWindow.transcodeQueue.length > 0)
+            selectedIndex = hist.length;
+        else if (hist.length > 0)
+            selectedIndex = hist.length - 1;
+        else
+            selectedIndex = -1;
+    }
+
+    function statusText(status) {
+        switch (status) {
+        case "completed":
+            return qsTr("Completed");
+        case "failed":
+            return qsTr("Failed");
+        case "cancelled":
+            return qsTr("Cancelled");
+        case "running":
+            return qsTr("Running");
+        case "starting":
+            return qsTr("Starting");
+        default:
+            return qsTr("Waiting");
         }
-        return fullText;
+    }
+
+    function statusColor(status) {
+        if (status === "failed")
+            return Constants.errorColor;
+        if (status === "running" || status === "starting")
+            return theme.accent;
+        return status === "completed" ? theme.text : theme.textSecondary;
+    }
+
+    function currentLogText() {
+        if (selectedIndex < 0 || selectedIndex >= entries.length)
+            return "";
+        var e = entries[selectedIndex];
+        // The running job's log streams live from the backend buffer
+        return e.status === "running" || e.status === "starting" ? backend.transcodeOutput : e.log;
     }
 
     function parseProgress() {
-        var p = DataUtils.parseFrameProgress(currentJobText(), _totalFrames);
+        // Buffer holds only the active job's output (cleared between jobs)
+        var p = DataUtils.parseFrameProgress(backend.transcodeOutput, _totalFrames);
         if (p >= 0 && p > _progress)
             _progress = p;
-        // Keep _lastOutputLen in sync for auto-scroll logic (not used for progress now)
-        _lastOutputLen = backend.transcodeOutput.length;
     }
 
     modal: false
     closePolicy: Popup.CloseOnEscape
-    width: Constants.dialogWidthTranscode
-    height: Constants.dialogHeightTranscode
+    // Preferred size from Constants, clamped to the main window (16 margin per side)
+    width: appWindow ? Math.min(Constants.dialogWidthTranscode, appWindow.width - 32) : Constants.dialogWidthTranscode
+    height: appWindow ? Math.min(Constants.dialogHeightTranscode, appWindow.height - 32) : Constants.dialogHeightTranscode
+    x: appWindow ? Math.round((appWindow.width - width) / 2) : 0
+    y: appWindow ? Math.round((appWindow.height - height) / 2) : 0
     onAboutToShow: {
-        x = (appWindow.width - width) / 2;
-        y = (appWindow.height - height) / 2;
+        rebuildEntries();
+        selectDefault();
         recalcProgress();
+    }
+    onSelectedIndexChanged: {
+        transcodeFlickable.wasAtBottom = true;
+        transcodeFlickable.contentY = Math.max(0, transcodeFlickable.contentHeight - transcodeFlickable.height);
     }
 
     Connections {
         function onActiveJobChanged() {
+            root.rebuildEntries();
+            root.selectDefault();
             recalcProgress();
+        }
+
+        function onTranscodeQueueChanged() {
+            root.rebuildEntries();
+        }
+
+        function onTranscodeHistoryChanged() {
+            root.rebuildEntries();
         }
 
         target: appWindow
@@ -81,90 +145,120 @@ Dialog {
         anchors.fill: parent
         anchors.margins: 8
 
-        Column {
-            id: queueStrip
-
-            Layout.fillWidth: true
-            spacing: 4
-            visible: appWindow && appWindow.transcodeQueue.length > 0
-
-            Repeater {
-                model: appWindow ? appWindow.transcodeQueue : []
-
-                delegate: RowLayout {
-                    width: queueStrip.width
-                    spacing: 8
-
-                    Label {
-                        text: index + 1 + "."
-                        color: theme.textSecondary
-                        font.pixelSize: 12
-                    }
-
-                    Label {
-                        text: FormatUtils.getFilename(modelData.output)
-                        color: index === 0 ? theme.accent : theme.text
-                        font.pixelSize: 12
-                        font.bold: index === 0
-                        elide: Text.ElideMiddle
-                        Layout.fillWidth: true
-                    }
-
-                    Label {
-                        text: index === 0 ? (backend.transcoding ? qsTr("Running") : qsTr("Starting")) : qsTr("Waiting")
-                        color: index === 0 ? theme.accent : theme.textSecondary
-                        font.pixelSize: 12
-                    }
-                }
-            }
-        }
-
-        Rectangle {
+        RowLayout {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            color: theme.bg
+            spacing: 8
 
-            Flickable {
-                id: transcodeFlickable
+            ListView {
+                id: jobList
 
-                property bool wasAtBottom: true
-
-                anchors.fill: parent
-                anchors.margins: 4
-                contentHeight: outputDisplay.contentHeight
+                Layout.preferredWidth: Math.round(root.width / 3)
+                Layout.fillHeight: true
+                visible: root.entries.length > 0
+                spacing: 4
                 clip: true
                 boundsBehavior: Flickable.StopAtBounds
-                onContentYChanged: {
-                    if (height <= 0)
-                        return;
+                model: root.entries
 
-                    wasAtBottom = (contentY >= contentHeight - height - 1);
-                }
-                onContentHeightChanged: {
-                    if (height > 0 && wasAtBottom)
-                        contentY = contentHeight - height;
-                }
-                onHeightChanged: {
-                    if (height > 0 && wasAtBottom && contentHeight > 0)
-                        contentY = contentHeight - height;
-                }
+                delegate: Rectangle {
+                    width: jobList.width
+                    height: rowLayout.implicitHeight + 8
+                    radius: 4
+                    color: index === root.selectedIndex ? theme.surface : "transparent"
 
-                TextEdit {
-                    id: outputDisplay
+                    RowLayout {
+                        id: rowLayout
 
-                    width: parent.width
-                    text: backend.transcodeOutput
-                    readOnly: true
-                    font.family: "monospace"
-                    font.pixelSize: 12
-                    color: theme.text
-                    wrapMode: TextEdit.Wrap
-                    selectByMouse: true
-                    textFormat: TextEdit.PlainText
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.leftMargin: 8
+                        anchors.rightMargin: 8
+                        spacing: 8
+
+                        Label {
+                            text: index + 1 + "."
+                            color: theme.textSecondary
+                            font.pixelSize: 12
+                        }
+
+                        Label {
+                            text: FormatUtils.getFilename(modelData.output)
+                            color: root.statusColor(modelData.status)
+                            font.pixelSize: 12
+                            font.bold: modelData.status === "running"
+                            elide: Text.ElideMiddle
+                            Layout.fillWidth: true
+                        }
+
+                        Label {
+                            text: root.statusText(modelData.status)
+                            color: root.statusColor(modelData.status)
+                            font.pixelSize: 12
+                        }
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: root.selectedIndex = index
+                    }
                 }
 
                 ScrollBar.vertical: ScrollBar {
                     policy: ScrollBar.AsNeeded
+                }
+            }
+
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                color: theme.bg
+
+                Flickable {
+                    id: transcodeFlickable
+
+                    property bool wasAtBottom: true
+
+                    anchors.fill: parent
+                    anchors.margins: 4
+                    contentHeight: outputDisplay.contentHeight
+                    clip: true
+                    boundsBehavior: Flickable.StopAtBounds
+                    onContentYChanged: {
+                        if (height <= 0)
+                            return;
+
+                        wasAtBottom = (contentY >= contentHeight - height - 1);
+                    }
+                    onContentHeightChanged: {
+                        if (height > 0 && wasAtBottom)
+                            contentY = contentHeight - height;
+                    }
+                    onHeightChanged: {
+                        if (height > 0 && wasAtBottom && contentHeight > 0)
+                            contentY = contentHeight - height;
+                    }
+
+                    TextEdit {
+                        id: outputDisplay
+
+                        // Reserve room so the vertical scrollbar doesn't overlap text
+                        width: parent.width - 16
+                        text: root.currentLogText()
+                        readOnly: true
+                        font.family: "monospace"
+                        font.pixelSize: 12
+                        color: theme.text
+                        wrapMode: TextEdit.Wrap
+                        selectByMouse: true
+                        textFormat: TextEdit.PlainText
+                    }
+
+                    ScrollBar.vertical: ScrollBar {
+                        policy: ScrollBar.AsNeeded
+                    }
                 }
             }
         }
@@ -204,14 +298,22 @@ Dialog {
 
             Button {
                 text: qsTr("Clear")
-                visible: !backend.transcoding && backend.transcodeOutput !== ""
-                onClicked: backend.clearTranscodeOutput()
+                visible: !backend.transcoding && (backend.transcodeOutput !== "" || (appWindow && appWindow.transcodeHistory.length > 0))
+                onClicked: {
+                    if (appWindow)
+                        appWindow.transcodeHistory = [];
+
+                    backend.clearTranscodeOutput();
+                    root.rebuildEntries();
+                    root.selectDefault();
+                    recalcProgress();
+                }
             }
 
             Button {
                 text: qsTr("Cancel")
                 visible: backend.transcoding
-                onClicked: backend.cancelTranscode()
+                onClicked: appWindow.cancelActiveTranscode()
             }
         }
     }

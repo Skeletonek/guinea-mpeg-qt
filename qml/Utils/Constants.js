@@ -125,8 +125,8 @@ var dialogWidthMedium = 400
 var dialogWidthLarge = 460
 var dialogWidthAbout = 430
 var dialogWidthCompat = 360
-var dialogWidthTranscode = 700
-var dialogHeightTranscode = 500
+var dialogWidthTranscode = 1200
+var dialogHeightTranscode = 700
 
 // Timeline / UI colors
 var timelineTrackColor = "#555555"

@@ -1,4 +1,7 @@
 ### 0.14.0 (In progress)
+- Reworked layout of the transcoding dialog
+- Transcoding dialog now supports showing logs from previous runs
+- Improved visibility on job status in the transcoding dialog
 - Added option to change preview length
 - Added preview generation progressbar
 - Added button and "ESC" keybind to cancel preview generation

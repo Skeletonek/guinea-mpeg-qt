@@ -27,6 +27,13 @@ ApplicationWindow {
     property var selectedAudioIndices: []
     property var transcodeQueue: []
     property var activeJob: null
+    // Session-only log history of finished jobs (capped, oldest dropped first)
+    property var transcodeHistory: []
+    readonly property int maxTranscodeHistory: 100
+    // Outcome flags for the active job, consumed when it finishes
+    property bool lastJobSuccess: false
+    property bool jobEndSeen: false
+    property bool jobCancelRequested: false
     property string previewProfile: ""
 
     function loadVideo(filePath, fileUrl) {
@@ -110,12 +117,20 @@ ApplicationWindow {
         processTranscodeQueue();
     }
 
+    function cancelActiveTranscode() {
+        jobCancelRequested = true;
+        backend.cancelTranscode();
+    }
+
     function processTranscodeQueue() {
         if (activeJob !== null || transcodeQueue.length === 0)
             return;
 
         var job = transcodeQueue[0];
         activeJob = job;
+        jobCancelRequested = false;
+        jobEndSeen = false;
+        lastJobSuccess = false;
         backend.startTranscode(job.input, job.output, job.start, job.end, job.profile);
         transcodeDialog.open();
     }
@@ -375,6 +390,11 @@ ApplicationWindow {
     }
 
     Connections {
+        function onTranscodeFinished(success) {
+            lastJobSuccess = success;
+            jobEndSeen = true;
+        }
+
         function onTranscodingChanged() {
             if (backend.transcoding)
                 return;
@@ -383,6 +403,18 @@ ApplicationWindow {
             // QProcess::finished (backend.cpp:connectOutputCapture).
             Qt.callLater(function () {
                 if (transcodeQueue.length > 0) {
+                    // No transcodeFinished on cancel or spawn failure — both map to "failed" otherwise
+                    var status = jobCancelRequested ? "cancelled" : (jobEndSeen && lastJobSuccess ? "completed" : "failed");
+                    var finishedJob = transcodeQueue[0];
+                    transcodeHistory = transcodeHistory.concat([{
+                            "output": finishedJob.output,
+                            "status": status,
+                            "log": backend.transcodeOutput
+                        }]);
+                    if (transcodeHistory.length > maxTranscodeHistory)
+                        transcodeHistory = transcodeHistory.slice(transcodeHistory.length - maxTranscodeHistory);
+                    // The buffer holds one job at a time; the history entry keeps its log
+                    backend.clearTranscodeOutput();
                     transcodeQueue = transcodeQueue.slice(1);
                     activeJob = null;
                 }
