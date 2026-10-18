@@ -15,13 +15,17 @@ Rectangle {
     property string videoPath: ""
     property string profileName: ""
     property int startTimeMs: 0
+    property real sourceFps: 0
     property bool previewActive: false
     property bool previewGenerating: false
     property bool previewAvailable: false
     property url previewSource: ""
+    property int previewDurationMs: 5000
     property int pendingSeekMs: -1
     property int _seekRetries: 0
     property int _controlsBarHeight: 36
+    property double _progress: 0
+    property int _totalFrames: 0
     property alias playing: player.playing
     property alias position: player.position
     property alias duration: player.duration
@@ -55,7 +59,22 @@ Rectangle {
             if (opts.preview_duration > 0)
                 durationMs = opts.preview_duration * 1000;
         } catch (e) {}
+        root.previewDurationMs = durationMs;
+        root._totalFrames = root.sourceFps > 0 ? Math.round(root.sourceFps * durationMs / 1000) : 0;
+        root._progress = 0;
         backend.startPreview(root.videoPath, pj, root.startTimeMs, durationMs, ext);
+    }
+
+    function parseProgress() {
+        var p = DataUtils.parseFrameProgress(backend.previewOutput, root._totalFrames);
+        if (p >= 0 && p > root._progress)
+            root._progress = p;
+    }
+
+    function cancelGeneration() {
+        backend.cancelPreview();
+        root.previewGenerating = false;
+        previewFailureBanner.hide();
     }
 
     function togglePreview() {
@@ -150,6 +169,11 @@ Rectangle {
         activeFocusOnTab: true
 
         Keys.onPressed: function (event) {
+            if (event.key === Qt.Key_Escape && root.previewGenerating) {
+                root.cancelGeneration();
+                event.accepted = true;
+                return;
+            }
             var seekStep = 1000;
             if (event.modifiers & Qt.ControlModifier)
                 seekStep = 10000;
@@ -320,6 +344,13 @@ Rectangle {
         color: theme.black
         opacity: 0.7
         visible: root.previewGenerating
+        onVisibleChanged: {
+            if (visible)
+                forceActiveFocus();
+            else
+                keyCatcher.forceActiveFocus();
+        }
+        Keys.onEscapePressed: root.cancelGeneration()
 
         BusyIndicator {
             id: previewSpinner
@@ -331,6 +362,8 @@ Rectangle {
         }
 
         Text {
+            id: previewBusyLabel
+
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.top: previewSpinner.bottom
             anchors.topMargin: 8
@@ -338,10 +371,46 @@ Rectangle {
             color: theme.text
             font.pixelSize: Constants.previewGeneratingTextSize
         }
+
+        RowLayout {
+            id: progressRow
+
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.top: previewBusyLabel.bottom
+            anchors.topMargin: 16
+            width: Math.min(parent.width - 32, Constants.dialogWidthMedium)
+            spacing: 8
+
+            ProgressBar {
+                Layout.fillWidth: true
+                from: 0
+                to: 1
+                value: root._progress
+            }
+
+            Label {
+                text: Math.round(root._progress * 100) + "%"
+                color: theme.text
+                font.pixelSize: 12
+                horizontalAlignment: Text.AlignRight
+            }
+        }
+
+        Button {
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.top: progressRow.bottom
+            anchors.topMargin: 8
+            text: qsTr("Cancel")
+            onClicked: root.cancelGeneration()
+        }
     }
 
     Connections {
         target: backend
+
+        function onPreviewOutputUpdated() {
+            root.parseProgress();
+        }
 
         function onPreviewGenerated(path) {
             root.previewGenerating = false;

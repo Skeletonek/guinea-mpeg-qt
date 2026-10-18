@@ -1,3 +1,4 @@
+import "../Utils/DataUtils.js" as DataUtils
 import "../Utils/FormatUtils.js" as FormatUtils
 import GuineaMpeg 1.0
 import "../Utils/Constants.js" as Constants
@@ -43,22 +44,9 @@ Dialog {
     }
 
     function parseProgress() {
-        var jobText = currentJobText();
-        // For history mode we scan only the current job's text. Using
-        // incremental slice would require tracking job-relative offset,
-        // so just scan the whole current job text.
-        var re = /frame=\s*(\d+)/g;
-        var match, lastMatch;
-        while ((match = re.exec(jobText)) !== null)
-            lastMatch = match;
-        if (!lastMatch)
-            return;
-        var frame = parseInt(lastMatch[1]);
-        if (_totalFrames > 0) {
-            var p = Math.min(frame / _totalFrames, 1);
-            if (p > _progress)
-                _progress = p;
-        }
+        var p = DataUtils.parseFrameProgress(currentJobText(), _totalFrames);
+        if (p >= 0 && p > _progress)
+            _progress = p;
         // Keep _lastOutputLen in sync for auto-scroll logic (not used for progress now)
         _lastOutputLen = backend.transcodeOutput.length;
     }

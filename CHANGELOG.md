@@ -1,5 +1,8 @@
 ### 0.14.0 (In progress)
-- Add info banner when preview generation fails
+- Added option to change preview length
+- Added preview generation progressbar
+- Added button and "ESC" keybind to cancel preview generation
+- Added info banner when preview generation fails
 - Fixed CRF/Quality settings for AMF encoder in Windows
 - Fixed tune settings for QSV encoder in Windows
 - Fixed frame decoding for AMF, QSV and NVENC in Windows

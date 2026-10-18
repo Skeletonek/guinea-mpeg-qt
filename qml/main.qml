@@ -199,6 +199,7 @@ ApplicationWindow {
                         videoPath: appWindow.currentVideoPath
                         profileName: appWindow.currentProfile
                         startTimeMs: appWindow.startTime
+                        sourceFps: FormatUtils.fpsToDecimal(appWindow.currentVideoInfo.fps || "") || 0
                     }
 
                     Item {

@@ -423,6 +423,7 @@ QString GuineaMpegBackendExt::startPreview(const QString& rawInput, const QStrin
         const int max = 16384;
         if (m_previewStderr.size() > max)
             m_previewStderr = m_previewStderr.right(max);
+        emit previewOutputUpdated();
     });
     connect(proc, &QProcess::finished, this, [this, proc, output](int exitCode, QProcess::ExitStatus) {
         releaseProcess(m_currentPreview, proc);

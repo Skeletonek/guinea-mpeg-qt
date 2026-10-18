@@ -220,3 +220,20 @@ function advancedTemplateFromArgs(args) {
     }
     return "ffmpeg " + parts.join(" ").replace(/\[input\]/g, "{input}").replace(/\[output\]/g, "{output}")
 }
+
+/**
+ * Parses ffmpeg's `frame=` status lines from stderr text and converts the last
+ * frame count to progress (0..1). Used by both transcode and preview progress.
+ * @param {string} text - ffmpeg stderr text to scan
+ * @param {number} totalFrames - expected total frame count (0 = unknown)
+ * @returns {number} Progress 0..1, or -1 when no frame count was found
+ */
+function parseFrameProgress(text, totalFrames) {
+    var re = /frame=\s*(\d+)/g
+    var match, last
+    while ((match = re.exec(text)) !== null)
+        last = match
+    if (!last || totalFrames <= 0)
+        return -1
+    return Math.min(parseInt(last[1]) / totalFrames, 1)
+}
