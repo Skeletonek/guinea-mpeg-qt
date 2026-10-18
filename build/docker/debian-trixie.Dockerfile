@@ -1,8 +1,10 @@
 FROM debian:trixie-slim
 
-# One big apt step previously OOM'd on dind runners; keep the heavy
-# qt6-declarative-dev/qt6-tools-dev transaction in its own cached layer.
-RUN apt-get update \
+# Temporary workaround: deb.debian.org index fetches were flaky on dind runners
+# (partial update -> "Unable to locate package"), so pin a single mirror.
+# TODO: switch back to deb.debian.org once the dind flakiness is resolved.
+RUN sed -i 's/deb\.debian\.org/ftp.us.debian.org/' /etc/apt/sources.list.d/debian.sources \
+ && apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     build-essential \
     cmake \
