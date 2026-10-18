@@ -4,17 +4,17 @@
 <context>
     <name>AV1Section</name>
     <message>
-        <location filename="../qml/ProfileEditor/VideoPanel/AV1Section.qml" line="42"/>
+        <location filename="../qml/ProfileEditor/VideoPanel/AV1Section.qml" line="43"/>
         <source>Tile rows</source>
         <translation>Filas de mosaicos</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/VideoPanel/AV1Section.qml" line="63"/>
+        <location filename="../qml/ProfileEditor/VideoPanel/AV1Section.qml" line="64"/>
         <source>Tile cols</source>
         <translation>Columnas de mosaicos</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/VideoPanel/AV1Section.qml" line="87"/>
+        <location filename="../qml/ProfileEditor/VideoPanel/AV1Section.qml" line="88"/>
         <source>Enable Quantization Matrix</source>
         <translation>Habilitar matriz de cuantización</translation>
     </message>
@@ -210,97 +210,117 @@
 <context>
     <name>ControlsPanel</name>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="55"/>
+        <location filename="../qml/ControlsPanel.qml" line="56"/>
         <source>Input File</source>
         <translation>Archivo de entrada</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="62"/>
+        <location filename="../qml/ControlsPanel.qml" line="63"/>
         <source>Open File...</source>
         <translation>Abrir archivo...</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="68"/>
+        <location filename="../qml/ControlsPanel.qml" line="69"/>
         <source>Video Information</source>
         <translation>Información del video</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="99"/>
+        <location filename="../qml/ControlsPanel.qml" line="100"/>
         <source>Stream Selection</source>
         <translation>Selección de flujo</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="107"/>
+        <location filename="../qml/ControlsPanel.qml" line="108"/>
         <source>Video</source>
         <translation>Video</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="136"/>
+        <location filename="../qml/ControlsPanel.qml" line="137"/>
         <source>Audio</source>
         <translation>Audio</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="165"/>
+        <location filename="../qml/ControlsPanel.qml" line="166"/>
         <source>Transcoding Profile</source>
         <translation>Perfil de transcodificación</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="185"/>
+        <location filename="../qml/ControlsPanel.qml" line="186"/>
         <source>Profile Editor</source>
         <translation>Editor de perfiles</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="191"/>
+        <location filename="../qml/ControlsPanel.qml" line="192"/>
         <source>Timeline Selection</source>
         <translation>Selección de línea de tiempo</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="225"/>
+        <location filename="../qml/ControlsPanel.qml" line="226"/>
         <source>Output File</source>
         <translation>Archivo de salida</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="239"/>
+        <location filename="../qml/ControlsPanel.qml" line="240"/>
         <source>Output path...</source>
         <translation>Ruta de salida...</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="262"/>
-        <source>Estimated size: %1 (based on 5s preview)</source>
-        <translation>Tamaño estimado: %1 (basado en vista previa de 5s)</translation>
+        <location filename="../qml/ControlsPanel.qml" line="264"/>
+        <source>Estimated size: %1 (based on %2s preview)</source>
+        <translation>Tamaño estimado: %1 (según la vista previa de %2 s)</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="272"/>
+        <location filename="../qml/ControlsPanel.qml" line="283"/>
+        <source>Add to Transcoding Queue</source>
+        <translation>Añadir a la cola de transcodificación</translation>
+    </message>
+    <message>
+        <location filename="../qml/ControlsPanel.qml" line="296"/>
+        <source>Transcoding log</source>
+        <translation>Registro de transcodificación</translation>
+    </message>
+    <message>
+        <location filename="../qml/ControlsPanel.qml" line="306"/>
+        <source>%1 of %2 jobs failed</source>
+        <translation>Fallaron %1 de %2 tareas</translation>
+    </message>
+    <message>
+        <location filename="../qml/ControlsPanel.qml" line="306"/>
+        <source>Transcoding failed</source>
+        <translation>Error en la transcodificación</translation>
+    </message>
+    <message>
+        <location filename="../qml/ControlsPanel.qml" line="306"/>
+        <source>Transcoding complete</source>
+        <translation>Transcodificación completada</translation>
+    </message>
+    <message>
+        <location filename="../qml/ControlsPanel.qml" line="307"/>
+        <source>Transcoding in progress... (%1 queued)</source>
+        <translation>Transcodificación en curso... (%1 en cola)</translation>
+    </message>
+    <message>
+        <location filename="../qml/ControlsPanel.qml" line="307"/>
+        <source>Transcoding in progress...</source>
+        <translation>Transcodificación en curso...</translation>
+    </message>
+    <message>
+        <location filename="../qml/ControlsPanel.qml" line="274"/>
         <source>Preview outdated — regenerate preview to refresh estimate</source>
         <translation>Vista previa desactualizada — vuelva a generar la vista previa para actualizar la estimación</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="281"/>
+        <location filename="../qml/ControlsPanel.qml" line="283"/>
         <source>Start Transcoding</source>
         <translation>Iniciar transcodificación</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="295"/>
-        <source>Transcoding in progress... (%1 queued, click to view)</source>
-        <translation>Transcodificación en curso... (%1 en cola, haga clic para ver)</translation>
-    </message>
-    <message>
-        <location filename="../qml/ControlsPanel.qml" line="295"/>
-        <source>Transcoding in progress... (click to view)</source>
-        <translation>Transcodificación en curso... (haga clic para ver)</translation>
-    </message>
-    <message>
-        <location filename="../qml/ControlsPanel.qml" line="295"/>
-        <source>Transcoding complete (click to view)</source>
-        <translation>Transcodificación completada (haga clic para ver)</translation>
-    </message>
-    <message>
-        <location filename="../qml/ControlsPanel.qml" line="339"/>
+        <location filename="../qml/ControlsPanel.qml" line="346"/>
         <source>Settings</source>
         <translation>Ajustes</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="356"/>
+        <location filename="../qml/ControlsPanel.qml" line="363"/>
         <source>About</source>
         <translation>Acerca de</translation>
     </message>
@@ -418,22 +438,22 @@ Instálelo con su gestor de paquetes, p. ej.:
 <context>
     <name>GuineaMpegBackendExt</name>
     <message>
-        <location filename="../src/backend.cpp" line="339"/>
+        <location filename="../src/backend.cpp" line="343"/>
         <source>===== Job: %1 → %2 =====</source>
         <translation>===== Tarea: %1 → %2 =====</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="348"/>
+        <location filename="../src/backend.cpp" line="352"/>
         <source>Error: failed to build ffmpeg command from profile</source>
         <translation>Error: no se pudo crear el comando ffmpeg desde el perfil</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="355"/>
+        <location filename="../src/backend.cpp" line="359"/>
         <source>Error: profile produced no ffmpeg arguments</source>
         <translation>Error: el perfil no generó argumentos de ffmpeg</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="374"/>
+        <location filename="../src/backend.cpp" line="378"/>
         <source>
 --- Transcoding cancelled ---
 </source>
@@ -442,12 +462,12 @@ Instálelo con su gestor de paquetes, p. ej.:
 </translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="466"/>
+        <location filename="../src/backend.cpp" line="487"/>
         <source>[log truncated - showing last %1 lines]</source>
         <translation>[registro truncado: se muestran las últimas %1 líneas]</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="479"/>
+        <location filename="../src/backend.cpp" line="500"/>
         <source>
 --- Transcoding finished: SUCCESS ---
 </source>
@@ -456,7 +476,7 @@ Instálelo con su gestor de paquetes, p. ej.:
 </translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="482"/>
+        <location filename="../src/backend.cpp" line="503"/>
         <source>
 --- Transcoding finished: FAILED (exit code %1) ---
 </source>
@@ -465,34 +485,35 @@ Instálelo con su gestor de paquetes, p. ej.:
 </translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="485"/>
+        <location filename="../src/backend.cpp" line="506"/>
         <source>Detected error details:
 </source>
         <translation>Detalles del error detectado:
 </translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="488"/>
+        <location filename="../src/backend.cpp" line="441"/>
+        <location filename="../src/backend.cpp" line="509"/>
         <source>Unknown error (exit code %1)</source>
         <translation>Error desconocido (código de salida %1)</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="499"/>
+        <location filename="../src/backend.cpp" line="520"/>
         <source>Transcoding Complete</source>
         <translation>Transcodificación completada</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="499"/>
+        <location filename="../src/backend.cpp" line="520"/>
         <source>Transcoding Failed</source>
         <translation>Transcodificación fallida</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="500"/>
+        <location filename="../src/backend.cpp" line="521"/>
         <source>Your video has been transcoded successfully.</source>
         <translation>Su video se transcodificó correctamente.</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="501"/>
+        <location filename="../src/backend.cpp" line="522"/>
         <source>Transcoding exited with code %1</source>
         <translation>La transcodificación finalizó con el código %1</translation>
     </message>
@@ -528,73 +549,83 @@ Instálelo con su gestor de paquetes, p. ej.:
 <context>
     <name>OptionsDialog</name>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="47"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="48"/>
         <source>Options</source>
         <translation>Opciones</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="68"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="69"/>
         <source>General</source>
         <translation>General</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="75"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="76"/>
         <source>Language</source>
         <translation>Idioma</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="85"/>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="186"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="86"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="187"/>
         <source>System default</source>
         <translation>Predeterminado del sistema</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="135"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="136"/>
         <source>Qt Quick Controls style</source>
         <translation>Estilo de Qt Quick Controls</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="176"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="177"/>
         <source>Color scheme</source>
         <translation>Esquema de colores</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="190"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="191"/>
         <source>Dark</source>
         <translation>Oscuro</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="194"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="195"/>
         <source>Light</source>
         <translation>Claro</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="273"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="274"/>
+        <source>Preview</source>
+        <translation>Vista previa</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="282"/>
+        <source>Preview duration</source>
+        <translation>Duración de la vista previa</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="308"/>
         <source>Updates</source>
         <translation>Actualizaciones</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="283"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="318"/>
         <source>Check for updates on startup</source>
         <translation>Buscar actualizaciones al inicio</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="148"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="149"/>
         <source>System</source>
         <translation>Sistema</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="208"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="209"/>
         <source>Hardware acceleration</source>
         <translation>Aceleración por hardware</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="226"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="227"/>
         <source>Off</source>
         <translation>Desactivado</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="264"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="265"/>
         <source>Some settings take effect on the next launch.</source>
         <translation>Algunos ajustes tendrán efecto en el próximo inicio.</translation>
     </message>
@@ -919,52 +950,67 @@ Los perfiles personalizados que hayas creado no se verán afectados.
 <context>
     <name>TranscodeDialog</name>
     <message>
-        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="249"/>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="339"/>
         <source>Transcoding... (1 of %1)</source>
         <translation>Transcodificación... (1 de %1)</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="249"/>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="339"/>
         <source>Transcoding...</source>
         <translation>Transcodificando...</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="251"/>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="341"/>
         <source>Transcoding Complete</source>
         <translation>Transcodificación completada</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="126"/>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="70"/>
         <source>Running</source>
         <translation>En ejecución</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="126"/>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="64"/>
+        <source>Completed</source>
+        <translation>Completado</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="66"/>
+        <source>Failed</source>
+        <translation>Fallido</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="68"/>
+        <source>Cancelled</source>
+        <translation>Cancelado</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="72"/>
         <source>Starting</source>
         <translation>Iniciando</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="126"/>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="74"/>
         <source>Waiting</source>
         <translation>En espera</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="209"/>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="291"/>
         <source>ffmpeg is running...</source>
         <translation>ffmpeg está en ejecución...</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="209"/>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="291"/>
         <source>Done. You can close this window.</source>
         <translation>Listo. Puede cerrar esta ventana.</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="218"/>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="300"/>
         <source>Clear</source>
         <translation>Limpiar</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="224"/>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="314"/>
         <source>Cancel</source>
         <translation>Cancelar</translation>
     </message>
@@ -990,7 +1036,7 @@ Los perfiles personalizados que hayas creado no se verán afectados.
 <context>
     <name>VP8VP9Section</name>
     <message>
-        <location filename="../qml/ProfileEditor/VideoPanel/VP8VP9Section.qml" line="35"/>
+        <location filename="../qml/ProfileEditor/VideoPanel/VP8VP9Section.qml" line="36"/>
         <source>CPU used</source>
         <translation>Uso de CPU</translation>
     </message>
@@ -1026,29 +1072,39 @@ Los perfiles personalizados que hayas creado no se verán afectados.
 <context>
     <name>VideoPreview</name>
     <message>
-        <location filename="../qml/VideoPreview.qml" line="173"/>
+        <location filename="../qml/VideoPreview.qml" line="206"/>
         <source>No video loaded</source>
         <translation>No hay video cargado</translation>
     </message>
     <message>
-        <location filename="../qml/VideoPreview.qml" line="230"/>
+        <location filename="../qml/VideoPreview.qml" line="263"/>
         <source>Preview Mode</source>
         <translation>Modo vista previa</translation>
     </message>
     <message>
-        <location filename="../qml/VideoPreview.qml" line="230"/>
+        <location filename="../qml/VideoPreview.qml" line="263"/>
         <source>Source Mode</source>
         <translation>Modo origen</translation>
     </message>
     <message>
-        <location filename="../qml/VideoPreview.qml" line="237"/>
+        <location filename="../qml/VideoPreview.qml" line="270"/>
         <source>Regenerate</source>
         <translation>Regenerar</translation>
     </message>
     <message>
-        <location filename="../qml/VideoPreview.qml" line="313"/>
+        <location filename="../qml/VideoPreview.qml" line="333"/>
+        <source>Preview generation failed</source>
+        <translation>Error al generar la vista previa</translation>
+    </message>
+    <message>
+        <location filename="../qml/VideoPreview.qml" line="370"/>
         <source>Generating preview…</source>
         <translation>Generando vista previa…</translation>
+    </message>
+    <message>
+        <location filename="../qml/VideoPreview.qml" line="403"/>
+        <source>Cancel</source>
+        <translation type="unfinished">Cancelar</translation>
     </message>
 </context>
 <context>
@@ -1059,12 +1115,12 @@ Los perfiles personalizados que hayas creado no se verán afectados.
         <translation>Cargue un archivo de vídeo para ver la información</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="347"/>
+        <location filename="../qml/main.qml" line="375"/>
         <source>Copied to clipboard</source>
         <translation>Copiado al portapapeles</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="55"/>
+        <location filename="../qml/main.qml" line="67"/>
         <source>File: %1
 Duration: %2s
 Resolution: %3x%4
@@ -1079,7 +1135,7 @@ Video: %6
 Audio: %7</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="80"/>
+        <location filename="../qml/main.qml" line="92"/>
         <source>Please set an output file path first</source>
         <translation>Establezca primero la ruta del archivo de salida</translation>
     </message>

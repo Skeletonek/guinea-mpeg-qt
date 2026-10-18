@@ -15,6 +15,7 @@
 - Fixed preview not working in Windows due to wrong URL conversion
 - Fixed AV1 and VP8/VP9 specific settings being visible all the time
 - Fixed issue where transcoding dialog suddenly opened when starting new job
+- Updated translations
 
 ### 0.13.0
 - Added option to copy video & audio codecs, and containers in profile editor

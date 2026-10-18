@@ -4,17 +4,17 @@
 <context>
     <name>AV1Section</name>
     <message>
-        <location filename="../qml/ProfileEditor/VideoPanel/AV1Section.qml" line="42"/>
+        <location filename="../qml/ProfileEditor/VideoPanel/AV1Section.qml" line="43"/>
         <source>Tile rows</source>
         <translation>Řádky bloků</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/VideoPanel/AV1Section.qml" line="63"/>
+        <location filename="../qml/ProfileEditor/VideoPanel/AV1Section.qml" line="64"/>
         <source>Tile cols</source>
         <translation>Sloupce bloků</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/VideoPanel/AV1Section.qml" line="87"/>
+        <location filename="../qml/ProfileEditor/VideoPanel/AV1Section.qml" line="88"/>
         <source>Enable Quantization Matrix</source>
         <translation>Povolit kvantizační matici</translation>
     </message>
@@ -210,97 +210,117 @@
 <context>
     <name>ControlsPanel</name>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="55"/>
+        <location filename="../qml/ControlsPanel.qml" line="56"/>
         <source>Input File</source>
         <translation>Vstupní soubor</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="62"/>
+        <location filename="../qml/ControlsPanel.qml" line="63"/>
         <source>Open File...</source>
         <translation>Otevřít soubor...</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="68"/>
+        <location filename="../qml/ControlsPanel.qml" line="69"/>
         <source>Video Information</source>
         <translation>Informace o videu</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="99"/>
+        <location filename="../qml/ControlsPanel.qml" line="100"/>
         <source>Stream Selection</source>
         <translation>Výběr streamu</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="107"/>
+        <location filename="../qml/ControlsPanel.qml" line="108"/>
         <source>Video</source>
         <translation>Video</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="136"/>
+        <location filename="../qml/ControlsPanel.qml" line="137"/>
         <source>Audio</source>
         <translation>Zvuk</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="165"/>
+        <location filename="../qml/ControlsPanel.qml" line="166"/>
         <source>Transcoding Profile</source>
         <translation>Profil transkódování</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="185"/>
+        <location filename="../qml/ControlsPanel.qml" line="186"/>
         <source>Profile Editor</source>
         <translation>Editor profilů</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="191"/>
+        <location filename="../qml/ControlsPanel.qml" line="192"/>
         <source>Timeline Selection</source>
         <translation>Výběr časové osy</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="225"/>
+        <location filename="../qml/ControlsPanel.qml" line="226"/>
         <source>Output File</source>
         <translation>Výstupní soubor</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="239"/>
+        <location filename="../qml/ControlsPanel.qml" line="240"/>
         <source>Output path...</source>
         <translation>Cesta výstupu...</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="262"/>
-        <source>Estimated size: %1 (based on 5s preview)</source>
-        <translation>Odhadovaná velikost: %1 (na základě 5s náhledu)</translation>
+        <location filename="../qml/ControlsPanel.qml" line="264"/>
+        <source>Estimated size: %1 (based on %2s preview)</source>
+        <translation>Odhadovaná velikost: %1 (na základě náhledu o délce %2 s)</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="272"/>
+        <location filename="../qml/ControlsPanel.qml" line="283"/>
+        <source>Add to Transcoding Queue</source>
+        <translation>Přidat do fronty transkódování</translation>
+    </message>
+    <message>
+        <location filename="../qml/ControlsPanel.qml" line="296"/>
+        <source>Transcoding log</source>
+        <translation>Protokol transkódování</translation>
+    </message>
+    <message>
+        <location filename="../qml/ControlsPanel.qml" line="306"/>
+        <source>%1 of %2 jobs failed</source>
+        <translation>%1 z %2 úloh selhalo</translation>
+    </message>
+    <message>
+        <location filename="../qml/ControlsPanel.qml" line="306"/>
+        <source>Transcoding failed</source>
+        <translation>Transkódování selhalo</translation>
+    </message>
+    <message>
+        <location filename="../qml/ControlsPanel.qml" line="306"/>
+        <source>Transcoding complete</source>
+        <translation>Transkódování dokončeno</translation>
+    </message>
+    <message>
+        <location filename="../qml/ControlsPanel.qml" line="307"/>
+        <source>Transcoding in progress... (%1 queued)</source>
+        <translation>Probíhá transkódování... (%1 ve frontě)</translation>
+    </message>
+    <message>
+        <location filename="../qml/ControlsPanel.qml" line="307"/>
+        <source>Transcoding in progress...</source>
+        <translation>Probíhá transkódování...</translation>
+    </message>
+    <message>
+        <location filename="../qml/ControlsPanel.qml" line="274"/>
         <source>Preview outdated — regenerate preview to refresh estimate</source>
         <translation>Náhled je zastaralý — znovu vygenerujte náhled pro aktualizaci odhadu</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="281"/>
+        <location filename="../qml/ControlsPanel.qml" line="283"/>
         <source>Start Transcoding</source>
         <translation>Zahájit transkódování</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="295"/>
-        <source>Transcoding in progress... (%1 queued, click to view)</source>
-        <translation>Probíhá převod... (%1 ve frontě, klikněte pro zobrazení)</translation>
-    </message>
-    <message>
-        <location filename="../qml/ControlsPanel.qml" line="295"/>
-        <source>Transcoding in progress... (click to view)</source>
-        <translation>Transkódování probíhá... (klikněte pro zobrazení)</translation>
-    </message>
-    <message>
-        <location filename="../qml/ControlsPanel.qml" line="295"/>
-        <source>Transcoding complete (click to view)</source>
-        <translation>Transkódování dokončeno (klikněte pro zobrazení)</translation>
-    </message>
-    <message>
-        <location filename="../qml/ControlsPanel.qml" line="339"/>
+        <location filename="../qml/ControlsPanel.qml" line="346"/>
         <source>Settings</source>
         <translation>Nastavení</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="356"/>
+        <location filename="../qml/ControlsPanel.qml" line="363"/>
         <source>About</source>
         <translation>O aplikaci</translation>
     </message>
@@ -418,22 +438,22 @@ Nainstalujte jej pomocí správce balíčků, např.:
 <context>
     <name>GuineaMpegBackendExt</name>
     <message>
-        <location filename="../src/backend.cpp" line="339"/>
+        <location filename="../src/backend.cpp" line="343"/>
         <source>===== Job: %1 → %2 =====</source>
         <translation>===== Úloha: %1 → %2 =====</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="348"/>
+        <location filename="../src/backend.cpp" line="352"/>
         <source>Error: failed to build ffmpeg command from profile</source>
         <translation>Chyba: nepodařilo se sestavit příkaz ffmpeg z profilu</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="355"/>
+        <location filename="../src/backend.cpp" line="359"/>
         <source>Error: profile produced no ffmpeg arguments</source>
         <translation>Chyba: profil nevytvořil žádné argumenty ffmpeg</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="374"/>
+        <location filename="../src/backend.cpp" line="378"/>
         <source>
 --- Transcoding cancelled ---
 </source>
@@ -442,12 +462,12 @@ Nainstalujte jej pomocí správce balíčků, např.:
 </translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="466"/>
+        <location filename="../src/backend.cpp" line="487"/>
         <source>[log truncated - showing last %1 lines]</source>
         <translation>[log zkrácen – zobrazuje se posledních %1 řádků]</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="479"/>
+        <location filename="../src/backend.cpp" line="500"/>
         <source>
 --- Transcoding finished: SUCCESS ---
 </source>
@@ -456,7 +476,7 @@ Nainstalujte jej pomocí správce balíčků, např.:
 </translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="482"/>
+        <location filename="../src/backend.cpp" line="503"/>
         <source>
 --- Transcoding finished: FAILED (exit code %1) ---
 </source>
@@ -465,34 +485,35 @@ Nainstalujte jej pomocí správce balíčků, např.:
 </translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="485"/>
+        <location filename="../src/backend.cpp" line="506"/>
         <source>Detected error details:
 </source>
         <translation>Zjištěné podrobnosti chyby:
 </translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="488"/>
+        <location filename="../src/backend.cpp" line="441"/>
+        <location filename="../src/backend.cpp" line="509"/>
         <source>Unknown error (exit code %1)</source>
         <translation>Neznámá chyba (ukončovací kód %1)</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="499"/>
+        <location filename="../src/backend.cpp" line="520"/>
         <source>Transcoding Complete</source>
         <translation>Transkódování dokončeno</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="499"/>
+        <location filename="../src/backend.cpp" line="520"/>
         <source>Transcoding Failed</source>
         <translation>Transkódování selhalo</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="500"/>
+        <location filename="../src/backend.cpp" line="521"/>
         <source>Your video has been transcoded successfully.</source>
         <translation>Vaše video bylo úspěšně přetranskódováno.</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="501"/>
+        <location filename="../src/backend.cpp" line="522"/>
         <source>Transcoding exited with code %1</source>
         <translation>Transkódování skončilo s kódem %1</translation>
     </message>
@@ -528,73 +549,83 @@ Nainstalujte jej pomocí správce balíčků, např.:
 <context>
     <name>OptionsDialog</name>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="47"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="48"/>
         <source>Options</source>
         <translation>Možnosti</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="68"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="69"/>
         <source>General</source>
         <translation>Obecné</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="75"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="76"/>
         <source>Language</source>
         <translation>Jazyk</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="85"/>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="186"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="86"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="187"/>
         <source>System default</source>
         <translation>Systémový výchozí</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="135"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="136"/>
         <source>Qt Quick Controls style</source>
         <translation>Styl Qt Quick Controls</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="176"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="177"/>
         <source>Color scheme</source>
         <translation>Barevné schéma</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="190"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="191"/>
         <source>Dark</source>
         <translation>Tmavý</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="194"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="195"/>
         <source>Light</source>
         <translation>Světlý</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="273"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="274"/>
+        <source>Preview</source>
+        <translation>Náhled</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="282"/>
+        <source>Preview duration</source>
+        <translation>Délka náhledu</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="308"/>
         <source>Updates</source>
         <translation>Aktualizace</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="283"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="318"/>
         <source>Check for updates on startup</source>
         <translation>Kontrolovat aktualizace při spuštění</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="148"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="149"/>
         <source>System</source>
         <translation>Systém</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="208"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="209"/>
         <source>Hardware acceleration</source>
         <translation>Hardwarová akcelerace</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="226"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="227"/>
         <source>Off</source>
         <translation>Vypnuto</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OptionsDialog.qml" line="264"/>
+        <location filename="../qml/Dialogs/OptionsDialog.qml" line="265"/>
         <source>Some settings take effect on the next launch.</source>
         <translation>Některá nastavení se projeví při příštím spuštění.</translation>
     </message>
@@ -919,52 +950,67 @@ Pokračovat?</translation>
 <context>
     <name>TranscodeDialog</name>
     <message>
-        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="249"/>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="339"/>
         <source>Transcoding... (1 of %1)</source>
         <translation>Převod... (1 z %1)</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="249"/>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="339"/>
         <source>Transcoding...</source>
         <translation>Transkódování...</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="251"/>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="341"/>
         <source>Transcoding Complete</source>
         <translation>Transkódování dokončeno</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="126"/>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="70"/>
         <source>Running</source>
         <translation>Běží</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="126"/>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="64"/>
+        <source>Completed</source>
+        <translation>Dokončeno</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="66"/>
+        <source>Failed</source>
+        <translation>Selhalo</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="68"/>
+        <source>Cancelled</source>
+        <translation>Zrušeno</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="72"/>
         <source>Starting</source>
         <translation>Spouští se</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="126"/>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="74"/>
         <source>Waiting</source>
         <translation>Čeká</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="209"/>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="291"/>
         <source>ffmpeg is running...</source>
         <translation>ffmpeg běží...</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="209"/>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="291"/>
         <source>Done. You can close this window.</source>
         <translation>Hotovo. Toto okno můžete zavřít.</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="218"/>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="300"/>
         <source>Clear</source>
         <translation>Vymazat</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="224"/>
+        <location filename="../qml/Dialogs/TranscodeDialog.qml" line="314"/>
         <source>Cancel</source>
         <translation>Zrušit</translation>
     </message>
@@ -990,7 +1036,7 @@ Pokračovat?</translation>
 <context>
     <name>VP8VP9Section</name>
     <message>
-        <location filename="../qml/ProfileEditor/VideoPanel/VP8VP9Section.qml" line="35"/>
+        <location filename="../qml/ProfileEditor/VideoPanel/VP8VP9Section.qml" line="36"/>
         <source>CPU used</source>
         <translation>Využití CPU</translation>
     </message>
@@ -1026,29 +1072,39 @@ Pokračovat?</translation>
 <context>
     <name>VideoPreview</name>
     <message>
-        <location filename="../qml/VideoPreview.qml" line="173"/>
+        <location filename="../qml/VideoPreview.qml" line="206"/>
         <source>No video loaded</source>
         <translation>Není načteno žádné video</translation>
     </message>
     <message>
-        <location filename="../qml/VideoPreview.qml" line="230"/>
+        <location filename="../qml/VideoPreview.qml" line="263"/>
         <source>Preview Mode</source>
         <translation>Režim náhledu</translation>
     </message>
     <message>
-        <location filename="../qml/VideoPreview.qml" line="230"/>
+        <location filename="../qml/VideoPreview.qml" line="263"/>
         <source>Source Mode</source>
         <translation>Režim zdroje</translation>
     </message>
     <message>
-        <location filename="../qml/VideoPreview.qml" line="237"/>
+        <location filename="../qml/VideoPreview.qml" line="270"/>
         <source>Regenerate</source>
         <translation>Regenerovat</translation>
     </message>
     <message>
-        <location filename="../qml/VideoPreview.qml" line="313"/>
+        <location filename="../qml/VideoPreview.qml" line="333"/>
+        <source>Preview generation failed</source>
+        <translation>Generování náhledu selhalo</translation>
+    </message>
+    <message>
+        <location filename="../qml/VideoPreview.qml" line="370"/>
         <source>Generating preview…</source>
         <translation>Generování náhledu…</translation>
+    </message>
+    <message>
+        <location filename="../qml/VideoPreview.qml" line="403"/>
+        <source>Cancel</source>
+        <translation type="unfinished">Zrušit</translation>
     </message>
 </context>
 <context>
@@ -1059,12 +1115,12 @@ Pokračovat?</translation>
         <translation>Načtěte video soubor pro zobrazení informací</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="347"/>
+        <location filename="../qml/main.qml" line="375"/>
         <source>Copied to clipboard</source>
         <translation>Zkopírováno do schránky</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="55"/>
+        <location filename="../qml/main.qml" line="67"/>
         <source>File: %1
 Duration: %2s
 Resolution: %3x%4
@@ -1079,7 +1135,7 @@ Video: %6
 Zvuk: %7</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="80"/>
+        <location filename="../qml/main.qml" line="92"/>
         <source>Please set an output file path first</source>
         <translation>Nejprve nastavte cestu výstupního souboru</translation>
     </message>
