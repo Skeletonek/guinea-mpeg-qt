@@ -1,4 +1,4 @@
-### 0.14.0 (In progress)
+### 0.14.0
 - Reworked layout of the transcoding dialog
 - Transcoding dialog now supports showing logs from previous runs
 - Improved visibility on job status in the transcoding dialog
