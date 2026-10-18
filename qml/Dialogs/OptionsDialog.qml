@@ -40,6 +40,7 @@ Dialog {
         colorSchemeCombo.currentIndex = _indexOfValue(colorSchemeCombo, root._loadedColorScheme);
         hwdecCombo.currentIndex = _indexOfValue(hwdecCombo, opts.hwdec || "auto-copy");
         checkForUpdatesSwitch.checked = opts.check_for_updates !== false;
+        previewDurationSpin.value = opts.preview_duration || 5;
         _loadingOptions = false;
         _updateColorSchemeLock();
     }
@@ -267,6 +268,40 @@ Dialog {
             Layout.fillWidth: true
             Layout.topMargin: 4
             visible: root.restartRequired
+        }
+
+        Label {
+            text: qsTr("Preview")
+            font.bold: true
+            font.pixelSize: 14
+            color: theme.text
+            Layout.topMargin: 8
+        }
+
+        Label {
+            text: qsTr("Preview duration")
+            color: theme.textMuted
+        }
+
+        SpinBox {
+            id: previewDurationSpin
+
+            Layout.fillWidth: true
+            from: 1
+            to: 60
+            editable: true
+            textFromValue: function (value) {
+                return value + " s";
+            }
+            valueFromText: function (text) {
+                return parseInt(text);
+            }
+            onValueModified: {
+                if (root._loadingOptions)
+                    return;
+
+                backend.setOption("previewDuration", String(value));
+            }
         }
 
         Label {

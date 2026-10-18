@@ -236,21 +236,19 @@ fn add_filter_graph(args: &mut Vec<String>, profile: &VideoProfile, family: Enco
 }
 
 fn push_hwaccel_args(args: &mut Vec<String>, family: EncoderFamily) {
-    match family {
-        EncoderFamily::Vaapi => {
-            args.push("-hwaccel".to_string());
-            args.push("vaapi".to_string());
-            args.push("-hwaccel_output_format".to_string());
-            args.push("vaapi".to_string());
-            if let Some(dev) = detect_vaapi_device() {
-                args.push("-vaapi_device".to_string());
-                args.push(dev);
-            }
-        }
-        // AMF/NVENC/QSV: software decode — the encoder accepts system-memory
-        // frames and uploads itself; a hwupload in filters would need a
-        // device reference
-        _ => {}
+    // AMF/NVENC/QSV: software decode — the encoder accepts system-memory
+    // frames and uploads itself; a hwupload in filters would need a
+    // device reference
+    if family != EncoderFamily::Vaapi {
+        return;
+    }
+    args.push("-hwaccel".to_string());
+    args.push("vaapi".to_string());
+    args.push("-hwaccel_output_format".to_string());
+    args.push("vaapi".to_string());
+    if let Some(dev) = detect_vaapi_device() {
+        args.push("-vaapi_device".to_string());
+        args.push(dev);
     }
 }
 

@@ -49,7 +49,13 @@ Rectangle {
         }
         root.previewAvailable = false;
         root.previewGenerating = true;
-        backend.startPreview(root.videoPath, pj, root.startTimeMs, 5000, ext);
+        var durationMs = 5000;
+        try {
+            var opts = JSON.parse(backend.getOptions());
+            if (opts.preview_duration > 0)
+                durationMs = opts.preview_duration * 1000;
+        } catch (e) {}
+        backend.startPreview(root.videoPath, pj, root.startTimeMs, durationMs, ext);
     }
 
     function togglePreview() {

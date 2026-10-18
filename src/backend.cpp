@@ -405,6 +405,9 @@ QString GuineaMpegBackendExt::startPreview(const QString& rawInput, const QStrin
     double startTime = startTimeMs / 1000.0;
     double endTime = (startTimeMs + durationMs) / 1000.0;
 
+    m_lastPreviewDurationMs = (qint64)durationMs;
+    emit lastPreviewDurationMsChanged();
+
     QStringList args = buildArgsFromProfile(input, output, startTime, endTime, profileJson);
     if (args.isEmpty()) {
         setPreviewGenerating(false);

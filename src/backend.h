@@ -18,6 +18,7 @@ class GuineaMpegBackendExt : public QObject {
     Q_PROPERTY(bool previewGenerating READ previewGenerating WRITE setPreviewGenerating NOTIFY previewGeneratingChanged)
     Q_PROPERTY(QString lastPreviewPath READ lastPreviewPath NOTIFY lastPreviewPathChanged)
     Q_PROPERTY(qint64 lastPreviewSize READ lastPreviewSize NOTIFY lastPreviewSizeChanged)
+    Q_PROPERTY(qint64 lastPreviewDurationMs READ lastPreviewDurationMs NOTIFY lastPreviewDurationMsChanged)
     Q_PROPERTY(QString lastPreviewError READ lastPreviewError NOTIFY lastPreviewErrorChanged)
   public:
     explicit GuineaMpegBackendExt(QObject* parent = nullptr);
@@ -48,6 +49,9 @@ class GuineaMpegBackendExt : public QObject {
     }
     qint64 lastPreviewSize() const {
         return m_lastPreviewSize;
+    }
+    qint64 lastPreviewDurationMs() const {
+        return m_lastPreviewDurationMs;
     }
     QString lastPreviewError() const {
         return m_lastPreviewError;
@@ -99,6 +103,7 @@ class GuineaMpegBackendExt : public QObject {
     void previewFailed();
     void lastPreviewPathChanged();
     void lastPreviewSizeChanged();
+    void lastPreviewDurationMsChanged();
     void lastPreviewErrorChanged();
 
   private:
@@ -112,6 +117,7 @@ class GuineaMpegBackendExt : public QObject {
     bool m_previewGenerating = false;
     QString m_lastPreviewPath;
     qint64 m_lastPreviewSize = 0;
+    qint64 m_lastPreviewDurationMs = 5000;
     QString m_lastPreviewError;
     QString m_previewStderr;
     QString extractTranscodeError(const QString& output) const;

@@ -84,6 +84,7 @@ fn options_defaults_when_absent() {
     assert_eq!(cfg.options.color_scheme, "system");
     assert_eq!(cfg.options.hwdec, "auto-copy");
     assert_eq!(cfg.options.preview_volume, 100.0);
+    assert_eq!(cfg.options.preview_duration, 5.0);
     assert!(cfg.options.check_for_updates);
 }
 
@@ -100,9 +101,22 @@ fn set_option_preview_volume_clamped() {
 }
 
 #[test]
+fn set_option_preview_duration_clamped() {
+    with_config_dir(tempdir().unwrap().path(), |_dir| {
+        assert!(set_option("previewDuration", "120").is_ok());
+        assert_eq!(get_options().preview_duration, 60.0);
+        assert!(set_option("previewDuration", "0").is_ok());
+        assert_eq!(get_options().preview_duration, 1.0);
+        assert!(set_option("previewDuration", "7.5").is_ok());
+        assert_eq!(get_options().preview_duration, 7.5);
+    });
+}
+
+#[test]
 fn set_option_validates_values() {
     with_config_dir(tempdir().unwrap().path(), |_dir| {
         assert!(set_option("previewVolume", "abc").is_err());
+        assert!(set_option("previewDuration", "abc").is_err());
         assert!(set_option("checkForUpdates", "notabool").is_err());
         assert!(set_option("unknownKey", "x").is_err());
     });

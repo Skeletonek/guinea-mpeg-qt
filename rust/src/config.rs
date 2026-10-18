@@ -6,6 +6,8 @@ use std::sync::Mutex;
 const DEFAULT_SYSTEM_PROFILES_PATH: &str = "/usr/share/guinea-mpeg/default_profiles.toml";
 const MAX_VOLUME: f64 = 100.0;
 const MIN_VOLUME: f64 = 0.0;
+const MAX_PREVIEW_DURATION: f64 = 60.0;
+const MIN_PREVIEW_DURATION: f64 = 1.0;
 
 static CONFIG: Mutex<Option<AppConfig>> = Mutex::new(None);
 
@@ -64,6 +66,8 @@ pub struct AppOptions {
     pub hwdec: String,
     #[serde(default = "default_preview_volume")]
     pub preview_volume: f64,
+    #[serde(default = "default_preview_duration")]
+    pub preview_duration: f64,
     #[serde(default = "default_check_for_updates")]
     pub check_for_updates: bool,
 }
@@ -88,6 +92,10 @@ fn default_preview_volume() -> f64 {
     100.0
 }
 
+fn default_preview_duration() -> f64 {
+    5.0
+}
+
 fn default_check_for_updates() -> bool {
     true
 }
@@ -100,6 +108,7 @@ impl Default for AppOptions {
             color_scheme: default_color_scheme(),
             hwdec: default_hwdec(),
             preview_volume: default_preview_volume(),
+            preview_duration: default_preview_duration(),
             check_for_updates: default_check_for_updates(),
         }
     }
@@ -421,6 +430,12 @@ pub fn set_option(key: &str, value: &str) -> anyhow::Result<()> {
                 .parse()
                 .map_err(|_| anyhow::anyhow!("invalid numeric value"))?;
             cfg.options.preview_volume = v.clamp(MIN_VOLUME, MAX_VOLUME);
+        }
+        "previewDuration" => {
+            let v: f64 = value
+                .parse()
+                .map_err(|_| anyhow::anyhow!("invalid numeric value"))?;
+            cfg.options.preview_duration = v.clamp(MIN_PREVIEW_DURATION, MAX_PREVIEW_DURATION);
         }
         "checkForUpdates" => {
             let v: bool = value
