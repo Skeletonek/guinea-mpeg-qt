@@ -124,7 +124,6 @@ var dialogWidthSmall = 380
 var dialogWidthMedium = 400
 var dialogWidthLarge = 460
 var dialogWidthAbout = 430
-var dialogWidthCompat = 360
 var dialogWidthTranscode = 1200
 var dialogHeightTranscode = 700
 

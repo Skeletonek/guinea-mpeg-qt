@@ -12,10 +12,8 @@ Column {
     property bool loading: false
     readonly property var codec: Constants.codecKeys[codecCombo.currentIndex]
     readonly property var codecLabels: Constants.codecLabels
-    readonly property var codecKeys: Constants.codecKeys
 
     signal changed
-    signal openEncoderCompatDialog
     signal encoderSelectionChanged(string encName)
 
     function rebuildCodecItems() {
@@ -142,40 +140,21 @@ Column {
         enabled: Constants.codecKeys[codecCombo.currentIndex] !== "copy"
         opacity: enabled ? 1.0 : 0.4
 
-        Row {
-            spacing: 8
+        ComboBox {
+            id: encoderCombo
+
             width: parent.width - parent.effectiveLabelWidth - parent.spacing
-
-            Button {
-                id: compatInfoBtn
-
-                width: 32
-                height: 32
-                text: "?"
-                font.bold: true
-                font.pixelSize: 15
-                enabled: Constants.codecKeys[codecCombo.currentIndex] !== "copy"
-                onClicked: root.openEncoderCompatDialog()
-                ToolTip.visible: hovered
-                ToolTip.text: qsTr("Show available encoders")
+            editable: true
+            enabled: Constants.codecKeys[codecCombo.currentIndex] !== "copy"
+            onCurrentIndexChanged: {
+                root.encoderSelectionChanged(root._currentEncoderText());
             }
-
-            ComboBox {
-                id: encoderCombo
-
-                width: parent.width - compatInfoBtn.width - root.spacing
-                editable: true
-                enabled: Constants.codecKeys[codecCombo.currentIndex] !== "copy"
-                onCurrentIndexChanged: {
-                    root.encoderSelectionChanged(root._currentEncoderText());
-                }
-                onEditTextChanged: {
-                    if (!root.loading)
-                        root.changed();
-                }
-                onAccepted: {
-                    root.encoderSelectionChanged(root._currentEncoderText());
-                }
+            onEditTextChanged: {
+                if (!root.loading)
+                    root.changed();
+            }
+            onAccepted: {
+                root.encoderSelectionChanged(root._currentEncoderText());
             }
         }
     }

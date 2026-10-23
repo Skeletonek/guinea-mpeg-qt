@@ -522,20 +522,4 @@ Rectangle {
             showNotification(qsTr("Import failed: %1").arg(message), Constants.errorColor);
         }
     }
-
-    EncoderCompatDialog {
-        id: compatDialog
-
-        codecLabels: videoPanel.codecLabels
-        codecKeys: videoPanel.codecKeys
-        availableEncoders: videoPanel._availableEncoders
-    }
-
-    Connections {
-        function onOpenEncoderCompatDialog() {
-            compatDialog.open();
-        }
-
-        target: videoPanel
-    }
 }

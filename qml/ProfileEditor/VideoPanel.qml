@@ -13,14 +13,11 @@ Column {
     property bool loading: false
     readonly property alias videoEnabled: videoEnabledSwitch.checked
     readonly property string codec: codecSection ? codecSection.codec : Constants.codecKeys[0]
-    readonly property var codecLabels: codecSection ? codecSection.codecLabels : []
-    readonly property var codecKeys: codecSection ? codecSection.codecKeys : []
     readonly property bool _isAnimated: codec === "gif" || codec === "webp"
     readonly property bool _isCopy: codec === "copy"
     readonly property string container: containerSection ? containerSection.container : ""
 
     signal changed
-    signal openEncoderCompatDialog
 
     function loadAvailableEncoders() {
         var raw = backend.availableEncoders();
@@ -199,7 +196,6 @@ Column {
             _availableEncoders: root._availableEncoders
             loading: root.loading
             onChanged: root.changed()
-            onOpenEncoderCompatDialog: root.openEncoderCompatDialog()
             onEncoderSelectionChanged: function (encName) {
                 root.refreshAll(encName);
             }

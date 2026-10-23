@@ -1,9 +1,11 @@
 ### 0.15.0
 - Added more precise time formatting
 - Added note icon when playing audio file with no video streams (no cover art)
+- Added "Media Files" filter in open file dialog for both audio and video files
 - Renamed "Video Information" section to "Media Information"
 - Swaped "Preview Mode" button place with "Regenerate" button in Preview Mode
 - Fixed not refreshing video playback when loading audio file with no cover art after playing a video file
+- Removed encoder compatibility dialog in profile editor
 
 ### 0.14.0
 - Reworked layout of the transcoding dialog
