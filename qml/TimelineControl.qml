@@ -10,15 +10,12 @@ Rectangle {
     property int startTime: 0
     property int endTime: 0
     property var mainWindow: null
-    readonly property int nudgeStep: {
-        var fpsStr = mainWindow && mainWindow.currentVideoInfo ? String(mainWindow.currentVideoInfo.fps || "") : "";
-        var fps = 0;
-        if (fpsStr.length > 0) {
-            const parts = fpsStr.split("/");
-            fps = parts.length === 2 ? (parseFloat(parts[0]) / parseFloat(parts[1])) : parseFloat(fpsStr);
-        }
-        return fps > 0 ? Math.max(1, Math.round(1000 / fps)) : 100;
+    // Source FPS as a decimal, derived from currentVideoInfo
+    readonly property real fps: {
+        var info = mainWindow && mainWindow.currentVideoInfo ? mainWindow.currentVideoInfo : null;
+        return info ? (FormatUtils.fpsToDecimal(String(info.fps || "")) || 0) : 0;
     }
+    readonly property int nudgeStep: fps > 0 ? Math.max(1, Math.round(1000 / fps)) : 100
 
     function nudgeStartTime(dir) {
         var step = (dir < 0 ? -1 : 1) * nudgeStep;
@@ -51,13 +48,13 @@ Rectangle {
             spacing: 8
 
             Label {
-                text: FormatUtils.formatTime(startTime)
+                text: FormatUtils.formatTimePrecise(startTime, root.fps)
                 width: 80
                 color: theme.text
             }
 
             Label {
-                text: FormatUtils.formatTime(endTime)
+                text: FormatUtils.formatTimePrecise(endTime, root.fps)
                 width: 80
                 color: theme.text
             }

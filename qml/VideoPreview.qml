@@ -253,7 +253,7 @@ Rectangle {
             }
 
             Label {
-                text: FormatUtils.formatTime(player.position) + " / " + FormatUtils.formatTime(player.duration)
+                text: FormatUtils.formatTimePrecise(player.position, root.sourceFps) + " / " + FormatUtils.formatTimePrecise(player.duration, root.sourceFps)
                 color: theme.text
                 verticalAlignment: Text.AlignVCenter
                 Layout.fillHeight: true
