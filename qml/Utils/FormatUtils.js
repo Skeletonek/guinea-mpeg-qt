@@ -13,30 +13,29 @@ function formatTime(ms) {
 }
 
 /**
- * Time formatting utility - MM:SS with sub-second precision:
- * frame index within the current second when fps is known, milliseconds otherwise.
+ * Time formatting utility - MM:SS with 3 digits past the seconds
+ * (milliseconds standard): frame index within the current second when fps is
+ * known, milliseconds otherwise.
  * @param {number} ms - Time in milliseconds
  * @param {number} [fps] - Frames per second; 0/null falls back to milliseconds
- * @returns {string} Formatted time string (MM:SS.ff or MM:SS.mmm)
+ * @returns {string} Formatted time string (MM:SS.fff)
  */
 function formatTimePrecise(ms, fps) {
     var t = Math.max(0, ms)
-    var frame = 0
-    var digits = 3
+    var frac = 0
     if (fps > 0) {
         var perSecond = Math.ceil(fps)
-        digits = String(perSecond - 1).length
-        frame = Math.min(perSecond - 1, Math.floor((t % 1000) * fps / 1000))
+        frac = Math.min(perSecond - 1, Math.floor((t % 1000) * fps / 1000))
     } else {
-        frame = t % 1000
+        frac = t % 1000
     }
     var s = Math.floor(t / 1000)
     var m = Math.floor(s / 60)
     s = s % 60
-    var frac = String(frame)
-    while (frac.length < digits)
-        frac = "0" + frac
-    return (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s + "." + frac
+    var text = String(frac)
+    while (text.length < 3)
+        text = "0" + text
+    return (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s + "." + text
 }
 
 /**

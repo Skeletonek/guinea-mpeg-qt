@@ -64,7 +64,7 @@ ApplicationWindow {
         selectedAudioIndices = ai;
         var name = FormatUtils.getFilename(filePath);
         var fps = FormatUtils.formatFps(info.fps || "0/1");
-        videoInfoText = qsTr("File: %1\nDuration: %2s\nResolution: %3x%4\nFPS: %5\nVideo: %6\nAudio: %7").arg(name).arg(info.duration.toFixed(1)).arg(info.width).arg(info.height).arg(fps).arg(info.codec).arg(info.audio_codec || "N/A");
+        videoInfoText = qsTr("File: %1\nDuration: %2s\nResolution: %3x%4\nFPS: %5\nVideo: %6\nAudio: %7").arg(name).arg(info.duration.toFixed(3)).arg(info.width).arg(info.height).arg(fps).arg(info.codec).arg(info.audio_codec || "N/A");
         var base = FormatUtils.getBaseFilename(name);
         var dir = FormatUtils.getDirectory(filePath);
         var profileData = {};

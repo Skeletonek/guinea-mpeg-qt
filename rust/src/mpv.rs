@@ -162,6 +162,10 @@ pub extern "C" fn guinea_mpeg_mpv_load_file(ptr: *mut c_void, path: *const c_cha
         return;
     }
     let backend = backend_from_ptr(ptr);
+    // Reset cache or an identical-duration reload (regenerated preview) is
+    // never reported as changed
+    backend.position = 0;
+    backend.duration = 0;
     let c_loadfile = c_str("loadfile");
     let c_path = c_str(p);
     let args = [c_loadfile.as_ptr(), c_path.as_ptr(), std::ptr::null()];

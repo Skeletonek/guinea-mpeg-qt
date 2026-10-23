@@ -66,7 +66,7 @@ Item {
             }
 
             Label {
-                text: qsTr("Video Information")
+                text: qsTr("Media Information")
                 font.bold: true
                 font.pixelSize: 16
                 color: theme.text
