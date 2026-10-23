@@ -271,18 +271,18 @@ Rectangle {
             }
 
             Button {
-                text: root.previewActive ? qsTr("Preview Mode") : qsTr("Source Mode")
-                enabled: root.previewActive || !root.previewGenerating
-                Layout.fillHeight: true
-                onClicked: root.togglePreview()
-            }
-
-            Button {
                 text: qsTr("Regenerate")
                 visible: root.previewActive
                 enabled: !root.previewGenerating
                 Layout.fillHeight: true
                 onClicked: root.generatePreview()
+            }
+
+            Button {
+                text: root.previewActive ? qsTr("Preview Mode") : qsTr("Source Mode")
+                enabled: root.previewActive || !root.previewGenerating
+                Layout.fillHeight: true
+                onClicked: root.togglePreview()
             }
 
             Slider {
