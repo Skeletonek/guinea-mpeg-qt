@@ -17,6 +17,8 @@ Rectangle {
     }
     readonly property int nudgeStep: fps > 0 ? Math.max(1, Math.round(1000 / fps)) : 100
 
+    signal trimRequested(string kind, real value)
+
     function nudgeStartTime(dir) {
         var step = (dir < 0 ? -1 : 1) * nudgeStep;
         var t = Math.max(0, Math.min(startTime + step, endTime - 1));
@@ -48,13 +50,13 @@ Rectangle {
             spacing: 8
 
             Label {
-                text: FormatUtils.formatTimePrecise(startTime, root.fps)
+                text: FormatUtils.formatTimePrecise(Math.min(startTime, videoDuration), root.fps)
                 width: 80
                 color: theme.text
             }
 
             Label {
-                text: FormatUtils.formatTimePrecise(endTime, root.fps)
+                text: FormatUtils.formatTimePrecise(Math.min(endTime, videoDuration), root.fps)
                 width: 80
                 color: theme.text
             }
@@ -121,6 +123,8 @@ Rectangle {
                             startTime = t;
                     }
                     onReleased: {
+                        // Emit before the binding restore drops the final drag value
+                        root.trimRequested("start", startTime);
                         startHandle.x = Qt.binding(function () {
                             return Math.max(0, Math.min(startTime * track._ratio, track.width - startHandle.width));
                         });
@@ -173,6 +177,7 @@ Rectangle {
                             endTime = t;
                     }
                     onReleased: {
+                        root.trimRequested("end", endTime);
                         endHandle.x = Qt.binding(function () {
                             return Math.max(0, Math.min(endTime * track._ratio - endHandle.width, track.width - endHandle.width));
                         });

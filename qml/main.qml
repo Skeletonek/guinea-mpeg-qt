@@ -19,6 +19,8 @@ ApplicationWindow {
     property int endTime: 0
     property string videoInfoText: qsTr("Load a video file to see information")
     property string outputFilePath: ""
+    // Chosen output directory for the batch; empty = next to each source file
+    property string outputDirectory: ""
     property bool settingTimeline: false
     property url videoSource: ""
     property var videoStreams: []
@@ -27,6 +29,14 @@ ApplicationWindow {
     property var selectedAudioIndices: []
     property var transcodeQueue: []
     property var activeJob: null
+    // currentVideoPath is the previewed member of batchFiles
+    property var batchFiles: []
+    // Global trim warning acknowledged (set on Continue, reset when Open File replaces the batch)
+    property bool batchTrimAcknowledged: false
+    // Jobs staged while the overwrite confirmation is open
+    property var pendingResult: null
+    // Last open/queue action summary, shown under the Start button
+    property string queueStatus: ""
     // Session-only log history of finished jobs (capped, oldest dropped first)
     property var transcodeHistory: []
     readonly property int maxTranscodeHistory: 100
@@ -41,27 +51,39 @@ ApplicationWindow {
     property int batchFailedCount: 0
     property string previewProfile: ""
 
-    function loadVideo(filePath, fileUrl) {
+    function _findBatchIndex(files, path) {
+        for (var i = 0; i < files.length; i++) {
+            if (files[i].path === path)
+                return i;
+        }
+        return -1;
+    }
+
+    function _loadPreview(filePath, fileUrl, preloadedInfo, resetTrim) {
         backend.resetPreview();
+        var info = preloadedInfo || backend.getVideoInfo(filePath) || {};
         currentVideoPath = filePath;
-        appWindow.videoSource = fileUrl || DataUtils.toFileUrl(filePath);
-        var info = backend.getVideoInfo(filePath);
         currentVideoInfo = info;
+        appWindow.videoSource = fileUrl || DataUtils.toFileUrl(filePath);
         videoDuration = Math.round(info.duration * 1000);
-        settingTimeline = true;
-        startTime = 0;
-        endTime = videoDuration;
-        settingTimeline = false;
+        if (resetTrim) {
+            settingTimeline = true;
+            startTime = 0;
+            endTime = videoDuration;
+            settingTimeline = false;
+        }
         videoStreams = info.video_streams || [];
         audioStreams = info.audio_streams || [];
-        var vi = [];
-        for (var v = 0; v < videoStreams.length; v++)
-            vi.push(v);
-        selectedVideoIndices = vi;
-        var ai = [];
-        for (var a = 0; a < audioStreams.length; a++)
-            ai.push(a);
-        selectedAudioIndices = ai;
+        if (resetTrim) {
+            var vi = [];
+            for (var v = 0; v < videoStreams.length; v++)
+                vi.push(v);
+            selectedVideoIndices = vi;
+            var ai = [];
+            for (var a = 0; a < audioStreams.length; a++)
+                ai.push(a);
+            selectedAudioIndices = ai;
+        }
         var name = FormatUtils.getFilename(filePath);
         var fps = FormatUtils.formatFps(info.fps || "0/1");
         videoInfoText = qsTr("File: %1\nDuration: %2s\nResolution: %3x%4\nFPS: %5\nVideo: %6\nAudio: %7").arg(name).arg(info.duration.toFixed(3)).arg(info.width).arg(info.height).arg(fps).arg(info.codec).arg(info.audio_codec || "N/A");
@@ -72,6 +94,72 @@ ApplicationWindow {
             profileData = JSON.parse(backend.loadProfile(currentProfile));
         } catch (e) {}
         appWindow.outputFilePath = dir + base + "_transcoded." + DataUtils.getExtensionForProfile(profileData, filePath);
+        var files = batchFiles.slice();
+        var entry = {
+            "path": filePath,
+            "info": info
+        };
+        var idx = _findBatchIndex(files, filePath);
+        if (idx >= 0)
+            files[idx] = entry;
+        else
+            files = files.concat([entry]);
+        batchFiles = files;
+    }
+
+    function loadVideo(filePath, fileUrl) {
+        _loadPreview(filePath, fileUrl, null, true);
+    }
+
+    // Switches the previewed file without resetting the global trim or stream selection
+    function switchPreview(filePath) {
+        _loadPreview(filePath, undefined, null, false);
+    }
+
+    // Loads paths into the batch. replace=true starts a fresh batch (Open File),
+    // otherwise appends (Add Files/multi-drop); switchToNew previews the first new file
+    function openFiles(paths, replace, switchToNew) {
+        var wasEmpty = appWindow.batchFiles.length === 0;
+        var list = replace ? [] : appWindow.batchFiles.slice();
+        var firstEntry = null;
+        var skipped = 0;
+        var duplicates = 0;
+        for (var i = 0; i < paths.length; i++) {
+            var info = backend.getVideoInfo(paths[i]) || {};
+            if (!info.duration) {
+                skipped++;
+                continue;
+            }
+            if (_findBatchIndex(list, paths[i]) >= 0) {
+                duplicates++;
+                continue;
+            }
+            var entry = {
+                "path": paths[i],
+                "info": info
+            };
+            list = list.concat([entry]);
+            if (firstEntry === null)
+                firstEntry = entry;
+        }
+        if (firstEntry === null) {
+            queueStatus = skipped > 0 ? qsTr("Could not open %1 file(s)").arg(skipped) : "";
+            return;
+        }
+        batchFiles = list;
+        if (replace)
+            batchTrimAcknowledged = false;
+        if (replace || wasEmpty) {
+            _loadPreview(firstEntry.path, undefined, firstEntry.info, true);
+        } else if (switchToNew && firstEntry.path !== appWindow.currentVideoPath) {
+            switchPreview(firstEntry.path);
+        }
+        var notes = [];
+        if (skipped > 0)
+            notes.push(qsTr("%1 skipped (not readable)").arg(skipped));
+        if (duplicates > 0)
+            notes.push(qsTr("%1 already open").arg(duplicates));
+        queueStatus = notes.join(", ");
     }
 
     function updateCodec() {
@@ -87,44 +175,149 @@ ApplicationWindow {
         appWindow.outputFilePath = appWindow.outputFilePath.substring(0, dot >= 0 ? dot : 0) + "." + ext;
     }
 
+    function requestTrimWarning() {
+        trimWarningDialog.open();
+    }
+
+    function normalizedOutputDir() {
+        var d = appWindow.outputDirectory;
+        if (d === "")
+            return "";
+        return d.endsWith("/") ? d : d + "/";
+    }
+
+    function buildBatchJobs() {
+        var files = appWindow.batchFiles;
+        var profile;
+        try {
+            profile = JSON.parse(backend.loadProfile(appWindow.currentProfile));
+        } catch (e) {
+            return null;
+        }
+        // Waiting/running jobs are not re-added; their outputs still reserve name slots
+        var queuedInputs = {};
+        var taken = {};
+        if (appWindow.activeJob)
+            queuedInputs[appWindow.activeJob.input] = true;
+        for (var qi = 0; qi < appWindow.transcodeQueue.length; qi++) {
+            queuedInputs[appWindow.transcodeQueue[qi].input] = true;
+            taken[appWindow.transcodeQueue[qi].output] = true;
+        }
+        var jobs = [];
+        var alreadyQueued = 0;
+        var tooShort = 0;
+        for (var i = 0; i < files.length; i++) {
+            var f = files[i];
+            if (queuedInputs[f.path]) {
+                alreadyQueued++;
+                continue;
+            }
+            var durMs = Math.round((f.info.duration || 0) * 1000);
+            var s = Math.max(appWindow.startTime, 0);
+            var e = Math.min(appWindow.endTime, durMs);
+            if (e - s <= 0) {
+                // No overlap with the trim window: file is transcoded at its full length
+                s = 0;
+                e = durMs;
+            }
+            if (e - s <= 0) {
+                tooShort++;
+                continue;
+            }
+            var out;
+            if (files.length > 1) {
+                var dir = appWindow.normalizedOutputDir();
+                if (dir === "")
+                    dir = FormatUtils.getDirectory(f.path);
+                var name = FormatUtils.getFilename(f.path);
+                out = dir + FormatUtils.getBaseFilename(name) + "_transcoded." + DataUtils.getExtensionForProfile(profile, f.path);
+            } else {
+                out = appWindow.outputFilePath;
+            }
+            out = DataUtils.uniquePath(out, taken);
+            taken[out] = true;
+            var pf = {};
+            for (var k in profile)
+                pf[k] = profile[k];
+            // Copy stream selection to every file, clamped to what the file has
+            var vStreams = f.info.video_streams || [];
+            var aStreams = f.info.audio_streams || [];
+            var vIdx = appWindow.selectedVideoIndices.filter(function (vi) {
+                return vi < vStreams.length;
+            });
+            if (vIdx.length > 0)
+                pf.video_stream_indices = vIdx;
+            var aIdx = appWindow.selectedAudioIndices.filter(function (ai) {
+                return ai < aStreams.length;
+            });
+            if (aIdx.length > 0)
+                pf.audio_stream_indices = aIdx;
+            jobs.push({
+                "input": f.path,
+                "output": out,
+                "start": s / 1000,
+                "end": e / 1000,
+                "profile": JSON.stringify(pf),
+                "targetFps": profile.framerate || 0,
+                "sourceFps": FormatUtils.fpsToDecimal(f.info.fps || "") || 0,
+                "durationMs": e - s
+            });
+        }
+        return {
+            "jobs": jobs,
+            "alreadyQueued": alreadyQueued,
+            "tooShort": tooShort
+        };
+    }
+
     function startTranscoding() {
         if (appWindow.outputFilePath === "") {
             videoInfoText = qsTr("Please set an output file path first");
             return;
         }
-        if (backend.fileExists(appWindow.outputFilePath)) {
-            overwriteDialog.filePath = appWindow.outputFilePath;
+        var result = buildBatchJobs();
+        if (result === null)
+            return;
+        var existing = [];
+        for (var i = 0; i < result.jobs.length; i++) {
+            if (backend.fileExists(result.jobs[i].output))
+                existing = existing.concat([result.jobs[i].output]);
+        }
+        if (existing.length > 0) {
+            pendingResult = result;
+            overwriteDialog.filePaths = existing;
             overwriteDialog.open();
             return;
         }
-        enqueueTranscoding();
+        enqueueJobs(result);
     }
 
-    function enqueueTranscoding() {
-        var profile = JSON.parse(backend.loadProfile(currentProfile));
-        if (selectedVideoIndices.length > 0)
-            profile.video_stream_indices = selectedVideoIndices;
-
-        if (selectedAudioIndices.length > 0)
-            profile.audio_stream_indices = selectedAudioIndices;
-
-        var job = {
-            "input": currentVideoPath,
-            "output": appWindow.outputFilePath,
-            "start": startTime / 1000,
-            "end": endTime / 1000,
-            "profile": JSON.stringify(profile),
-            "targetFps": profile.framerate || 0,
-            "sourceFps": FormatUtils.fpsToDecimal(currentVideoInfo.fps || "") || 0,
-            "durationMs": endTime - startTime
-        };
-        if (activeJob === null && transcodeQueue.length === 0) {
-            batchJobCount = 0;
-            batchFailedCount = 0;
+    function enqueueJobs(result) {
+        if (result.jobs.length > 0) {
+            if (activeJob === null && transcodeQueue.length === 0) {
+                batchJobCount = 0;
+                batchFailedCount = 0;
+            }
+            transcodeQueue = transcodeQueue.concat(result.jobs);
+            processTranscodeQueue();
+            transcodeDialog.open();
         }
-        transcodeQueue = transcodeQueue.concat([job]);
-        processTranscodeQueue();
-        transcodeDialog.open();
+        var notes = [];
+        if (result.jobs.length > 0)
+            notes.push(qsTr("Added %1 file(s) to the queue").arg(result.jobs.length));
+        if (result.alreadyQueued > 0)
+            notes.push(qsTr("%1 already in queue").arg(result.alreadyQueued));
+        if (result.tooShort > 0)
+            notes.push(qsTr("%1 skipped (empty trim range)").arg(result.tooShort));
+        queueStatus = notes.length > 0 ? notes.join(", ") : qsTr("No new files to queue");
+    }
+
+    function removeQueuedJob(queueIndex) {
+        if (queueIndex < 0 || queueIndex >= transcodeQueue.length)
+            return;
+        if (activeJob !== null && queueIndex === 0)
+            return;
+        transcodeQueue = transcodeQueue.slice(0, queueIndex).concat(transcodeQueue.slice(queueIndex + 1));
     }
 
     function cancelActiveTranscode() {
@@ -187,12 +380,15 @@ ApplicationWindow {
                     onExited: dragOverlay.visible = false
                     onDropped: function (drop) {
                         dragOverlay.visible = false;
-                        var url = String(drop.urls[0]);
-                        if (url.length === 0)
+                        var urls = drop.urls;
+                        if (urls.length === 0)
                             return;
 
-                        var path = DataUtils.toLocalPath(url);
-                        appWindow.loadVideo(path, url);
+                        var paths = [];
+                        for (var i = 0; i < urls.length; i++)
+                            paths.push(DataUtils.toLocalPath(urls[i]));
+                        // Single drop replaces like Open File; multi-drop appends
+                        appWindow.openFiles(paths, urls.length === 1, urls.length > 1);
                     }
                 }
 
@@ -321,13 +517,21 @@ ApplicationWindow {
                         hostWindow: appWindow
                         playerItem: player
                         onOpenVideoClicked: fileDialog.open()
+                        onAddFilesClicked: addFilesDialog.open()
                         onProfileEditorClicked: {
                             player.pause();
                             stackView.push(profileEditorPage);
                         }
                         onBrowseOutputClicked: {
-                            saveDialog.currentFile = DataUtils.toFileUrl(appWindow.outputFilePath);
-                            saveDialog.open();
+                            if (appWindow.batchFiles.length > 1) {
+                                var startDir = appWindow.outputDirectory !== "" ? appWindow.outputDirectory : FormatUtils.getDirectory(appWindow.currentVideoPath);
+                                var dir = backend.chooseOutputDirectory(startDir);
+                                if (dir !== "")
+                                    appWindow.outputDirectory = dir;
+                            } else {
+                                saveDialog.currentFile = DataUtils.toFileUrl(appWindow.outputFilePath);
+                                saveDialog.open();
+                            }
                         }
                         onViewTranscodeClicked: {
                             transcodeResultSeen = true;
@@ -354,6 +558,13 @@ ApplicationWindow {
         id: fileDialog
 
         mainWindow: appWindow
+    }
+
+    FileOpenDialog {
+        id: addFilesDialog
+
+        mainWindow: appWindow
+        appendMode: true
     }
 
     FileSaveDialog {
@@ -391,7 +602,15 @@ ApplicationWindow {
     OverwriteConfirmDialog {
         id: overwriteDialog
 
-        onOverwriteRequested: enqueueTranscoding()
+        onOverwriteRequested: appWindow.enqueueJobs(appWindow.pendingResult)
+    }
+
+    TrimWarningDialog {
+        id: trimWarningDialog
+
+        batchCount: appWindow.batchFiles.length
+
+        onConfirmed: appWindow.batchTrimAcknowledged = true
     }
 
     FfmpegWarningDialog {
@@ -415,6 +634,7 @@ ApplicationWindow {
             // Defer to next event loop to avoid reentrancy inside
             // QProcess::finished (backend.cpp:connectOutputCapture).
             Qt.callLater(function () {
+                var queueDrained = false;
                 if (transcodeQueue.length > 0) {
                     // No transcodeFinished on cancel or spawn failure — both map to "failed" otherwise
                     var status = jobCancelRequested ? "cancelled" : (jobEndSeen && lastJobSuccess ? "completed" : "failed");
@@ -431,12 +651,27 @@ ApplicationWindow {
                         batchFailedCount++;
                     // The buffer holds one job at a time; the history entry keeps its log
                     backend.clearTranscodeOutput();
-                    // Don't flash the result label when the user is already viewing the log
-                    transcodeResultSeen = transcodeDialog.visible;
                     transcodeQueue = transcodeQueue.slice(1);
                     activeJob = null;
                 }
                 processTranscodeQueue();
+                queueDrained = (activeJob === null && transcodeQueue.length === 0);
+                // Surface the result label only when the whole queue has drained
+                transcodeResultSeen = queueDrained ? transcodeDialog.visible : true;
+                if (queueDrained) {
+                    var failed = appWindow.batchFailedCount > 0;
+                    var title = failed ? qsTr("Transcoding Failed") : qsTr("Transcoding Complete");
+                    var body;
+                    if (appWindow.batchJobCount > 1) {
+                        if (failed)
+                            body = qsTr("%1 of %2 jobs failed").arg(appWindow.batchFailedCount).arg(appWindow.batchJobCount);
+                        else
+                            body = qsTr("All %1 jobs completed").arg(appWindow.batchJobCount);
+                    } else {
+                        body = failed ? qsTr("Transcoding exited with an error") : qsTr("Your video has been transcoded successfully.");
+                    }
+                    backend.sendNotification(title, body);
+                }
             });
         }
 

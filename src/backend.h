@@ -96,6 +96,8 @@ class GuineaMpegBackendExt : public QObject {
     Q_INVOKABLE QString startPreview(const QString& rawInput, const QString& profileJson, double startTimeMs,
                                      double durationMs, const QString& extension);
     Q_INVOKABLE void cancelPreview();
+    Q_INVOKABLE QString chooseOutputDirectory(const QString& startDir);
+    Q_INVOKABLE void sendNotification(const QString& title, const QString& body);
 
   signals:
     void transcodeOutputUpdated();
@@ -114,7 +116,6 @@ class GuineaMpegBackendExt : public QObject {
   private:
     void connectOutputCapture(QProcess* proc);
     void appendTranscodeOutput(const QString& chunk);
-    void sendNotification(const QString& title, const QString& body);
 
     QString m_transcodeOutput;
     QString m_transcodeError;

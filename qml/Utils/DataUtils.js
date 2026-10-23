@@ -152,6 +152,26 @@ function rebuildComboModel(combo, items, sentinel) {
 }
 
 /**
+ * Returns path unchanged when not taken, otherwise the first free
+ * <stem>_N<extension> variant (foo_transcoded.webm -> foo_transcoded_2.webm).
+ * The caller is responsible for inserting the returned path into taken.
+ * @param {string} path - Path to make unique
+ * @param {Object} taken - Map of already used paths (path strings as keys)
+ * @returns {string} Unique path
+ */
+function uniquePath(path, taken) {
+    if (!path || !taken || !taken[path])
+        return path
+    var dot = path.lastIndexOf(".")
+    var stem = dot > 0 ? path.substring(0, dot) : path
+    var ext = dot > 0 ? path.substring(dot) : ""
+    var n = 2
+    while (taken[stem + "_" + n + ext])
+        n++
+    return stem + "_" + n + ext
+}
+
+/**
  * Determines the output file extension for a profile data object
  * @param {Object} d - Profile data object
  * @param {string} inputPath - Optional source path for container="copy" or codec="copy"

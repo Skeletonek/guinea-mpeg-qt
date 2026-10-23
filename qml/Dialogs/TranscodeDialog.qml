@@ -41,6 +41,7 @@ Dialog {
             list.push({
                 "status": j === 0 ? (backend.transcoding ? "running" : "starting") : "waiting",
                 "output": queue[j].output,
+                "queueIndex": j,
                 "log": ""
             });
         entries = list;
@@ -196,6 +197,20 @@ Dialog {
                             text: root.statusText(modelData.status)
                             color: root.statusColor(modelData.status)
                             font.pixelSize: 12
+                        }
+
+                        Button {
+                            visible: modelData.status === "waiting"
+                            text: "\u2715"
+                            flat: true
+                            implicitWidth: 24
+                            implicitHeight: 24
+                            ToolTip.text: qsTr("Remove from queue")
+                            ToolTip.visible: hovered
+                            onClicked: {
+                                if (mainWindow)
+                                    mainWindow.removeQueuedJob(modelData.queueIndex);
+                            }
                         }
                     }
 

@@ -199,5 +199,22 @@ TestCase {
         compare(DataUtils.advancedTemplateFromArgs(["-vf", "eq=gamma=1.5,drawtext=text='hi'"]), "ffmpeg -vf eq=gamma=1.5,drawtext=text='hi'");
     }
 
+    function test_uniquePath() {
+        compare(DataUtils.uniquePath("/a/b_transcoded.webm", {}), "/a/b_transcoded.webm");
+        compare(DataUtils.uniquePath("", {}), "");
+        compare(DataUtils.uniquePath("/a/b.webm", null), "/a/b.webm");
+    }
+
+    function test_uniquePath_collisions() {
+        var taken = {};
+        var first = DataUtils.uniquePath("/a/b_transcoded.webm", taken);
+        compare(first, "/a/b_transcoded.webm");
+        taken[first] = true;
+        var second = DataUtils.uniquePath("/a/b_transcoded.webm", taken);
+        compare(second, "/a/b_transcoded_2.webm");
+        taken[second] = true;
+        compare(DataUtils.uniquePath("/a/b_transcoded.webm", taken), "/a/b_transcoded_3.webm");
+    }
+
     name: "DataUtils"
 }

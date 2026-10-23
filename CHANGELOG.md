@@ -1,4 +1,5 @@
 ### 0.15.0
+- Added support for opening multiple files at once - pseudo batch transcoding
 - Added more precise time formatting
 - Added note icon when playing audio file with no video streams (no cover art)
 - Added "Media Files" filter in open file dialog for both audio and video files

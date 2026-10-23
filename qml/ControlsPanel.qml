@@ -8,11 +8,12 @@ import "Utils/FormatUtils.js" as FormatUtils
 Item {
     id: root
 
-    property QtObject hostWindow: null
-    property Item playerItem: null
+    property var hostWindow: null
+    property var playerItem: null
     property var _profileNames: []
 
     signal openVideoClicked
+    signal addFilesClicked
     signal profileEditorClicked
     signal browseOutputClicked
     signal viewTranscodeClicked
@@ -34,6 +35,50 @@ Item {
 
     function _streamText(stream, index, type) {
         return FormatUtils.streamText(stream, index, type);
+    }
+
+    function _batchMode() {
+        return hostWindow && (hostWindow.batchFiles || []).length > 1;
+    }
+
+    function _batchFiles() {
+        return hostWindow ? (hostWindow.batchFiles || []) : [];
+    }
+
+    function _currentComboIndex() {
+        var files = _batchFiles();
+        var current = hostWindow ? hostWindow.currentVideoPath : "";
+        for (var i = 0; i < files.length; i++) {
+            if (files[i].path === current)
+                return i;
+        }
+        return 0;
+    }
+
+    function _fileLabels() {
+        var files = _batchFiles();
+        var labels = [];
+        for (var i = 0; i < files.length; i++)
+            labels.push((i + 1) + ". " + FormatUtils.getFilename(files[i].path));
+        return labels;
+    }
+
+    function _applyTrim(kind, value) {
+        if (!hostWindow)
+            return;
+        if ((hostWindow.batchFiles || []).length > 1 && !hostWindow.batchTrimAcknowledged) {
+            hostWindow.requestTrimWarning();
+            return;
+        }
+        if (kind === "start") {
+            hostWindow.startTime = value;
+            if (playerItem)
+                playerItem.position = value;
+        } else {
+            hostWindow.endTime = value;
+            if (playerItem)
+                playerItem.position = value;
+        }
     }
 
     Flickable {
@@ -65,11 +110,35 @@ Item {
                 width: parent.width
             }
 
+            Button {
+                text: qsTr("Add Files...")
+                enabled: hostWindow && hostWindow.currentVideoPath !== ""
+                onClicked: root.addFilesClicked()
+                width: parent.width
+            }
+
             Label {
                 text: qsTr("Media Information")
                 font.bold: true
                 font.pixelSize: 16
                 color: theme.text
+            }
+
+            ComboBox {
+                id: fileSwitcher
+
+                visible: root._batchMode()
+                model: root._fileLabels()
+                currentIndex: root._currentComboIndex()
+                width: parent.width
+                onActivated: {
+                    var files = root._batchFiles();
+                    if (currentIndex >= 0 && currentIndex < files.length && files[currentIndex].path !== (hostWindow ? hostWindow.currentVideoPath : ""))
+                        hostWindow.switchPreview(files[currentIndex].path);
+                    currentIndex = Qt.binding(function () {
+                        return root._currentComboIndex();
+                    });
+                }
             }
 
             Flickable {
@@ -208,22 +277,21 @@ Item {
                     if (!hostWindow || hostWindow.settingTimeline)
                         return;
 
-                    hostWindow.startTime = startTime;
-                    if (playerItem)
-                        playerItem.position = startTime;
+                    root._applyTrim("start", timeline.startTime);
                 }
                 onEndTimeChanged: {
                     if (!hostWindow || hostWindow.settingTimeline)
                         return;
 
-                    hostWindow.endTime = endTime;
-                    if (playerItem)
-                        playerItem.position = endTime;
+                    root._applyTrim("end", timeline.endTime);
+                }
+                onTrimRequested: function (kind, value) {
+                    root._applyTrim(kind, value);
                 }
             }
 
             Label {
-                text: qsTr("Output File")
+                text: root._batchMode() ? qsTr("Output Directory") : qsTr("Output File")
                 font.bold: true
                 font.pixelSize: 14
                 color: theme.text
@@ -236,11 +304,25 @@ Item {
                 TextField {
                     id: outputPathField
 
+                    visible: !root._batchMode()
                     text: hostWindow ? hostWindow.outputFilePath : ""
                     placeholderText: qsTr("Output path...")
                     onTextChanged: {
                         if (hostWindow)
                             hostWindow.outputFilePath = text;
+                    }
+                    width: parent.width - 40 - parent.spacing
+                }
+
+                TextField {
+                    id: outputDirectoryField
+
+                    visible: root._batchMode()
+                    text: hostWindow ? hostWindow.outputDirectory : ""
+                    placeholderText: qsTr("Empty = next to each source file")
+                    onTextChanged: {
+                        if (hostWindow)
+                            hostWindow.outputDirectory = text;
                     }
                     width: parent.width - 40 - parent.spacing
                 }
@@ -280,7 +362,12 @@ Item {
             }
 
             Button {
-                text: backend.transcoding ? qsTr("Add to Transcoding Queue") : qsTr("Start Transcoding")
+                text: {
+                    var n = hostWindow ? hostWindow.batchFiles.length : 0;
+                    if (backend.transcoding)
+                        return qsTr("Add to Transcoding Queue");
+                    return n > 1 ? qsTr("Start Transcoding (%1 files)").arg(n) : qsTr("Start Transcoding");
+                }
                 enabled: hostWindow && hostWindow.currentVideoPath !== "" && hostWindow.endTime > hostWindow.startTime
                 onClicked: {
                     if (playerItem)
@@ -290,6 +377,15 @@ Item {
                         hostWindow.startTranscoding();
                 }
                 width: parent.width
+            }
+
+            Label {
+                text: hostWindow ? hostWindow.queueStatus : ""
+                visible: text !== ""
+                width: parent.width
+                wrapMode: Text.WordWrap
+                color: theme.textSecondary
+                font.pixelSize: 12
             }
 
             Button {

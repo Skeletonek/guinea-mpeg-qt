@@ -3,6 +3,7 @@
 #include <QApplication>
 #include <QClipboard>
 #include <QDir>
+#include <QFileDialog>
 #include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -456,6 +457,10 @@ void GuineaMpegBackendExt::cancelPreview() {
     setPreviewGenerating(false);
 }
 
+QString GuineaMpegBackendExt::chooseOutputDirectory(const QString& startDir) {
+    return QFileDialog::getExistingDirectory(nullptr, tr("Select Output Directory"), startDir);
+}
+
 void GuineaMpegBackendExt::sendNotification(const QString& title, const QString& body) {
 #ifdef Q_OS_LINUX
     QDBusMessage msg = QDBusMessage::createMethodCall(
@@ -517,9 +522,6 @@ void GuineaMpegBackendExt::connectOutputCapture(QProcess* proc) {
         // finished (use-after-free -> SEGV at deleteLater). Releasing first
         // makes m_currentTranscode null so the next job starts cleanly.
         releaseProcess(m_currentTranscode, proc);
-        sendNotification(exitCode == 0 ? tr("Transcoding Complete") : tr("Transcoding Failed"),
-                         exitCode == 0 ? tr("Your video has been transcoded successfully.")
-                                       : tr("Transcoding exited with code %1").arg(exitCode));
         emit transcodeFinished(exitCode == 0);
         setTranscoding(false);
     });
