@@ -134,3 +134,4 @@ var timelineHandleBorder = "#ffffff"
 var errorColor = "#e66"
 var previewGeneratingTextSize = 14
 var noVideoPlaceholderSize = 18
+var audioNoteIconSize = 64

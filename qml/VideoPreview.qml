@@ -12,6 +12,9 @@ Rectangle {
 
     property url source: ""
     property bool hasVideo: false
+    // Audio file without cover art: mpv renders nothing, so the player must
+    // be hidden to avoid showing a stale frame of a previously loaded video
+    property bool hasAudioOnly: false
     property string videoPath: ""
     property string profileName: ""
     property int startTimeMs: 0
@@ -120,7 +123,7 @@ Rectangle {
 
         anchors.fill: parent
         anchors.bottomMargin: root._controlsBarHeight
-        visible: root.hasVideo
+        visible: root.hasVideo && !root.hasAudioOnly
         source: root.previewActive ? root.previewSource : root.source
 
         onDurationChanged: {
@@ -199,6 +202,14 @@ Rectangle {
                 event.accepted = true;
             }
         }
+    }
+
+    Text {
+        anchors.centerIn: parent
+        text: "🎵"
+        color: theme.text
+        visible: root.hasVideo && root.hasAudioOnly
+        font.pixelSize: Constants.audioNoteIconSize
     }
 
     Text {

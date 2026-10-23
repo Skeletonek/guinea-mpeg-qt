@@ -220,6 +220,7 @@ ApplicationWindow {
                         height: parent.height
                         source: appWindow.videoSource
                         hasVideo: currentVideoPath !== ""
+                        hasAudioOnly: (appWindow.currentVideoInfo.audio_streams || []).length > 0 && (appWindow.currentVideoInfo.video_streams || []).length === 0
                         videoPath: appWindow.currentVideoPath
                         profileName: appWindow.currentProfile
                         startTimeMs: appWindow.startTime
