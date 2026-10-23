@@ -4,6 +4,7 @@
 - Added "Media Files" filter in open file dialog for both audio and video files
 - Renamed "Video Information" section to "Media Information"
 - Swaped "Preview Mode" button place with "Regenerate" button in Preview Mode
+- Updated Linux .desktop files with supported translations
 - Fixed not refreshing video playback when loading audio file with no cover art after playing a video file
 - Removed encoder compatibility dialog in profile editor
 
