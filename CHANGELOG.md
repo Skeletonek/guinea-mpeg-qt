@@ -1,3 +1,10 @@
+### 0.15.0
+- Added more precise time formatting
+- Added note icon when playing audio file with no video streams (no cover art)
+- Renamed "Video Information" section to "Media Information"
+- Swaped "Preview Mode" button place with "Regenerate" button in Preview Mode
+- Fixed not refreshing video playback when loading audio file with no cover art after playing a video file
+
 ### 0.14.0
 - Reworked layout of the transcoding dialog
 - Transcoding dialog now supports showing logs from previous runs
