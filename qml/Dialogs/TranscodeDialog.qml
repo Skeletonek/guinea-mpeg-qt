@@ -1,3 +1,4 @@
+import "../Components"
 import "../Utils/DataUtils.js" as DataUtils
 import "../Utils/FormatUtils.js" as FormatUtils
 import GuineaMpeg 1.0
@@ -6,7 +7,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
-Dialog {
+AppDialog {
     id: root
 
     property var mainWindow: null
@@ -99,6 +100,7 @@ Dialog {
             _progress = p;
     }
 
+    centered: false
     modal: false
     closePolicy: Popup.CloseOnEscape
     // Preferred size from Constants, clamped to the main window (16 margin per side)
@@ -333,42 +335,19 @@ Dialog {
         }
     }
 
-    background: Rectangle {
-        color: theme.bg
+    title: {
+        var n = mainWindow ? mainWindow.transcodeQueue.length : 0;
+        if (backend.transcoding)
+            return n > 1 ? qsTr("Transcoding... (1 of %1)").arg(n) : qsTr("Transcoding...");
+
+        return qsTr("Transcoding Complete");
     }
 
-    header: Rectangle {
-        height: 36
-        color: theme.surface
-
-        RowLayout {
-            anchors.fill: parent
-            anchors.leftMargin: 8
-            anchors.rightMargin: 4
-            spacing: 4
-
-            Label {
-                text: {
-                    var n = mainWindow ? mainWindow.transcodeQueue.length : 0;
-                    if (backend.transcoding)
-                        return n > 1 ? qsTr("Transcoding... (1 of %1)").arg(n) : qsTr("Transcoding...");
-
-                    return qsTr("Transcoding Complete");
-                }
-                color: theme.textHeader
-                font.bold: true
-                elide: Text.ElideRight
-            }
-
-            Item {
-                Layout.fillWidth: true
-            }
-
+    footer: Loader {
+        active: !styleDrawsHeaderClose
+        sourceComponent: DialogButtonBox {
             Button {
-                text: "\u2715"
-                flat: true
-                implicitWidth: 28
-                implicitHeight: 28
+                text: qsTr("Close")
                 onClicked: root.close()
             }
         }

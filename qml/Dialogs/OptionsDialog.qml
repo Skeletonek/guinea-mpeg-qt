@@ -47,7 +47,7 @@ AppDialog {
     title: qsTr("Options")
     width: Constants.dialogWidthMedium
     contentImplicitHeight: mainLayout.implicitHeight
-    standardButtons: Dialog.Close
+    standardButtons: styleDrawsHeaderClose ? Dialog.NoButton : Dialog.Close
     onOpened: {
         restartRequired = false;
         loadOptions();

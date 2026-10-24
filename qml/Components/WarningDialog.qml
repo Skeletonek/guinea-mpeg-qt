@@ -8,7 +8,7 @@ AppDialog {
     property string body: ""
 
     title: headline
-    standardButtons: Dialog.Ok
+    standardButtons: styleDrawsHeaderClose ? Dialog.NoButton : Dialog.Ok
 
     Label {
         id: bodyLabel

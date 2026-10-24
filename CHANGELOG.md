@@ -3,6 +3,7 @@
 - Added more precise time formatting
 - Added note icon when playing audio file with no video streams (no cover art)
 - Added "Media Files" filter in open file dialog for both audio and video files
+- Unified dialogs across the entire app
 - Changed system theme on Windows from Fusion to FluentWinUI3
 - Renamed "Video Information" section to "Media Information"
 - Swaped "Preview Mode" button place with "Regenerate" button in Preview Mode

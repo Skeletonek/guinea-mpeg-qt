@@ -364,6 +364,7 @@ int main(int argc, char* argv[]) {
     engine.rootContext()->setContextProperty("buildInfo", buildInfo);
     engine.rootContext()->setContextProperty("theme", theme);
     engine.rootContext()->setContextProperty("availableStyles", availableStyles);
+    engine.rootContext()->setContextProperty("currentStyle", QQuickStyle::name());
     engine.rootContext()->setContextProperty("colorSchemeLockedStyles", colorSchemeLockedStyles);
 
     QString initialFilePath = parseInitialFilePath(app.arguments());

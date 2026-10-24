@@ -9,6 +9,8 @@ Dialog {
     property real contentImplicitHeight: -1
     // Set false to manage position manually instead of staying centered.
     property bool centered: true
+    // org.kde.desktop (Breeze) draws its own close button in the dialog header.
+    readonly property bool styleDrawsHeaderClose: currentStyle === "org.kde.desktop"
 
     modal: true
     padding: 16
