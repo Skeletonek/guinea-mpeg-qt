@@ -1,3 +1,4 @@
+import "../Components"
 import "../Utils/Constants.js" as Constants
 import "../Utils/DataUtils.js" as DataUtils
 import QtQuick 2.15
@@ -5,7 +6,7 @@ import QtQuick.Controls 2.15
 import QtQuick.Dialogs
 import QtQuick.Layouts 1.15
 
-Dialog {
+AppDialog {
     id: root
 
     property var profileNames: []
@@ -45,12 +46,8 @@ Dialog {
     }
 
     title: qsTr("Export Profiles")
-    modal: true
     width: Constants.dialogWidthLarge
-    padding: 16
-    topPadding: 8
-    implicitHeight: implicitHeaderHeight + mainLayout.implicitHeight + implicitFooterHeight + 24
-    anchors.centerIn: Overlay.overlay
+    contentImplicitHeight: mainLayout.implicitHeight
     onOpened: {
         profilesModel.clear();
         for (var i = 0; i < root.profileNames.length; i++)
@@ -125,67 +122,45 @@ Dialog {
                 }
             }
         }
+
+        Label {
+            id: errorLabel
+
+            text: qsTr("Export failed. Please check the destination path.")
+            color: Constants.errorColor
+            visible: false
+            wrapMode: Text.WordWrap
+            Layout.fillWidth: true
+        }
     }
 
-    footer: Item {
-        implicitHeight: footerColumn.implicitHeight + 12
-        height: implicitHeight
+    footer: DialogButtonBox {
+        Button {
+            text: qsTr("Select All")
+            visible: root.profileNames.length > 0
+            onClicked: root.setAll(true)
+        }
 
-        Column {
-            id: footerColumn
+        Button {
+            text: qsTr("Select None")
+            visible: root.profileNames.length > 0
+            onClicked: root.setAll(false)
+        }
 
-            anchors.fill: parent
-            anchors.margins: 8
-            spacing: 8
+        Button {
+            text: qsTr("Cancel")
+            onClicked: root.reject()
+        }
 
-            Label {
-                id: errorLabel
-
-                text: qsTr("Export failed. Please check the destination path.")
-                color: Constants.errorColor
-                visible: false
-                wrapMode: Text.WordWrap
-                width: parent.width
-            }
-
-            RowLayout {
-                id: footerRow
-
-                width: parent.width
-                spacing: 8
-
-                Button {
-                    text: qsTr("Select All")
-                    visible: root.profileNames.length > 0
-                    onClicked: root.setAll(true)
-                }
-
-                Button {
-                    text: qsTr("Select None")
-                    visible: root.profileNames.length > 0
-                    onClicked: root.setAll(false)
-                }
-
-                Item {
-                    Layout.fillWidth: true
-                }
-
-                Button {
-                    text: qsTr("Cancel")
-                    onClicked: root.reject()
-                }
-
-                Button {
-                    text: qsTr("Export\u2026")
-                    highlighted: true
-                    enabled: root.selectedCount > 0
-                    onClicked: {
-                        var name = encodeURIComponent(root.suggestedFileName());
-                        var folder = fileDialog.currentFolder;
-                        fileDialog.currentFile = (folder && String(folder).indexOf("undefined") < 0) ? folder + "/" + name : name;
-                        fileDialog.open();
-                    }
-                }
+        Button {
+            text: qsTr("Export\u2026")
+            highlighted: true
+            enabled: root.selectedCount > 0
+            onClicked: {
+                var name = encodeURIComponent(root.suggestedFileName());
+                var folder = fileDialog.currentFolder;
+                fileDialog.currentFile = (folder && String(folder).indexOf("undefined") < 0) ? folder + "/" + name : name;
+                fileDialog.open();
             }
         }
     }

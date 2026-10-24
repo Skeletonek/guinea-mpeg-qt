@@ -44,6 +44,7 @@ qt_add_resources(guinea-mpeg "app_qml"
         ${CMAKE_SOURCE_DIR}/qml/Utils/DataUtils.js
         ${CMAKE_SOURCE_DIR}/qml/Utils/Constants.js
         ${CMAKE_SOURCE_DIR}/qml/Utils/UpdateUtils.js
+        ${CMAKE_SOURCE_DIR}/qml/Components/AppDialog.qml
         ${CMAKE_SOURCE_DIR}/qml/Components/LabeledRow.qml
         ${CMAKE_SOURCE_DIR}/qml/Components/LabeledComboBox.qml
         ${CMAKE_SOURCE_DIR}/qml/Components/LabeledTextField.qml

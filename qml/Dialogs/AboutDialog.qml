@@ -1,11 +1,11 @@
-import "../Utils/Centering.js" as Utils
+import "../Components"
 import QtMultimedia
 import "../Utils/Constants.js" as Constants
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
-Dialog {
+AppDialog {
     id: root
 
     property bool easterEggActivated: false
@@ -18,8 +18,9 @@ Dialog {
 
         easterEggActivated = true;
         lettuceItem.visible = true;
-        lettuceItem.x = Math.round((root.width - 64) / 2);
-        lettuceItem.y = root.height - 64 - implicitFooterHeight - 16;
+        var pos = authorLogo.mapToItem(overlay, 0, 0);
+        lettuceItem.x = pos.x + Math.round((authorLogo.width - 64) / 2);
+        lettuceItem.y = pos.y + authorLogo.height + 8;
     }
 
     function hideLettuce() {
@@ -55,12 +56,8 @@ Dialog {
 
     title: qsTr("About GuineaMPEG")
     width: Constants.dialogWidthAbout
-    padding: 16
-    topPadding: 8
-    implicitHeight: implicitHeaderHeight + mainLayout.implicitHeight + implicitFooterHeight + 24
-    Component.onCompleted: Utils.centerInParent(root)
+    contentImplicitHeight: mainLayout.implicitHeight
     onOpened: {
-        Utils.centerInParent(root);
         keyCatcher.forceActiveFocus();
     }
 
@@ -260,6 +257,8 @@ Dialog {
             }
 
             Image {
+                id: authorLogo
+
                 source: "/media/logo/skeletonek.jpg"
                 sourceSize.width: 80
                 sourceSize.height: 80
@@ -303,33 +302,19 @@ Dialog {
         }
     }
 
-    footer: Item {
-        implicitWidth: root.width
-        implicitHeight: copyButton.implicitHeight + 16
-
-        RowLayout {
-            anchors.fill: parent
-            anchors.margins: 8
-            spacing: 8
-
-            Item {
-                Layout.fillWidth: true
+    footer: DialogButtonBox {
+        Button {
+            text: qsTr("Copy")
+            onClicked: {
+                backend.copyToClipboard(technicalInfo());
+                copyBanner.show();
             }
+        }
 
-            Button {
-                id: copyButton
-
-                text: qsTr("Copy")
-                onClicked: {
-                    backend.copyToClipboard(technicalInfo());
-                    copyBanner.show();
-                }
-            }
-
-            Button {
-                text: qsTr("OK")
-                onClicked: root.accept()
-            }
+        Button {
+            text: qsTr("OK")
+            highlighted: true
+            onClicked: root.accept()
         }
     }
 }
