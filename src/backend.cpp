@@ -82,6 +82,7 @@ QVariantMap makeVideoStreamMap(int idx, const QJsonObject& stream) {
     m["width"] = stream["width"].toInt();
     m["height"] = stream["height"].toInt();
     m["fps"] = stream["r_frame_rate"].toString();
+    m["bitrate"] = jsonInt64(stream["bit_rate"]);
     return m;
 }
 
@@ -92,6 +93,7 @@ QVariantMap makeAudioStreamMap(int idx, const QJsonObject& stream) {
     m["codec"] = stream["codec_name"].toString();
     m["channels"] = stream["channels"].toInt();
     m["sample_rate"] = stream["sample_rate"].toString();
+    m["bitrate"] = jsonInt64(stream["bit_rate"]);
     m["language"] = tags["language"].toString();
     m["title"] = tags["title"].toString();
     return m;

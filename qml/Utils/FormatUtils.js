@@ -13,19 +13,20 @@ function formatTime(ms) {
 }
 
 /**
- * Time formatting utility - MM:SS with 3 digits past the seconds
- * (milliseconds standard): frame index within the current second when fps is
- * known, milliseconds otherwise.
+ * Time formatting utility - MM:SS with fraction: frame index within the current
+ * second (2 digits) when fps is known, milliseconds (3 digits) otherwise.
  * @param {number} ms - Time in milliseconds
  * @param {number} [fps] - Frames per second; 0/null falls back to milliseconds
- * @returns {string} Formatted time string (MM:SS.fff)
+ * @returns {string} Formatted time string (MM:SS.ff with fps, MM:SS.fff without)
  */
 function formatTimePrecise(ms, fps) {
     var t = Math.max(0, ms)
     var frac = 0
+    var digits = 3
     if (fps > 0) {
         var perSecond = Math.ceil(fps)
         frac = Math.min(perSecond - 1, Math.floor((t % 1000) * fps / 1000))
+        digits = 2
     } else {
         frac = t % 1000
     }
@@ -33,7 +34,7 @@ function formatTimePrecise(ms, fps) {
     var m = Math.floor(s / 60)
     s = s % 60
     var text = String(frac)
-    while (text.length < 3)
+    while (text.length < digits)
         text = "0" + text
     return (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s + "." + text
 }
@@ -152,4 +153,44 @@ function formatSize(bytes) {
         i++;
     }
     return (i === 0 ? Math.round(n).toString() : n.toFixed(1)) + " " + units[i];
+}
+
+/**
+ * Formats a bit rate into a human-readable string (decimal units)
+ * @param {number} bps - Bit rate in bits per second (0 or negative → "N/A")
+ * @returns {string} Formatted bit rate string (e.g. "4.5 Mbps")
+ */
+function formatBitrate(bps) {
+    if (!bps || bps <= 0) return "N/A";
+    var units = ["bps", "kbps", "Mbps", "Gbps"];
+    var i = 0;
+    var n = bps;
+    while (n >= 1000 && i < units.length - 1) {
+        n /= 1000;
+        i++;
+    }
+    return (i === 0 ? Math.round(n).toString() : n.toFixed(1)) + " " + units[i];
+}
+
+/**
+ * Formats an audio sample rate in Hz (0 or negative → "N/A")
+ * @param {number|string} hz - Sample rate in Hz (e.g. 48000, "48000")
+ * @returns {string} Formatted sample rate string (e.g. "48.0 kHz")
+ */
+function formatSampleRate(hz) {
+    var rate = typeof hz === "string" ? parseFloat(hz) : hz;
+    if (!rate || rate <= 0) return "N/A";
+    return (rate / 1000).toFixed(1) + " kHz";
+}
+
+/**
+ * Formats an audio channel count with a common layout hint
+ * @param {number} channels - Channel count
+ * @returns {string} Formatted channel string (e.g. "2 (stereo)")
+ */
+function formatChannels(channels) {
+    if (!channels || channels <= 0) return "N/A";
+    var layouts = {1: qsTr("mono"), 2: qsTr("stereo"), 6: qsTr("5.1"), 8: qsTr("7.1")};
+    var hint = layouts[channels];
+    return channels + (hint ? " (" + hint + ")" : "");
 }

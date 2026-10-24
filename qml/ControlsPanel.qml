@@ -1,6 +1,7 @@
 import "Components"
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Layouts
 import "Utils/Constants.js" as Constants
 import "Utils/DataUtils.js" as DataUtils
 import "Utils/FormatUtils.js" as FormatUtils
@@ -11,6 +12,12 @@ Item {
     property var hostWindow: null
     property var playerItem: null
     property var _profileNames: []
+
+    // Media information: first video/audio stream of the previewed file
+    readonly property bool _hasVideo: hostWindow !== null && hostWindow.currentVideoPath !== ""
+    readonly property var _videoStream: _hasVideo && hostWindow.videoStreams.length > 0 ? hostWindow.videoStreams[0] : null
+    readonly property var _audioStream: _hasVideo && hostWindow.audioStreams.length > 0 ? hostWindow.audioStreams[0] : null
+    readonly property string _durationText: _hasVideo ? (hostWindow.currentVideoInfo.duration || 0).toFixed(3) : ""
 
     signal openVideoClicked
     signal addFilesClicked
@@ -104,17 +111,22 @@ Item {
                 color: theme.text
             }
 
-            Button {
-                text: qsTr("Open File...")
-                onClicked: root.openVideoClicked()
+            Row {
+                spacing: 8
                 width: parent.width
-            }
 
-            Button {
-                text: qsTr("Add Files...")
-                enabled: hostWindow && hostWindow.currentVideoPath !== ""
-                onClicked: root.addFilesClicked()
-                width: parent.width
+                Button {
+                    text: qsTr("Open File...")
+                    onClicked: root.openVideoClicked()
+                    width: (parent.width - parent.spacing) / 2
+                }
+
+                Button {
+                    text: qsTr("Add Files...")
+                    enabled: hostWindow && hostWindow.currentVideoPath !== ""
+                    onClicked: root.addFilesClicked()
+                    width: (parent.width - parent.spacing) / 2
+                }
             }
 
             Label {
@@ -122,6 +134,7 @@ Item {
                 font.bold: true
                 font.pixelSize: 16
                 color: theme.text
+                topPadding: 8
             }
 
             ComboBox {
@@ -145,19 +158,101 @@ Item {
                 id: videoInfoScroll
 
                 width: parent.width
-                height: Math.max(Math.min(videoInfoDisplay.contentHeight, 160), 120)
-                contentHeight: videoInfoDisplay.contentHeight
+                height: Math.max(Math.min(videoInfoLayout.implicitHeight, 160), 120)
+                contentHeight: videoInfoLayout.implicitHeight
                 clip: true
 
-                TextEdit {
-                    id: videoInfoDisplay
+                ColumnLayout {
+                    id: videoInfoLayout
 
-                    readOnly: true
-                    text: hostWindow ? hostWindow.videoInfoText : ""
-                    wrapMode: TextEdit.Wrap
                     width: videoInfoScroll.width
-                    color: theme.text
-                    textFormat: TextEdit.PlainText
+                    spacing: 4
+
+                    Label {
+                        text: root._hasVideo ? qsTr("File: %1").arg(FormatUtils.getFilename(hostWindow.currentVideoPath))
+                                             : qsTr("Load a video file to see information")
+                        color: theme.text
+                        wrapMode: Text.Wrap
+                        Layout.fillWidth: true
+                    }
+
+                    Label {
+                        visible: root._hasVideo
+                        text: qsTr("Duration: %1s").arg(root._durationText)
+                        color: theme.text
+                        Layout.fillWidth: true
+                    }
+
+                    RowLayout {
+                        visible: root._hasVideo
+                        Layout.fillWidth: true
+                        // Qt 6.12: a nested layout's implicit maximum width caps it at
+                        // its content width, so fillWidth alone never stretches it.
+                        Layout.maximumWidth: Number.POSITIVE_INFINITY
+                        spacing: 16
+
+                        Column {
+                            Layout.fillWidth: true
+                            spacing: 4
+
+                            Label {
+                                text: qsTr("Video")
+                                font.bold: true
+                                color: theme.text
+                            }
+
+                            Label {
+                                text: qsTr("Codec: %1").arg(root._videoStream ? root._videoStream.codec : "N/A")
+                                color: theme.text
+                            }
+
+                            Label {
+                                text: qsTr("Resolution: %1").arg(root._videoStream ? root._videoStream.width + "x" + root._videoStream.height : "N/A")
+                                color: theme.text
+                            }
+
+                            Label {
+                                text: qsTr("FPS: %1").arg(root._videoStream ? FormatUtils.formatFps(root._videoStream.fps) : "N/A")
+                                color: theme.text
+                            }
+
+                            Label {
+                                text: qsTr("Bitrate: %1").arg(root._videoStream ? FormatUtils.formatBitrate(root._videoStream.bitrate) : "N/A")
+                                color: theme.text
+                            }
+                        }
+
+                        Column {
+                            Layout.fillWidth: true
+                            spacing: 4
+
+                            Label {
+                                text: qsTr("Audio")
+                                font.bold: true
+                                color: theme.text
+                            }
+
+                            Label {
+                                text: qsTr("Codec: %1").arg(root._audioStream ? root._audioStream.codec : "N/A")
+                                color: theme.text
+                            }
+
+                            Label {
+                                text: qsTr("Sample rate: %1").arg(root._audioStream ? FormatUtils.formatSampleRate(root._audioStream.sample_rate) : "N/A")
+                                color: theme.text
+                            }
+
+                            Label {
+                                text: qsTr("Channels: %1").arg(root._audioStream ? FormatUtils.formatChannels(root._audioStream.channels) : "N/A")
+                                color: theme.text
+                            }
+
+                            Label {
+                                text: qsTr("Bitrate: %1").arg(root._audioStream ? FormatUtils.formatBitrate(root._audioStream.bitrate) : "N/A")
+                                color: theme.text
+                            }
+                        }
+                    }
                 }
 
                 ScrollBar.vertical: ScrollBar {
@@ -170,6 +265,7 @@ Item {
                 font.bold: true
                 font.pixelSize: 16
                 color: theme.text
+                topPadding: 8
                 visible: (hostWindow && hostWindow.videoStreams.length > 1) || (hostWindow && hostWindow.audioStreams.length > 1)
             }
 
@@ -236,6 +332,7 @@ Item {
                 font.bold: true
                 font.pixelSize: 16
                 color: theme.text
+                topPadding: 8
             }
 
             ComboBox {
@@ -262,6 +359,7 @@ Item {
                 font.bold: true
                 font.pixelSize: 16
                 color: theme.text
+                topPadding: 8
             }
 
             TimelineControl {
@@ -295,6 +393,7 @@ Item {
                 font.bold: true
                 font.pixelSize: 14
                 color: theme.text
+                topPadding: 8
             }
 
             Row {

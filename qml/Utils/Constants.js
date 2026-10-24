@@ -107,8 +107,8 @@ var crfMin = 0
 var crfMax = 63
 
 // Controls panel splitter
-var controlsPanelDefaultWidth = 300
-var controlsPanelMinWidth = 300
+var controlsPanelDefaultWidth = 360
+var controlsPanelMinWidth = 360
 var controlsPanelMaxWidth = 640
 var controlsPanelCollapseThreshold = 140
 var splitterHandleWidth = 8

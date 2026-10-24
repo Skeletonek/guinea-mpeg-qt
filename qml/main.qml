@@ -17,7 +17,6 @@ ApplicationWindow {
     property int videoDuration: 0
     property int startTime: 0
     property int endTime: 0
-    property string videoInfoText: qsTr("Load a video file to see information")
     property string outputFilePath: ""
     // Chosen output directory for the batch; empty = next to each source file
     property string outputDirectory: ""
@@ -50,7 +49,6 @@ ApplicationWindow {
     property int batchJobCount: 0
     property int batchFailedCount: 0
     property string previewProfile: ""
-
     function _findBatchIndex(files, path) {
         for (var i = 0; i < files.length; i++) {
             if (files[i].path === path)
@@ -85,8 +83,6 @@ ApplicationWindow {
             selectedAudioIndices = ai;
         }
         var name = FormatUtils.getFilename(filePath);
-        var fps = FormatUtils.formatFps(info.fps || "0/1");
-        videoInfoText = qsTr("File: %1\nDuration: %2s\nResolution: %3x%4\nFPS: %5\nVideo: %6\nAudio: %7").arg(name).arg(info.duration.toFixed(3)).arg(info.width).arg(info.height).arg(fps).arg(info.codec).arg(info.audio_codec || "N/A");
         var base = FormatUtils.getBaseFilename(name);
         var dir = FormatUtils.getDirectory(filePath);
         var profileData = {};
@@ -272,7 +268,7 @@ ApplicationWindow {
 
     function startTranscoding() {
         if (appWindow.outputFilePath === "") {
-            videoInfoText = qsTr("Please set an output file path first");
+            queueStatus = qsTr("Please set an output file path first");
             return;
         }
         var result = buildBatchJobs();

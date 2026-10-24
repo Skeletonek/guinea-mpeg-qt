@@ -110,21 +110,21 @@ TestCase {
     }
 
     function test_formatTimePrecise() {
-        // Frames when fps is known, padded to 3 digits
-        compare(FormatUtils.formatTimePrecise(0, 30), "00:00.000");
-        compare(FormatUtils.formatTimePrecise(1500, 30), "00:01.015");
-        compare(FormatUtils.formatTimePrecise(59999, 30), "00:59.029");
-        compare(FormatUtils.formatTimePrecise(61000, 25), "01:01.000");
+        // Frame index when fps is known, padded to 2 digits
+        compare(FormatUtils.formatTimePrecise(0, 30), "00:00.00");
+        compare(FormatUtils.formatTimePrecise(1500, 30), "00:01.15");
+        compare(FormatUtils.formatTimePrecise(59999, 30), "00:59.29");
+        compare(FormatUtils.formatTimePrecise(61000, 25), "01:01.00");
         // Non-integer fps
-        compare(FormatUtils.formatTimePrecise(1500, 23.976), "00:01.011");
+        compare(FormatUtils.formatTimePrecise(1500, 23.976), "00:01.11");
         compare(FormatUtils.formatTimePrecise(995, 120), "00:00.119");
-        // Milliseconds when fps is unknown
+        // Milliseconds when fps is unknown, padded to 3 digits
         compare(FormatUtils.formatTimePrecise(0), "00:00.000");
         compare(FormatUtils.formatTimePrecise(1500, 0), "00:01.500");
         compare(FormatUtils.formatTimePrecise(1500, null), "00:01.500");
         // Out-of-range input
-        compare(FormatUtils.formatTimePrecise(-500, 30), "00:00.000");
-        compare(FormatUtils.formatTimePrecise(3.6e+06, 30), "60:00.000");
+        compare(FormatUtils.formatTimePrecise(-500, 30), "00:00.00");
+        compare(FormatUtils.formatTimePrecise(3.6e+06, 30), "60:00.00");
     }
 
     function test_formatFps() {
