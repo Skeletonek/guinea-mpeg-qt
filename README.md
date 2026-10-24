@@ -33,7 +33,7 @@ Windows aarch64 and Linux aarch64 appimage requires manual building
 - CMake 3.16+
 - GCC 11+ (C++20 required)
 - Rust 1.56+ (use your distro's `cargo`/`rustc` packages)
-- Qt 6.5+
+- Qt 6.8+
 - libmpv-dev
 - OpenGL / GLX development headers
 - FFmpeg + ffprobe runtime
@@ -70,7 +70,7 @@ sudo pacman -S --needed base-devel cmake \
   rustup default stable-msvc
   rustup target add x86_64-pc-windows-msvc
   ```
-- Qt 6.5+ for MSVC 2022 — required components:
+- Qt 6.8+ for MSVC 2022 — required components:
   - `Qt 6.x / MSVC 2022 64-bit`
   - `Qt Quick`
   - `Qt QuickControls2`
@@ -205,3 +205,4 @@ User profiles merge over defaults (same name = user override).
 ## LLM Usage
 
 This project uses AI to help generate code, and a significant portion of the codebase is AI-generated. However, reviews and quality testing are done entirely by a human. New features are also planed by human with the help of AI to best suit the current project codebase.
+

@@ -296,9 +296,7 @@ int main(int argc, char* argv[]) {
         QQuickStyle::setStyle(themeOption);
 #ifdef Q_OS_WIN
     else
-        // Windows: default to Fusion, the "Windows" style does not support a
-        // forced color scheme (and defaults to light on Win10).
-        QQuickStyle::setStyle(QStringLiteral("Fusion"));
+        QQuickStyle::setStyle(QStringLiteral("FluentWinUI3"));
 #endif
 
     // Release builds: Material, Universal and Imagine render dark controls with
@@ -333,10 +331,7 @@ int main(int argc, char* argv[]) {
 #endif
     ) {
         app.setPalette(darkTheme ? makeDarkPalette() : makeLightPalette());
-        // QStyleHints::setColorScheme() was added in Qt 6.8.
-#if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)
         QApplication::styleHints()->setColorScheme(effectiveScheme);
-#endif
     }
 
     QVariantMap theme = buildThemeMap(app.palette(), darkTheme);

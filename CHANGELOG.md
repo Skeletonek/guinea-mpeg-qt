@@ -1,13 +1,15 @@
-### 0.15.0
+### 0.15.0 (In progress)
 - Added support for opening multiple files at once - pseudo batch transcoding
 - Added more precise time formatting
 - Added note icon when playing audio file with no video streams (no cover art)
 - Added "Media Files" filter in open file dialog for both audio and video files
+- Changed system theme on Windows from Fusion to FluentWinUI3
 - Renamed "Video Information" section to "Media Information"
 - Swaped "Preview Mode" button place with "Regenerate" button in Preview Mode
 - Updated Linux .desktop files with supported translations
 - Fixed not refreshing video playback when loading audio file with no cover art after playing a video file
 - Removed encoder compatibility dialog in profile editor
+- Bumped build requirement to Qt 6.8+
 
 ### 0.14.0
 - Reworked layout of the transcoding dialog
