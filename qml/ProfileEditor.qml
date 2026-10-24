@@ -256,9 +256,9 @@ Rectangle {
 
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top
-        anchors.topMargin: 8
+        anchors.topMargin: 16
         z: 200
-        width: Math.min(Math.max(0, parent.width - 16), 480)
+        width: Math.min(Math.max(0, parent.width - 32), 480)
         autoHideMs: 3000
         visible: false
     }

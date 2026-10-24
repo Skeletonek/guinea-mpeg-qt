@@ -34,8 +34,6 @@ ApplicationWindow {
     property bool batchTrimAcknowledged: false
     // Jobs staged while the overwrite confirmation is open
     property var pendingResult: null
-    // Last open/queue action summary, shown under the Start button
-    property string queueStatus: ""
     // Session-only log history of finished jobs (capped, oldest dropped first)
     property var transcodeHistory: []
     readonly property int maxTranscodeHistory: 100
@@ -49,12 +47,20 @@ ApplicationWindow {
     property int batchJobCount: 0
     property int batchFailedCount: 0
     property string previewProfile: ""
+
     function _findBatchIndex(files, path) {
         for (var i = 0; i < files.length; i++) {
             if (files[i].path === path)
                 return i;
         }
         return -1;
+    }
+
+    function showQueueStatus(message) {
+        if (message === "")
+            return;
+        queueBanner.text = message;
+        queueBanner.show();
     }
 
     function _loadPreview(filePath, fileUrl, preloadedInfo, resetTrim) {
@@ -139,7 +145,7 @@ ApplicationWindow {
                 firstEntry = entry;
         }
         if (firstEntry === null) {
-            queueStatus = skipped > 0 ? qsTr("Could not open %1 file(s)").arg(skipped) : "";
+            showQueueStatus(skipped > 0 ? qsTr("Could not open %1 file(s)").arg(skipped) : "");
             return;
         }
         batchFiles = list;
@@ -155,7 +161,7 @@ ApplicationWindow {
             notes.push(qsTr("%1 skipped (not readable)").arg(skipped));
         if (duplicates > 0)
             notes.push(qsTr("%1 already open").arg(duplicates));
-        queueStatus = notes.join(", ");
+        showQueueStatus(notes.join(", "));
     }
 
     function updateCodec() {
@@ -190,24 +196,16 @@ ApplicationWindow {
         } catch (e) {
             return null;
         }
-        // Waiting/running jobs are not re-added; their outputs still reserve name slots
-        var queuedInputs = {};
+        // Outputs of waiting/running jobs reserve name slots
         var taken = {};
         if (appWindow.activeJob)
-            queuedInputs[appWindow.activeJob.input] = true;
-        for (var qi = 0; qi < appWindow.transcodeQueue.length; qi++) {
-            queuedInputs[appWindow.transcodeQueue[qi].input] = true;
+            taken[appWindow.activeJob.output] = true;
+        for (var qi = 0; qi < appWindow.transcodeQueue.length; qi++)
             taken[appWindow.transcodeQueue[qi].output] = true;
-        }
         var jobs = [];
-        var alreadyQueued = 0;
         var tooShort = 0;
         for (var i = 0; i < files.length; i++) {
             var f = files[i];
-            if (queuedInputs[f.path]) {
-                alreadyQueued++;
-                continue;
-            }
             var durMs = Math.round((f.info.duration || 0) * 1000);
             var s = Math.max(appWindow.startTime, 0);
             var e = Math.min(appWindow.endTime, durMs);
@@ -230,8 +228,6 @@ ApplicationWindow {
             } else {
                 out = appWindow.outputFilePath;
             }
-            out = DataUtils.uniquePath(out, taken);
-            taken[out] = true;
             var pf = {};
             for (var k in profile)
                 pf[k] = profile[k];
@@ -248,7 +244,7 @@ ApplicationWindow {
             });
             if (aIdx.length > 0)
                 pf.audio_stream_indices = aIdx;
-            jobs.push({
+            var job = {
                 "input": f.path,
                 "output": out,
                 "start": s / 1000,
@@ -257,18 +253,20 @@ ApplicationWindow {
                 "targetFps": profile.framerate || 0,
                 "sourceFps": FormatUtils.fpsToDecimal(f.info.fps || "") || 0,
                 "durationMs": e - s
-            });
+            };
+            job.output = DataUtils.uniquePath(out, taken);
+            taken[job.output] = true;
+            jobs.push(job);
         }
         return {
             "jobs": jobs,
-            "alreadyQueued": alreadyQueued,
             "tooShort": tooShort
         };
     }
 
     function startTranscoding() {
         if (appWindow.outputFilePath === "") {
-            queueStatus = qsTr("Please set an output file path first");
+            showQueueStatus(qsTr("Please set an output file path first"));
             return;
         }
         var result = buildBatchJobs();
@@ -301,11 +299,9 @@ ApplicationWindow {
         var notes = [];
         if (result.jobs.length > 0)
             notes.push(qsTr("Added %1 file(s) to the queue").arg(result.jobs.length));
-        if (result.alreadyQueued > 0)
-            notes.push(qsTr("%1 already in queue").arg(result.alreadyQueued));
         if (result.tooShort > 0)
             notes.push(qsTr("%1 skipped (empty trim range)").arg(result.tooShort));
-        queueStatus = notes.length > 0 ? notes.join(", ") : qsTr("No new files to queue");
+        showQueueStatus(notes.length > 0 ? notes.join(", ") : qsTr("No new files to queue"));
     }
 
     function removeQueuedJob(queueIndex) {
@@ -582,6 +578,21 @@ ApplicationWindow {
         width: aboutDialog.width
         text: qsTr("Copied to clipboard")
         autoHideMs: 2000
+        visible: false
+    }
+
+    // Transient feedback for open/queue actions (replaces the old persistent
+    // status label); floats above dialogs since queueing opens TranscodeDialog
+    InfoBanner {
+        id: queueBanner
+
+        parent: Overlay.overlay
+        z: 1000
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.top: parent.top
+        anchors.topMargin: 16
+        width: Math.min(Math.max(0, parent.width - 32), 480)
+        autoHideMs: 3000
         visible: false
     }
 

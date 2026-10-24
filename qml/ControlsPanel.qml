@@ -478,15 +478,6 @@ Item {
                 width: parent.width
             }
 
-            Label {
-                text: hostWindow ? hostWindow.queueStatus : ""
-                visible: text !== ""
-                width: parent.width
-                wrapMode: Text.WordWrap
-                color: theme.textSecondary
-                font.pixelSize: 12
-            }
-
             Button {
                 text: qsTr("Transcoding log")
                 enabled: backend.transcoding || backend.transcodeOutput !== "" || (hostWindow && hostWindow.transcodeHistory.length > 0)
