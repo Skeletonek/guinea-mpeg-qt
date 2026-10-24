@@ -1,34 +1,21 @@
 import QtQuick
 import QtQuick.Controls
 
-Dialog {
+AppDialog {
     id: root
 
     property string headline: ""
     property string body: ""
 
+    title: headline
     standardButtons: Dialog.Ok
-    modal: true
 
-    Column {
-        spacing: 8
-        padding: 16
+    Label {
+        id: bodyLabel
 
-        Label {
-            text: root.headline
-            color: theme.text
-            font.bold: true
-        }
-
-        Label {
-            text: root.body
-            color: theme.text
-            wrapMode: Text.Wrap
-            width: 400
-        }
-    }
-
-    background: Rectangle {
-        color: theme.surface
+        text: root.body
+        color: theme.text
+        wrapMode: Text.Wrap
+        width: 400
     }
 }

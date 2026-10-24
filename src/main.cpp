@@ -1,4 +1,5 @@
 #include <QApplication>
+#include <QDebug>
 #include <QLocale>
 #include <QPalette>
 #include <QQmlApplicationEngine>
@@ -301,13 +302,22 @@ int main(int argc, char* argv[]) {
 
     // Release builds: Material, Universal and Imagine render dark controls with
     // black text in dark/system schemes, so lock them to the light variant.
-    // Debug builds allow the full combination (see AGENTS.md).
+    // Debug builds allow the full combination (see AGENTS.md) — say so, to
+    // avoid "did the lock break?" confusion when testing.
+    static const QStringList schemeLockedStyles = {QStringLiteral("Material"), QStringLiteral("Universal"),
+                                                   QStringLiteral("Imagine")};
     QStringList colorSchemeLockedStyles;
 #ifdef QT_NO_DEBUG
-    colorSchemeLockedStyles = {QStringLiteral("Material"), QStringLiteral("Universal"), QStringLiteral("Imagine")};
+    colorSchemeLockedStyles = schemeLockedStyles;
 #endif
-    if (colorSchemeLockedStyles.contains(themeOption))
+    if (schemeLockedStyles.contains(themeOption)) {
+#ifdef QT_NO_DEBUG
         colorSchemeOption = QStringLiteral("light");
+#else
+        qInfo().nospace() << "Debug build: " << themeOption
+                          << " is not locked to the light scheme (release builds force it).";
+#endif
+    }
 
     // Color scheme. An explicit dark/light choice always forces our palette +
     // QStyleHints scheme so the option actually takes effect everywhere. With

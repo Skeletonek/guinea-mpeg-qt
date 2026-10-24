@@ -1,9 +1,10 @@
+import "../Components"
 import "../Utils/Constants.js" as Constants
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 
-Dialog {
+AppDialog {
     id: root
 
     property string importPath: ""
@@ -25,12 +26,8 @@ Dialog {
     }
 
     title: qsTr("Overwrite Existing Profiles?")
-    modal: true
     width: Constants.dialogWidthLarge
-    padding: 16
-    topPadding: 8
-    implicitHeight: implicitHeaderHeight + mainLayout.implicitHeight + implicitFooterHeight + 24
-    anchors.centerIn: Overlay.overlay
+    contentImplicitHeight: mainLayout.implicitHeight
 
     ColumnLayout {
         id: mainLayout

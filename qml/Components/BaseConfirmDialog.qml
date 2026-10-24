@@ -1,9 +1,8 @@
-import "../Utils/Centering.js" as Utils
 import "../Utils/Constants.js" as Constants
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 
-Dialog {
+AppDialog {
     id: root
 
     property string bodyText: ""
@@ -11,11 +10,8 @@ Dialog {
     signal confirmed
 
     standardButtons: Dialog.Yes | Dialog.No
-    padding: 16
     width: Constants.dialogWidthMedium
-    implicitHeight: implicitHeaderHeight + bodyLabel.implicitHeight + implicitFooterHeight + 24
-    Component.onCompleted: Utils.centerInParent(root)
-    onOpened: Utils.centerInParent(root)
+    contentImplicitHeight: bodyLabel.implicitHeight
     onAccepted: root.confirmed()
 
     Label {
