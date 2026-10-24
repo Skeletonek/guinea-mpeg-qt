@@ -19,22 +19,69 @@ Rectangle {
 
     signal trimRequested(string kind, real value)
 
-    function nudgeStartTime(dir) {
-        var step = (dir < 0 ? -1 : 1) * nudgeStep;
-        var t = Math.max(0, Math.min(startTime + step, endTime - 1));
+    function nudgeStartBy(stepMs) {
+        var t = Math.max(0, Math.min(startTime + stepMs, endTime - 1));
         startTime = t;
         startTime = Qt.binding(function () {
             return mainWindow ? mainWindow.startTime : 0;
         });
     }
 
-    function nudgeEndTime(dir) {
-        var step = (dir < 0 ? -1 : 1) * nudgeStep;
-        var t = Math.max(startTime + 1, Math.min(endTime + step, videoDuration));
+    function nudgeEndBy(stepMs) {
+        var t = Math.max(startTime + 1, Math.min(endTime + stepMs, videoDuration));
         endTime = t;
         endTime = Qt.binding(function () {
             return mainWindow ? mainWindow.endTime : 0;
         });
+    }
+
+    // Global trim nudging — active while a trim handle holds focus (the seek
+    // shortcuts yield to the timeline in the same state). Frame = 1 frame,
+    // Ctrl = 1s, Shift = 1min; H/L stay as frame aliases. The focused handle
+    // decides which edge moves.
+    readonly property bool trimFocused: startHandle.activeFocus || endHandle.activeFocus
+
+    function nudgeFocusedBy(stepMs) {
+        if (startHandle.activeFocus)
+            nudgeStartBy(stepMs);
+        else if (endHandle.activeFocus)
+            nudgeEndBy(stepMs);
+    }
+
+    Shortcut {
+        enabled: root.trimFocused
+        sequences: ["Left", "H"]
+        onActivated: root.nudgeFocusedBy(-root.nudgeStep)
+    }
+
+    Shortcut {
+        enabled: root.trimFocused
+        sequence: "Ctrl+Left"
+        onActivated: root.nudgeFocusedBy(-1000)
+    }
+
+    Shortcut {
+        enabled: root.trimFocused
+        sequence: "Shift+Left"
+        onActivated: root.nudgeFocusedBy(-60000)
+    }
+
+    Shortcut {
+        enabled: root.trimFocused
+        sequences: ["Right", "L"]
+        onActivated: root.nudgeFocusedBy(root.nudgeStep)
+    }
+
+    Shortcut {
+        enabled: root.trimFocused
+        sequence: "Ctrl+Right"
+        onActivated: root.nudgeFocusedBy(1000)
+    }
+
+    Shortcut {
+        enabled: root.trimFocused
+        sequence: "Shift+Right"
+        onActivated: root.nudgeFocusedBy(60000)
     }
 
     color: theme.widget
@@ -93,20 +140,6 @@ Rectangle {
                 border.width: activeFocus ? 1 : 0
                 border.color: Constants.timelineHandleBorder
                 activeFocusOnTab: true
-                Keys.onLeftPressed: function (event) {
-                    event.accepted = true;
-                    nudgeStartTime(-1);
-                }
-                Keys.onRightPressed: function (event) {
-                    event.accepted = true;
-                    nudgeStartTime(1);
-                }
-                Keys.onPressed: function (event) {
-                    if (event.key === Qt.Key_H || event.key === Qt.Key_L) {
-                        event.accepted = true;
-                        nudgeStartTime(event.key === Qt.Key_H ? -1 : 1);
-                    }
-                }
 
                 MouseArea {
                     anchors.fill: parent
@@ -147,20 +180,6 @@ Rectangle {
                 border.width: activeFocus ? 1 : 0
                 border.color: Constants.timelineHandleBorder
                 activeFocusOnTab: true
-                Keys.onLeftPressed: function (event) {
-                    event.accepted = true;
-                    nudgeEndTime(-1);
-                }
-                Keys.onRightPressed: function (event) {
-                    event.accepted = true;
-                    nudgeEndTime(1);
-                }
-                Keys.onPressed: function (event) {
-                    if (event.key === Qt.Key_H || event.key === Qt.Key_L) {
-                        event.accepted = true;
-                        nudgeEndTime(event.key === Qt.Key_H ? -1 : 1);
-                    }
-                }
 
                 MouseArea {
                     anchors.fill: parent

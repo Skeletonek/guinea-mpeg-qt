@@ -8,6 +8,19 @@ qt_add_resources(guinea-mpeg "app_qml"
         ${CMAKE_SOURCE_DIR}/media/logo/skeletonek.jpg
         ${CMAKE_SOURCE_DIR}/media/icons/info.png
         ${CMAKE_SOURCE_DIR}/media/icons/settings.png
+        ${CMAKE_SOURCE_DIR}/media/icons/log.png
+        ${CMAKE_SOURCE_DIR}/media/icons/media-playback-start.png
+        ${CMAKE_SOURCE_DIR}/media/icons/media-playback-pause.png
+        ${CMAKE_SOURCE_DIR}/media/icons/view-refresh.png
+        ${CMAKE_SOURCE_DIR}/media/icons/audio-volume-high.png
+        ${CMAKE_SOURCE_DIR}/media/icons/audio-volume-medium.png
+        ${CMAKE_SOURCE_DIR}/media/icons/audio-volume-low.png
+        ${CMAKE_SOURCE_DIR}/media/icons/audio-volume-muted.png
+        ${CMAKE_SOURCE_DIR}/media/icons/document-new.png
+        ${CMAKE_SOURCE_DIR}/media/icons/document-save.png
+        ${CMAKE_SOURCE_DIR}/media/icons/edit-delete.png
+        ${CMAKE_SOURCE_DIR}/media/icons/document-export.png
+        ${CMAKE_SOURCE_DIR}/media/icons/document-import.png
         ${CMAKE_SOURCE_DIR}/qml/TimelineControl.qml
         ${CMAKE_SOURCE_DIR}/qml/ProfileEditor.qml
         ${CMAKE_SOURCE_DIR}/qml/VideoPreview.qml
@@ -45,6 +58,7 @@ qt_add_resources(guinea-mpeg "app_qml"
         ${CMAKE_SOURCE_DIR}/qml/Utils/Constants.js
         ${CMAKE_SOURCE_DIR}/qml/Utils/UpdateUtils.js
         ${CMAKE_SOURCE_DIR}/qml/Components/AppDialog.qml
+        ${CMAKE_SOURCE_DIR}/qml/Components/IconButton.qml
         ${CMAKE_SOURCE_DIR}/qml/Components/LabeledRow.qml
         ${CMAKE_SOURCE_DIR}/qml/Components/LabeledComboBox.qml
         ${CMAKE_SOURCE_DIR}/qml/Components/LabeledTextField.qml

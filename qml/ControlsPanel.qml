@@ -460,29 +460,41 @@ Item {
                 wrapMode: Text.WordWrap
             }
 
-            Button {
-                text: {
-                    var n = hostWindow ? hostWindow.batchFiles.length : 0;
-                    if (backend.transcoding)
-                        return qsTr("Add to Transcoding Queue");
-                    return n > 1 ? qsTr("Start Transcoding (%1 files)").arg(n) : qsTr("Start Transcoding");
-                }
-                enabled: hostWindow && hostWindow.currentVideoPath !== "" && hostWindow.endTime > hostWindow.startTime
-                onClicked: {
-                    if (playerItem)
-                        playerItem.pause();
-
-                    if (hostWindow)
-                        hostWindow.startTranscoding();
-                }
+            Row {
+                spacing: 8
                 width: parent.width
-            }
 
-            Button {
-                text: qsTr("Transcoding log")
-                enabled: backend.transcoding || backend.transcodeOutput !== "" || (hostWindow && hostWindow.transcodeHistory.length > 0)
-                onClicked: root.viewTranscodeClicked()
-                width: parent.width
+                Button {
+                    id: startButton
+
+                    text: {
+                        var n = hostWindow ? hostWindow.batchFiles.length : 0;
+                        if (backend.transcoding)
+                            return qsTr("Add to Transcoding Queue");
+                        return n > 1 ? qsTr("Start Transcoding (%1 files)").arg(n) : qsTr("Start Transcoding");
+                    }
+                    enabled: hostWindow && hostWindow.currentVideoPath !== "" && hostWindow.endTime > hostWindow.startTime
+                    onClicked: {
+                        if (playerItem)
+                            playerItem.pause();
+
+                        if (hostWindow)
+                            hostWindow.startTranscoding();
+                    }
+                    width: parent.width - logButton.width - parent.spacing
+                }
+
+                IconButton {
+                    id: logButton
+
+                    text: qsTr("Transcoding log")
+                    icon.name: "view-list-text-symbolic"
+                    icon.source: "/media/icons/log.png"
+                    enabled: backend.transcoding || backend.transcodeOutput !== "" || (hostWindow && hostWindow.transcodeHistory.length > 0)
+                    onClicked: root.viewTranscodeClicked()
+                    width: 40
+                    height: startButton.height
+                }
             }
 
             Label {

@@ -33,6 +33,7 @@ Rectangle {
     property alias position: player.position
     property alias duration: player.duration
     property alias volume: player.volume
+    property var mainWindow: null
 
     function pause() {
         player.pause();
@@ -150,7 +151,9 @@ Rectangle {
         anchors.bottomMargin: root._controlsBarHeight
         visible: root.hasVideo
         onClicked: {
-            keyCatcher.forceActiveFocus();
+            // Leave the timeline (and any other focused control) so the global
+            // seek shortcuts take over again
+            root.forceActiveFocus();
             if (player.playing)
                 player.pause();
             else
@@ -163,45 +166,80 @@ Rectangle {
         }
     }
 
-    Item {
-        id: keyCatcher
-
-        anchors.fill: parent
-        anchors.bottomMargin: root._controlsBarHeight
-        visible: root.hasVideo
-        activeFocusOnTab: true
-
-        Keys.onPressed: function (event) {
-            if (event.key === Qt.Key_Escape && root.previewGenerating) {
-                root.cancelGeneration();
-                event.accepted = true;
-                return;
-            }
-            var seekStep = 1000;
-            if (event.modifiers & Qt.ControlModifier)
-                seekStep = 10000;
-            else if (event.modifiers & Qt.ShiftModifier)
-                seekStep = 60000;
-            var seekDelta = 0;
-            if (event.key === Qt.Key_Left || event.key === Qt.Key_H)
-                seekDelta = -seekStep;
-            else if (event.key === Qt.Key_Right || event.key === Qt.Key_L)
-                seekDelta = seekStep;
-            if (seekDelta !== 0) {
-                root.position = Math.max(0, Math.min(player.duration, player.position + seekDelta));
-                event.accepted = true;
-                return;
-            }
-            var volumeDelta = 0;
-            if (event.key === Qt.Key_Down || event.key === Qt.Key_J)
-                volumeDelta = -2;
-            else if (event.key === Qt.Key_Up || event.key === Qt.Key_K)
-                volumeDelta = 2;
-            if (volumeDelta !== 0) {
-                root.adjustVolume(volumeDelta);
-                event.accepted = true;
-            }
+    // Global seek/volume bindings — work no matter which control holds focus
+    // (seekbar included). They yield to text inputs, popups (dialogs, combo
+    // lists — arrow navigation there), the timeline (trim nudge owns arrows
+    // while a handle is focused) and the splitter handle (panel resize).
+    function seekKeysAllowed() {
+        if (!root.hasVideo)
+            return false;
+        if (mainWindow && mainWindow.splitterFocused)
+            return false;
+        var fi = mainWindow ? mainWindow.activeFocusItem : null;
+        while (fi) {
+            if (fi instanceof TextInput || fi instanceof TextArea || fi instanceof Popup || fi instanceof TimelineControl)
+                return false;
+            fi = fi.parent;
         }
+        return true;
+    }
+
+    function seekBy(deltaMs) {
+        root.position = Math.max(0, Math.min(player.duration, player.position + deltaMs));
+    }
+
+    Shortcut {
+        enabled: root.seekKeysAllowed() && !root.previewGenerating
+        sequences: ["Left", "H"]
+        onActivated: root.seekBy(-1000)
+    }
+
+    Shortcut {
+        enabled: root.seekKeysAllowed() && !root.previewGenerating
+        sequence: "Ctrl+Left"
+        onActivated: root.seekBy(-10000)
+    }
+
+    Shortcut {
+        enabled: root.seekKeysAllowed() && !root.previewGenerating
+        sequence: "Shift+Left"
+        onActivated: root.seekBy(-60000)
+    }
+
+    Shortcut {
+        enabled: root.seekKeysAllowed() && !root.previewGenerating
+        sequences: ["Right", "L"]
+        onActivated: root.seekBy(1000)
+    }
+
+    Shortcut {
+        enabled: root.seekKeysAllowed() && !root.previewGenerating
+        sequence: "Ctrl+Right"
+        onActivated: root.seekBy(10000)
+    }
+
+    Shortcut {
+        enabled: root.seekKeysAllowed() && !root.previewGenerating
+        sequence: "Shift+Right"
+        onActivated: root.seekBy(60000)
+    }
+
+    Shortcut {
+        enabled: root.seekKeysAllowed()
+        sequences: ["Down", "J"]
+        onActivated: root.adjustVolume(-2)
+    }
+
+    Shortcut {
+        enabled: root.seekKeysAllowed()
+        sequences: ["Up", "K"]
+        onActivated: root.adjustVolume(2)
+    }
+
+    Shortcut {
+        enabled: root.previewGenerating && root.seekKeysAllowed()
+        sequence: "Esc"
+        onActivated: root.cancelGeneration()
     }
 
     Text {
@@ -210,6 +248,14 @@ Rectangle {
         color: theme.text
         visible: root.hasVideo && root.hasAudioOnly
         font.pixelSize: Constants.audioNoteIconSize
+    }
+
+    function volumeIconKey() {
+        if (player.muted)
+            return "audio-volume-muted";
+        if (player.volume >= 50)
+            return "audio-volume-high";
+        return player.volume > 0 ? "audio-volume-medium" : "audio-volume-low";
     }
 
     Text {
@@ -232,15 +278,17 @@ Rectangle {
             anchors.margins: 4
             spacing: 4
 
-            Button {
-                text: player.playing ? "⏸" : "▶"
-                Layout.preferredWidth: 40
+            IconButton {
+                text: player.playing ? qsTr("Pause") : qsTr("Play")
+                icon.name: player.playing ? "media-playback-pause-symbolic" : "media-playback-start-symbolic"
+                icon.source: player.playing ? "/media/icons/media-playback-pause.png" : "/media/icons/media-playback-start.png"
                 onClicked: {
                     if (player.playing)
                         player.pause();
                     else
                         player.play();
                 }
+                Layout.preferredWidth: 40
                 Layout.fillHeight: true
             }
 
@@ -270,10 +318,13 @@ Rectangle {
                 Layout.fillHeight: true
             }
 
-            Button {
+            IconButton {
                 text: qsTr("Regenerate")
+                icon.name: "view-refresh-symbolic"
+                icon.source: "/media/icons/view-refresh.png"
                 visible: root.previewActive
                 enabled: !root.previewGenerating
+                Layout.preferredWidth: 40
                 Layout.fillHeight: true
                 onClicked: root.generatePreview()
             }
@@ -289,7 +340,7 @@ Rectangle {
                 from: 0
                 to: 100
                 value: player.volume
-                Layout.preferredWidth: 60
+                Layout.preferredWidth: 110
                 onMoved: root.setPreviewVolume(value)
                 Layout.fillHeight: true
 
@@ -304,17 +355,14 @@ Rectangle {
                 }
             }
 
-            Label {
-                text: player.muted ? "🔇" : "🔊"
-                color: theme.text
-                verticalAlignment: Text.AlignVCenter
+            IconButton {
+                flat: true
+                text: player.muted ? qsTr("Unmute") : qsTr("Mute")
+                icon.name: root.volumeIconKey() + "-symbolic"
+                icon.source: "/media/icons/" + root.volumeIconKey() + ".png"
+                onClicked: player.toggleMute()
+                Layout.preferredWidth: 40
                 Layout.fillHeight: true
-
-                MouseArea {
-                    anchors.fill: parent
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: player.toggleMute()
-                }
             }
 
             Label {
@@ -355,13 +403,6 @@ Rectangle {
         color: theme.black
         opacity: 0.7
         visible: root.previewGenerating
-        onVisibleChanged: {
-            if (visible)
-                forceActiveFocus();
-            else
-                keyCatcher.forceActiveFocus();
-        }
-        Keys.onEscapePressed: root.cancelGeneration()
 
         BusyIndicator {
             id: previewSpinner

@@ -48,6 +48,9 @@ ApplicationWindow {
     property int batchFailedCount: 0
     property string previewProfile: ""
 
+    // Transient seek/volume shortcuts yield while the splitter owns the arrows
+    readonly property bool splitterFocused: splitterHandle.activeFocus
+
     function _findBatchIndex(files, path) {
         for (var i = 0; i < files.length; i++) {
             if (files[i].path === path)
@@ -412,6 +415,7 @@ ApplicationWindow {
                         videoPath: appWindow.currentVideoPath
                         profileName: appWindow.currentProfile
                         startTimeMs: appWindow.startTime
+                        mainWindow: appWindow
                         sourceFps: FormatUtils.fpsToDecimal(appWindow.currentVideoInfo.fps || "") || 0
                     }
 

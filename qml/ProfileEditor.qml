@@ -299,6 +299,7 @@ Rectangle {
                     id: backBtn
 
                     text: qsTr("\u2190 Back")
+                    height: newBtn.height
                     onClicked: back()
                 }
 
@@ -308,13 +309,14 @@ Rectangle {
                     text: qsTr("Profile:")
                     color: theme.textSecondary
                     font.pixelSize: 14
-                    height: backBtn.height
+                    height: newBtn.height
                     verticalAlignment: Text.AlignVCenter
                 }
 
                 ComboBox {
                     id: profileSelector
 
+                    height: newBtn.height
                     width: 300
                     model: root._profileNames
                     displayText: currentIndex < 0 ? qsTr("New profile") : currentText
@@ -327,26 +329,35 @@ Rectangle {
                     }
                 }
 
-                Button {
+                IconButton {
                     id: newBtn
 
-                    text: qsTr("+ New")
+                    text: qsTr("New profile")
+                    icon.name: "document-new-symbolic"
+                    icon.source: "/media/icons/document-new.png"
+                    width: 40
                     onClicked: resetToNew()
                 }
 
-                Button {
+                IconButton {
                     id: saveBtn
 
-                    text: qsTr("Save")
+                    text: qsTr("Save profile")
+                    icon.name: "document-save-symbolic"
+                    icon.source: "/media/icons/document-save.png"
                     highlighted: true
+                    width: 40
                     onClicked: saveCurrent()
                 }
 
-                Button {
+                IconButton {
                     id: restoreDeleteBtn
 
-                    text: _isDefaultProfile ? qsTr("Restore") : qsTr("Delete")
+                    text: _isDefaultProfile ? qsTr("Restore profile to defaults") : qsTr("Delete profile")
+                    icon.name: _isDefaultProfile ? "view-refresh-symbolic" : "edit-delete-symbolic"
+                    icon.source: _isDefaultProfile ? "/media/icons/view-refresh.png" : "/media/icons/edit-delete.png"
                     visible: _loadedProfileName !== ""
+                    width: 40
                     onClicked: _isDefaultProfile ? restoreSingleProfile() : deleteDialog.open()
                 }
 
@@ -356,6 +367,7 @@ Rectangle {
                     text: qsTr("Advanced Mode")
                     checkable: true
                     checked: root.advancedMode
+                    height: newBtn.height
                     onClicked: root.advancedMode ? exitAdvancedMode() : enterAdvancedMode()
                 }
 
@@ -372,10 +384,13 @@ Rectangle {
                     width: rightGroup.implicitWidth
                     spacing: 8
 
-                    Button {
+                    IconButton {
                         id: exportBtn
 
                         text: qsTr("Export\u2026")
+                        icon.name: "document-export-symbolic"
+                        icon.source: "/media/icons/document-export.png"
+                        width: 40
                         onClicked: {
                             exportDialog.profileNames = JSON.parse(backend.userProfileNames());
                             exportDialog.defaultCheckedName = _loadedProfileName;
@@ -383,17 +398,23 @@ Rectangle {
                         }
                     }
 
-                    Button {
+                    IconButton {
                         id: importBtn
 
                         text: qsTr("Import\u2026")
+                        icon.name: "document-import-symbolic"
+                        icon.source: "/media/icons/document-import.png"
+                        width: 40
                         onClicked: importDialog.open()
                     }
 
-                    Button {
+                    IconButton {
                         id: restoreDefaultsBtn
 
-                        text: qsTr("Restore Defaults")
+                        text: qsTr("Restore all profiles to defaults")
+                        icon.name: "view-refresh-symbolic"
+                        icon.source: "/media/icons/view-refresh.png"
+                        width: 40
                         onClicked: restoreDialog.open()
                     }
                 }
