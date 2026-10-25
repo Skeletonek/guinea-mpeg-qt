@@ -4,6 +4,7 @@
 - Added note icon when playing audio file with no video streams (no cover art)
 - Added "Media Files" filter in open file dialog for both audio and video files
 - Added more information to the Media Information section
+- Profiles are now categorized
 - Widened the ControlsPanel
 - Replaced some text buttons with iconed buttons
 - Improved keyboard navigation within the player window and timeline control

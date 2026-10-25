@@ -84,7 +84,7 @@ Rectangle {
         profileSelector.currentIndex = -1;
         _loading = true;
         categoryBox.currentIndex = -1;
-        categoryBox.editText = "";
+        categoryBox.editText = "Custom";
         videoPanel.setData({
             "codec": "h264",
             "video_enabled": true,
@@ -146,7 +146,7 @@ Rectangle {
         var text = value || "";
         if (!text) {
             categoryBox.currentIndex = -1;
-            categoryBox.editText = "";
+            categoryBox.editText = "Custom";
             return;
         }
         DataUtils.setComboText(categoryBox, text, null);
@@ -462,32 +462,47 @@ Rectangle {
                 }
             }
 
-            Label {
-                text: qsTr("Profile name")
-                color: theme.textMuted
-                font.bold: true
-                font.pixelSize: 14
-            }
-
-            TextField {
-                id: profileNameField
-
+            Row {
+                spacing: 8
                 width: parent.width
-                placeholderText: qsTr("Enter profile name...")
-            }
 
-            Label {
-                text: qsTr("Category")
-                color: theme.textMuted
-                font.bold: true
-                font.pixelSize: 14
-            }
+                Column {
+                    width: (parent.width - parent.spacing) / 2
+                    spacing: 4
 
-            ComboBox {
-                id: categoryBox
+                    Label {
+                        text: qsTr("Profile name")
+                        color: theme.textMuted
+                        font.bold: true
+                        font.pixelSize: 14
+                    }
 
-                editable: true
-                width: parent.width
+                    TextField {
+                        id: profileNameField
+
+                        width: parent.width
+                        placeholderText: qsTr("Enter profile name...")
+                    }
+                }
+
+                Column {
+                    width: (parent.width - parent.spacing) / 2
+                    spacing: 4
+
+                    Label {
+                        text: qsTr("Category")
+                        color: theme.textMuted
+                        font.bold: true
+                        font.pixelSize: 14
+                    }
+
+                    ComboBox {
+                        id: categoryBox
+
+                        editable: true
+                        width: parent.width
+                    }
+                }
             }
 
             Rectangle {

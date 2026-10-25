@@ -1,10 +1,13 @@
 import QtQuick
 import QtQuick.Controls 2.15
+import QtQuick.Layouts 1.15
 
 /**
- * Profile picker: click a category to drill into its profiles ("← name" goes
- * back). Single in-scene popup, so no native menu surface quirks.
- * Model: flat rows ({name, isHeader}) from DataUtils.profileRows().
+ * Profile picker using the default ComboBox popup with nested categories.
+ * The delegate root is a plain Item (not an AbstractButton), so ComboBox's
+ * internal select-and-close on click does not engage; clicks are handled
+ * manually: headers expand/collapse, profile rows select and close. Collapsed
+ * category rows are hidden via visible/height so indexes stay stable.
  */
 ComboBox {
     id: control
@@ -12,74 +15,73 @@ ComboBox {
     textRole: "name"
     model: []
 
-    readonly property var _groups: _regroup()
-    property int _openCategory: -1
+    property int _expandedCategory: -1
 
-    function _regroup() {
-        var groups = [];
-        var current = null;
-        for (var i = 0; i < control.model.length; i++) {
-            var row = control.model[i];
-            if (row.isHeader) {
-                current = {
-                    "category": row.name,
-                    "names": [],
-                    "startIndex": i + 1
-                };
-                groups.push(current);
-            } else if (current) {
-                current.names.push(row.name);
-            }
+    function _headerIndexForRow(index) {
+        for (var i = index; i >= 0; i--) {
+            if (control.model[i] && control.model[i].isHeader)
+                return i;
         }
-        return groups;
+        return -1;
     }
 
-    popup: Popup {
-        id: profilePopup
+    delegate: Item {
+        id: rowDelegate
 
-        y: control.height + 4
-        width: Math.max(control.width, implicitWidth)
-        padding: 4
-        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
-        // outside presses land on this (dialog-style overlay catcher): SpinBox
-        // etc. would otherwise swallow the press and keep the popup open
-        Overlay.modal: MouseArea {
-            onClicked: profilePopup.close()
+        required property var modelData
+        required property int index
+        readonly property bool isHeader: !!modelData && modelData.isHeader
+        readonly property int headerIndex: control._headerIndexForRow(index)
+
+        TextMetrics {
+            id: rowMetrics
+
+            font: control.font
+            text: rowDelegate.modelData ? rowDelegate.modelData.name : ""
         }
-        onClosed: control._openCategory = -1
 
-        contentItem: Column {
-            id: popupColumn
+        // intrinsic width so popups that size from content width stay usable
+        implicitWidth: rowMetrics.advanceWidth + 48
+        implicitHeight: row.implicitHeight
+        width: ListView.view ? ListView.view.width : implicitWidth
+        visible: isHeader || control._expandedCategory === headerIndex
+        height: visible ? implicitHeight : 0
 
-            spacing: 0
+        ItemDelegate {
+            id: row
 
-            ItemDelegate {
-                visible: control._openCategory >= 0
-                width: parent.width
-                font.bold: true
-                text: control._openCategory >= 0 ? "\u2190 " + control._groups[control._openCategory].category : ""
-                onClicked: control._openCategory = -1
+            width: parent.width
+            text: rowDelegate.modelData ? rowDelegate.modelData.name : ""
+            font.bold: rowDelegate.isHeader
+            leftPadding: rowDelegate.isHeader ? 8 : 24
+            highlighted: control.highlightedIndex === rowDelegate.index || (!control.popup.opened && control.currentIndex === rowDelegate.index && !rowDelegate.isHeader)
+
+            contentItem: RowLayout {
+                spacing: 8
+
+                Label {
+                    Layout.fillWidth: true
+                    text: rowDelegate.modelData ? rowDelegate.modelData.name : ""
+                    font: row.font
+                    elide: Text.ElideRight
+                    verticalAlignment: Text.AlignVCenter
+                }
+
+                Label {
+                    visible: rowDelegate.isHeader
+                    text: control._expandedCategory === rowDelegate.index ? "\u25BE" : "\u25B8"
+                    verticalAlignment: Text.AlignVCenter
+                }
             }
 
-            Repeater {
-                model: control._openCategory >= 0 ? control._groups[control._openCategory].names : control._groups
-
-                delegate: ItemDelegate {
-                    required property var modelData
-                    required property int index
-
-                    width: parent.width
-                    font.bold: control._openCategory < 0
-                    text: control._openCategory >= 0 ? modelData : modelData.category
-                    onClicked: {
-                        if (control._openCategory >= 0) {
-                            control.selectRow(control._groups[control._openCategory].startIndex + index);
-                            profilePopup.close();
-                        } else {
-                            control._openCategory = index;
-                        }
-                    }
+            onClicked: {
+                if (rowDelegate.isHeader) {
+                    control._expandedCategory = control._expandedCategory === rowDelegate.index ? -1 : rowDelegate.index;
+                    return;
                 }
+
+                control.selectRow(rowDelegate.index);
+                control.popup.close();
             }
         }
     }

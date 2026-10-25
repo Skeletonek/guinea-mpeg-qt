@@ -84,6 +84,15 @@ Column {
         var ac = d.audio_codec || null;
         // normalize copy case: backend uses "copy" lowercase, UI uses "Copy"
         var acLabel = ac ? (ac.toLowerCase() === "copy" ? "Copy" : ac) : null;
+        if (acLabel) {
+            // labels are title-cased ("AAC", "Opus", ...); normalize stored value
+            for (var li = 0; li < audioCodecLabels.length; li++) {
+                if (audioCodecLabels[li].toLowerCase() === acLabel.toLowerCase()) {
+                    acLabel = audioCodecLabels[li];
+                    break;
+                }
+            }
+        }
         if (!videoEnabled) {
             if (acLabel) {
                 var aci = audioCodecLabels.indexOf(acLabel);

@@ -262,7 +262,7 @@ function getExtensionForProfile(d, inputPath) {
             // fallback: codec mapping or generic
             if (d.video_enabled !== false)
                 return Constants.profileExtensions[d.codec] || "mkv"
-            return Constants.audioExtensions[d.audio_codec] || "mkv"
+            return Constants.audioExtensions[d.audio_codec.toUpperCase()] || "mkv"
         }
         return d.container
     }
@@ -277,7 +277,7 @@ function getExtensionForProfile(d, inputPath) {
         var ae = extFromPath(inputPath)
         if (ae) return ae
     }
-    return Constants.audioExtensions[d.audio_codec] || "ogg"
+    return Constants.audioExtensions[d.audio_codec.toUpperCase()] || "ogg"
 }
 
 /**

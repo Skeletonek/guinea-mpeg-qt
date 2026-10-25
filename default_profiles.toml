@@ -1,7 +1,7 @@
 # The `category` key drives the picker's section groups; profiles without one
 # fall into a trailing "Custom" group.
 
-# General purpose
+# Quality: high-fidelity video encodes
 [[profiles]]
 name = "H.264 High"
 codec = "h264"
@@ -15,7 +15,7 @@ pixel_format = "yuv420p"
 audio_bitrate = "256k"
 audio_channels = 2
 audio_sample_rate = 48000
-category = "General purpose"
+category = "Quality"
 
 [[profiles]]
 name = "VP9 High"
@@ -31,7 +31,7 @@ pixel_format = "yuv420p"
 audio_bitrate = "192k"
 audio_channels = 2
 audio_sample_rate = 48000
-category = "General purpose"
+category = "Quality"
 
 [[profiles]]
 name = "AV1 High"
@@ -49,7 +49,38 @@ enable_qm = true
 audio_bitrate = "192k"
 audio_channels = 2
 audio_sample_rate = 48000
-category = "General purpose"
+category = "Quality"
+
+[[profiles]]
+name = "H.265 High"
+codec = "hevc"
+encoder = "libx265"
+crf = 22
+preset = "slow"
+tune = "film"
+resolution = "1080p"
+framerate = 0.0
+pixel_format = "yuv420p"
+audio_bitrate = "256k"
+audio_channels = 2
+audio_sample_rate = 48000
+category = "Quality"
+
+# Balanced: good quality at reasonable sizes
+[[profiles]]
+name = "H.265 Medium"
+codec = "hevc"
+encoder = "libx265"
+crf = 28
+preset = "medium"
+tune = "film"
+resolution = "720p"
+framerate = 0.0
+pixel_format = "yuv420p"
+audio_bitrate = "128k"
+audio_channels = 2
+audio_sample_rate = 48000
+category = "Balanced"
 
 [[profiles]]
 name = "AV1 Medium"
@@ -67,39 +98,8 @@ enable_qm = false
 audio_bitrate = "128k"
 audio_channels = 2
 audio_sample_rate = 48000
-category = "General purpose"
+category = "Balanced"
 
-[[profiles]]
-name = "H.265 High"
-codec = "hevc"
-encoder = "libx265"
-crf = 22
-preset = "slow"
-tune = "film"
-resolution = "1080p"
-framerate = 0.0
-pixel_format = "yuv420p"
-audio_bitrate = "256k"
-audio_channels = 2
-audio_sample_rate = 48000
-category = "General purpose"
-
-[[profiles]]
-name = "H.265 Medium"
-codec = "hevc"
-encoder = "libx265"
-crf = 28
-preset = "medium"
-tune = "film"
-resolution = "720p"
-framerate = 0.0
-pixel_format = "yuv420p"
-audio_bitrate = "128k"
-audio_channels = 2
-audio_sample_rate = 48000
-category = "General purpose"
-
-# Compact
 [[profiles]]
 name = "VP9 Medium"
 codec = "vp9"
@@ -114,8 +114,24 @@ pixel_format = "yuv420p"
 audio_bitrate = "128k"
 audio_channels = 2
 audio_sample_rate = 48000
-category = "Compact"
+category = "Balanced"
 
+[[profiles]]
+name = "H.264 Compatible"
+codec = "h264"
+encoder = "libx264"
+crf = 23
+preset = "medium"
+resolution = "1080p"
+framerate = 30.0
+pixel_format = "yuv420p"
+audio_bitrate = "128k"
+audio_channels = 2
+audio_sample_rate = 48000
+audio_codec = "aac"
+category = "Balanced"
+
+# Compression: smaller files
 [[profiles]]
 name = "VP9 Low"
 codec = "vp9"
@@ -130,7 +146,7 @@ pixel_format = "yuv420p"
 audio_bitrate = "64k"
 audio_channels = 2
 audio_sample_rate = 48000
-category = "Compact"
+category = "Compression"
 
 [[profiles]]
 name = "AV1 Low"
@@ -148,7 +164,7 @@ enable_qm = false
 audio_bitrate = "64k"
 audio_channels = 2
 audio_sample_rate = 48000
-category = "Compact"
+category = "Compression"
 
 [[profiles]]
 name = "H.265 Low"
@@ -163,7 +179,23 @@ pixel_format = "yuv420p"
 audio_bitrate = "64k"
 audio_channels = 2
 audio_sample_rate = 48000
-category = "Compact"
+category = "Compression"
+
+[[profiles]]
+name = "Web VP9 720p"
+codec = "vp9"
+encoder = "libvpx-vp9"
+crf = 32
+preset = "good"
+cpu_used = 4
+tune = "ssim"
+resolution = "720p"
+framerate = 30.0
+pixel_format = "yuv420p"
+audio_bitrate = "128k"
+audio_channels = 2
+audio_sample_rate = 48000
+category = "Compression"
 
 # Animation
 [[profiles]]
@@ -199,35 +231,41 @@ loop_enabled = true
 audio_enabled = false
 category = "Animation"
 
-# Web & streaming
+# Audio: audio-only exports
 [[profiles]]
-name = "Web VP9 720p"
-codec = "vp9"
-encoder = "libvpx-vp9"
-crf = 32
-preset = "good"
-cpu_used = 4
-tune = "ssim"
-resolution = "720p"
-framerate = 30.0
-pixel_format = "yuv420p"
-audio_bitrate = "128k"
-audio_channels = 2
-audio_sample_rate = 48000
-category = "Web & streaming"
-
-# Compatibility
-[[profiles]]
-name = "H.264 Compatible"
-codec = "h264"
-encoder = "libx264"
-crf = 23
-preset = "medium"
-resolution = "1080p"
-framerate = 30.0
-pixel_format = "yuv420p"
-audio_bitrate = "128k"
-audio_channels = 2
-audio_sample_rate = 48000
+name = "AAC Export"
+codec = "copy"
+encoder = "copy"
+video_enabled = false
+audio_enabled = true
 audio_codec = "aac"
-category = "Compatibility"
+audio_bitrate = "256k"
+audio_channels = 2
+audio_sample_rate = 48000
+container = "m4a"
+category = "Audio"
+
+[[profiles]]
+name = "Opus Export"
+codec = "copy"
+encoder = "copy"
+video_enabled = false
+audio_enabled = true
+audio_codec = "opus"
+audio_bitrate = "128k"
+audio_channels = 2
+audio_sample_rate = 48000
+container = "opus"
+category = "Audio"
+
+[[profiles]]
+name = "FLAC Export"
+codec = "copy"
+encoder = "copy"
+video_enabled = false
+audio_enabled = true
+audio_codec = "flac"
+audio_channels = 2
+audio_sample_rate = 48000
+container = "flac"
+category = "Audio"
