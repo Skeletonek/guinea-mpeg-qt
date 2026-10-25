@@ -123,6 +123,8 @@ pub struct AppOptions {
     pub preview_duration: f64,
     #[serde(default = "default_check_for_updates")]
     pub check_for_updates: bool,
+    #[serde(default = "default_autoplay_on_load")]
+    pub autoplay_on_load: bool,
 }
 
 fn default_language() -> String {
@@ -153,6 +155,10 @@ fn default_check_for_updates() -> bool {
     true
 }
 
+fn default_autoplay_on_load() -> bool {
+    true
+}
+
 impl Default for AppOptions {
     fn default() -> Self {
         Self {
@@ -163,6 +169,7 @@ impl Default for AppOptions {
             preview_volume: default_preview_volume(),
             preview_duration: default_preview_duration(),
             check_for_updates: default_check_for_updates(),
+            autoplay_on_load: default_autoplay_on_load(),
         }
     }
 }
@@ -545,6 +552,12 @@ pub fn set_option(key: &str, value: &str) -> anyhow::Result<()> {
                 .parse()
                 .map_err(|_| anyhow::anyhow!("invalid boolean value"))?;
             cfg.options.check_for_updates = v;
+        }
+        "autoplayOnLoad" => {
+            let v: bool = value
+                .parse()
+                .map_err(|_| anyhow::anyhow!("invalid boolean value"))?;
+            cfg.options.autoplay_on_load = v;
         }
         _ => return Err(anyhow::anyhow!("unknown option key")),
     }

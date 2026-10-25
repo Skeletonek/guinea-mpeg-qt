@@ -55,7 +55,7 @@ const char* guinea_mpeg_mpv_version(void);
 void guinea_mpeg_mpv_destroy(void* handle);
 void* guinea_mpeg_mpv_raw_handle(void* handle);
 
-void guinea_mpeg_mpv_load_file(void* handle, const char* path);
+void guinea_mpeg_mpv_load_file(void* handle, const char* path, bool autoplay);
 void guinea_mpeg_mpv_play(void* handle);
 void guinea_mpeg_mpv_pause(void* handle);
 void guinea_mpeg_mpv_stop(void* handle);
@@ -64,6 +64,7 @@ void guinea_mpeg_mpv_set_volume(void* handle, int vol);
 int guinea_mpeg_mpv_volume(void* handle);
 void guinea_mpeg_mpv_set_mute(void* handle, bool mute);
 bool guinea_mpeg_mpv_mute(void* handle);
+void guinea_mpeg_mpv_set_track(void* handle, const char* prop, int id);
 
 /* Returns bitmask: 1=position, 2=duration, 4=playing */
 int guinea_mpeg_mpv_process_events(void* handle);

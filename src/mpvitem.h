@@ -61,6 +61,7 @@ class MpvItem : public QQuickFramebufferObject {
     Q_INVOKABLE void pause();
     Q_INVOKABLE void stop();
     Q_INVOKABLE void toggleMute();
+    Q_INVOKABLE void setTrack(const QString& prop, int id);
 
     void setVolume(qreal vol);
     void setMuted(bool muted);

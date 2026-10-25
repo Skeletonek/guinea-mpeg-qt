@@ -39,6 +39,7 @@ AppDialog {
         colorSchemeCombo.currentIndex = _indexOfValue(colorSchemeCombo, root._loadedColorScheme);
         hwdecCombo.currentIndex = _indexOfValue(hwdecCombo, opts.hwdec || "auto-copy");
         checkForUpdatesSwitch.checked = opts.check_for_updates !== false;
+        autoplaySwitch.checked = opts.autoplay_on_load !== false;
         previewDurationSpin.value = opts.preview_duration || 5;
         _loadingOptions = false;
         _updateColorSchemeLock();
@@ -200,6 +201,36 @@ AppDialog {
         }
 
         Label {
+            text: qsTr("Some settings take effect on the next launch.")
+            color: theme.accent
+            wrapMode: Text.WordWrap
+            Layout.fillWidth: true
+            Layout.topMargin: 4
+            visible: root.restartRequired
+        }
+
+        Label {
+            text: qsTr("Playback")
+            font.bold: true
+            font.pixelSize: 14
+            color: theme.text
+            Layout.topMargin: 8
+        }
+
+        SwitchRow {
+            id: autoplaySwitch
+
+            label: qsTr("Autoplay when loading a file")
+            checked: true
+            onCheckedChanged: {
+                if (root._loadingOptions)
+                    return;
+
+                backend.setOption("autoplayOnLoad", String(checked));
+            }
+        }
+
+        Label {
             text: qsTr("Hardware acceleration")
             color: theme.textMuted
         }
@@ -253,15 +284,6 @@ AppDialog {
                 if (backend.setOption("hwdec", v))
                     root.restartRequired = true;
             }
-        }
-
-        Label {
-            text: qsTr("Some settings take effect on the next launch.")
-            color: theme.accent
-            wrapMode: Text.WordWrap
-            Layout.fillWidth: true
-            Layout.topMargin: 4
-            visible: root.restartRequired
         }
 
         Label {

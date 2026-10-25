@@ -13,7 +13,7 @@ fn null_handle_is_safe() {
     assert_eq!(guinea_mpeg_mpv_volume(ptr::null_mut()), 0);
     assert_eq!(guinea_mpeg_mpv_raw_handle(ptr::null_mut()), ptr::null_mut());
     guinea_mpeg_mpv_destroy(ptr::null_mut());
-    guinea_mpeg_mpv_load_file(ptr::null_mut(), ptr::null());
+    guinea_mpeg_mpv_load_file(ptr::null_mut(), ptr::null(), true);
     guinea_mpeg_mpv_play(ptr::null_mut());
     guinea_mpeg_mpv_pause(ptr::null_mut());
     guinea_mpeg_mpv_stop(ptr::null_mut());

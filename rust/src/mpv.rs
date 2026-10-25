@@ -153,7 +153,7 @@ pub extern "C" fn guinea_mpeg_mpv_raw_handle(ptr: *mut c_void) -> *mut c_void {
 }
 
 #[no_mangle]
-pub extern "C" fn guinea_mpeg_mpv_load_file(ptr: *mut c_void, path: *const c_char) {
+pub extern "C" fn guinea_mpeg_mpv_load_file(ptr: *mut c_void, path: *const c_char, autoplay: bool) {
     if ptr.is_null() || path.is_null() {
         return;
     }
@@ -174,7 +174,7 @@ pub extern "C" fn guinea_mpeg_mpv_load_file(ptr: *mut c_void, path: *const c_cha
         mpv_set_property_string(
             backend.handle,
             c_str("pause").as_ptr(),
-            c_str("no").as_ptr(),
+            c_str(if autoplay { "no" } else { "yes" }).as_ptr(),
         );
     }
 }
@@ -258,6 +258,18 @@ pub extern "C" fn guinea_mpeg_mpv_mute(ptr: *mut c_void) -> bool {
         );
     }
     flag != 0
+}
+
+#[no_mangle]
+pub extern "C" fn guinea_mpeg_mpv_set_track(ptr: *mut c_void, prop: *const c_char, id: i32) {
+    if ptr.is_null() || prop.is_null() {
+        return;
+    }
+    let name = unsafe { CStr::from_ptr(prop) }.to_str().unwrap_or("");
+    if name.is_empty() {
+        return;
+    }
+    backend_from_ptr(ptr).set_string(name, &id.to_string());
 }
 
 #[allow(non_upper_case_globals)]

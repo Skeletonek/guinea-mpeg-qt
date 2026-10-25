@@ -34,14 +34,6 @@ Item {
         profileSelector.currentIndex = idx;
     }
 
-    function _toggleSelection(index, checked, selection) {
-        return DataUtils.toggleSelection(index, checked, selection);
-    }
-
-    function _streamText(stream, index, type) {
-        return FormatUtils.streamText(stream, index, type);
-    }
-
     function _batchMode() {
         return hostWindow && (hostWindow.batchFiles || []).length > 1;
     }
@@ -280,18 +272,13 @@ Item {
                 width: parent.width
                 visible: hostWindow && hostWindow.videoStreams.length > 1
 
-                Repeater {
-                    model: hostWindow ? hostWindow.videoStreams.length : 0
-
-                    delegate: CheckBox {
-                        checked: hostWindow ? hostWindow.selectedVideoIndices.indexOf(index) >= 0 : false
-                        text: hostWindow ? _streamText(hostWindow.videoStreams[index], index, "video") : ""
-                        onClicked: {
-                            if (!hostWindow)
-                                return;
-
-                            hostWindow.selectedVideoIndices = _toggleSelection(index, checked, hostWindow.selectedVideoIndices);
-                        }
+                StreamSelector {
+                    streams: hostWindow ? hostWindow.videoStreams : []
+                    kind: "video"
+                    selection: hostWindow ? hostWindow.selectedVideoIndices : []
+                    onToggled: function (index, checked) {
+                        if (hostWindow)
+                            hostWindow.selectedVideoIndices = DataUtils.toggleSelection(index, checked, hostWindow.selectedVideoIndices);
                     }
                 }
             }
@@ -309,18 +296,13 @@ Item {
                 width: parent.width
                 visible: hostWindow && hostWindow.audioStreams.length > 1
 
-                Repeater {
-                    model: hostWindow ? hostWindow.audioStreams.length : 0
-
-                    delegate: CheckBox {
-                        checked: hostWindow ? hostWindow.selectedAudioIndices.indexOf(index) >= 0 : false
-                        text: hostWindow ? _streamText(hostWindow.audioStreams[index], index, "audio") : ""
-                        onClicked: {
-                            if (!hostWindow)
-                                return;
-
-                            hostWindow.selectedAudioIndices = _toggleSelection(index, checked, hostWindow.selectedAudioIndices);
-                        }
+                StreamSelector {
+                    streams: hostWindow ? hostWindow.audioStreams : []
+                    kind: "audio"
+                    selection: hostWindow ? hostWindow.selectedAudioIndices : []
+                    onToggled: function (index, checked) {
+                        if (hostWindow)
+                            hostWindow.selectedAudioIndices = DataUtils.toggleSelection(index, checked, hostWindow.selectedAudioIndices);
                     }
                 }
             }

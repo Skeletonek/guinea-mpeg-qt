@@ -118,6 +118,7 @@ fn set_option_validates_values() {
         assert!(set_option("previewVolume", "abc").is_err());
         assert!(set_option("previewDuration", "abc").is_err());
         assert!(set_option("checkForUpdates", "notabool").is_err());
+        assert!(set_option("autoplayOnLoad", "notabool").is_err());
         assert!(set_option("unknownKey", "x").is_err());
     });
 }
@@ -130,12 +131,16 @@ fn set_option_roundtrip() {
         set_option("colorScheme", "dark").unwrap();
         set_option("hwdec", "vaapi").unwrap();
         set_option("checkForUpdates", "false").unwrap();
+        set_option("autoplayOnLoad", "false").unwrap();
         let opts = get_options();
         assert_eq!(opts.language, "pl");
         assert_eq!(opts.theme, "dark");
         assert_eq!(opts.color_scheme, "dark");
         assert_eq!(opts.hwdec, "vaapi");
         assert!(!opts.check_for_updates);
+        assert!(!opts.autoplay_on_load);
+        set_option("autoplayOnLoad", "true").unwrap();
+        assert!(get_options().autoplay_on_load);
     });
 }
 

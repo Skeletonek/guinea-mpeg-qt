@@ -34,6 +34,9 @@ Rectangle {
     property alias duration: player.duration
     property alias volume: player.volume
     property var mainWindow: null
+    // Playback track selection: indices into mainWindow.videoStreams/audioStreams
+    property int _videoStreamIndex: 0
+    property int _audioStreamIndex: 0
 
     function pause() {
         player.pause();
@@ -105,6 +108,15 @@ Rectangle {
         setPreviewVolume(player.volume + delta);
     }
 
+    function selectPlaybackTrack(kind, index) {
+        if (kind === "video")
+            root._videoStreamIndex = index;
+        else
+            root._audioStreamIndex = index;
+        // ffprobe stream lists are 0-based per type, mpv track ids are 1-based
+        player.setTrack(kind === "video" ? "vid" : "aid", index + 1);
+    }
+
     onSourceChanged: {
         root.previewActive = false;
         root.previewGenerating = false;
@@ -143,6 +155,13 @@ Rectangle {
             } else {
                 root.pendingSeekMs = -1;
             }
+        }
+
+        // A new file (or the regenerated preview) starts playing mpv's default
+        // tracks, so the selection state resets with it
+        onSourceChanged: {
+            root._videoStreamIndex = 0;
+            root._audioStreamIndex = 0;
         }
     }
 
@@ -267,6 +286,8 @@ Rectangle {
     }
 
     Rectangle {
+        id: controlsBar
+
         anchors.bottom: parent.bottom
         width: parent.width
         height: root._controlsBarHeight
@@ -274,6 +295,8 @@ Rectangle {
         visible: root.hasVideo
 
         RowLayout {
+            id: controlsRow
+
             anchors.fill: parent
             anchors.margins: 4
             spacing: 4
@@ -337,6 +360,21 @@ Rectangle {
             }
 
             IconButton {
+                id: streamButton
+
+                flat: true
+                text: qsTr("Playback Streams")
+                icon.name: "view-media-track-symbolic"
+                icon.source: "/media/icons/view-media-track.png"
+                visible: root.hasVideo
+                    && ((mainWindow && mainWindow.videoStreams.length > 1) || (mainWindow && mainWindow.audioStreams.length > 1))
+                enabled: !root.previewGenerating
+                onClicked: playbackStreamsPopup.visible ? playbackStreamsPopup.close() : playbackStreamsPopup.open()
+                Layout.preferredWidth: 40
+                Layout.fillHeight: true
+            }
+
+            IconButton {
                 flat: true
                 text: player.muted ? qsTr("Unmute") : qsTr("Mute")
                 icon.name: root.volumeIconKey() + "-symbolic"
@@ -376,6 +414,76 @@ Rectangle {
                     anchors.fill: parent
                     cursorShape: Qt.PointingHandCursor
                     onClicked: player.toggleMute()
+                }
+            }
+        }
+    }
+
+    // Popover anchored above the stream button, right-aligned with it. Modal
+    // with a transparent dimmer so a press outside closes it without also
+    // reaching (and immediately re-opening it from) the button underneath —
+    // a non-modal popup's close-on-press races with the button's click.
+    Popup {
+        id: playbackStreamsPopup
+
+        parent: root
+        // Anchored just above the controls bar, right-aligned with the stream
+        // button. Property bindings, so the first open is placed correctly as
+        // soon as the content height is measured (an onAboutToShow reposition
+        // ran before that measurement and put the popup below the window).
+        x: controlsRow.x + streamButton.x + streamButton.width - width
+        y: root.height - root._controlsBarHeight - implicitHeight - 8
+        width: Constants.dialogWidthSmall
+        modal: true
+        focus: true
+        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+        padding: 8
+        Overlay.modal: Rectangle {
+            color: "transparent"
+        }
+
+        background: Rectangle {
+            color: theme.bg
+            border.color: theme.widgetBorder
+            border.width: 1
+        }
+
+        Column {
+            spacing: 8
+
+            Label {
+                text: qsTr("Video")
+                color: theme.textMuted
+                font.bold: true
+                font.pixelSize: 14
+                visible: mainWindow && mainWindow.videoStreams.length > 1
+            }
+
+            StreamSelector {
+                streams: mainWindow ? mainWindow.videoStreams : []
+                kind: "video"
+                selection: [root._videoStreamIndex]
+                onToggled: function (index, checked) {
+                    if (checked)
+                        root.selectPlaybackTrack("video", index);
+                }
+            }
+
+            Label {
+                text: qsTr("Audio")
+                color: theme.textMuted
+                font.bold: true
+                font.pixelSize: 14
+                visible: mainWindow && mainWindow.audioStreams.length > 1
+            }
+
+            StreamSelector {
+                streams: mainWindow ? mainWindow.audioStreams : []
+                kind: "audio"
+                selection: [root._audioStreamIndex]
+                onToggled: function (index, checked) {
+                    if (checked)
+                        root.selectPlaybackTrack("audio", index);
                 }
             }
         }

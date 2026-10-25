@@ -16,6 +16,7 @@ qt_add_resources(guinea-mpeg "app_qml"
         ${CMAKE_SOURCE_DIR}/media/icons/audio-volume-medium.png
         ${CMAKE_SOURCE_DIR}/media/icons/audio-volume-low.png
         ${CMAKE_SOURCE_DIR}/media/icons/audio-volume-muted.png
+        ${CMAKE_SOURCE_DIR}/media/icons/view-media-track.png
         ${CMAKE_SOURCE_DIR}/media/icons/document-new.png
         ${CMAKE_SOURCE_DIR}/media/icons/document-save.png
         ${CMAKE_SOURCE_DIR}/media/icons/edit-delete.png
@@ -60,6 +61,7 @@ qt_add_resources(guinea-mpeg "app_qml"
         ${CMAKE_SOURCE_DIR}/qml/Utils/UpdateUtils.js
         ${CMAKE_SOURCE_DIR}/qml/Components/AppDialog.qml
         ${CMAKE_SOURCE_DIR}/qml/Components/IconButton.qml
+        ${CMAKE_SOURCE_DIR}/qml/Components/StreamSelector.qml
         ${CMAKE_SOURCE_DIR}/qml/Components/LabeledRow.qml
         ${CMAKE_SOURCE_DIR}/qml/Components/LabeledComboBox.qml
         ${CMAKE_SOURCE_DIR}/qml/Components/ProfileComboBox.qml

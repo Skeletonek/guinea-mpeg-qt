@@ -1,6 +1,8 @@
 #include "mpvitem.h"
 #include "guinea_mpeg_core.h"
 #include <QDebug>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QOpenGLContext>
 #include <QOpenGLFramebufferObject>
 #include <QQuickWindow>
@@ -9,6 +11,17 @@
 #include <mpv/render_gl.h>
 
 #include <algorithm>
+
+namespace {
+bool autoplayEnabled() {
+    const char* opts = guinea_mpeg_get_options();
+    if (!opts)
+        return true;
+    const QJsonDocument doc = QJsonDocument::fromJson(QByteArray(opts));
+    guinea_mpeg_free_string(opts);
+    return !doc.isObject() || doc.object().value("autoplay_on_load").toBool(true);
+}
+} // namespace
 
 MpvRenderer::MpvRenderer(MpvItem* item) : m_item(item) {
     initializeOpenGLFunctions();
@@ -131,9 +144,9 @@ void MpvItem::loadPendingSource() {
         path = src.toString();
 
     QByteArray pathData = path.toUtf8();
-    guinea_mpeg_mpv_load_file(m_backend, pathData.constData());
-    // load_file autoplays
-    m_playing = true;
+    const bool autoplay = autoplayEnabled();
+    guinea_mpeg_mpv_load_file(m_backend, pathData.constData(), autoplay);
+    m_playing = autoplay;
     emit playingChanged();
 }
 
@@ -194,6 +207,13 @@ void MpvItem::setMuted(bool muted) {
 
 void MpvItem::toggleMute() {
     setMuted(!m_muted);
+}
+
+void MpvItem::setTrack(const QString& prop, int id) {
+    if (!m_backend || prop.isEmpty())
+        return;
+    const QByteArray propData = prop.toUtf8();
+    guinea_mpeg_mpv_set_track(m_backend, propData.constData(), id);
 }
 
 QQuickFramebufferObject::Renderer* MpvItem::createRenderer() const {

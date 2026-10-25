@@ -13,6 +13,7 @@
 - Renamed "Video Information" section to "Media Information"
 - Replaced some text buttons with iconed buttons
 - Improved keyboard navigation within the player window and timeline control
+- Added switching audio and video streams for playback
 - Swaped "Preview Mode" button place with "Regenerate" button in Preview Mode
 - Unified dialogs across the entire app
 - Unified popups and toasts across the entire app
