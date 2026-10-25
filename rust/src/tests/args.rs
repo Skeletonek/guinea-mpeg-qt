@@ -38,7 +38,7 @@ fn software_h264_full_params() {
     assert!(contains_pair(&args, "-preset", "slow"));
     assert!(contains_pair(&args, "-tune", "film"));
     assert!(contains_pair(&args, "-pix_fmt", "yuv420p"));
-    assert!(contains_pair(&args, "-vf", "fps=30,scale=-2:1080"));
+    assert!(contains_pair(&args, "-vf", "scale=-2:1080,fps=30"));
     assert!(contains_pair(&args, "-x264-params", "keyint=250"));
     assert_eq!(args.last().unwrap(), "output.mp4");
 }
@@ -489,6 +489,72 @@ fn custom_command_preview_uses_placeholders() {
     assert!(args.contains(&"[input]".to_string()));
     assert_eq!(args.last().unwrap(), "[output]");
     assert!(contains_pair(&args, "-c:v", "libx264"));
+}
+
+#[test]
+fn deinterlace_yadif_added_to_vf() {
+    let args = args_for(r#"{"codec":"h264","video_filters":{"deinterlace":"yadif"}}"#);
+    let vf = &args[args.iter().position(|a| a == "-vf").unwrap() + 1];
+    assert!(vf.starts_with("yadif"));
+}
+
+#[test]
+fn denoise_hqdn3d_added_to_vf() {
+    let args = args_for(r#"{"codec":"h264","video_filters":{"denoise":"hqdn3d"}}"#);
+    assert!(contains_pair(&args, "-vf", "hqdn3d"));
+}
+
+#[test]
+fn crop_filter_computed_from_edges() {
+    let args = args_for(
+        r#"{"codec":"h264","video_filters":{"crop_top":10,"crop_bottom":20,"crop_left":4,"crop_right":8}}"#,
+    );
+    assert!(contains_pair(&args, "-vf", "crop=iw-4-8:ih-10-20:4:10"));
+}
+
+#[test]
+fn rotate_90_adds_transpose() {
+    let args = args_for(r#"{"codec":"h264","video_filters":{"rotate":90}}"#);
+    assert!(contains_pair(&args, "-vf", "transpose=1"));
+}
+
+#[test]
+fn flips_add_hflip_and_vflip() {
+    let args = args_for(r#"{"codec":"h264","video_filters":{"hflip":true,"vflip":true}}"#);
+    let vf = &args[args.iter().position(|a| a == "-vf").unwrap() + 1];
+    assert!(vf.contains("hflip") && vf.contains("vflip"));
+}
+
+#[test]
+fn audio_gain_adds_volume_filter() {
+    let args = args_for(r#"{"codec":"h264","audio_filters":{"gain_db":6.0}}"#);
+    assert!(contains_pair(&args, "-af", "volume=6dB"));
+}
+
+#[test]
+fn audio_loudnorm_adds_filter_with_defaults() {
+    let args = args_for(r#"{"codec":"h264","audio_filters":{"loudnorm":true}}"#);
+    assert!(contains_pair(&args, "-af", "loudnorm=I=-14:TP=-1.5:LRA=11"));
+}
+
+#[test]
+fn audio_opus_vbr_enables_vbr_flag() {
+    let args = args_for(
+        r#"{"codec":"av1","container":"webm","audio_codec":"opus","audio_filters":{"rate_control":"vbr"}}"#,
+    );
+    assert!(contains_pair(&args, "-c:a", "libopus"));
+    assert!(contains_pair(&args, "-vbr", "on"));
+    assert!(contains_pair(&args, "-b:a", "128k"));
+}
+
+#[test]
+fn audio_mp3_quality_uses_qa() {
+    let args = args_for(
+        r#"{"codec":"h264","audio_codec":"mp3","audio_filters":{"rate_control":"quality","quality":"2"}}"#,
+    );
+    assert!(contains_pair(&args, "-c:a", "libmp3lame"));
+    assert!(contains_pair(&args, "-q:a", "2"));
+    assert!(!contains_flag(&args, "-b:a"));
 }
 
 #[test]

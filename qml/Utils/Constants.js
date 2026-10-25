@@ -8,6 +8,27 @@ var SENTINEL_NATIVE = "native"
 var rateControlKeys = ["crf", "vbr", "cbr"]
 var rateControlLabels = ["CRF", "VBR", "CBR"]
 
+// Audio rate control types
+var audioRateControlKeys = ["cbr", "vbr", "quality"]
+var audioRateControlLabels = ["CBR", "VBR", "Quality"]
+
+// Video filter options
+var deinterlaceOptions = ["none", "yadif", "bwdif", "nnedi"]
+var denoiseOptions = ["none", "hqdn3d", "nlmeans", "atadenoise"]
+var rotateOptions = ["0", "90", "180", "270"]
+
+var flipKeys = ["none", "horizontal", "vertical", "both"]
+var flipLabels = ["None", "Horizontal", "Vertical", "Both"]
+
+// Audio combo options
+var audioChannelOptions = ["", "1", "2", "6", "8"]
+var audioSampleRateOptions = ["", "22050", "44100", "48000", "96000", "192000"]
+
+// Loudnorm defaults
+var loudnormDefaultI = -14
+var loudnormDefaultTP = -1.5
+var loudnormDefaultLRA = 11
+
 // Video codec definitions
 var codecKeys = ["h264", "hevc", "vp8", "vp9", "av1", "gif", "webp", "copy"]
 var codecLabels = ["H.264", "H.265/HEVC", "VP8", "VP9", "AV1", "GIF", "WebP", "Copy"]

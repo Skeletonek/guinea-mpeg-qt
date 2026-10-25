@@ -1,5 +1,6 @@
 import "../Components"
 import "../Utils/Constants.js" as Constants
+import "../Utils/DataUtils.js" as DataUtils
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 
@@ -14,6 +15,12 @@ Column {
     readonly property bool audioForbidden: currentCodecKey === "gif" || currentCodecKey === "webp"
     readonly property alias audioEnabled: audioEnabledSwitch.checked
     property string _autoCodecLabel: ""
+    readonly property string _effectiveAudioCodecLabel: {
+        if (!videoEnabled)
+            return audioCodecLabels[audioCodecCombo.currentIndex] || "";
+        var aIdx = audioAutoCombo.currentIndex;
+        return aIdx > 0 ? audioCodecLabels[aIdx - 1] : _autoCodecLabel;
+    }
 
     signal changed
 
@@ -45,6 +52,17 @@ Column {
         }
     }
 
+    function _comboInt(combo) {
+        var text = DataUtils.comboValue(combo);
+        var v = parseInt(text);
+        return isNaN(v) || v <= 0 ? null : v;
+    }
+
+    function _showBitrate() {
+        var rcKey = Constants.audioRateControlKeys[audioRateControlCombo.currentIndex];
+        return rcKey === "cbr" || rcKey === "vbr";
+    }
+
     function getData() {
         var audioCodec = null;
         if (audioEnabledSwitch.checked && !audioForbidden) {
@@ -67,20 +85,38 @@ Column {
             }
         }
         var isCopy = audioCodec && audioCodec.toLowerCase() === "copy";
+        var showBitrate = !isCopy && audioCodec !== "FLAC" && _showBitrate();
         var data = {
             "audio_enabled": audioForbidden ? false : audioEnabledSwitch.checked,
-            "audio_bitrate": (isCopy || audioCodec === "FLAC") ? "" : (audioBitrateField.text || "128k"),
-            "audio_channels": isCopy ? null : (audioChannelsField.text ? parseInt(audioChannelsField.text) : null),
-            "audio_sample_rate": isCopy ? null : (audioSrField.text ? parseInt(audioSrField.text) : null),
+            "audio_bitrate": showBitrate ? (audioBitrateField.text || "128k") : "",
+            "audio_channels": isCopy ? null : _comboInt(channelsCombo),
+            "audio_sample_rate": isCopy ? null : _comboInt(sampleRateCombo),
             "audio_codec": audioCodec
         };
+
+        var af = {};
+        var rcKey = Constants.audioRateControlKeys[audioRateControlCombo.currentIndex];
+        if (rcKey !== "cbr")
+            af.rate_control = rcKey;
+        if (audioQualityField.text && audioQualityField.visible)
+            af.quality = audioQualityField.text;
+        var gain = parseFloat(audioGainField.text);
+        if (!isNaN(gain))
+            af.gain_db = gain;
+        if (loudnormSwitch.checked) {
+            af.loudnorm = true;
+            af.loudnorm_i = parseFloat(loudnormIField.text);
+            af.loudnorm_tp = parseFloat(loudnormTPField.text);
+            af.loudnorm_lra = parseFloat(loudnormLRAField.text);
+        }
+        if (Object.keys(af).length > 0)
+            data.audio_filters = af;
+
         return data;
     }
 
     function setData(d) {
         audioEnabledSwitch.checked = audioForbidden ? false : (d.audio_enabled !== false);
-        audioChannelsField.text = d.audio_channels != null ? String(d.audio_channels) : "";
-        audioSrField.text = d.audio_sample_rate != null ? String(d.audio_sample_rate) : "";
         var ac = d.audio_codec || null;
         // normalize copy case: backend uses "copy" lowercase, UI uses "Copy"
         var acLabel = ac ? (ac.toLowerCase() === "copy" ? "Copy" : ac) : null;
@@ -93,6 +129,22 @@ Column {
                 }
             }
         }
+
+        function _setComboValue(combo, value) {
+            if (value == null || value === "") {
+                combo.currentIndex = 0;
+                return;
+            }
+            var s = String(value);
+            for (var i = 0; i < combo.count; i++) {
+                if (combo.textAt(i) === s) {
+                    combo.currentIndex = i;
+                    return;
+                }
+            }
+            combo.editText = s;
+        }
+
         if (!videoEnabled) {
             if (acLabel) {
                 var aci = audioCodecLabels.indexOf(acLabel);
@@ -118,9 +170,21 @@ Column {
             }
         }
         if (acLabel === "Copy") {
-            audioChannelsField.text = "";
-            audioSrField.text = "";
+            _setComboValue(channelsCombo, "");
+            _setComboValue(sampleRateCombo, "");
+        } else {
+            _setComboValue(channelsCombo, d.audio_channels);
+            _setComboValue(sampleRateCombo, d.audio_sample_rate);
         }
+
+        var af = d.audio_filters || {};
+        DataUtils.setIndex(Constants.audioRateControlKeys, audioRateControlCombo, af.rate_control || "cbr");
+        audioQualityField.text = af.quality != null ? String(af.quality) : "";
+        audioGainField.text = af.gain_db != null ? String(af.gain_db) : "";
+        loudnormSwitch.checked = !!af.loudnorm;
+        loudnormIField.text = String(af.loudnorm_i != null ? af.loudnorm_i : Constants.loudnormDefaultI);
+        loudnormTPField.text = String(af.loudnorm_tp != null ? af.loudnorm_tp : Constants.loudnormDefaultTP);
+        loudnormLRAField.text = String(af.loudnorm_lra != null ? af.loudnorm_lra : Constants.loudnormDefaultLRA);
     }
 
     function _updateAutoCodecLabel() {
@@ -246,12 +310,91 @@ Column {
             enabled: !root._isAudioCopy
             opacity: root._isAudioCopy ? 0.4 : 1.0
 
+            LabeledRow {
+                label: qsTr("Channels")
+
+                ComboBox {
+                    id: channelsCombo
+
+                    width: parent.width - parent.effectiveLabelWidth - parent.spacing
+                    editable: true
+                    model: Constants.audioChannelOptions
+                    currentIndex: 0
+                    onCurrentIndexChanged: {
+                        if (!root.loading)
+                            root.changed();
+                    }
+                    onEditTextChanged: {
+                        if (!root.loading)
+                            root.changed();
+                    }
+
+                    validator: IntValidator {
+                        bottom: 0
+                        top: 8
+                    }
+                }
+            }
+
+            LabeledRow {
+                label: qsTr("Sample rate")
+
+                ComboBox {
+                    id: sampleRateCombo
+
+                    width: parent.width - parent.effectiveLabelWidth - parent.spacing
+                    editable: true
+                    model: Constants.audioSampleRateOptions
+                    currentIndex: 0
+                    onCurrentIndexChanged: {
+                        if (!root.loading)
+                            root.changed();
+                    }
+                    onEditTextChanged: {
+                        if (!root.loading)
+                            root.changed();
+                    }
+
+                    validator: IntValidator {
+                        bottom: 0
+                        top: 192000
+                    }
+                }
+            }
+        }
+
+        Column {
+            width: parent.width
+            spacing: 8
+            enabled: !root._isAudioCopy
+            opacity: root._isAudioCopy ? 0.4 : 1.0
+
+            SectionHeader {
+                text: qsTr("Processing")
+            }
+
+            LabeledRow {
+                label: qsTr("Rate control")
+
+                ComboBox {
+                    id: audioRateControlCombo
+
+                    width: parent.width - parent.effectiveLabelWidth - parent.spacing
+                    model: Constants.audioRateControlLabels
+                    currentIndex: 0
+                    onCurrentIndexChanged: {
+                        if (!root.loading)
+                            root.changed();
+                    }
+                }
+            }
+
             LabeledTextField {
                 id: audioBitrateField
 
                 label: qsTr("Bitrate")
                 placeholderText: "128k"
-                visible: !root._isAudioCopy && (videoEnabled || audioCodecLabels[audioCodecCombo.currentIndex] !== "FLAC")
+                visible: !root._isAudioCopy && root._effectiveAudioCodecLabel !== "FLAC" && root._showBitrate()
                 onTextChanged: {
                     if (!root.loading)
                         root.changed();
@@ -259,34 +402,101 @@ Column {
             }
 
             LabeledTextField {
-                id: audioChannelsField
+                id: audioQualityField
 
-                label: qsTr("Channels")
-                placeholderText: "2"
+                label: qsTr("Quality")
+                placeholderText: "4"
+                visible: Constants.audioRateControlKeys[audioRateControlCombo.currentIndex] !== "cbr"
                 onTextChanged: {
                     if (!root.loading)
                         root.changed();
-                }
-
-                validator: IntValidator {
-                    bottom: 0
-                    top: 8
                 }
             }
 
             LabeledTextField {
-                id: audioSrField
+                id: audioGainField
 
-                label: qsTr("Sample rate")
-                placeholderText: "48000"
+                label: qsTr("Gain (dB)")
+                placeholderText: "0"
                 onTextChanged: {
                     if (!root.loading)
                         root.changed();
                 }
 
-                validator: IntValidator {
-                    bottom: 0
-                    top: 192000
+                validator: DoubleValidator {
+                    bottom: -60
+                    top: 60
+                    decimals: 1
+                }
+            }
+
+            LabeledRow {
+                label: qsTr("Loudnorm")
+
+                Switch {
+                    id: loudnormSwitch
+
+                    onCheckedChanged: {
+                        if (!root.loading)
+                            root.changed();
+                    }
+                }
+            }
+
+            Column {
+                width: parent.width
+                spacing: 8
+                visible: loudnormSwitch.checked
+
+                LabeledTextField {
+                    id: loudnormIField
+
+                    label: qsTr("Target I (LUFS)")
+                    placeholderText: String(Constants.loudnormDefaultI)
+                    onTextChanged: {
+                        if (!root.loading)
+                            root.changed();
+                    }
+
+                    validator: DoubleValidator {
+                        bottom: -70
+                        top: -5
+                        decimals: 1
+                    }
+                }
+
+                LabeledTextField {
+                    id: loudnormTPField
+
+                    label: qsTr("True peak (dBTP)")
+                    placeholderText: String(Constants.loudnormDefaultTP)
+                    onTextChanged: {
+                        if (!root.loading)
+                            root.changed();
+                    }
+
+                    validator: DoubleValidator {
+                        bottom: -20
+                        top: 0
+                        decimals: 1
+                    }
+                }
+
+                LabeledTextField {
+                    id: loudnormLRAField
+
+                    label: qsTr("LRA")
+                    placeholderText: String(Constants.loudnormDefaultLRA)
+                    onTextChanged: {
+                        if (!root.loading)
+                            root.changed();
+                    }
+
+                    validator: DoubleValidator {
+                        bottom: 1
+                        top: 50
+                        decimals: 1
+                    }
                 }
             }
         }

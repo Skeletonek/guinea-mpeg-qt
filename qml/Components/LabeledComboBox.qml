@@ -10,7 +10,7 @@ LabeledRow {
 
     property var model: []
     property int currentIndex: -1
-    property string currentText: ""
+    readonly property alias currentText: comboBox.currentText
     property bool editable: false
     property var delegate: null
 
@@ -20,11 +20,9 @@ LabeledRow {
         width: parent.width - root.effectiveLabelWidth - root.spacing
         model: root.model
         currentIndex: root.currentIndex
-        currentText: root.currentText
         editable: root.editable
         delegate: root.delegate
-        // Forward signals
+        // Forward index changes to the wrapper so callers can read and write it.
         onCurrentIndexChanged: root.currentIndex = currentIndex
-        onCurrentTextChanged: root.currentText = currentText
     }
 }

@@ -101,6 +101,8 @@ Column {
             }
             if (!root._isCopy) {
                 data = DataUtils.buildProfileData(data, scalingSection.getScalingData());
+                if (filtersSection)
+                    data = DataUtils.buildProfileData(data, filtersSection.getFiltersData());
                 if (animatedSection && root._isAnimated)
                     data = DataUtils.buildProfileData(data, animatedSection.getAnimatedData());
                 if (av1Section)
@@ -108,7 +110,7 @@ Column {
                 if (vp8vp9Section)
                     data = DataUtils.buildProfileData(data, vp8vp9Section.getVP8VP9Data());
             } else {
-                // preserve scaling as nulls already
+                // preserve scaling/filters as nulls already
             }
         }
         return data;
@@ -129,6 +131,8 @@ Column {
             presetTuneSection.setPresetTuneData(d);
             pixelFormatSection.setPixelFormatData(d);
             scalingSection.setScalingData(d);
+            if (filtersSection)
+                filtersSection.setFiltersData(d);
             if (animatedSection)
                 animatedSection.setAnimatedData(d);
 
@@ -241,39 +245,6 @@ Column {
             onChanged: root.changed()
         }
 
-        SectionHeader {
-            text: qsTr("Scaling")
-            visible: !root._isCopy
-        }
-
-        ScalingSection {
-            id: scalingSection
-
-            enabled: !root._isCopy
-            opacity: root._isCopy ? 0.4 : 1.0
-            width: parent.width
-            loading: root.loading
-            onChanged: root.changed()
-        }
-
-        Label {
-            width: parent.width
-            visible: root._isCopy
-            text: qsTr("Scaling, rate control and codec options are disabled for Copy (stream copy).")
-            color: theme.textSecondary
-            font.pixelSize: 11
-            wrapMode: Text.WordWrap
-        }
-
-        AnimatedSection {
-            id: animatedSection
-
-            width: parent.width
-            codecKey: root.codec
-            loading: root.loading
-            onChanged: root.changed()
-        }
-
         AV1Section {
             id: av1Section
 
@@ -289,6 +260,49 @@ Column {
 
             width: parent.width
             isCopy: root._isCopy
+            codecKey: root.codec
+            loading: root.loading
+            onChanged: root.changed()
+        }
+
+        SectionHeader {
+            text: qsTr("Scaling")
+            visible: !root._isCopy
+        }
+
+        ScalingSection {
+            id: scalingSection
+
+            enabled: !root._isCopy
+            opacity: root._isCopy ? 0.4 : 1.0
+            width: parent.width
+            loading: root.loading
+            onChanged: root.changed()
+        }
+
+        FiltersSection {
+            id: filtersSection
+
+            enabled: !root._isCopy
+            opacity: root._isCopy ? 0.4 : 1.0
+            width: parent.width
+            loading: root.loading
+            onChanged: root.changed()
+        }
+
+        Label {
+            width: parent.width
+            visible: root._isCopy
+            text: qsTr("Scaling, filters, rate control and codec options are disabled for Copy (stream copy).")
+            color: theme.textSecondary
+            font.pixelSize: 11
+            wrapMode: Text.WordWrap
+        }
+
+        AnimatedSection {
+            id: animatedSection
+
+            width: parent.width
             codecKey: root.codec
             loading: root.loading
             onChanged: root.changed()

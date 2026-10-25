@@ -1,4 +1,4 @@
-use crate::config::VideoProfile;
+use crate::config::{VideoFilters, VideoProfile};
 use crate::ffmpeg::{
     audio_codec_for_profile, detect_vaapi_device, encoder_capabilities, encoder_family,
     normalize_path, video_codec, EncoderFamily,
@@ -199,16 +199,70 @@ fn resolution_scale(res: &str) -> Option<String> {
     None
 }
 
+fn build_crop_filter(filters: &VideoFilters) -> Option<String> {
+    let top = filters.crop_top.unwrap_or(0);
+    let right = filters.crop_right.unwrap_or(0);
+    let bottom = filters.crop_bottom.unwrap_or(0);
+    let left = filters.crop_left.unwrap_or(0);
+    if top == 0 && right == 0 && bottom == 0 && left == 0 {
+        return None;
+    }
+    // crop=out_w:out_h:x:y using input-relative expressions so the filter works
+    // regardless of where it sits in the chain.
+    Some(format!(
+        "crop=iw-{}-{}:ih-{}-{}:{}:{}",
+        left, right, top, bottom, left, top
+    ))
+}
+
 fn base_filter_parts(profile: &VideoProfile) -> Vec<String> {
     let mut parts = Vec::new();
+    let filters = profile.video_filters.as_ref();
+
+    if let Some(mode) = filters.and_then(|f| f.deinterlace.as_deref()) {
+        match mode {
+            "yadif" => parts.push("yadif".to_string()),
+            "bwdif" => parts.push("bwdif".to_string()),
+            "nnedi" => parts.push("nnedi".to_string()),
+            _ => {}
+        }
+    }
+    if let Some(mode) = filters.and_then(|f| f.denoise.as_deref()) {
+        match mode {
+            "hqdn3d" => parts.push("hqdn3d".to_string()),
+            "nlmeans" => parts.push("nlmeans".to_string()),
+            "atadenoise" => parts.push("atadenoise".to_string()),
+            _ => {}
+        }
+    }
+    if let Some(crop) = filters.and_then(build_crop_filter) {
+        parts.push(crop);
+    }
+    if let Some(res) = &profile.resolution {
+        if let Some(scale) = resolution_scale(res) {
+            parts.push(scale);
+        }
+    }
     if let Some(fps) = profile.framerate {
         if fps > 0.0 {
             parts.push(format!("fps={}", fps));
         }
     }
-    if let Some(res) = &profile.resolution {
-        if let Some(scale) = resolution_scale(res) {
-            parts.push(scale);
+    if filters.is_some_and(|f| f.hflip.unwrap_or(false)) {
+        parts.push("hflip".to_string());
+    }
+    if filters.is_some_and(|f| f.vflip.unwrap_or(false)) {
+        parts.push("vflip".to_string());
+    }
+    if let Some(deg) = filters.and_then(|f| f.rotate) {
+        let transpose = match deg {
+            90 => "transpose=1",
+            180 => "transpose=2",
+            270 => "transpose=3",
+            _ => "",
+        };
+        if !transpose.is_empty() {
+            parts.push(transpose.to_string());
         }
     }
     parts
@@ -367,6 +421,93 @@ fn add_video_branch(
     }
 }
 
+fn add_audio_filter_chain(args: &mut Vec<String>, profile: &VideoProfile) {
+    let filters = profile.audio_filters.as_ref();
+    let mut parts = Vec::new();
+    if let Some(gain) = filters.and_then(|f| f.gain_db) {
+        parts.push(format!("volume={}dB", gain));
+    }
+    if filters.is_some_and(|f| f.loudnorm.unwrap_or(false)) {
+        let i = filters.and_then(|f| f.loudnorm_i).unwrap_or(-14.0);
+        let tp = filters.and_then(|f| f.loudnorm_tp).unwrap_or(-1.5);
+        let lra = filters.and_then(|f| f.loudnorm_lra).unwrap_or(11.0);
+        parts.push(format!("loudnorm=I={}:TP={}:LRA={}", i, tp, lra));
+    }
+    if !parts.is_empty() {
+        args.push("-af".to_string());
+        args.push(parts.join(","));
+    }
+}
+
+fn default_audio_quality(codec: &str) -> &'static str {
+    match codec {
+        "libopus" => "10",
+        "flac" => "5",
+        "libmp3lame" => "4",
+        "libvorbis" => "3",
+        "aac" => "1.0",
+        _ => "4",
+    }
+}
+
+fn add_audio_rate_control(args: &mut Vec<String>, profile: &VideoProfile, audio_codec: &str) {
+    let rate_control = profile
+        .audio_filters
+        .as_ref()
+        .and_then(|f| f.rate_control.as_deref());
+    let quality = profile
+        .audio_filters
+        .as_ref()
+        .and_then(|f| f.quality.as_ref())
+        .map(|s| s.as_str())
+        .unwrap_or_else(|| default_audio_quality(audio_codec));
+
+    match rate_control {
+        Some("vbr") => match audio_codec {
+            "libopus" => {
+                args.push("-vbr".to_string());
+                args.push("on".to_string());
+                if !profile.audio_bitrate.is_empty() {
+                    args.push("-b:a".to_string());
+                    args.push(profile.audio_bitrate.clone());
+                }
+            }
+            "libmp3lame" | "libvorbis" => {
+                args.push("-q:a".to_string());
+                args.push(quality.to_string());
+            }
+            _ => {
+                if !profile.audio_bitrate.is_empty() {
+                    args.push("-b:a".to_string());
+                    args.push(profile.audio_bitrate.clone());
+                }
+            }
+        },
+        Some("quality") => match audio_codec {
+            "libopus" | "flac" => {
+                args.push("-compression_level".to_string());
+                args.push(quality.to_string());
+            }
+            "libmp3lame" | "libvorbis" | "aac" => {
+                args.push("-q:a".to_string());
+                args.push(quality.to_string());
+            }
+            _ => {}
+        },
+        _ => {
+            // CBR / default
+            if audio_codec == "libopus" {
+                args.push("-vbr".to_string());
+                args.push("off".to_string());
+            }
+            if !profile.audio_bitrate.is_empty() {
+                args.push("-b:a".to_string());
+                args.push(profile.audio_bitrate.clone());
+            }
+        }
+    }
+}
+
 fn add_audio_branch(args: &mut Vec<String>, profile: &VideoProfile) {
     if is_animated_codec(&profile.codec) || !profile.audio_enabled.unwrap_or(true) {
         args.push("-an".to_string());
@@ -377,13 +518,13 @@ fn add_audio_branch(args: &mut Vec<String>, profile: &VideoProfile) {
         if audio_codec == "copy" {
             // stream copy: no bitrate/channels/rate overrides
         } else {
-            if !profile.audio_bitrate.is_empty() {
-                args.push("-b:a".to_string());
-                args.push(profile.audio_bitrate.clone());
-            }
-            if let Some(ch) = profile.audio_channels {
-                args.push("-ac".to_string());
-                args.push(ch.to_string());
+            add_audio_filter_chain(args, profile);
+            add_audio_rate_control(args, profile, audio_codec);
+            if audio_codec != "flac" {
+                if let Some(ch) = profile.audio_channels {
+                    args.push("-ac".to_string());
+                    args.push(ch.to_string());
+                }
             }
             if let Some(sr) = profile.audio_sample_rate {
                 args.push("-ar".to_string());

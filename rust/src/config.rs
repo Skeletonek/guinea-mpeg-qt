@@ -11,6 +11,46 @@ const MIN_PREVIEW_DURATION: f64 = 1.0;
 
 static CONFIG: Mutex<Option<AppConfig>> = Mutex::new(None);
 
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct VideoFilters {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub deinterlace: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub denoise: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub crop_top: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub crop_right: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub crop_bottom: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub crop_left: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub hflip: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vflip: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub rotate: Option<u32>,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct AudioFilters {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub rate_control: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub quality: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub gain_db: Option<f64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub loudnorm: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub loudnorm_i: Option<f64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub loudnorm_tp: Option<f64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub loudnorm_lra: Option<f64>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VideoProfile {
     #[serde(default)]
@@ -51,6 +91,10 @@ pub struct VideoProfile {
     pub audio_stream_indices: Vec<u32>,
     #[serde(default)]
     pub custom_command: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub video_filters: Option<VideoFilters>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub audio_filters: Option<AudioFilters>,
 }
 
 fn default_audio_bitrate() -> String {
