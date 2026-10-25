@@ -15,6 +15,9 @@ static CONFIG: Mutex<Option<AppConfig>> = Mutex::new(None);
 pub struct VideoProfile {
     #[serde(default)]
     pub name: String,
+    // Picker grouping; uncategorized profiles land in a trailing "Custom" group.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub category: Option<String>,
     pub codec: String,
     pub container: Option<String>,
     pub crf: Option<i32>,
@@ -199,12 +202,6 @@ fn sorted_names(profiles: Vec<VideoProfile>) -> Vec<String> {
     names
 }
 
-fn sorted_names_ref(profiles: &[VideoProfile]) -> Vec<String> {
-    let mut names: Vec<String> = profiles.iter().map(|p| p.name.clone()).collect();
-    names.sort();
-    names
-}
-
 pub(crate) fn load_config_from_file(path: &Path) -> AppConfig {
     let content = std::fs::read_to_string(path).unwrap_or_default();
     if let Ok(mut cfg) = toml::from_str::<AppConfig>(&content) {
@@ -258,13 +255,69 @@ pub fn default_profile_names() -> Vec<String> {
     sorted_names(load_defaults().profiles)
 }
 
-pub fn available_profiles() -> Vec<String> {
-    sorted_names_ref(&get_config().profiles)
-}
-
 pub fn load_profile(name: &str) -> Option<VideoProfile> {
     let config = get_config();
     config.profiles.iter().find(|p| p.name == name).cloned()
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct ProfileGroup {
+    pub category: String,
+    pub names: Vec<String>,
+}
+
+const CUSTOM_CATEGORY: &str = "Custom";
+
+pub fn profile_groups() -> Vec<ProfileGroup> {
+    // Order: first appearance in the defaults file, then user-only categories
+    // (user file order).
+    let mut order: Vec<String> = Vec::new();
+    for source in [load_defaults().profiles, load_user_config().profiles] {
+        for p in source {
+            if let Some(category) = &p.category {
+                if !order.contains(category) {
+                    order.push(category.clone());
+                }
+            }
+        }
+    }
+
+    let config = get_config();
+    let mut by_category: HashMap<String, Vec<String>> = HashMap::new();
+    let mut uncategorized: Vec<String> = Vec::new();
+    for p in &config.profiles {
+        match &p.category {
+            Some(category) => by_category
+                .entry(category.clone())
+                .or_default()
+                .push(p.name.clone()),
+            None => uncategorized.push(p.name.clone()),
+        }
+    }
+
+    let mut groups: Vec<ProfileGroup> = Vec::new();
+    for category in order {
+        if let Some(mut names) = by_category.remove(&category) {
+            names.sort();
+            groups.push(ProfileGroup { category, names });
+        }
+    }
+    // Defensive: keep a sorted spot for categories missing from `order` so no
+    // profile can silently vanish from the picker.
+    let mut leftover: Vec<(String, Vec<String>)> = by_category.into_iter().collect();
+    leftover.sort();
+    for (category, mut names) in leftover {
+        names.sort();
+        groups.push(ProfileGroup { category, names });
+    }
+    uncategorized.sort();
+    if !uncategorized.is_empty() {
+        groups.push(ProfileGroup {
+            category: CUSTOM_CATEGORY.to_string(),
+            names: uncategorized,
+        });
+    }
+    groups
 }
 
 pub fn user_profile_names() -> Vec<String> {

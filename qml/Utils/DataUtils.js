@@ -135,6 +135,72 @@ function buildProfileData() {
 }
 
 /**
+ * Flattens grouped profile categories into ComboBox rows: one non-selectable
+ * header row per category followed by one selectable row per profile.
+ * @param {Array} groups - [{category: string, names: string[]}] from the backend
+ * @returns {Array} rows [{name: string, isHeader: boolean}]
+ */
+function profileRows(groups) {
+    var rows = []
+    for (var g = 0; g < groups.length; g++) {
+        rows.push({ "name": groups[g].category, "isHeader": true })
+        var names = groups[g].names || []
+        for (var i = 0; i < names.length; i++)
+            rows.push({ "name": names[i], "isHeader": false })
+    }
+    return rows
+}
+
+/**
+ * Parses backend.availableProfiles() into ComboBox rows.
+ * @returns {Array} rows [{name, isHeader}]
+ */
+function parseProfileRows(json) {
+    var groups = []
+    try {
+        groups = JSON.parse(json)
+    } catch (e) {}
+    return profileRows(groups)
+}
+
+/**
+ * Index of a profile name among selectable (non-header) rows.
+ * @param {Array} rows - rows from profileRows()
+ * @param {string} name - Profile name
+ * @returns {number} Row index or -1 when not found
+ */
+function profileRowIndex(rows, name) {
+    for (var i = 0; i < rows.length; i++) {
+        if (!rows[i].isHeader && rows[i].name === name)
+            return i
+    }
+    return -1
+}
+
+/**
+ * Index of the first selectable row (skips category headers), -1 when empty.
+ * @param {Array} rows - rows from profileRows()
+ * @returns {number} Row index or -1
+ */
+function firstProfileRow(rows) {
+    for (var i = 0; i < rows.length; i++) {
+        if (!rows[i].isHeader)
+            return i
+    }
+    return -1
+}
+
+/**
+ * Whether the row at index is a category header (not selectable).
+ * @param {Array} rows - rows from profileRows()
+ * @param {number} index - Row index
+ * @returns {boolean}
+ */
+function isHeaderRow(rows, index) {
+    return index >= 0 && index < rows.length && !!rows[index].isHeader
+}
+
+/**
  * Rebuilds an editable ComboBox model preserving the previous selection.
  * DRY helper for encoder capability rebuilds (presets/tunes/pix_fmts).
  * @param {ComboBox} combo - ComboBox to update

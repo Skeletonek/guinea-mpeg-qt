@@ -16,12 +16,15 @@ Rectangle {
     property string _loadedProfileName: ""
     property bool _isDefaultProfile: _defaultNames.indexOf(_loadedProfileName) >= 0
     property var _profileNames: []
+    property var _profileRows: []
     property bool advancedMode: false
 
     signal back
 
     function buildCurrentData() {
-        return DataUtils.buildProfileData(videoPanel.getData(), audioPanel.getData(), advancedPanel.getData());
+        var data = DataUtils.buildProfileData(videoPanel.getData(), audioPanel.getData(), advancedPanel.getData());
+        data.category = DataUtils.comboValue(categoryBox) || null;
+        return data;
     }
 
     function updatePreview() {
@@ -80,6 +83,8 @@ Rectangle {
         profileNameField.placeholderText = "Enter profile name...";
         profileSelector.currentIndex = -1;
         _loading = true;
+        categoryBox.currentIndex = -1;
+        categoryBox.editText = "";
         videoPanel.setData({
             "codec": "h264",
             "video_enabled": true,
@@ -109,6 +114,44 @@ Rectangle {
         updatePreview();
     }
 
+    function _loadProfileList() {
+        _profileRows = DataUtils.parseProfileRows(backend.availableProfiles());
+        var names = [];
+        for (var i = 0; i < _profileRows.length; i++) {
+            if (!_profileRows[i].isHeader)
+                names.push(_profileRows[i].name);
+        }
+        _profileNames = names;
+        _rebuildCategoryModel();
+    }
+
+    function _rebuildCategoryModel() {
+        var cats = [];
+        for (var i = 0; i < _profileRows.length; i++) {
+            if (_profileRows[i].isHeader && _profileRows[i].name !== "Custom")
+                cats.push(_profileRows[i].name);
+        }
+        var prev = DataUtils.comboValue(categoryBox);
+        categoryBox.model = cats;
+        var idx = cats.indexOf(prev);
+        if (prev && idx >= 0) {
+            categoryBox.currentIndex = idx;
+        } else {
+            categoryBox.currentIndex = -1;
+            categoryBox.editText = prev || "";
+        }
+    }
+
+    function _setCategory(value) {
+        var text = value || "";
+        if (!text) {
+            categoryBox.currentIndex = -1;
+            categoryBox.editText = "";
+            return;
+        }
+        DataUtils.setComboText(categoryBox, text, null);
+    }
+
     function loadProfile(name) {
         _loading = true;
         var raw = backend.loadProfile(name);
@@ -127,13 +170,9 @@ Rectangle {
         videoPanel.setData(d);
         audioPanel.setData(d);
         advancedPanel.setData(d);
+        _setCategory(d.category);
         root.advancedMode = !!(d.custom_command && d.custom_command !== "");
-        for (var i = 0; i < _profileNames.length; i++) {
-            if (_profileNames[i] === name) {
-                profileSelector.currentIndex = i;
-                break;
-            }
-        }
+        profileSelector.currentIndex = profileSelector.indexOfProfile(name);
         _loading = false;
         var previewRaw = backend.generateCommandPreview(JSON.stringify(d));
         if (previewRaw) {
@@ -146,7 +185,7 @@ Rectangle {
     function restoreDefaults() {
         backend.restoreDefaultProfiles();
         _loading = true;
-        _profileNames = JSON.parse(backend.availableProfiles());
+        _loadProfileList();
         if (_profileNames.length > 0)
             loadProfile(_profileNames[0]);
         else
@@ -191,9 +230,9 @@ Rectangle {
         backend.saveProfile(name, JSON.stringify(data));
         _defaultNames = JSON.parse(backend.defaultProfileNames());
         _loading = true;
-        _profileNames = JSON.parse(backend.availableProfiles());
+        _loadProfileList();
         _loadedProfileName = name;
-        profileSelector.currentIndex = _profileNames.indexOf(name);
+        profileSelector.currentIndex = profileSelector.indexOfProfile(name);
         _loading = false;
         showNotification(qsTr("Profile \"%1\" saved").arg(name), theme.accent);
     }
@@ -202,7 +241,7 @@ Rectangle {
         var deletedName = _loadedProfileName;
         backend.deleteProfile(deletedName);
         _loading = true;
-        _profileNames = JSON.parse(backend.availableProfiles());
+        _loadProfileList();
         if (_profileNames.length > 0)
             loadProfile(_profileNames[0]);
         else
@@ -215,7 +254,7 @@ Rectangle {
         var restoredName = _loadedProfileName;
         backend.deleteProfile(restoredName);
         _loading = true;
-        _profileNames = JSON.parse(backend.availableProfiles());
+        _loadProfileList();
         loadProfile(restoredName);
         _loading = false;
         showNotification(qsTr("Profile \"%1\" restored to defaults").arg(restoredName), theme.accent);
@@ -223,7 +262,7 @@ Rectangle {
 
     function handleImportSummary(summary) {
         _loading = true;
-        _profileNames = JSON.parse(backend.availableProfiles());
+        _loadProfileList();
         _defaultNames = JSON.parse(backend.defaultProfileNames());
         if (_loadedProfileName !== "" && _profileNames.indexOf(_loadedProfileName) >= 0)
             loadProfile(_loadedProfileName);
@@ -243,7 +282,7 @@ Rectangle {
     onProfileNameChanged: _loadedProfileName = profileName
     Component.onCompleted: {
         _loading = true;
-        _profileNames = JSON.parse(backend.availableProfiles());
+        _loadProfileList();
         _defaultNames = JSON.parse(backend.defaultProfileNames());
         Qt.callLater(function () {
             loadProfile(profileName);
@@ -313,15 +352,18 @@ Rectangle {
                     verticalAlignment: Text.AlignVCenter
                 }
 
-                ComboBox {
+                ProfileComboBox {
                     id: profileSelector
 
                     height: newBtn.height
                     width: 300
-                    model: root._profileNames
+                    model: root._profileRows
                     displayText: currentIndex < 0 ? qsTr("New profile") : currentText
                     onCurrentTextChanged: {
                         if (_loading)
+                            return;
+
+                        if (isHeaderRow(currentIndex))
                             return;
 
                         if (currentText && currentText !== _loadedProfileName)
@@ -432,6 +474,20 @@ Rectangle {
 
                 width: parent.width
                 placeholderText: qsTr("Enter profile name...")
+            }
+
+            Label {
+                text: qsTr("Category")
+                color: theme.textMuted
+                font.bold: true
+                font.pixelSize: 14
+            }
+
+            ComboBox {
+                id: categoryBox
+
+                editable: true
+                width: parent.width
             }
 
             Rectangle {

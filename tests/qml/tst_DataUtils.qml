@@ -52,6 +52,67 @@ TestCase {
         compare(DataUtils.buildProfileData().hasOwnProperty("a"), false);
     }
 
+    function test_profileRows() {
+        var rows = DataUtils.profileRows([{
+            "category": "General purpose",
+            "names": ["B", "A"]
+        }, {
+            "category": "Animation",
+            "names": []
+        }]);
+        compare(rows.length, 4);
+        compare(rows[0].name, "General purpose");
+        compare(rows[0].isHeader, true);
+        compare(rows[1].name, "B");
+        compare(rows[1].isHeader, false);
+        compare(rows[2].name, "A");
+        compare(rows[2].isHeader, false);
+        compare(rows[3].name, "Animation");
+        compare(rows[3].isHeader, true);
+    }
+
+    function test_profileRows_invalidJson() {
+        compare(DataUtils.parseProfileRows("not json").length, 0);
+        compare(DataUtils.parseProfileRows("[]").length, 0);
+    }
+
+    function test_profileRowIndex() {
+        var rows = DataUtils.profileRows([{
+            "category": "General",
+            "names": ["A", "B"]
+        }]);
+        compare(DataUtils.profileRowIndex(rows, "A"), 1);
+        compare(DataUtils.profileRowIndex(rows, "B"), 2);
+        compare(DataUtils.profileRowIndex(rows, "General"), -1);
+        compare(DataUtils.profileRowIndex(rows, "Missing"), -1);
+    }
+
+    function test_firstProfileRow() {
+        compare(DataUtils.firstProfileRow([]), -1);
+        compare(DataUtils.firstProfileRow([{
+            "name": "Header",
+            "isHeader": true
+        }]), -1);
+        compare(DataUtils.firstProfileRow([{
+            "name": "Header",
+            "isHeader": true
+        }, {
+            "name": "P",
+            "isHeader": false
+        }]), 1);
+    }
+
+    function test_isHeaderRow() {
+        var rows = DataUtils.profileRows([{
+            "category": "General",
+            "names": ["A"]
+        }]);
+        compare(DataUtils.isHeaderRow(rows, 0), true);
+        compare(DataUtils.isHeaderRow(rows, 1), false);
+        compare(DataUtils.isHeaderRow(rows, 2), false);
+        compare(DataUtils.isHeaderRow(rows, -1), false);
+    }
+
     function test_comboText() {
         compare(DataUtils.comboText({
             "currentText": "value"

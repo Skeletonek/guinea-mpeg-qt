@@ -11,7 +11,6 @@ Item {
 
     property var hostWindow: null
     property var playerItem: null
-    property var _profileNames: []
 
     // Media information: first video/audio stream of the previewed file
     readonly property bool _hasVideo: hostWindow !== null && hostWindow.currentVideoPath !== ""
@@ -28,12 +27,11 @@ Item {
     signal aboutClicked
 
     function refreshProfiles() {
-        var p = backend.availableProfiles();
-        try {
-            _profileNames = JSON.parse(p);
-        } catch (e) {
-            _profileNames = [];
-        }
+        profileSelector.model = DataUtils.parseProfileRows(backend.availableProfiles());
+        var idx = profileSelector.indexOfProfile(hostWindow ? hostWindow.currentProfile : "");
+        if (idx < 0)
+            idx = profileSelector.firstProfileIndex();
+        profileSelector.currentIndex = idx;
     }
 
     function _toggleSelection(index, checked, selection) {
@@ -335,11 +333,13 @@ Item {
                 topPadding: 8
             }
 
-            ComboBox {
+            ProfileComboBox {
                 id: profileSelector
 
-                model: root._profileNames
                 onCurrentTextChanged: {
+                    if (isHeaderRow(currentIndex))
+                        return;
+
                     if (hostWindow) {
                         hostWindow.currentProfile = currentText;
                         hostWindow.updateCodec();

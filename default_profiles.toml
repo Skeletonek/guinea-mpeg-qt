@@ -1,3 +1,7 @@
+# The `category` key drives the picker's section groups; profiles without one
+# fall into a trailing "Custom" group.
+
+# General purpose
 [[profiles]]
 name = "H.264 High"
 codec = "h264"
@@ -11,36 +15,23 @@ pixel_format = "yuv420p"
 audio_bitrate = "256k"
 audio_channels = 2
 audio_sample_rate = 48000
+category = "General purpose"
 
 [[profiles]]
-name = "VP9 Low"
+name = "VP9 High"
 codec = "vp9"
 encoder = "libvpx-vp9"
-crf = 40
-preset = "good"
-cpu_used = 3
-tune = "ssim"
-resolution = "720p"
-framerate = 30.0
-pixel_format = "yuv420p"
-audio_bitrate = "64k"
-audio_channels = 2
-audio_sample_rate = 48000
-
-[[profiles]]
-name = "VP9 Medium"
-codec = "vp9"
-encoder = "libvpx-vp9"
-crf = 32
+crf = 26
 preset = "good"
 cpu_used = 2
 tune = "ssim"
-resolution = "720p"
+resolution = "native"
 framerate = 0.0
 pixel_format = "yuv420p"
-audio_bitrate = "128k"
+audio_bitrate = "192k"
 audio_channels = 2
 audio_sample_rate = 48000
+category = "General purpose"
 
 [[profiles]]
 name = "AV1 High"
@@ -58,6 +49,7 @@ enable_qm = true
 audio_bitrate = "192k"
 audio_channels = 2
 audio_sample_rate = 48000
+category = "General purpose"
 
 [[profiles]]
 name = "AV1 Medium"
@@ -75,6 +67,70 @@ enable_qm = false
 audio_bitrate = "128k"
 audio_channels = 2
 audio_sample_rate = 48000
+category = "General purpose"
+
+[[profiles]]
+name = "H.265 High"
+codec = "hevc"
+encoder = "libx265"
+crf = 22
+preset = "slow"
+tune = "film"
+resolution = "1080p"
+framerate = 0.0
+pixel_format = "yuv420p"
+audio_bitrate = "256k"
+audio_channels = 2
+audio_sample_rate = 48000
+category = "General purpose"
+
+[[profiles]]
+name = "H.265 Medium"
+codec = "hevc"
+encoder = "libx265"
+crf = 28
+preset = "medium"
+tune = "film"
+resolution = "720p"
+framerate = 0.0
+pixel_format = "yuv420p"
+audio_bitrate = "128k"
+audio_channels = 2
+audio_sample_rate = 48000
+category = "General purpose"
+
+# Compact
+[[profiles]]
+name = "VP9 Medium"
+codec = "vp9"
+encoder = "libvpx-vp9"
+crf = 32
+preset = "good"
+cpu_used = 2
+tune = "ssim"
+resolution = "720p"
+framerate = 0.0
+pixel_format = "yuv420p"
+audio_bitrate = "128k"
+audio_channels = 2
+audio_sample_rate = 48000
+category = "Compact"
+
+[[profiles]]
+name = "VP9 Low"
+codec = "vp9"
+encoder = "libvpx-vp9"
+crf = 40
+preset = "good"
+cpu_used = 3
+tune = "ssim"
+resolution = "720p"
+framerate = 30.0
+pixel_format = "yuv420p"
+audio_bitrate = "64k"
+audio_channels = 2
+audio_sample_rate = 48000
+category = "Compact"
 
 [[profiles]]
 name = "AV1 Low"
@@ -92,35 +148,24 @@ enable_qm = false
 audio_bitrate = "64k"
 audio_channels = 2
 audio_sample_rate = 48000
+category = "Compact"
 
 [[profiles]]
-name = "H.265 High"
+name = "H.265 Low"
 codec = "hevc"
 encoder = "libx265"
-crf = 22
-preset = "slow"
-tune = "film"
-resolution = "1080p"
-framerate = 0.0
-pixel_format = "yuv420p"
-audio_bitrate = "256k"
-audio_channels = 2
-audio_sample_rate = 48000
-
-[[profiles]]
-name = "H.265 Medium"
-codec = "hevc"
-encoder = "libx265"
-crf = 28
+crf = 34
 preset = "medium"
 tune = "film"
 resolution = "720p"
-framerate = 0.0
+framerate = 30.0
 pixel_format = "yuv420p"
-audio_bitrate = "128k"
+audio_bitrate = "64k"
 audio_channels = 2
 audio_sample_rate = 48000
+category = "Compact"
 
+# Animation
 [[profiles]]
 name = "Animated GIF"
 codec = "gif"
@@ -130,6 +175,7 @@ framerate = 10.0
 quality = 75
 loop_enabled = true
 audio_enabled = false
+category = "Animation"
 
 [[profiles]]
 name = "Animated WebP"
@@ -140,3 +186,48 @@ framerate = 10.0
 quality = 75
 loop_enabled = true
 audio_enabled = false
+category = "Animation"
+
+[[profiles]]
+name = "Animated WebP High"
+codec = "webp"
+encoder = "libwebp_anim"
+resolution = "720p"
+framerate = 15.0
+quality = 90
+loop_enabled = true
+audio_enabled = false
+category = "Animation"
+
+# Web & streaming
+[[profiles]]
+name = "Web VP9 720p"
+codec = "vp9"
+encoder = "libvpx-vp9"
+crf = 32
+preset = "good"
+cpu_used = 4
+tune = "ssim"
+resolution = "720p"
+framerate = 30.0
+pixel_format = "yuv420p"
+audio_bitrate = "128k"
+audio_channels = 2
+audio_sample_rate = 48000
+category = "Web & streaming"
+
+# Compatibility
+[[profiles]]
+name = "H.264 Compatible"
+codec = "h264"
+encoder = "libx264"
+crf = 23
+preset = "medium"
+resolution = "1080p"
+framerate = 30.0
+pixel_format = "yuv420p"
+audio_bitrate = "128k"
+audio_channels = 2
+audio_sample_rate = 48000
+audio_codec = "aac"
+category = "Compatibility"

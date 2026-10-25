@@ -13,8 +13,8 @@ unsafe fn from_cstr<'a>(ptr: *const c_char) -> &'a str {
 
 #[no_mangle]
 pub extern "C" fn guinea_mpeg_available_profiles() -> *mut c_char {
-    let names = crate::config::available_profiles();
-    to_json(&names)
+    let groups = crate::config::profile_groups();
+    to_json(&groups)
 }
 
 #[no_mangle]

@@ -336,6 +336,16 @@ Rectangle {
                 onClicked: root.togglePreview()
             }
 
+            IconButton {
+                flat: true
+                text: player.muted ? qsTr("Unmute") : qsTr("Mute")
+                icon.name: root.volumeIconKey() + "-symbolic"
+                icon.source: "/media/icons/" + root.volumeIconKey() + ".png"
+                onClicked: player.toggleMute()
+                Layout.preferredWidth: 30
+                Layout.fillHeight: true
+            }
+
             Slider {
                 from: 0
                 to: 100
@@ -355,20 +365,10 @@ Rectangle {
                 }
             }
 
-            IconButton {
-                flat: true
-                text: player.muted ? qsTr("Unmute") : qsTr("Mute")
-                icon.name: root.volumeIconKey() + "-symbolic"
-                icon.source: "/media/icons/" + root.volumeIconKey() + ".png"
-                onClicked: player.toggleMute()
-                Layout.preferredWidth: 40
-                Layout.fillHeight: true
-            }
-
             Label {
                 text: Math.round(player.volume) + "%"
                 color: theme.text
-                Layout.preferredWidth: 30
+                Layout.preferredWidth: 25
                 verticalAlignment: Text.AlignVCenter
                 Layout.fillHeight: true
 

@@ -61,6 +61,7 @@ qt_add_resources(guinea-mpeg "app_qml"
         ${CMAKE_SOURCE_DIR}/qml/Components/IconButton.qml
         ${CMAKE_SOURCE_DIR}/qml/Components/LabeledRow.qml
         ${CMAKE_SOURCE_DIR}/qml/Components/LabeledComboBox.qml
+        ${CMAKE_SOURCE_DIR}/qml/Components/ProfileComboBox.qml
         ${CMAKE_SOURCE_DIR}/qml/Components/LabeledTextField.qml
         ${CMAKE_SOURCE_DIR}/qml/Components/SwitchRow.qml
         ${CMAKE_SOURCE_DIR}/qml/Components/SectionHeader.qml

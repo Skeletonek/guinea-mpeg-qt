@@ -17,6 +17,19 @@ encoder = "libx264"
 crf = 18
 )";
 
+static const char kGroupedProfilesToml[] = R"(
+[[profiles]]
+name = "H.264 High"
+codec = "h264"
+crf = 18
+
+[[profiles]]
+name = "H.264 Compatible"
+codec = "h264"
+crf = 23
+category = "Compatibility"
+)";
+
 static QString takeRust(const char* s) {
     if (!s)
         return {};
@@ -47,6 +60,7 @@ class TestBackendFfi : public QObject {
     void previewCommandRejectsInvalid();
     void previewCustomCommand();
     void profileRoundtrip();
+    void availableProfilesGrouped();
     void availableEncoders();
     void mpvAvailable();
 };
@@ -151,6 +165,31 @@ void TestBackendFfi::profileRoundtrip() {
     QVERIFY(guinea_mpeg_set_option("language", "pl"));
     const QJsonObject opts = QJsonDocument::fromJson(takeRust(guinea_mpeg_get_options()).toUtf8()).object();
     QCOMPARE(opts.value("language").toString(), QStringLiteral("pl"));
+
+    qunsetenv("GUINEA_MPEG_CONFIG_DIR");
+}
+
+void TestBackendFfi::availableProfilesGrouped() {
+    QTemporaryDir dir;
+    QVERIFY(dir.isValid());
+    QVERIFY(QDir().mkpath(dir.path() + QLatin1String("/guinea-mpeg")));
+    QFile f(dir.path() + QLatin1String("/guinea-mpeg/default_profiles.toml"));
+    QVERIFY(f.open(QIODevice::WriteOnly));
+    f.write(kGroupedProfilesToml);
+    f.close();
+    qputenv("GUINEA_MPEG_CONFIG_DIR", dir.path().toUtf8());
+
+    // Saving refreshes the merged config cache for this directory
+    QVERIFY(guinea_mpeg_save_profile("My Web", R"({"codec":"vp9","category":"Web & streaming"})"));
+
+    const QJsonArray groups = QJsonDocument::fromJson(takeRust(guinea_mpeg_available_profiles()).toUtf8()).array();
+    QCOMPARE(groups.size(), 3);
+    QCOMPARE(groups.at(0).toObject().value("category").toString(), QStringLiteral("Compatibility"));
+    QCOMPARE(groups.at(0).toObject().value("names").toArray().size(), 1);
+    QCOMPARE(groups.at(1).toObject().value("category").toString(), QStringLiteral("Web & streaming"));
+    QCOMPARE(groups.at(1).toObject().value("names").toArray().at(0).toString(), QStringLiteral("My Web"));
+    QCOMPARE(groups.at(2).toObject().value("category").toString(), QStringLiteral("Custom"));
+    QCOMPARE(groups.at(2).toObject().value("names").toArray().at(0).toString(), QStringLiteral("H.264 High"));
 
     qunsetenv("GUINEA_MPEG_CONFIG_DIR");
 }

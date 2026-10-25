@@ -280,6 +280,111 @@ fn restore_defaults_reverts_overrides_keeps_custom() {
 }
 
 #[test]
+fn category_survives_save_load() {
+    with_config_dir(tempdir().unwrap().path(), |_dir| {
+        let json = r#"{"codec":"h264","category":"Web & streaming"}"#;
+        assert!(save_profile("Categorized", json).is_ok());
+        let loaded = load_profile("Categorized").unwrap();
+        assert_eq!(loaded.category.as_deref(), Some("Web & streaming"));
+    });
+}
+
+#[test]
+fn profile_groups_order_and_custom_fallback() {
+    with_config_dir(tempdir().unwrap().path(), |dir| {
+        write_default_profiles(
+            dir,
+            r#"
+        [[profiles]]
+        name = "B"
+        codec = "h264"
+        category = "General"
+
+        [[profiles]]
+        name = "A"
+        codec = "vp9"
+        category = "Compact"
+
+        [[profiles]]
+        name = "C"
+        codec = "vp9"
+        category = "General"
+
+        [[profiles]]
+        name = "Uncategorized"
+        codec = "gif"
+        "#,
+        );
+        set_config(merge_configs());
+        save_profile("Mine", r#"{"codec":"h264","category":"General"}"#).unwrap();
+        save_profile("UserOnly", r#"{"codec":"h264","category":"OnlyUser"}"#).unwrap();
+        save_profile("Raw", r#"{"codec":"h264"}"#).unwrap();
+
+        let groups = profile_groups();
+        let categories: Vec<&str> = groups.iter().map(|g| g.category.as_str()).collect();
+        assert_eq!(categories, vec!["General", "Compact", "OnlyUser", "Custom"]);
+        assert_eq!(
+            groups[0].names,
+            vec!["B".to_string(), "C".to_string(), "Mine".to_string()]
+        );
+        assert_eq!(groups[1].names, vec!["A".to_string()]);
+        assert_eq!(groups[2].names, vec!["UserOnly".to_string()]);
+        assert_eq!(
+            groups[3].names,
+            vec!["Raw".to_string(), "Uncategorized".to_string()]
+        );
+    });
+}
+
+#[test]
+fn profile_groups_no_uncategorized_group_when_empty() {
+    with_config_dir(tempdir().unwrap().path(), |dir| {
+        write_default_profiles(
+            dir,
+            r#"
+        [[profiles]]
+        name = "A"
+        codec = "h264"
+        category = "General"
+        "#,
+        );
+        set_config(merge_configs());
+        let groups = profile_groups();
+        assert_eq!(groups.len(), 1);
+        assert_eq!(groups[0].category, "General");
+        assert_eq!(groups[0].names, vec!["A".to_string()]);
+    });
+}
+
+#[test]
+fn export_import_preserves_category() {
+    with_config_dir(tempdir().unwrap().path(), |_dir| {
+        save_profile("Cat", r#"{"codec":"h264","category":"Compact"}"#).unwrap();
+        save_profile("NoCat", r#"{"codec":"h264"}"#).unwrap();
+
+        let export_path =
+            std::env::temp_dir().join(format!("guinea_cat_{}.toml", std::process::id()));
+        export_profiles(
+            export_path.to_str().unwrap(),
+            &["Cat".to_string(), "NoCat".to_string()],
+        )
+        .unwrap();
+
+        delete_profile("Cat").unwrap();
+        delete_profile("NoCat").unwrap();
+
+        let summary = import_profiles(export_path.to_str().unwrap(), false);
+        assert!(summary.error.is_none());
+        assert_eq!(
+            load_profile("Cat").unwrap().category.as_deref(),
+            Some("Compact")
+        );
+        assert_eq!(load_profile("NoCat").unwrap().category, None);
+        std::fs::remove_file(&export_path).ok();
+    });
+}
+
+#[test]
 fn export_then_import_roundtrip() {
     with_config_dir(tempdir().unwrap().path(), |_dir| {
         save_profile("A", r#"{"codec":"h264","crf":18}"#).unwrap();

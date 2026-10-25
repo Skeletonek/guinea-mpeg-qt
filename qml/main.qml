@@ -49,7 +49,7 @@ ApplicationWindow {
     property string previewProfile: ""
 
     // Transient seek/volume shortcuts yield while the splitter owns the arrows
-    readonly property bool splitterFocused: splitterHandle.activeFocus
+    property bool splitterFocused: false
 
     function _findBatchIndex(files, path) {
         for (var i = 0; i < files.length; i++) {
@@ -425,6 +425,9 @@ ApplicationWindow {
                         width: Constants.splitterHandleWidth
                         height: parent.height
                         activeFocusOnTab: true
+                        // splitterHandle is scoped to this Component: report
+                        // focus changes up to the root for shortcut yielding
+                        onActiveFocusChanged: appWindow.splitterFocused = activeFocus
 
                         Rectangle {
                             anchors.top: parent.top
