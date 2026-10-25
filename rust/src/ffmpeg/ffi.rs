@@ -3,8 +3,8 @@ use std::os::raw::c_char;
 
 use crate::config::VideoProfile;
 use crate::ffmpeg::{
-    build_command, build_preview, cstr, encoder_capabilities, normalize_path, quiet_command,
-    run_cmd, to_c_string,
+    build_command, build_preview, compute_normalize_gain, cstr, encoder_capabilities,
+    normalize_path, quiet_command, run_cmd, to_c_string,
 };
 
 #[no_mangle]
@@ -161,4 +161,28 @@ pub extern "C" fn guinea_mpeg_build_ffmpeg_command(
 
     let args = build_command(inp, out, start_time, end_time, &profile);
     to_c_string(serde_json::to_string(&args).unwrap_or_default())
+}
+
+#[no_mangle]
+pub extern "C" fn guinea_mpeg_compute_normalize_gain(
+    input: *const c_char,
+    start_time: f64,
+    end_time: f64,
+    profile_json: *const c_char,
+) -> *mut c_char {
+    let inp = unsafe { cstr(input) };
+    let json = unsafe { cstr(profile_json) };
+    if inp.is_empty() || json.is_empty() {
+        return std::ptr::null_mut();
+    }
+    let profile: VideoProfile = match serde_json::from_str(json) {
+        Ok(p) => p,
+        Err(_) => return std::ptr::null_mut(),
+    };
+
+    let result = match compute_normalize_gain(inp, start_time, end_time, &profile) {
+        Ok(gain) => serde_json::json!({"gain": gain}),
+        Err(e) => serde_json::json!({"error": e.to_string()}),
+    };
+    to_c_string(result.to_string())
 }

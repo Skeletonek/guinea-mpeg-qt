@@ -29,6 +29,10 @@ var loudnormDefaultI = -14
 var loudnormDefaultTP = -1.5
 var loudnormDefaultLRA = 11
 
+// Normalize defaults
+var normalizeDefaultI = -14
+var normalizeDefaultTP = -1.5
+
 // Video codec definitions
 var codecKeys = ["h264", "hevc", "vp8", "vp9", "av1", "gif", "webp", "copy"]
 var codecLabels = ["H.264", "H.265/HEVC", "VP8", "VP9", "AV1", "GIF", "WebP", "Copy"]

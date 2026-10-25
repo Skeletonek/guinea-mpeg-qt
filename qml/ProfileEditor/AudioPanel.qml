@@ -21,6 +21,7 @@ Column {
         var aIdx = audioAutoCombo.currentIndex;
         return aIdx > 0 ? audioCodecLabels[aIdx - 1] : _autoCodecLabel;
     }
+    readonly property bool _isNormalize: normalizeSwitch.checked
 
     signal changed
 
@@ -109,6 +110,11 @@ Column {
             af.loudnorm_tp = parseFloat(loudnormTPField.text);
             af.loudnorm_lra = parseFloat(loudnormLRAField.text);
         }
+        if (normalizeSwitch.checked) {
+            af.normalize = true;
+            af.normalize_target_i = parseFloat(normalizeIField.text);
+            af.normalize_target_tp = parseFloat(normalizeTPField.text);
+        }
         if (Object.keys(af).length > 0)
             data.audio_filters = af;
 
@@ -185,6 +191,9 @@ Column {
         loudnormIField.text = String(af.loudnorm_i != null ? af.loudnorm_i : Constants.loudnormDefaultI);
         loudnormTPField.text = String(af.loudnorm_tp != null ? af.loudnorm_tp : Constants.loudnormDefaultTP);
         loudnormLRAField.text = String(af.loudnorm_lra != null ? af.loudnorm_lra : Constants.loudnormDefaultLRA);
+        normalizeSwitch.checked = !!af.normalize;
+        normalizeIField.text = String(af.normalize_target_i != null ? af.normalize_target_i : Constants.normalizeDefaultI);
+        normalizeTPField.text = String(af.normalize_target_tp != null ? af.normalize_target_tp : Constants.normalizeDefaultTP);
     }
 
     function _updateAutoCodecLabel() {
@@ -370,11 +379,11 @@ Column {
             opacity: root._isAudioCopy ? 0.4 : 1.0
 
             SectionHeader {
-                text: qsTr("Processing")
+                text: qsTr("Rate control")
             }
 
             LabeledRow {
-                label: qsTr("Rate control")
+                label: qsTr("Mode")
 
                 ComboBox {
                     id: audioRateControlCombo
@@ -413,11 +422,17 @@ Column {
                 }
             }
 
+            SectionHeader {
+                text: qsTr("Volume")
+            }
+
             LabeledTextField {
                 id: audioGainField
 
                 label: qsTr("Gain (dB)")
                 placeholderText: "0"
+                enabled: !root._isNormalize
+                opacity: root._isNormalize ? 0.4 : 1.0
                 onTextChanged: {
                     if (!root.loading)
                         root.changed();
@@ -436,6 +451,8 @@ Column {
                 Switch {
                     id: loudnormSwitch
 
+                    enabled: !root._isNormalize
+                    opacity: root._isNormalize ? 0.4 : 1.0
                     onCheckedChanged: {
                         if (!root.loading)
                             root.changed();
@@ -446,7 +463,9 @@ Column {
             Column {
                 width: parent.width
                 spacing: 8
-                visible: loudnormSwitch.checked
+                visible: loudnormSwitch.checked && !root._isNormalize
+                enabled: !root._isNormalize
+                opacity: root._isNormalize ? 0.4 : 1.0
 
                 LabeledTextField {
                     id: loudnormIField
@@ -495,6 +514,64 @@ Column {
                     validator: DoubleValidator {
                         bottom: 1
                         top: 50
+                        decimals: 1
+                    }
+                }
+            }
+
+            LabeledRow {
+                label: qsTr("Normalize")
+                toolTipText: qsTr("Normalize runs a first-pass loudness analysis on each file, " +
+                                  "computes a single linear volume gain to reach the Target I level, " +
+                                  "clamps it so the true peak stays below Target TP, and applies " +
+                                  "volume=gain during the transcode. This preserves dynamics " +
+                                  "(no compression) and matches the behavior of the normalize_audio.sh script.")
+
+                Switch {
+                    id: normalizeSwitch
+
+                    onCheckedChanged: {
+                        if (!root.loading)
+                            root.changed();
+                    }
+                }
+            }
+
+            Column {
+                width: parent.width
+                spacing: 8
+                visible: normalizeSwitch.checked
+
+                LabeledTextField {
+                    id: normalizeIField
+
+                    label: qsTr("Target I (LUFS)")
+                    placeholderText: String(Constants.normalizeDefaultI)
+                    onTextChanged: {
+                        if (!root.loading)
+                            root.changed();
+                    }
+
+                    validator: DoubleValidator {
+                        bottom: -70
+                        top: -5
+                        decimals: 1
+                    }
+                }
+
+                LabeledTextField {
+                    id: normalizeTPField
+
+                    label: qsTr("True peak (dBTP)")
+                    placeholderText: String(Constants.normalizeDefaultTP)
+                    onTextChanged: {
+                        if (!root.loading)
+                            root.changed();
+                        }
+
+                    validator: DoubleValidator {
+                        bottom: -20
+                        top: 0
                         decimals: 1
                     }
                 }

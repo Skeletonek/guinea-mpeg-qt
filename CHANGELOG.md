@@ -1,18 +1,21 @@
 ### 0.15.0 (In progress)
+- Added filters section in Profile Editor
+- Added options for deinterlacing, denoising, cropping, rotating, mirroring for video settings
+- Added options for quality based encoding, gain, loudnorm, audio normalization in audio settings
 - Added support for opening multiple files at once - pseudo batch transcoding
+- Profiles are now categorized
+- Widened the ControlsPanel
+- Changed system theme on Windows from Fusion to FluentWinUI3
 - Added more precise time formatting
 - Added note icon when playing audio file with no video streams (no cover art)
 - Added "Media Files" filter in open file dialog for both audio and video files
 - Added more information to the Media Information section
-- Profiles are now categorized
-- Widened the ControlsPanel
+- Renamed "Video Information" section to "Media Information"
 - Replaced some text buttons with iconed buttons
 - Improved keyboard navigation within the player window and timeline control
+- Swaped "Preview Mode" button place with "Regenerate" button in Preview Mode
 - Unified dialogs across the entire app
 - Unified popups and toasts across the entire app
-- Changed system theme on Windows from Fusion to FluentWinUI3
-- Renamed "Video Information" section to "Media Information"
-- Swaped "Preview Mode" button place with "Regenerate" button in Preview Mode
 - Updated Linux .desktop files with supported translations
 - Fixed not refreshing video playback when loading audio file with no cover art after playing a video file
 - Removed encoder compatibility dialog in profile editor

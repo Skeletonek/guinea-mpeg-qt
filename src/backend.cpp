@@ -254,6 +254,14 @@ QString GuineaMpegBackendExt::generateCommandPreview(const QString& json) {
     return takeRustString(guinea_mpeg_preview_command(json.toUtf8().constData()));
 }
 
+QString GuineaMpegBackendExt::computeNormalizeGain(const QString& rawInput, double startTime, double endTime,
+                                                   const QString& profileJson) {
+    QString input = QDir::cleanPath(rawInput);
+    return takeRustString(guinea_mpeg_compute_normalize_gain(input.toUtf8().constData(), startTime, endTime,
+                                                             profileJson.toUtf8().constData()),
+                          QStringLiteral("{}"));
+}
+
 bool GuineaMpegBackendExt::deleteProfile(const QString& name) {
     return guinea_mpeg_delete_profile(name.toUtf8().constData());
 }
@@ -349,8 +357,31 @@ QString GuineaMpegBackendExt::startTranscode(const QString& rawInput, const QStr
     setTranscoding(true);
 
     QJsonDocument doc = QJsonDocument::fromJson(profileJson.toUtf8());
+    QString effectiveProfileJson = profileJson;
+    if (doc.isObject()) {
+        QJsonObject profile = doc.object();
+        QJsonObject af = profile.value(QStringLiteral("audio_filters")).toObject();
+        if (af.value(QStringLiteral("normalize")).toBool(false)) {
+            QString result = computeNormalizeGain(input, startTime, endTime, profileJson);
+            QJsonDocument gainDoc = QJsonDocument::fromJson(result.toUtf8());
+            QJsonObject gainObj = gainDoc.object();
+            if (gainObj.contains(QStringLiteral("error"))) {
+                const QString msg = tr("Error: normalization analysis failed: %1")
+                                        .arg(gainObj.value(QStringLiteral("error")).toString());
+                appendTranscodeOutput(msg + "\n");
+                setTranscodeError(msg);
+                setTranscoding(false);
+                return "failed";
+            }
+            af[QStringLiteral("gain_db")] = gainObj.value(QStringLiteral("gain")).toDouble();
+            af[QStringLiteral("normalize")] = false;
+            profile[QStringLiteral("audio_filters")] = af;
+            effectiveProfileJson = QJsonDocument(profile).toJson(QJsonDocument::Compact);
+        }
+    }
+
     QStringList args = doc.isArray() ? jsonArgsToStringList(profileJson.toUtf8())
-                                     : buildArgsFromProfile(input, output, startTime, endTime, profileJson);
+                                     : buildArgsFromProfile(input, output, startTime, endTime, effectiveProfileJson);
     if (doc.isObject() && args.isEmpty()) {
         const QString msg = tr("Error: failed to build ffmpeg command from profile");
         appendTranscodeOutput(msg + "\n");
@@ -411,7 +442,19 @@ QString GuineaMpegBackendExt::startPreview(const QString& rawInput, const QStrin
     m_lastPreviewDurationMs = (qint64)durationMs;
     emit lastPreviewDurationMsChanged();
 
-    QStringList args = buildArgsFromProfile(input, output, startTime, endTime, profileJson);
+    QString previewProfileJson = profileJson;
+    QJsonDocument previewDoc = QJsonDocument::fromJson(profileJson.toUtf8());
+    if (previewDoc.isObject()) {
+        QJsonObject profile = previewDoc.object();
+        QJsonObject af = profile.value(QStringLiteral("audio_filters")).toObject();
+        if (af.value(QStringLiteral("normalize")).toBool(false)) {
+            af[QStringLiteral("normalize")] = false;
+            profile[QStringLiteral("audio_filters")] = af;
+            previewProfileJson = QJsonDocument(profile).toJson(QJsonDocument::Compact);
+        }
+    }
+
+    QStringList args = buildArgsFromProfile(input, output, startTime, endTime, previewProfileJson);
     if (args.isEmpty()) {
         setPreviewGenerating(false);
         emit previewFailed();

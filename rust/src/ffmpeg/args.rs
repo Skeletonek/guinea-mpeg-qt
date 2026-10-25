@@ -3,6 +3,7 @@ use crate::ffmpeg::{
     audio_codec_for_profile, detect_vaapi_device, encoder_capabilities, encoder_family,
     normalize_path, video_codec, EncoderFamily,
 };
+use anyhow::Context;
 
 const DEFAULT_QUALITY: u32 = 75;
 
@@ -424,14 +425,24 @@ fn add_video_branch(
 fn add_audio_filter_chain(args: &mut Vec<String>, profile: &VideoProfile) {
     let filters = profile.audio_filters.as_ref();
     let mut parts = Vec::new();
-    if let Some(gain) = filters.and_then(|f| f.gain_db) {
-        parts.push(format!("volume={}dB", gain));
-    }
-    if filters.is_some_and(|f| f.loudnorm.unwrap_or(false)) {
-        let i = filters.and_then(|f| f.loudnorm_i).unwrap_or(-14.0);
-        let tp = filters.and_then(|f| f.loudnorm_tp).unwrap_or(-1.5);
-        let lra = filters.and_then(|f| f.loudnorm_lra).unwrap_or(11.0);
-        parts.push(format!("loudnorm=I={}:TP={}:LRA={}", i, tp, lra));
+    if filters.is_some_and(|f| f.normalize.unwrap_or(false)) {
+        // Two-pass normalization: the real gain is computed from the input and
+        // injected as gain_db. In previews without an input file we show a placeholder.
+        let volume = filters.and_then(|f| f.gain_db).map_or_else(
+            || "volume=<computed>dB".to_string(),
+            |g| format!("volume={}dB", g),
+        );
+        parts.push(volume);
+    } else {
+        if let Some(gain) = filters.and_then(|f| f.gain_db) {
+            parts.push(format!("volume={}dB", gain));
+        }
+        if filters.is_some_and(|f| f.loudnorm.unwrap_or(false)) {
+            let i = filters.and_then(|f| f.loudnorm_i).unwrap_or(-14.0);
+            let tp = filters.and_then(|f| f.loudnorm_tp).unwrap_or(-1.5);
+            let lra = filters.and_then(|f| f.loudnorm_lra).unwrap_or(11.0);
+            parts.push(format!("loudnorm=I={}:TP={}:LRA={}", i, tp, lra));
+        }
     }
     if !parts.is_empty() {
         args.push("-af".to_string());
@@ -578,4 +589,97 @@ pub(crate) fn build_command(
 
 pub(crate) fn build_preview(profile: &VideoProfile) -> Vec<String> {
     build_command("[input]", "[output]", 0.0, 0.0, profile)
+}
+
+fn build_normalize_measurement_command(
+    input: &str,
+    start_time: f64,
+    end_time: f64,
+    profile: &VideoProfile,
+    target_i: f64,
+    target_tp: f64,
+) -> Vec<String> {
+    let mut args = Vec::new();
+    add_input_and_trim(&mut args, input, start_time, end_time);
+    add_stream_mapping(&mut args, profile);
+    args.push("-af".to_string());
+    args.push(format!(
+        "loudnorm=I={}:TP={}:LRA=11:print_format=json",
+        target_i, target_tp
+    ));
+    args.push("-f".to_string());
+    args.push("null".to_string());
+    args.push("-".to_string());
+    args
+}
+
+fn parse_normalize_gain(stderr: &str, target_i: f64, target_tp: f64) -> Option<f64> {
+    let start = stderr.find('{')?;
+    let end = stderr.rfind('}').map(|i| i + 1)?;
+    let json = &stderr[start..end];
+    let data: serde_json::Value = serde_json::from_str(json).ok()?;
+    let input_i = data["input_i"].as_str()?.parse::<f64>().ok()?;
+    let input_tp = data["input_tp"].as_str()?.parse::<f64>().ok()?;
+    let gain = target_i - input_i;
+    let max_gain = target_tp - input_tp;
+    Some(gain.min(max_gain))
+}
+
+pub(crate) fn compute_normalize_gain(
+    input: &str,
+    start_time: f64,
+    end_time: f64,
+    profile: &VideoProfile,
+) -> anyhow::Result<f64> {
+    let filters = profile.audio_filters.as_ref();
+    if !filters.is_some_and(|f| f.normalize.unwrap_or(false)) {
+        return Err(anyhow::anyhow!("normalization not enabled"));
+    }
+    let target_i = filters.and_then(|f| f.normalize_target_i).unwrap_or(-14.0);
+    let target_tp = filters.and_then(|f| f.normalize_target_tp).unwrap_or(-1.5);
+
+    let args = build_normalize_measurement_command(
+        input, start_time, end_time, profile, target_i, target_tp,
+    );
+    let output = std::process::Command::new("ffmpeg")
+        .args(&args)
+        .output()
+        .context("failed to run ffmpeg normalization analysis")?;
+    if !output.status.success() {
+        return Err(anyhow::anyhow!("ffmpeg normalization analysis failed"));
+    }
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    parse_normalize_gain(&stderr, target_i, target_tp)
+        .ok_or_else(|| anyhow::anyhow!("could not parse loudnorm analysis output"))
+}
+
+#[cfg(test)]
+mod normalize_tests {
+    use super::*;
+
+    #[test]
+    fn parse_gain_from_loudnorm_json() {
+        let stderr = r#"
+            [Parsed_loudnorm_0 @ 0x...]
+            {
+                "input_i" : "-23.5",
+                "input_tp" : "-2.3"
+            }
+        "#;
+        let gain = parse_normalize_gain(stderr, -14.0, -1.5).unwrap();
+        // gain would be 9.5 dB, but clamped to avoid clipping: -1.5 - (-2.3) = 0.8 dB
+        assert!((gain - 0.8).abs() < 0.01);
+    }
+
+    #[test]
+    fn parse_gain_clamps_to_avoid_clipping() {
+        let stderr = r#"
+            {
+                "input_i" : "-30.0",
+                "input_tp" : "-0.5"
+            }
+        "#;
+        let gain = parse_normalize_gain(stderr, -14.0, -1.5).unwrap();
+        assert!((gain - (-1.0)).abs() < 0.01);
+    }
 }

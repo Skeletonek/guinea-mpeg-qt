@@ -89,6 +89,8 @@ class GuineaMpegBackendExt : public QObject {
     Q_INVOKABLE QString availableEncoders();
     Q_INVOKABLE QString encoderCapabilities(const QString& encoderName);
     Q_INVOKABLE void copyToClipboard(const QString& text);
+    Q_INVOKABLE QString computeNormalizeGain(const QString& rawInput, double startTime, double endTime,
+                                             const QString& profileJson);
     Q_INVOKABLE QString startTranscode(const QString& rawInput, const QString& rawOutput, double startTime,
                                        double endTime, const QString& profileJson);
     Q_INVOKABLE void cancelTranscode();

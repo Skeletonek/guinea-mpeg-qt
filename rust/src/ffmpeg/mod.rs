@@ -6,7 +6,7 @@ mod ffi;
 mod types;
 mod util;
 
-pub(crate) use args::{build_command, build_preview};
+pub(crate) use args::{build_command, build_preview, compute_normalize_gain};
 pub(crate) use codecs::{audio_codec_for_profile, video_codec};
 #[cfg(test)]
 pub(crate) use command::tokenize;

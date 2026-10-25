@@ -9,6 +9,7 @@ Row {
     id: root
 
     property string label: ""
+    property string toolTipText: ""
     property int labelWidth: 170
     // Actual width given to the label; grows to fit long translations so the
     // text never overlaps the control next to it.
@@ -25,5 +26,15 @@ Row {
         width: root.effectiveLabelWidth
         verticalAlignment: Text.AlignVCenter
         visible: root.label !== ""
+
+        MouseArea {
+            anchors.fill: parent
+            hoverEnabled: true
+            acceptedButtons: Qt.NoButton
+            visible: root.toolTipText !== ""
+
+            ToolTip.visible: containsMouse
+            ToolTip.text: root.toolTipText
+        }
     }
 }

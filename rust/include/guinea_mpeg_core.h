@@ -38,6 +38,10 @@ const char* guinea_mpeg_build_ffmpeg_command(const char* input, const char* outp
 /* Preview: build ffmpeg args from profile without input/output paths */
 const char* guinea_mpeg_preview_command(const char* profile_json);
 
+/* Two-pass loudness normalization: analyze input and return JSON {"gain":dB} or {"error":"..."} */
+const char* guinea_mpeg_compute_normalize_gain(const char* input, double start_time, double end_time,
+                                               const char* profile_json);
+
 /* Encoder detection: returns JSON of {codec: [encoder names]} */
 const char* guinea_mpeg_available_encoders(void);
 

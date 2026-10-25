@@ -49,6 +49,12 @@ pub struct AudioFilters {
     pub loudnorm_tp: Option<f64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub loudnorm_lra: Option<f64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub normalize: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub normalize_target_i: Option<f64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub normalize_target_tp: Option<f64>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
