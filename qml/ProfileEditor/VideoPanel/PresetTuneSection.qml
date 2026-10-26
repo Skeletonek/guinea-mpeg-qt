@@ -9,11 +9,14 @@ SectionBase {
 
     property var _capOverrides: ({})
     property string currentCodecKey: "h264"
+    property int _presetCount: 0
+    property int _tuneCount: 0
 
     function rebuildPresetModel(caps) {
         caps = caps || root._capOverrides;
         var codec = root.currentCodecKey;
         var items = caps.presets || Constants.presetDefaults[codec] || [];
+        root._presetCount = items.length;
         DataUtils.rebuildComboModel(presetCombo, items, Constants.SENTINEL_DEFAULT);
     }
 
@@ -21,6 +24,7 @@ SectionBase {
         caps = caps || root._capOverrides;
         var codec = root.currentCodecKey;
         var items = caps.tunes || Constants.tuneDefaults[codec] || [];
+        root._tuneCount = items.length;
         DataUtils.rebuildComboModel(tuneCombo, items, Constants.SENTINEL_DEFAULT);
     }
 
@@ -49,7 +53,7 @@ SectionBase {
         id: presetRow
 
         label: qsTr("Preset")
-        visible: root._capOverrides.uses_compression_level !== true
+        visible: root._capOverrides.uses_compression_level !== true && root._presetCount > 0
 
         ComboBox {
             id: presetCombo
@@ -66,7 +70,7 @@ SectionBase {
         id: tuneRow
 
         label: qsTr("Tune")
-        visible: root._capOverrides.uses_compression_level !== true && root._capOverrides.uses_tune !== false
+        visible: root._capOverrides.uses_compression_level !== true && root._capOverrides.uses_tune !== false && root._tuneCount > 0
 
         ComboBox {
             id: tuneCombo

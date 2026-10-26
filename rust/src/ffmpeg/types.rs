@@ -18,4 +18,6 @@ pub(crate) struct EncoderCapabilities {
     pub(crate) uses_compression_level: bool,
     pub(crate) crf_flag: String,
     pub(crate) rc_flag: Option<String>,
+    pub(crate) crf_min: Option<i32>,
+    pub(crate) crf_max: Option<i32>,
 }

@@ -377,7 +377,7 @@ Rectangle {
                 icon.name: root.volumeIconKey() + "-symbolic"
                 icon.source: "/media/icons/" + root.volumeIconKey() + ".png"
                 onClicked: player.toggleMute()
-                Layout.preferredWidth: 30
+                Layout.preferredWidth: 40
                 Layout.fillHeight: true
             }
 

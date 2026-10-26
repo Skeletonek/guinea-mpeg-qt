@@ -435,5 +435,16 @@ fn import_invalid_file_errors() {
         let summary = import_profiles(bad.to_str().unwrap(), false);
         assert!(summary.error.is_some());
         std::fs::remove_file(&bad).ok();
+
+        // Valid TOML without any profiles must also be rejected, not silently imported as nothing
+        let empty = std::env::temp_dir().join(format!("guinea_empty_{}.toml", std::process::id()));
+        std::fs::write(&empty, "title = \"no profiles here\"").unwrap();
+
+        let preview = import_profiles_preview(empty.to_str().unwrap());
+        assert!(preview.error.is_some());
+
+        let summary = import_profiles(empty.to_str().unwrap(), false);
+        assert!(summary.error.is_some());
+        std::fs::remove_file(&empty).ok();
     });
 }

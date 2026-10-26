@@ -350,6 +350,64 @@ fn container_selects_audio_codec() {
 }
 
 #[test]
+fn quality_codecs_use_qv_and_clamp() {
+    let args = args_for(r#"{"codec":"mjpeg","crf":50}"#);
+    assert!(contains_pair(&args, "-q:v", "31"));
+    assert!(!contains_flag(&args, "-crf"));
+
+    let args = args_for(r#"{"codec":"mpeg2video","crf":1}"#);
+    assert!(contains_pair(&args, "-q:v", "2"));
+
+    let args = args_for(r#"{"codec":"theora","crf":5}"#);
+    assert!(contains_pair(&args, "-q:v", "5"));
+
+    let args = args_for(r#"{"codec":"theora","crf":23}"#);
+    assert!(contains_pair(&args, "-q:v", "10"));
+}
+
+#[test]
+fn quality_codec_drops_preset_and_tune() {
+    let args = args_for(r#"{"codec":"mjpeg","crf":5,"preset":"fast","tune":"film"}"#);
+    assert!(contains_pair(&args, "-q:v", "5"));
+    assert!(!contains_flag(&args, "-preset"));
+    assert!(!contains_flag(&args, "-tune"));
+}
+
+#[test]
+fn ffv1_emits_no_quality_or_codec_options() {
+    let args = args_for(
+        r#"{"codec":"ffv1","crf":23,"rate_control":"crf","preset":"fast","tune":"film","compression_level":"5","pixel_format":"yuv420p"}"#,
+    );
+    assert!(contains_pair(&args, "-c:v", "ffv1"));
+    assert!(!contains_flag(&args, "-crf"));
+    assert!(!contains_flag(&args, "-q:v"));
+    assert!(!contains_flag(&args, "-preset"));
+    assert!(!contains_flag(&args, "-tune"));
+    assert!(!contains_flag(&args, "-compression_level"));
+    assert!(contains_pair(&args, "-pix_fmt", "yuv420p"));
+}
+
+#[test]
+fn theora_vbr_uses_bitrate() {
+    let args = args_for(r#"{"codec":"theora","rate_control":"vbr","bitrate":"2M"}"#);
+    assert!(contains_pair(&args, "-b:v", "2M"));
+    assert!(!contains_flag(&args, "-q:v"));
+}
+
+#[test]
+fn pcm_audio_skips_rate_control_but_keeps_stream_settings() {
+    let args = args_for(
+        r#"{"codec":"h264","audio_codec":"pcm_s24le","audio_bitrate":"128k","audio_channels":2,"audio_sample_rate":48000,"audio_filters":{"gain_db":3.0}}"#,
+    );
+    assert!(contains_pair(&args, "-c:a", "pcm_s24le"));
+    assert!(!contains_flag(&args, "-b:a"));
+    assert!(!contains_flag(&args, "-q:a"));
+    assert!(contains_pair(&args, "-ac", "2"));
+    assert!(contains_pair(&args, "-ar", "48000"));
+    assert!(contains_pair(&args, "-af", "volume=3dB"));
+}
+
+#[test]
 fn audio_parameters() {
     let args = args_for(
         r#"{"codec":"h264","audio_bitrate":"192k","audio_channels":1,"audio_sample_rate":44100}"#,
@@ -551,6 +609,17 @@ fn audio_mp3_quality_uses_qa() {
     );
     assert!(contains_pair(&args, "-c:a", "libmp3lame"));
     assert!(contains_pair(&args, "-q:a", "2"));
+    assert!(!contains_flag(&args, "-b:a"));
+}
+
+#[test]
+fn aac_quality_mode_emits_no_quality_flag() {
+    // native aac has no quality knob
+    let args = args_for(
+        r#"{"codec":"h264","audio_codec":"aac","audio_filters":{"rate_control":"quality","quality":"1.0"}}"#,
+    );
+    assert!(contains_pair(&args, "-c:a", "aac"));
+    assert!(!contains_flag(&args, "-q:a"));
     assert!(!contains_flag(&args, "-b:a"));
 }
 

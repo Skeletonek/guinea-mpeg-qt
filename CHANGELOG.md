@@ -3,27 +3,32 @@
 - Added options for deinterlacing, denoising, cropping, rotating, mirroring for video settings
 - Added options for quality based encoding, gain, loudnorm, audio normalization in audio settings
 - Added support for opening multiple files at once - pseudo batch transcoding
-- Profiles are now categorized
-- Widened the ControlsPanel
-- Changed system theme on Windows from Fusion to FluentWinUI3
+- Added category field for each profile
 - Added more precise time formatting
 - Added note icon when playing audio file with no video streams (no cover art)
 - Added "Media Files" filter in open file dialog for both audio and video files
 - Added more information to the Media Information section
-- Renamed "Video Information" section to "Media Information"
-- Replaced some text buttons with iconed buttons
-- Improved keyboard navigation within the player window and timeline control
 - Added switching audio and video streams for playback
-- Swaped "Preview Mode" button place with "Regenerate" button in Preview Mode
+- Added support for FFV1, MJPEG, MPEG2, MPEG4 and Theora video codecs
+- Added support for PCM audio codec
+- Changed ControlsPanel width
+- Changed system theme on Windows from Fusion to FluentWinUI3
+- Changed "Video Information" section name to "Media Information"
+- Changed some text buttons to icon buttons
+- Changed "Preview Mode" button place with "Regenerate" button in Preview Mode
+- Changed Linux .desktop files to support localized description
+- Changed quality parameter (-qp, -q:v, -cq) to be called Quality instead of CRF in profile editor
+- Improved keyboard navigation within the player window and timeline control
+- Improved handling for corrupted or missing ffmpeg binary
 - Unified dialogs across the entire app
 - Unified popups and toasts across the entire app
-- Updated Linux .desktop files with supported translations
 - Fixed not refreshing video playback when loading audio file with no cover art after playing a video file
 - Fixed encoder settings comboboxes in profile editor being set incorrectly after changing profile with different encoder
 - Fixed being able to create a profile with no audio and no video settings
 - Fixed missing mpv or ffmpeg dialogs not always closing the app
 - Fixed not properly disabling video for audio only profiles
-- Improved handling for corrupted or missing ffmpeg binary
+- Fixed transcoding log not autoscrolling after starting a new job
+- Trying to import an incorrect .toml file now shows an error message instead of displaying that 0 profiles were imported
 - Preview no longer generates a new file per each regenerate call
 - Removed encoder compatibility dialog in profile editor
 - Bumped build requirement to Qt 6.8+

@@ -125,8 +125,17 @@ fn add_rate_control(args: &mut Vec<String>, profile: &VideoProfile, enc: &str) {
                     push_amf_cqp(args, crf, enc);
                 } else {
                     let crf_flag = caps.as_ref().map(|c| c.crf_flag.as_str()).unwrap_or("-crf");
-                    args.push(crf_flag.to_string());
-                    args.push(crf.to_string());
+                    // empty crf_flag = encoder without a quality knob (e.g. ffv1)
+                    if !crf_flag.is_empty() {
+                        let mut value = crf;
+                        if let Some(ref c) = caps {
+                            if let (Some(lo), Some(hi)) = (c.crf_min, c.crf_max) {
+                                value = crf.clamp(lo, hi);
+                            }
+                        }
+                        args.push(crf_flag.to_string());
+                        args.push(value.to_string());
+                    }
                 }
             }
             if profile.rate_control.is_none() {
@@ -169,7 +178,11 @@ fn add_codec_specific(args: &mut Vec<String>, profile: &VideoProfile, enc: &str)
         }
     }
     if let Some(level) = &profile.compression_level {
-        if !level.is_empty() {
+        let can_compress = caps
+            .as_ref()
+            .map(|c| c.uses_compression_level)
+            .unwrap_or(true);
+        if !level.is_empty() && can_compress {
             args.push("-compression_level".to_string());
             args.push(level.clone());
         }
@@ -448,12 +461,15 @@ fn default_audio_quality(codec: &str) -> &'static str {
         "flac" => "5",
         "libmp3lame" => "4",
         "libvorbis" => "3",
-        "aac" => "1.0",
         _ => "4",
     }
 }
 
 fn add_audio_rate_control(args: &mut Vec<String>, profile: &VideoProfile, audio_codec: &str) {
+    // PCM is uncompressed: bitrate and quality knobs do not apply
+    if audio_codec.starts_with("pcm") {
+        return;
+    }
     let rate_control = profile
         .audio_filters
         .as_ref()
@@ -491,7 +507,7 @@ fn add_audio_rate_control(args: &mut Vec<String>, profile: &VideoProfile, audio_
                 args.push("-compression_level".to_string());
                 args.push(quality.to_string());
             }
-            "libmp3lame" | "libvorbis" | "aac" => {
+            "libmp3lame" | "libvorbis" => {
                 args.push("-q:a".to_string());
                 args.push(quality.to_string());
             }

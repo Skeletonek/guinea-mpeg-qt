@@ -34,11 +34,11 @@ var normalizeDefaultI = -14
 var normalizeDefaultTP = -1.5
 
 // Video codec definitions
-var codecKeys = ["h264", "hevc", "vp8", "vp9", "av1", "gif", "webp", "copy"]
-var codecLabels = ["H.264", "H.265/HEVC", "VP8", "VP9", "AV1", "GIF", "WebP", "Copy"]
+var codecKeys = ["h264", "hevc", "vp8", "vp9", "av1", "ffv1", "mjpeg", "mpeg2video", "mpeg4", "theora", "gif", "webp", "copy"]
+var codecLabels = ["H.264", "H.265/HEVC", "VP8", "VP9", "AV1", "FFV1", "MJPEG", "MPEG-2", "MPEG-4", "Theora", "GIF", "WebP", "Copy"]
 
 // Audio codec definitions
-var audioCodecLabels = ["AAC", "Opus", "MP3", "FLAC", "Vorbis", "Copy"]
+var audioCodecLabels = ["AAC", "Opus", "MP3", "FLAC", "Vorbis", "PCM", "Copy"]
 
 // Resolution options
 var resOptions = ["native", "360p", "480p", "720p", "1080p", "1440p", "2160p"]
@@ -59,6 +59,11 @@ var defaultEncoders = {
     "vp8": "libvpx",
     "vp9": "libvpx-vp9",
     "av1": "libsvtav1",
+    "ffv1": "ffv1",
+    "mjpeg": "mjpeg",
+    "mpeg2video": "mpeg2video",
+    "mpeg4": "mpeg4",
+    "theora": "libtheora",
     "gif": "gif",
     "webp": "libwebp_anim"
 }
@@ -91,6 +96,11 @@ var profileExtensions = {
     "vp8": "webm",
     "vp9": "webm", 
     "av1": "webm",
+    "ffv1": "mkv",
+    "mjpeg": "avi",
+    "mpeg2video": "mpg",
+    "mpeg4": "avi",
+    "theora": "ogv",
     "gif": "gif",
     "webp": "webp"
 }
@@ -101,8 +111,18 @@ var audioExtensions = {
     "mp3": "mp3",
     "aac": "m4a",
     "opus": "opus",
-    "vorbis": "ogg"
+    "vorbis": "ogg",
+    "pcm": "wav",
+    "pcm_u8": "wav",
+    "pcm_s16le": "wav",
+    "pcm_s24le": "wav",
+    "pcm_f32le": "wav"
 }
+
+// PCM sample formats: keys are pcm_<key> encoder name suffixes
+var pcmFormatKeys = ["u8", "s16le", "s24le", "f32le"]
+var pcmFormatLabels = ["8-bit integer", "16-bit integer", "24-bit integer", "32-bit float"]
+var pcmFormatDefaultIndex = 1
 
 // Output containers per video codec; "default" (sentinel) = codec-based extension
 var containerKeysByCodec = {
@@ -111,7 +131,12 @@ var containerKeysByCodec = {
     "vp8": ["webm", "mkv"],
     "vp9": ["webm", "mkv"],
     "av1": ["webm", "mkv", "mp4"],
-    "copy": ["copy", "mp4", "mkv", "mov", "webm", "avi", "mpegts", "flac", "mp3", "m4a", "ogg", "opus"],
+    "ffv1": ["mkv", "avi", "mov"],
+    "mjpeg": ["avi", "mov", "mkv"],
+    "mpeg2video": ["mpg", "mpegts", "mkv", "avi"],
+    "mpeg4": ["avi", "mp4", "mkv", "mov"],
+    "theora": ["ogv", "ogg", "mkv"],
+    "copy": ["copy", "mp4", "mkv", "mov", "webm", "avi", "mpegts", "flac", "mp3", "m4a", "ogg", "opus", "wav"],
     "gif": ["gif"],
     "webp": ["webp"]
 }

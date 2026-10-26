@@ -95,17 +95,22 @@ pub(crate) fn parse_encoders(output: &str) -> HashMap<String, Vec<String>> {
         {
             continue;
         }
-        let codec = if let Some(start) = trimmed.rfind("(codec ") {
-            let after = &trimmed[start + 7..];
-            if let Some(end) = after.find(')') {
-                after[..end].trim().to_string()
-            } else {
+        let codec = if let Some(start) = trimmed.rfind("(codec") {
+            let after = &trimmed[start + 6..];
+            let Some(end) = after.find(')') else {
+                continue;
+            };
+            let codec = after[..end].trim().to_string();
+            if codec.is_empty() {
                 continue;
             }
-        } else if enc_name == "gif" {
-            "gif".to_string()
-        } else {
+            codec
+        } else if enc_name == "=" {
+            // legend row ("V..... = Video"), not an encoder
             continue;
+        } else {
+            // untagged when the encoder name is the codec name (ffv1, mjpeg, gif, ...)
+            enc_name.clone()
         };
         by_codec.entry(codec).or_default().push(enc_name);
     }

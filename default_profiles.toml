@@ -269,3 +269,15 @@ audio_channels = 2
 audio_sample_rate = 48000
 container = "flac"
 category = "Audio"
+
+[[profiles]]
+name = "WAV"
+codec = "copy"
+encoder = "copy"
+video_enabled = false
+audio_enabled = true
+audio_codec = "pcm_s16le"
+audio_channels = 2
+audio_sample_rate = 48000
+container = "wav"
+category = "Audio"

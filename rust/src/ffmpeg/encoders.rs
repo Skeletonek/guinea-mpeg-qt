@@ -24,6 +24,9 @@ pub(crate) fn encoder_family(encoder: &str) -> EncoderFamily {
 }
 
 pub(crate) fn encoder_capabilities(encoder: &str) -> Option<EncoderCapabilities> {
+    if let Some(caps) = software_quality_caps(encoder) {
+        return Some(caps);
+    }
     match encoder_family(encoder) {
         EncoderFamily::Software => None,
         EncoderFamily::Nvenc => Some(EncoderCapabilities {
@@ -50,6 +53,8 @@ pub(crate) fn encoder_capabilities(encoder: &str) -> Option<EncoderCapabilities>
             uses_compression_level: false,
             crf_flag: "-cq".into(),
             rc_flag: Some("-rc".into()),
+            crf_min: None,
+            crf_max: None,
         }),
         EncoderFamily::Qsv => Some(EncoderCapabilities {
             presets: Some(
@@ -74,6 +79,8 @@ pub(crate) fn encoder_capabilities(encoder: &str) -> Option<EncoderCapabilities>
             crf_flag: "-global_quality".into(),
             // QSV has no -rc option: ffmpeg picks CBR/VBR from -b:v/-maxrate
             rc_flag: None,
+            crf_min: None,
+            crf_max: None,
         }),
         EncoderFamily::Vaapi => Some(EncoderCapabilities {
             presets: None,
@@ -89,6 +96,8 @@ pub(crate) fn encoder_capabilities(encoder: &str) -> Option<EncoderCapabilities>
             uses_compression_level: true,
             crf_flag: "-qp".into(),
             rc_flag: Some("-rc_mode".into()),
+            crf_min: None,
+            crf_max: None,
         }),
         EncoderFamily::Amf => Some(EncoderCapabilities {
             presets: Some(
@@ -111,6 +120,8 @@ pub(crate) fn encoder_capabilities(encoder: &str) -> Option<EncoderCapabilities>
             // no CRF on AMF: add_rate_control() maps the value to -rc cqp + -qp_*
             crf_flag: "-qp_i".into(),
             rc_flag: Some("-rc".into()),
+            crf_min: None,
+            crf_max: None,
         }),
         EncoderFamily::Vulkan => Some(EncoderCapabilities {
             presets: None,
@@ -126,8 +137,50 @@ pub(crate) fn encoder_capabilities(encoder: &str) -> Option<EncoderCapabilities>
             uses_compression_level: false,
             crf_flag: "-crf".into(),
             rc_flag: None,
+            crf_min: None,
+            crf_max: None,
         }),
     }
+}
+
+/// Capabilities for plain software encoders that don't use the x264-style
+/// model: quality via -q:v (clamped to the encoder's scale) or none at all,
+/// and no preset/tune/compression_level knobs.
+fn software_quality_caps(encoder: &str) -> Option<EncoderCapabilities> {
+    let (crf_flag, range, pix_fmts): (&str, Option<(i32, i32)>, &[&str]) = match encoder {
+        "mjpeg" => ("-q:v", Some((2, 31)), &["yuv420p", "yuv422p", "yuv444p"]),
+        "mpeg2video" => ("-q:v", Some((2, 31)), &["yuv420p", "yuv422p"]),
+        "mpeg4" | "libxvid" => ("-q:v", Some((2, 31)), &["yuv420p"]),
+        "libtheora" => ("-q:v", Some((0, 10)), &["yuv420p", "yuv422p", "yuv444p"]),
+        // empty crf_flag: ffv1 is lossless, there is no quality knob
+        "ffv1" => (
+            "",
+            None,
+            &[
+                "yuv420p",
+                "yuv422p",
+                "yuv444p",
+                "yuv420p10le",
+                "yuv422p10le",
+                "yuv444p10le",
+                "bgr0",
+                "gray",
+            ],
+        ),
+        _ => return None,
+    };
+    Some(EncoderCapabilities {
+        presets: None,
+        tunes: None,
+        pix_fmts: Some(pix_fmts.iter().map(|s| s.to_string()).collect()),
+        uses_preset: false,
+        uses_tune: false,
+        uses_compression_level: false,
+        crf_flag: crf_flag.into(),
+        rc_flag: None,
+        crf_min: range.map(|r| r.0),
+        crf_max: range.map(|r| r.1),
+    })
 }
 
 pub(crate) fn software_video_codec(codec: &str) -> &str {
@@ -137,6 +190,11 @@ pub(crate) fn software_video_codec(codec: &str) -> &str {
         "vp8" => "libvpx",
         "vp9" => "libvpx-vp9",
         "av1" => "libsvtav1",
+        "ffv1" => "ffv1",
+        "mjpeg" => "mjpeg",
+        "mpeg2video" => "mpeg2video",
+        "mpeg4" => "mpeg4",
+        "theora" => "libtheora",
         "gif" => "gif",
         "webp" => "libwebp_anim",
         _ => "libx264",

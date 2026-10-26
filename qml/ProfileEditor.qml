@@ -378,7 +378,6 @@ Rectangle {
                     text: qsTr("Save profile")
                     icon.name: "document-save-symbolic"
                     icon.source: "/media/icons/document-save.png"
-                    highlighted: true
                     width: 40
                     onClicked: saveCurrent()
                 }

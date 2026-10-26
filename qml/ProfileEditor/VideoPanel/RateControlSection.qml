@@ -8,8 +8,49 @@ SectionBase {
     id: root
 
     property var rateValidator: null
+    property var _capOverrides: ({})
+    property bool isAnimated: false
+    property bool isCopy: false
+    readonly property bool _hasRateControl: _capOverrides.crf_flag !== ""
+    readonly property bool _isQualityValue: !!_capOverrides.crf_flag && _capOverrides.crf_flag !== "-crf"
+    readonly property bool _hasCustomRange: _capOverrides.crf_min != null
+    readonly property int _crfBottom: _capOverrides.crf_min != null ? _capOverrides.crf_min : Constants.crfMin
+    readonly property int _crfTop: _capOverrides.crf_max != null ? _capOverrides.crf_max : Constants.crfMax
+    readonly property var _modeLabels: [_isQualityValue ? "Quality" : Constants.rateControlLabels[0], Constants.rateControlLabels[1], Constants.rateControlLabels[2]]
+
+    visible: !isAnimated && !isCopy && _hasRateControl
+
+    on_CapOverridesChanged: clampCrfValue()
+
+    function _valuePlaceholder() {
+        if (Constants.rateControlKeys[rateControlCombo.currentIndex] !== "crf")
+            return qsTr("Bitrate (e.g. 2M)");
+        if (root._hasCustomRange)
+            return root._crfBottom + "-" + root._crfTop;
+        return root._isQualityValue ? qsTr("Quality value (e.g. 18)") : qsTr("CRF value (e.g. 18)");
+    }
+
+    function clampCrfValue() {
+        if (Constants.rateControlKeys[rateControlCombo.currentIndex] !== "crf")
+            return;
+
+        var v = parseInt(rateValueField.text);
+        if (isNaN(v))
+            return;
+
+        var clamped = Math.max(root._crfBottom, Math.min(root._crfTop, v));
+        if (clamped !== v)
+            rateValueField.text = String(clamped);
+    }
 
     function getRateControlData() {
+        if (!root._hasRateControl)
+            return {
+                "rate_control": null,
+                "crf": null,
+                "bitrate": null
+            };
+
         var rcKey = Constants.rateControlKeys[rateControlCombo.currentIndex];
         var data = {
             "rate_control": rcKey
@@ -43,7 +84,7 @@ SectionBase {
             ComboBox {
                 id: rateControlCombo
 
-                model: Constants.rateControlLabels
+                model: root._modeLabels
                 width: 100
                 onCurrentIndexChanged: {
                     root.rateValidator = Constants.rateControlKeys[currentIndex] === "crf" ? crfValidatorInst : null;
@@ -55,7 +96,7 @@ SectionBase {
                 id: rateValueField
 
                 width: parent.width - rateControlCombo.width - root.spacing
-                placeholderText: Constants.rateControlKeys[rateControlCombo.currentIndex] === "crf" ? qsTr("CRF value (e.g. 18)") : qsTr("Bitrate (e.g. 2M)")
+                placeholderText: root._valuePlaceholder()
                 validator: root.rateValidator
                 onTextChanged: root.emitChanged();
             }
@@ -65,7 +106,7 @@ SectionBase {
     IntValidator {
         id: crfValidatorInst
 
-        bottom: Constants.crfMin
-        top: Constants.crfMax
+        bottom: root._crfBottom
+        top: root._crfTop
     }
 }

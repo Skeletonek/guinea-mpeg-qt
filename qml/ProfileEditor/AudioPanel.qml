@@ -3,6 +3,7 @@ import "../Utils/Constants.js" as Constants
 import "../Utils/DataUtils.js" as DataUtils
 import QtQuick 2.15
 import QtQuick.Controls 2.15
+import "AudioPanel"
 
 Column {
     id: root
@@ -22,6 +23,14 @@ Column {
         return aIdx > 0 ? audioCodecLabels[aIdx - 1] : _autoCodecLabel;
     }
     readonly property bool _isNormalize: normalizeSwitch.checked
+    readonly property bool _isPCM: _effectiveAudioCodecLabel === "PCM"
+    readonly property var _rcKeys: _rateControlKeysFor(_effectiveAudioCodecLabel)
+    readonly property var _rcLabels: {
+        var out = [];
+        for (var i = 0; i < _rcKeys.length; i++)
+            out.push(Constants.audioRateControlLabels[Constants.audioRateControlKeys.indexOf(_rcKeys[i])]);
+        return out;
+    }
 
     signal changed
 
@@ -36,6 +45,24 @@ Column {
         if (aIdx <= 0)
             return false;
         return audioCodecLabels[aIdx - 1] === "Copy";
+    }
+
+    // Rate control modes that produce distinct commands per encoder; the rest
+    // are hidden (e.g. LAME's -q:a serves both VBR and quality, FLAC has no bitrate)
+    function _rateControlKeysFor(label) {
+        switch (label) {
+        case "Opus":
+            return ["cbr", "vbr", "quality"];
+        case "MP3":
+        case "Vorbis":
+            return ["cbr", "quality"];
+        case "FLAC":
+            return ["quality"];
+        case "AAC":
+            return ["cbr"];
+        default:
+            return ["cbr"];
+        }
     }
 
     function _rebuildAutoModel() {
@@ -60,7 +87,7 @@ Column {
     }
 
     function _showBitrate() {
-        var rcKey = Constants.audioRateControlKeys[audioRateControlCombo.currentIndex];
+        var rcKey = root._rcKeys[audioRateControlCombo.currentIndex];
         return rcKey === "cbr" || rcKey === "vbr";
     }
 
@@ -86,20 +113,24 @@ Column {
             }
         }
         var isCopy = audioCodec && audioCodec.toLowerCase() === "copy";
-        var showBitrate = !isCopy && audioCodec !== "FLAC" && _showBitrate();
+        var isPcm = audioCodec === "PCM";
+        var effectiveLabel = audioCodec || root._autoCodecLabel;
+        // read live state: derived bindings lag behind the changed handlers
+        var rcKeys = _rateControlKeysFor(effectiveLabel);
+        var rcKey = rcKeys[audioRateControlCombo.currentIndex] || "cbr";
+        var showBitrate = !isCopy && !isPcm && effectiveLabel !== "FLAC" && (rcKey === "cbr" || rcKey === "vbr");
         var data = {
             "audio_enabled": audioForbidden ? false : audioEnabledSwitch.checked,
             "audio_bitrate": showBitrate ? (audioBitrateField.text || "128k") : "",
             "audio_channels": isCopy ? null : _comboInt(channelsCombo),
             "audio_sample_rate": isCopy ? null : _comboInt(sampleRateCombo),
-            "audio_codec": audioCodec
+            "audio_codec": isPcm ? pcmSection.getPCMCodec() : audioCodec
         };
 
         var af = {};
-        var rcKey = Constants.audioRateControlKeys[audioRateControlCombo.currentIndex];
         if (rcKey !== "cbr")
             af.rate_control = rcKey;
-        if (audioQualityField.text && audioQualityField.visible)
+        if (rcKey === "quality" && audioQualityField.text)
             af.quality = audioQualityField.text;
         var gain = parseFloat(audioGainField.text);
         if (!isNaN(gain))
@@ -126,6 +157,8 @@ Column {
         var ac = d.audio_codec || null;
         // normalize copy case: backend uses "copy" lowercase, UI uses "Copy"
         var acLabel = ac ? (ac.toLowerCase() === "copy" ? "Copy" : ac) : null;
+        if (acLabel && (acLabel.toLowerCase().indexOf("pcm") === 0 || acLabel.toLowerCase() === "wav"))
+            acLabel = "PCM";
         if (acLabel) {
             // labels are title-cased ("AAC", "Opus", ...); normalize stored value
             for (var li = 0; li < audioCodecLabels.length; li++) {
@@ -155,7 +188,7 @@ Column {
             if (acLabel) {
                 var aci = audioCodecLabels.indexOf(acLabel);
                 audioCodecCombo.currentIndex = aci >= 0 ? aci : 0;
-                audioBitrateField.text = acLabel === "FLAC" || acLabel === "Copy" ? "" : (d.audio_bitrate || "128k");
+                audioBitrateField.text = acLabel === "FLAC" || acLabel === "PCM" || acLabel === "Copy" ? "" : (d.audio_bitrate || "128k");
             } else {
                 audioCodecCombo.currentIndex = 0;
                 audioBitrateField.text = d.audio_bitrate || "128k";
@@ -167,12 +200,13 @@ Column {
             if (acLabel) {
                 var idx2 = audioCodecLabels.indexOf(acLabel);
                 audioAutoCombo.currentIndex = idx2 >= 0 ? idx2 + 1 : 0;
-                audioBitrateField.text = acLabel === "FLAC" || acLabel === "Copy" ? "" : (d.audio_bitrate || "128k");
+                audioBitrateField.text = acLabel === "FLAC" || acLabel === "PCM" || acLabel === "Copy" ? "" : (d.audio_bitrate || "128k");
             } else {
                 audioAutoCombo.currentIndex = 0;
                 audioBitrateField.text = d.audio_bitrate || "128k";
             }
         }
+        pcmSection.setPCMData(d);
         if (acLabel === "Copy") {
             _setComboValue(channelsCombo, "");
             _setComboValue(sampleRateCombo, "");
@@ -182,7 +216,15 @@ Column {
         }
 
         var af = d.audio_filters || {};
-        DataUtils.setIndex(Constants.audioRateControlKeys, audioRateControlCombo, af.rate_control || "cbr");
+        var rcKeys = root._rcKeys;
+        var wanted = af.rate_control || "cbr";
+        var rIdx = rcKeys.indexOf(wanted);
+        // legacy profiles: LAME/Vorbis "vbr" emitted the same -q:a as "quality"
+        if (rIdx < 0 && wanted === "vbr")
+            rIdx = rcKeys.indexOf("quality");
+        if (rIdx < 0)
+            rIdx = rcKeys.indexOf("cbr");
+        audioRateControlCombo.currentIndex = rIdx >= 0 ? rIdx : 0;
         audioQualityField.text = af.quality != null ? String(af.quality) : "";
         audioGainField.text = af.gain_db != null ? String(af.gain_db) : "";
         loudnormSwitch.checked = !!af.loudnorm;
@@ -206,6 +248,7 @@ Column {
             root._autoCodecLabel = "Opus";
             return;
         case "ogg":
+        case "ogv":
             root._autoCodecLabel = "Vorbis";
             return;
         case "mp3":
@@ -214,8 +257,34 @@ Column {
         case "flac":
             root._autoCodecLabel = "FLAC";
             return;
+        case "wav":
+        case "wave":
+            root._autoCodecLabel = "PCM";
+            return;
+        case "avi":
+        case "mpg":
+        case "mpeg":
+            root._autoCodecLabel = "MP3";
+            return;
         }
-        root._autoCodecLabel = (currentCodecKey === "h264" || currentCodecKey === "hevc") ? "AAC" : "Opus";
+        switch (root.currentCodecKey) {
+        case "h264":
+        case "hevc":
+            root._autoCodecLabel = "AAC";
+            return;
+        case "mjpeg":
+        case "mpeg2video":
+        case "mpeg4":
+            root._autoCodecLabel = "MP3";
+            return;
+        case "theora":
+            root._autoCodecLabel = "Vorbis";
+            return;
+        case "ffv1":
+            root._autoCodecLabel = "FLAC";
+            return;
+        }
+        root._autoCodecLabel = "Opus";
     }
 
     spacing: 8
@@ -371,53 +440,68 @@ Column {
             }
         }
 
+        PCMSection {
+            id: pcmSection
+
+            width: parent.width
+            audioCodec: root._effectiveAudioCodecLabel
+            loading: root.loading
+            onChanged: root.changed()
+        }
+
         Column {
             width: parent.width
             spacing: 8
             enabled: !root._isAudioCopy
             opacity: root._isAudioCopy ? 0.4 : 1.0
 
-            SectionHeader {
-                text: qsTr("Rate control")
-            }
+            Column {
+                width: parent.width
+                spacing: 8
+                visible: !root._isPCM
 
-            LabeledRow {
-                label: qsTr("Mode")
+                SectionHeader {
+                    text: qsTr("Rate control")
+                }
 
-                ComboBox {
-                    id: audioRateControlCombo
+                LabeledRow {
+                    label: qsTr("Mode")
 
-                    width: parent.width - parent.effectiveLabelWidth - parent.spacing
-                    model: Constants.audioRateControlLabels
-                    currentIndex: 0
-                    onCurrentIndexChanged: {
+                    ComboBox {
+                        id: audioRateControlCombo
+
+                        width: parent.width - parent.effectiveLabelWidth - parent.spacing
+                        model: root._rcLabels
+                        currentIndex: 0
+                        onCurrentIndexChanged: {
+                            if (!root.loading)
+                                root.changed();
+                        }
+                    }
+                }
+
+                LabeledTextField {
+                    id: audioBitrateField
+
+                    label: qsTr("Bitrate")
+                    placeholderText: "128k"
+                    visible: !root._isAudioCopy && !root._isPCM && root._effectiveAudioCodecLabel !== "FLAC" && root._showBitrate()
+                    onTextChanged: {
                         if (!root.loading)
                             root.changed();
                     }
                 }
-            }
 
-            LabeledTextField {
-                id: audioBitrateField
+                LabeledTextField {
+                    id: audioQualityField
 
-                label: qsTr("Bitrate")
-                placeholderText: "128k"
-                visible: !root._isAudioCopy && root._effectiveAudioCodecLabel !== "FLAC" && root._showBitrate()
-                onTextChanged: {
-                    if (!root.loading)
-                        root.changed();
-                }
-            }
-
-            LabeledTextField {
-                id: audioQualityField
-
-                label: qsTr("Quality")
-                placeholderText: "4"
-                visible: Constants.audioRateControlKeys[audioRateControlCombo.currentIndex] !== "cbr"
-                onTextChanged: {
-                    if (!root.loading)
-                        root.changed();
+                    label: qsTr("Quality")
+                    placeholderText: "4"
+                    visible: root._rcKeys[audioRateControlCombo.currentIndex] === "quality"
+                    onTextChanged: {
+                        if (!root.loading)
+                            root.changed();
+                    }
                 }
             }
 

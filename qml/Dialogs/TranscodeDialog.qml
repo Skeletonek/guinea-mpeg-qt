@@ -250,12 +250,14 @@ AppDialog {
                         wasAtBottom = (contentY >= contentHeight - height - 1);
                     }
                     onContentHeightChanged: {
+                        // Clamped to bounds: an out-of-bounds contentY trips the Flickable's
+                        // bounds fixup, which then misreads as a user scroll and stops autoscroll
                         if (height > 0 && wasAtBottom)
-                            contentY = contentHeight - height;
+                            contentY = Math.max(0, contentHeight - height);
                     }
                     onHeightChanged: {
                         if (height > 0 && wasAtBottom && contentHeight > 0)
-                            contentY = contentHeight - height;
+                            contentY = Math.max(0, contentHeight - height);
                     }
 
                     TextEdit {

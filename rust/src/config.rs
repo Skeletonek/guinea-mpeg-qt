@@ -431,8 +431,12 @@ pub fn export_profiles(path: &str, names: &[String]) -> anyhow::Result<()> {
 
 fn parse_profiles_file(path: &Path) -> anyhow::Result<Vec<VideoProfile>> {
     let content = std::fs::read_to_string(path)?;
-    parse_profiles_from_content(&content)
-        .ok_or_else(|| anyhow::anyhow!("not a valid profiles file"))
+    let profiles = parse_profiles_from_content(&content)
+        .ok_or_else(|| anyhow::anyhow!("not a valid profiles file"))?;
+    if profiles.is_empty() {
+        return Err(anyhow::anyhow!("no profiles found in file"));
+    }
+    Ok(profiles)
 }
 
 #[derive(Debug, Clone, Default, Serialize)]

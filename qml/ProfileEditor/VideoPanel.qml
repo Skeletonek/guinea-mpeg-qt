@@ -40,6 +40,7 @@ Column {
         // Sync before the rebuilds below — codecChanged fires only after this handler chain
         presetTuneSection.currentCodecKey = codecSection.getCurrentCodecKey();
         presetTuneSection._capOverrides = caps;
+        rateControlSection._capOverrides = caps;
         presetTuneSection.rebuildPresetModel(caps);
         presetTuneSection.rebuildTuneModel(caps);
         pixelFormatSection.rebuildPixfmtModel(caps);
@@ -198,7 +199,8 @@ Column {
             id: rateControlSection
 
             width: parent.width
-            visible: !root._isAnimated && !root._isCopy
+            isAnimated: root._isAnimated
+            isCopy: root._isCopy
             loading: root.loading
             onChanged: root.changed()
         }

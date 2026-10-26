@@ -34,7 +34,11 @@ fn software_video_codec_mapping() {
     assert_eq!(software_video_codec("vp8"), "libvpx");
     assert_eq!(software_video_codec("vp9"), "libvpx-vp9");
     assert_eq!(software_video_codec("av1"), "libsvtav1");
+    assert_eq!(software_video_codec("ffv1"), "ffv1");
+    assert_eq!(software_video_codec("mjpeg"), "mjpeg");
+    assert_eq!(software_video_codec("mpeg2video"), "mpeg2video");
+    assert_eq!(software_video_codec("mpeg4"), "mpeg4");
+    assert_eq!(software_video_codec("theora"), "libtheora");
     assert_eq!(software_video_codec("gif"), "gif");
     assert_eq!(software_video_codec("webp"), "libwebp_anim");
-    assert_eq!(software_video_codec("mpeg4"), "libx264");
 }
