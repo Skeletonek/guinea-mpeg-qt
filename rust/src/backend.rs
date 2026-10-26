@@ -7,10 +7,6 @@ fn to_json<T: serde::Serialize>(val: &T) -> *mut c_char {
     to_c_string(serde_json::to_string(val).unwrap_or_default())
 }
 
-unsafe fn from_cstr<'a>(ptr: *const c_char) -> &'a str {
-    cstr(ptr)
-}
-
 #[no_mangle]
 pub extern "C" fn guinea_mpeg_available_profiles() -> *mut c_char {
     let groups = crate::config::profile_groups();
@@ -31,15 +27,15 @@ pub extern "C" fn guinea_mpeg_default_profile_names() -> *mut c_char {
 
 #[no_mangle]
 pub extern "C" fn guinea_mpeg_load_profile(name: *const c_char) -> *mut c_char {
-    let n = unsafe { from_cstr(name) };
+    let n = unsafe { cstr(name) };
     let profile = crate::config::load_profile(n);
     to_json(&profile)
 }
 
 #[no_mangle]
 pub extern "C" fn guinea_mpeg_save_profile(name: *const c_char, json: *const c_char) -> bool {
-    let n = unsafe { from_cstr(name) };
-    let j = unsafe { from_cstr(json) };
+    let n = unsafe { cstr(name) };
+    let j = unsafe { cstr(json) };
     crate::config::save_profile(n, j).is_ok()
 }
 
@@ -53,29 +49,29 @@ pub extern "C" fn guinea_mpeg_export_profiles(
     path: *const c_char,
     names_json: *const c_char,
 ) -> bool {
-    let p = unsafe { from_cstr(path) };
-    let n = unsafe { from_cstr(names_json) };
+    let p = unsafe { cstr(path) };
+    let n = unsafe { cstr(names_json) };
     let names: Vec<String> = serde_json::from_str(n).unwrap_or_default();
     crate::config::export_profiles(p, &names).is_ok()
 }
 
 #[no_mangle]
 pub extern "C" fn guinea_mpeg_import_profiles_preview(path: *const c_char) -> *mut c_char {
-    let p = unsafe { from_cstr(path) };
+    let p = unsafe { cstr(path) };
     let preview = crate::config::import_profiles_preview(p);
     to_json(&preview)
 }
 
 #[no_mangle]
 pub extern "C" fn guinea_mpeg_import_profiles(path: *const c_char, overwrite: bool) -> *mut c_char {
-    let p = unsafe { from_cstr(path) };
+    let p = unsafe { cstr(path) };
     let summary = crate::config::import_profiles(p, overwrite);
     to_json(&summary)
 }
 
 #[no_mangle]
 pub extern "C" fn guinea_mpeg_delete_profile(name: *const c_char) -> bool {
-    let n = unsafe { from_cstr(name) };
+    let n = unsafe { cstr(name) };
     crate::config::delete_profile(n).is_ok()
 }
 
@@ -87,8 +83,8 @@ pub extern "C" fn guinea_mpeg_get_options() -> *mut c_char {
 
 #[no_mangle]
 pub extern "C" fn guinea_mpeg_set_option(key: *const c_char, value: *const c_char) -> bool {
-    let k = unsafe { from_cstr(key) };
-    let v = unsafe { from_cstr(value) };
+    let k = unsafe { cstr(key) };
+    let v = unsafe { cstr(value) };
     crate::config::set_option(k, v).is_ok()
 }
 

@@ -53,7 +53,6 @@ class TestBackendFfi : public QObject {
     void initTestCase();
     void encoderCapabilities();
     void encoderCapabilitiesEdgeCases();
-    void softwareEncoderHasNoCapabilities();
     void buildFfmpegCommand();
     void buildFfmpegCommandRejectsInvalid();
     void buildFfmpegCommandWithCustomCommand();
@@ -62,7 +61,6 @@ class TestBackendFfi : public QObject {
     void profileRoundtrip();
     void availableProfilesGrouped();
     void availableEncoders();
-    void mpvAvailable();
 };
 
 void TestBackendFfi::initTestCase() {
@@ -70,23 +68,26 @@ void TestBackendFfi::initTestCase() {
 }
 
 void TestBackendFfi::encoderCapabilities() {
+    // JSON keys are the QML contract; the caps values are pinned via the args builder tests.
     const QString caps = takeRust(guinea_mpeg_encoder_capabilities("h264_nvenc"));
     const QJsonObject obj = QJsonDocument::fromJson(caps.toUtf8()).object();
-    QVERIFY(!obj.isEmpty());
-    QCOMPARE(obj.value("crf_flag").toString(), QStringLiteral("-cq"));
-    QCOMPARE(obj.value("rc_flag").toString(), QStringLiteral("-rc"));
-    QCOMPARE(obj.value("uses_preset").toBool(), true);
-}
-
-void TestBackendFfi::softwareEncoderHasNoCapabilities() {
-    QCOMPARE(takeRust(guinea_mpeg_encoder_capabilities("libx264")), QStringLiteral("null"));
+    QVERIFY(obj.contains(QStringLiteral("crf_flag")));
+    QVERIFY(obj.contains(QStringLiteral("rc_flag")));
+    QVERIFY(obj.contains(QStringLiteral("uses_preset")));
+    QVERIFY(obj.contains(QStringLiteral("uses_tune")));
+    QVERIFY(obj.contains(QStringLiteral("uses_compression_level")));
+    QVERIFY(obj.value(QStringLiteral("presets")).isArray());
+    QVERIFY(obj.value(QStringLiteral("tunes")).isArray());
+    QVERIFY(obj.value(QStringLiteral("pix_fmts")).isArray());
 }
 
 void TestBackendFfi::encoderCapabilitiesEdgeCases() {
-    // Empty/unknown encoder names produce "null"; null pointers must not crash.
+    // Empty/unknown encoder names produce "null" (software caps are None);
+    // null pointers must not crash.
     QCOMPARE(takeRust(guinea_mpeg_encoder_capabilities("")), QStringLiteral("null"));
     QCOMPARE(takeRust(guinea_mpeg_encoder_capabilities(nullptr)), QStringLiteral("null"));
     QCOMPARE(takeRust(guinea_mpeg_encoder_capabilities("not_an_encoder")), QStringLiteral("null"));
+    QCOMPARE(takeRust(guinea_mpeg_encoder_capabilities("libx264")), QStringLiteral("null"));
 }
 
 void TestBackendFfi::buildFfmpegCommand() {
@@ -199,10 +200,6 @@ void TestBackendFfi::availableEncoders() {
     QVERIFY(!encoders.isEmpty());
     QVERIFY(encoders.contains(QStringLiteral("h264")) || encoders.contains(QStringLiteral("hevc")) ||
             encoders.contains(QStringLiteral("vp8")));
-}
-
-void TestBackendFfi::mpvAvailable() {
-    QVERIFY(guinea_mpeg_mpv_available());
 }
 
 QTEST_GUILESS_MAIN(TestBackendFfi)

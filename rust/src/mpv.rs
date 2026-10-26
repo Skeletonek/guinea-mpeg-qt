@@ -162,8 +162,7 @@ pub extern "C" fn guinea_mpeg_mpv_load_file(ptr: *mut c_void, path: *const c_cha
         return;
     }
     let backend = backend_from_ptr(ptr);
-    // Reset cache or an identical-duration reload (regenerated preview) is
-    // never reported as changed
+    // Reset cache so an identical-duration reload is still reported as changed
     backend.position = 0;
     backend.duration = 0;
     let c_loadfile = c_str("loadfile");
@@ -298,8 +297,7 @@ unsafe fn drain_mpv_events(backend: &mut MpvBackend) -> i32 {
             mpv_event_id_MPV_EVENT_END_FILE => {
                 if backend.playing {
                     backend.playing = false;
-                    // Position deliberately stays at EOF: the C++ rewind-on-play
-                    // check (MpvItem::play) relies on it.
+                    // Keep position at EOF: MpvItem::play's rewind check relies on it
                     changed |= CHANGED_DURATION | CHANGED_PLAYING;
                 }
             }
@@ -393,9 +391,8 @@ pub extern "C" fn guinea_mpeg_mpv_process_events(ptr: *mut c_void) -> i32 {
     unsafe {
         changed |= drain_mpv_events(backend);
     }
-    // Fallback poll: property observation events can be missed (e.g. lost wakeups
-    // on some platforms), so poll the observed properties directly as well.
-    // Reads are cheap and only report a change when the cached value differs.
+    // Fallback poll: observation events can be missed (lost wakeups), so read
+    // the properties directly too; changes are detected against the cache.
     unsafe {
         changed |= poll_mpv_properties(backend);
     }

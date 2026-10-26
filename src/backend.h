@@ -118,6 +118,7 @@ class GuineaMpegBackendExt : public QObject {
   private:
     void connectOutputCapture(QProcess* proc);
     void finishTranscode(QProcess* proc, bool success);
+    QString failTranscode(const QString& msg);
     void appendTranscodeOutput(const QString& chunk);
 
     QString m_transcodeOutput;

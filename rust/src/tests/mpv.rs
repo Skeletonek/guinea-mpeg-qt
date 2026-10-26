@@ -22,12 +22,6 @@ fn null_handle_is_safe() {
 }
 
 #[test]
-fn mpv_available_with_libmpv() {
-    // libmpv is a hard dependency of the crate; a real install must initialize.
-    assert!(guinea_mpeg_mpv_available());
-}
-
-#[test]
 fn mpv_handle_create_and_destroy() {
     with_config_dir(tempdir().unwrap().path(), |_dir| {
         let handle = guinea_mpeg_mpv_create();

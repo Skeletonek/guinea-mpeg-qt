@@ -98,10 +98,8 @@ MpvItem::MpvItem() {
     mpv_set_wakeup_callback(m_mpv, wakeup, this);
     connect(this, &MpvItem::onMpvEvents, this, &MpvItem::handleMpvEvents, Qt::QueuedConnection);
 
-    // mpv's wakeup callback can be unreliable (lost wakeups) or fire
-    // reentrantly on some platforms (notably Windows), so also poll events
-    // on a fixed interval. The drain is cheap when the queue is empty and
-    // guarantees position/duration updates even if the wakeup path fails.
+    // mpv's wakeup callback can be lost or reentrant (notably on Windows), so
+    // poll on a fixed interval as well; the drain is cheap when idle.
     m_eventTimer = new QTimer(this);
     m_eventTimer->setInterval(kMpvPollIntervalMs);
     connect(m_eventTimer, &QTimer::timeout, this, &MpvItem::handleMpvEvents);

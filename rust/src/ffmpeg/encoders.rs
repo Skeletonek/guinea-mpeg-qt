@@ -154,7 +154,9 @@ pub(crate) fn detect_vaapi_device() -> Option<String> {
             return None;
         }
         for entry in std::fs::read_dir(dir).ok()? {
-            let entry = entry.ok()?;
+            let Ok(entry) = entry else {
+                continue;
+            };
             let name = entry.file_name();
             let name = name.to_string_lossy();
             if name.starts_with("renderD") {

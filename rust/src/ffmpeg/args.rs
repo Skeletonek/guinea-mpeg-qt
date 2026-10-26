@@ -86,6 +86,11 @@ fn add_stream_mapping(args: &mut Vec<String>, profile: &VideoProfile) {
     }
 }
 
+fn push_bitrate(args: &mut Vec<String>, bitrate: &str) {
+    args.push("-b:v".to_string());
+    args.push(bitrate.to_string());
+}
+
 fn add_rate_control(args: &mut Vec<String>, profile: &VideoProfile, enc: &str) {
     let family = if profile.encoder.is_some() {
         encoder_family(enc)
@@ -93,30 +98,25 @@ fn add_rate_control(args: &mut Vec<String>, profile: &VideoProfile, enc: &str) {
         EncoderFamily::Software
     };
     let caps = encoder_capabilities(enc);
+    let bitrate = profile.bitrate.as_deref().filter(|b| !b.is_empty());
 
     match profile.rate_control.as_deref() {
         Some("cbr") => {
-            if let Some(bitrate) = &profile.bitrate {
-                if !bitrate.is_empty() {
-                    args.push("-b:v".to_string());
-                    args.push(bitrate.clone());
-                    args.push("-minrate".to_string());
-                    args.push(bitrate.clone());
-                    args.push("-maxrate".to_string());
-                    args.push(bitrate.clone());
-                    args.push("-bufsize".to_string());
-                    args.push(bitrate.clone());
-                    push_rc_flag(args, family, &caps, "cbr");
-                }
+            if let Some(bitrate) = bitrate {
+                push_bitrate(args, bitrate);
+                args.push("-minrate".to_string());
+                args.push(bitrate.to_string());
+                args.push("-maxrate".to_string());
+                args.push(bitrate.to_string());
+                args.push("-bufsize".to_string());
+                args.push(bitrate.to_string());
+                push_rc_flag(args, family, &caps, "cbr");
             }
         }
         Some("vbr") | Some("bitrate") => {
-            if let Some(bitrate) = &profile.bitrate {
-                if !bitrate.is_empty() {
-                    args.push("-b:v".to_string());
-                    args.push(bitrate.clone());
-                    push_rc_flag(args, family, &caps, "vbr");
-                }
+            if let Some(bitrate) = bitrate {
+                push_bitrate(args, bitrate);
+                push_rc_flag(args, family, &caps, "vbr");
             }
         }
         _ => {
@@ -130,11 +130,8 @@ fn add_rate_control(args: &mut Vec<String>, profile: &VideoProfile, enc: &str) {
                 }
             }
             if profile.rate_control.is_none() {
-                if let Some(bitrate) = &profile.bitrate {
-                    if !bitrate.is_empty() {
-                        args.push("-b:v".to_string());
-                        args.push(bitrate.clone());
-                    }
+                if let Some(bitrate) = bitrate {
+                    push_bitrate(args, bitrate);
                 }
             }
         }
@@ -214,8 +211,7 @@ fn build_crop_filter(filters: &VideoFilters) -> Option<String> {
     if top == 0 && right == 0 && bottom == 0 && left == 0 {
         return None;
     }
-    // crop=out_w:out_h:x:y using input-relative expressions so the filter works
-    // regardless of where it sits in the chain.
+    // Input-relative expressions keep the filter valid anywhere in the chain.
     Some(format!(
         "crop=iw-{}-{}:ih-{}-{}:{}:{}",
         left, right, top, bottom, left, top
@@ -280,12 +276,7 @@ fn add_filter_graph(args: &mut Vec<String>, profile: &VideoProfile, family: Enco
     if family == EncoderFamily::Vulkan {
         filter_parts.insert(0, "format=nv12".to_string());
         filter_parts.push("hwupload".to_string());
-    } else if !filter_parts.is_empty()
-        && family != EncoderFamily::Software
-        && family != EncoderFamily::Amf
-        && family != EncoderFamily::Nvenc
-        && family != EncoderFamily::Qsv
-    {
+    } else if !filter_parts.is_empty() && family == EncoderFamily::Vaapi {
         filter_parts.insert(0, "format=nv12".to_string());
         filter_parts.insert(0, "hwdownload".to_string());
         filter_parts.push("hwupload".to_string());
@@ -297,9 +288,7 @@ fn add_filter_graph(args: &mut Vec<String>, profile: &VideoProfile, family: Enco
 }
 
 fn push_hwaccel_args(args: &mut Vec<String>, family: EncoderFamily) {
-    // AMF/NVENC/QSV: software decode — the encoder accepts system-memory
-    // frames and uploads itself; a hwupload in filters would need a
-    // device reference
+    // AMF/NVENC/QSV: software decode — the encoder uploads system-memory frames itself
     if family != EncoderFamily::Vaapi {
         return;
     }
@@ -374,10 +363,8 @@ fn add_animation_params(args: &mut Vec<String>, profile: &VideoProfile) {
             "split[s0][s1];[s0]palettegen=max_colors={}[p];[s1][p]paletteuse=dither=bayer:bayer_scale=5",
             colors
         ));
-        if !parts.is_empty() {
-            args.push("-vf".to_string());
-            args.push(parts.join(","));
-        }
+        args.push("-vf".to_string());
+        args.push(parts.join(","));
         args.push("-loop".to_string());
         args.push(if looping { "0" } else { "-1" }.to_string());
     } else {
@@ -432,8 +419,7 @@ fn add_audio_filter_chain(args: &mut Vec<String>, profile: &VideoProfile) {
     let filters = profile.audio_filters.as_ref();
     let mut parts = Vec::new();
     if filters.is_some_and(|f| f.normalize.unwrap_or(false)) {
-        // Two-pass normalization: the real gain is computed from the input and
-        // injected as gain_db. In previews without an input file we show a placeholder.
+        // Two-pass normalization: real gain comes in via gain_db; previews show a placeholder
         let volume = filters.and_then(|f| f.gain_db).map_or_else(
             || "volume=<computed>dB".to_string(),
             |g| format!("volume={}dB", g),
@@ -584,8 +570,7 @@ pub(crate) fn build_command(
     if video_enabled {
         add_video_branch(&mut args, profile, &enc, family);
     } else {
-        // Mirror -an in add_audio_branch: without any -map, ffmpeg's automatic
-        // stream selection would still pick and re-encode the video stream.
+        // Mirror -an: without -map, ffmpeg's auto-selection would still pick video
         args.push("-vn".to_string());
     }
 
@@ -627,8 +612,7 @@ pub(crate) fn build_normalize_measurement_command(
 }
 
 pub(crate) fn parse_normalize_gain(stderr: &str, target_i: f64, target_tp: f64) -> Option<f64> {
-    // loudnorm prints a flat JSON object; scan brace-delimited candidates so
-    // banner/warning text cannot break the extraction.
+    // Scan brace-delimited candidates: banner/warning text must not break extraction
     for (start, _) in stderr.match_indices('{') {
         let Some(end) = stderr[start..].find('}') else {
             continue;

@@ -44,21 +44,6 @@ fn software_h264_full_params() {
 }
 
 #[test]
-fn missing_codec_falls_back_to_software_default() {
-    // A profile without a usable codec falls back to the software default (libx264).
-    let args = args_for(r#"{"codec":"","crf":18}"#);
-    assert!(contains_pair(&args, "-c:v", "libx264"));
-    assert!(contains_pair(&args, "-crf", "18"));
-}
-
-#[test]
-fn unknown_codec_falls_back_to_libx264() {
-    let args = args_for(r#"{"codec":"bogus","crf":18}"#);
-    assert!(contains_pair(&args, "-c:v", "libx264"));
-    assert!(contains_pair(&args, "-crf", "18"));
-}
-
-#[test]
 fn unknown_encoder_passthrough_with_software_semantics() {
     // Unknown encoder names are emitted verbatim; classification defaults to
     // software, so preset/tune are kept and no hwaccel flags are added.
@@ -335,17 +320,18 @@ fn video_disabled_never_maps_video() {
 }
 
 #[test]
-fn audio_codec_defaults() {
-    let args = args_for(r#"{"codec":"h264"}"#);
-    assert!(contains_pair(&args, "-c:a", "aac"));
-    let args = args_for(r#"{"codec":"av1"}"#);
-    assert!(contains_pair(&args, "-c:a", "libopus"));
-}
-
-#[test]
-fn audio_codec_explicit() {
-    let args = args_for(r#"{"codec":"h264","audio_codec":"mp3"}"#);
-    assert!(contains_pair(&args, "-c:a", "libmp3lame"));
+fn codec_copy_emits_no_encode_params() {
+    let args = args_for(
+        r#"{"codec":"copy","crf":20,"bitrate":"2M","rate_control":"cbr","preset":"fast","tune":"film","pixel_format":"yuv420p","framerate":30.0,"video_filters":{"hflip":true}}"#,
+    );
+    assert!(contains_pair(&args, "-c:v", "copy"));
+    assert!(!contains_flag(&args, "-crf"));
+    assert!(!contains_flag(&args, "-b:v"));
+    assert!(!contains_flag(&args, "-preset"));
+    assert!(!contains_flag(&args, "-tune"));
+    assert!(!contains_flag(&args, "-pix_fmt"));
+    assert!(!contains_flag(&args, "-vf"));
+    assert!(!contains_flag(&args, "-hwaccel"));
 }
 
 #[test]

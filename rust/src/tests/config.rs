@@ -216,35 +216,20 @@ fn save_profile_invalid_json_rejected() {
 }
 
 #[test]
-fn default_override_does_not_duplicate_in_merge() {
-    with_config_dir(tempdir().unwrap().path(), |dir| {
-        write_default_profiles(dir, DEFAULT_PROFILES_TOML);
-        // Overriding a default profile by name overlays it; the merged list
-        // must contain exactly one entry for that name.
-        save_profile("H.264 High", r#"{"codec":"h264","crf":25}"#).unwrap();
-        let cfg = merge_configs();
-        let matches = cfg
-            .profiles
-            .iter()
-            .filter(|p| p.name == "H.264 High")
-            .count();
-        assert_eq!(matches, 1);
-        assert_eq!(load_profile("H.264 High").unwrap().crf, Some(25));
-    });
-}
-
-#[test]
 fn merge_configs_user_overrides_default() {
     with_config_dir(tempdir().unwrap().path(), |dir| {
         write_default_profiles(dir, DEFAULT_PROFILES_TOML);
+        // Overriding a default profile by name overlays it: the merged list
+        // must contain exactly one entry for that name.
         save_profile("H.264 High", r#"{"codec":"h264","crf":30}"#).unwrap();
         let cfg = merge_configs();
-        let h264 = cfg
+        let h264: Vec<_> = cfg
             .profiles
             .iter()
-            .find(|p| p.name == "H.264 High")
-            .unwrap();
-        assert_eq!(h264.crf, Some(30));
+            .filter(|p| p.name == "H.264 High")
+            .collect();
+        assert_eq!(h264.len(), 1);
+        assert_eq!(h264[0].crf, Some(30));
         // defaults merged in too
         assert!(cfg.profiles.iter().any(|p| p.name == "VP9 Low"));
     });

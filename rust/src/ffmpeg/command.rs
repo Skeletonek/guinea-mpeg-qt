@@ -1,8 +1,7 @@
 use crate::ffmpeg::normalize_path;
 
-/// Splits a command line into arguments, honouring single/double quotes and
-/// backslash escapes. Unbalanced quotes are tolerated (the remainder of the
-/// line becomes a single best-effort token).
+/// Splits a command line into arguments, honouring quotes and backslash escapes.
+/// Unbalanced quotes fall back to a single best-effort token.
 pub(crate) fn tokenize(text: &str) -> Vec<String> {
     let mut tokens = Vec::new();
     let mut current = String::new();
@@ -44,11 +43,9 @@ pub(crate) fn tokenize(text: &str) -> Vec<String> {
     tokens
 }
 
-/// Builds ffmpeg arguments from a user-written command line. The app-provided
-/// values are injected through placeholders:
-///   {input}, {output}, {start}, {duration}
-/// `-ss {start}` and `-t {duration}` are dropped when their values would be
-/// empty (no trim). A leading `ffmpeg` token is stripped.
+/// Builds ffmpeg arguments from a user-written command line, substituting
+/// `{input}`, `{output}`, `{start}`, `{duration}`. `-ss {start}`/`-t {duration}`
+/// are dropped when empty (no trim); a leading `ffmpeg` token is stripped.
 pub(crate) fn build_custom_command(
     cmd: &str,
     input: &str,

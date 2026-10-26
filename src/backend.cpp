@@ -369,11 +369,7 @@ QString GuineaMpegBackendExt::startTranscode(const QString& rawInput, const QStr
                 QString detail = gainObj.value(QStringLiteral("error")).toString();
                 if (detail.isEmpty())
                     detail = tr("no analysis result");
-                const QString msg = tr("Error: normalization analysis failed: %1").arg(detail);
-                appendTranscodeOutput(msg + "\n");
-                setTranscodeError(msg);
-                setTranscoding(false);
-                return "failed";
+                return failTranscode(tr("Error: normalization analysis failed: %1").arg(detail));
             }
             af[QStringLiteral("gain_db")] = gainObj.value(QStringLiteral("gain")).toDouble();
             af[QStringLiteral("normalize")] = false;
@@ -384,20 +380,10 @@ QString GuineaMpegBackendExt::startTranscode(const QString& rawInput, const QStr
 
     QStringList args = doc.isArray() ? jsonArgsToStringList(profileJson.toUtf8())
                                      : buildArgsFromProfile(input, output, startTime, endTime, effectiveProfileJson);
-    if (doc.isObject() && args.isEmpty()) {
-        const QString msg = tr("Error: failed to build ffmpeg command from profile");
-        appendTranscodeOutput(msg + "\n");
-        setTranscodeError(msg);
-        setTranscoding(false);
-        return "failed";
-    }
-    if (args.isEmpty()) {
-        const QString msg = tr("Error: profile produced no ffmpeg arguments");
-        appendTranscodeOutput(msg + "\n");
-        setTranscodeError(msg);
-        setTranscoding(false);
-        return "failed";
-    }
+    if (doc.isObject() && args.isEmpty())
+        return failTranscode(tr("Error: failed to build ffmpeg command from profile"));
+    if (args.isEmpty())
+        return failTranscode(tr("Error: profile produced no ffmpeg arguments"));
 
     appendTranscodeOutput("ffmpeg " + args.join(" ") + "\n\n");
 
@@ -538,7 +524,6 @@ void GuineaMpegBackendExt::appendTranscodeOutput(const QString& chunk) {
     const int lineCount = m_transcodeOutput.count('\n');
     if (lineCount > kMaxLogLines) {
         const QStringList lines = m_transcodeOutput.split('\n');
-        // Keep last kMaxLogLines-1 lines and prepend a single truncation notice
         const int keep = kMaxLogLines - 1;
         QStringList kept = lines.mid(lines.size() - keep);
         // Avoid stacking notices: if the oldest kept line is already a truncation notice, drop it
@@ -581,14 +566,16 @@ void GuineaMpegBackendExt::connectOutputCapture(QProcess* proc) {
 }
 
 void GuineaMpegBackendExt::finishTranscode(QProcess* proc, bool success) {
-    // Release the QProcess before notifying QML to avoid reentrancy:
-    // QML's onTranscodingChanged starts the next queued job which calls
-    // startTranscode() -> killTranscodeProcess(m_currentTranscode). If we
-    // still hold the old proc in m_currentTranscode at that point, we would
-    // try to kill/delete the same QProcess that is currently emitting
-    // finished (use-after-free -> SEGV at deleteLater). Releasing first
-    // makes m_currentTranscode null so the next job starts cleanly.
+    // Release before notifying QML: onTranscodingChanged starts the next job,
+    // which would otherwise kill/delete the QProcess emitting this signal.
     releaseProcess(m_currentTranscode, proc);
     emit transcodeFinished(success);
     setTranscoding(false);
+}
+
+QString GuineaMpegBackendExt::failTranscode(const QString& msg) {
+    appendTranscodeOutput(msg + "\n");
+    setTranscodeError(msg);
+    setTranscoding(false);
+    return QStringLiteral("failed");
 }

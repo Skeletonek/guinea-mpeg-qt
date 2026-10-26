@@ -182,8 +182,7 @@ pub(crate) struct AppConfig {
     pub(crate) options: AppOptions,
 }
 
-// Base directory for the app's config. Tests (and power users) can redirect it
-// with GUINEA_MPEG_CONFIG_DIR; otherwise dirs::config_dir() is used.
+// GUINEA_MPEG_CONFIG_DIR redirects config for tests (and power users).
 pub(crate) fn config_dir() -> PathBuf {
     if let Ok(dir) = std::env::var("GUINEA_MPEG_CONFIG_DIR") {
         if !dir.trim().is_empty() {
@@ -228,7 +227,6 @@ fn dirs_or_fallback() -> PathBuf {
 }
 
 fn migrate_codec_key(profiles: &mut [VideoProfile]) {
-    // migrate old "svtav1" codec key to "av1"
     for p in profiles {
         if p.codec == "svtav1" {
             p.codec = "av1".to_string();
@@ -326,8 +324,7 @@ pub struct ProfileGroup {
 const CUSTOM_CATEGORY: &str = "Custom";
 
 pub fn profile_groups() -> Vec<ProfileGroup> {
-    // Order: first appearance in the defaults file, then user-only categories
-    // (user file order).
+    // Order: first appearance in defaults, then user-only categories (user file order).
     let mut order: Vec<String> = Vec::new();
     for source in [load_defaults().profiles, load_user_config().profiles] {
         for p in source {
@@ -359,8 +356,7 @@ pub fn profile_groups() -> Vec<ProfileGroup> {
             groups.push(ProfileGroup { category, names });
         }
     }
-    // Defensive: keep a sorted spot for categories missing from `order` so no
-    // profile can silently vanish from the picker.
+    // Sorted spot for categories missing from `order`, so nothing vanishes from the picker.
     let mut leftover: Vec<(String, Vec<String>)> = by_category.into_iter().collect();
     leftover.sort();
     for (category, mut names) in leftover {
@@ -528,6 +524,18 @@ pub fn get_options() -> AppOptions {
     get_config().options
 }
 
+fn parse_f64(value: &str) -> anyhow::Result<f64> {
+    value
+        .parse()
+        .map_err(|_| anyhow::anyhow!("invalid numeric value"))
+}
+
+fn parse_bool(value: &str) -> anyhow::Result<bool> {
+    value
+        .parse()
+        .map_err(|_| anyhow::anyhow!("invalid boolean value"))
+}
+
 pub fn set_option(key: &str, value: &str) -> anyhow::Result<()> {
     let mut cfg = load_user_config();
     match key {
@@ -536,28 +544,17 @@ pub fn set_option(key: &str, value: &str) -> anyhow::Result<()> {
         "colorScheme" => cfg.options.color_scheme = value.to_string(),
         "hwdec" => cfg.options.hwdec = value.to_string(),
         "previewVolume" => {
-            let v: f64 = value
-                .parse()
-                .map_err(|_| anyhow::anyhow!("invalid numeric value"))?;
-            cfg.options.preview_volume = v.clamp(MIN_VOLUME, MAX_VOLUME);
+            cfg.options.preview_volume = parse_f64(value)?.clamp(MIN_VOLUME, MAX_VOLUME);
         }
         "previewDuration" => {
-            let v: f64 = value
-                .parse()
-                .map_err(|_| anyhow::anyhow!("invalid numeric value"))?;
-            cfg.options.preview_duration = v.clamp(MIN_PREVIEW_DURATION, MAX_PREVIEW_DURATION);
+            cfg.options.preview_duration =
+                parse_f64(value)?.clamp(MIN_PREVIEW_DURATION, MAX_PREVIEW_DURATION);
         }
         "checkForUpdates" => {
-            let v: bool = value
-                .parse()
-                .map_err(|_| anyhow::anyhow!("invalid boolean value"))?;
-            cfg.options.check_for_updates = v;
+            cfg.options.check_for_updates = parse_bool(value)?;
         }
         "autoplayOnLoad" => {
-            let v: bool = value
-                .parse()
-                .map_err(|_| anyhow::anyhow!("invalid boolean value"))?;
-            cfg.options.autoplay_on_load = v;
+            cfg.options.autoplay_on_load = parse_bool(value)?;
         }
         _ => return Err(anyhow::anyhow!("unknown option key")),
     }

@@ -31,10 +31,8 @@
 #include <winreg.h>
 #endif
 
-// GUI-subsystem apps don't inherit a console, so stdout/stderr are lost when
-// launched from a terminal. Attach to the parent's console (no-op when
-// double-clicked, so no console window ever flashes) and redirect the CRT
-// streams to it.
+// GUI apps don't inherit a console, so attach to the parent's (no-op when
+// double-clicked) and redirect the CRT streams to it.
 static void attachParentConsole() {
 #ifdef Q_OS_WIN
     if (!AttachConsole(ATTACH_PARENT_PROCESS))
@@ -139,10 +137,8 @@ static Qt::ColorScheme detectSystemColorScheme() {
     return scheme;
 }
 
-// MangoHud (Vulkan layer / GL hook) crashes this app at startup when MANGOHUD is
-// set. It is only evaluated per Vulkan-instance creation, so clearing MANGOHUD
-// from this process before any GL/Vulkan context is created avoids the crash
-// while leaving the user's global environment untouched.
+// MangoHud crashes this app at startup when MANGOHUD is set; it is evaluated
+// per Vulkan instance, so drop it before any GL/Vulkan context exists.
 static void dropMangoHudFromEnvironment() {
 #ifdef Q_OS_LINUX
     const QString mh = QString::fromLocal8Bit(qgetenv("MANGOHUD"));
@@ -261,8 +257,7 @@ int main(int argc, char* argv[]) {
     app.setDesktopFileName("guinea-mpeg");
     app.setWindowIcon(QIcon::fromTheme("guinea-mpeg"));
 #elif defined(Q_OS_WIN)
-    // Qt never reads the .rc-embedded exe icon for the window titlebar, so load
-    // it explicitly from the bundled resource (see AGENTS.md).
+    // Qt never reads the .rc-embedded exe icon for the titlebar; load it explicitly.
     app.setWindowIcon(QIcon(QStringLiteral(":/media/logo/app.ico")));
 #endif
     std::setlocale(LC_NUMERIC, "C");
@@ -288,7 +283,6 @@ int main(int argc, char* argv[]) {
     SetEnvironmentVariableA("PATH", (appDir + ";" + qgetenv("PATH")).constData());
 #endif
 
-    // Qt Quick Controls style selection (like QT_QUICK_CONTROLS_STYLE).
     QStringList availableStyles = availableQmlStyles();
 
     if (themeOption != QLatin1String("system") && !availableStyles.contains(themeOption))
@@ -300,10 +294,8 @@ int main(int argc, char* argv[]) {
         QQuickStyle::setStyle(QStringLiteral("FluentWinUI3"));
 #endif
 
-    // Release builds: Material, Universal and Imagine render dark controls with
-    // black text in dark/system schemes, so lock them to the light variant.
-    // Debug builds allow the full combination (see AGENTS.md) — say so, to
-    // avoid "did the lock break?" confusion when testing.
+    // Release builds lock Material/Universal/Imagine to light (dark text on dark
+    // controls otherwise); Debug allows the full combination, so say so.
     static const QStringList schemeLockedStyles = {QStringLiteral("Material"), QStringLiteral("Universal"),
                                                    QStringLiteral("Imagine")};
     QStringList colorSchemeLockedStyles;
@@ -319,11 +311,9 @@ int main(int argc, char* argv[]) {
 #endif
     }
 
-    // Color scheme. An explicit dark/light choice always forces our palette +
-    // QStyleHints scheme so the option actually takes effect everywhere. With
-    // "system" we follow the OS: on Linux the platform theme (KDE/GNOME) already
-    // provides the correct native palette, while Windows needs a forced palette
-    // because its platform theme mixes light/dark (defaults light on Win10).
+    // An explicit dark/light choice forces our palette + QStyleHints scheme.
+    // "system" follows the OS: Linux platform themes already provide the
+    // palette, Windows mixes light/dark and needs the forced one.
     Qt::ColorScheme effectiveScheme = Qt::ColorScheme::Light;
     const bool explicitScheme =
         colorSchemeOption == QLatin1String("dark") || colorSchemeOption == QLatin1String("light");
