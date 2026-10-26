@@ -1,4 +1,4 @@
-### 0.15.0 (In progress)
+### 1.0.0 (In progress)
 - Added filters section in Profile Editor
 - Added options for deinterlacing, denoising, cropping, rotating, mirroring for video settings
 - Added options for quality based encoding, gain, loudnorm, audio normalization in audio settings
@@ -19,6 +19,9 @@
 - Unified popups and toasts across the entire app
 - Updated Linux .desktop files with supported translations
 - Fixed not refreshing video playback when loading audio file with no cover art after playing a video file
+- Fixed encoder settings comboboxes in profile editor being set incorrectly after changing profile with different encoder
+- Fixed being able to create a profile with no audio and no video settings
+- Fixed missing mpv or ffmpeg dialogs not always closing the app
 - Removed encoder compatibility dialog in profile editor
 - Bumped build requirement to Qt 6.8+
 

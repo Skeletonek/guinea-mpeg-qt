@@ -95,13 +95,13 @@ var profileExtensions = {
     "webp": "webp"
 }
 
-// Audio file extensions
+// Audio file extensions (keys matched case-insensitively via toLowerCase)
 var audioExtensions = {
-    "FLAC": "flac",
-    "MP3": "mp3",
-    "AAC": "m4a",
-    "Opus": "opus",
-    "Vorbis": "ogg"
+    "flac": "flac",
+    "mp3": "mp3",
+    "aac": "m4a",
+    "opus": "opus",
+    "vorbis": "ogg"
 }
 
 // Output containers per video codec; "default" (sentinel) = codec-based extension

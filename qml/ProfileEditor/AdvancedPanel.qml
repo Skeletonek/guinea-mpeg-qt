@@ -97,13 +97,6 @@ Column {
             if (!root.loading)
                 root.changed();
         }
-        onEditingFinished: {
-            if (!root.loading)
-                root.extraArgsChanged();
-
-            if (!root.loading)
-                root.changed();
-        }
     }
 
     SectionHeader {
@@ -141,9 +134,6 @@ Column {
             background: null
             onTextChanged: {
                 root.advancedCommand = commandField.text;
-                if (!root.loading)
-                    root.advancedCommandChanged();
-
                 if (!root.loading)
                     root.changed();
             }

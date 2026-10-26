@@ -8,7 +8,8 @@ AppDialog {
     property string body: ""
 
     title: headline
-    standardButtons: styleDrawsHeaderClose ? Dialog.NoButton : Dialog.Ok
+    // OK is a semantic action (the warning dialogs quit on close) — keep it even when the style draws its own close button
+    standardButtons: Dialog.Ok
 
     Label {
         id: bodyLabel

@@ -18,7 +18,7 @@ qml/
   TimelineControl.qml   trim handles (start/end time)
   ControlsPanel.qml     right sidebar
   ProfileEditor.qml     + VideoPanel/AudioPanel/AdvancedPanel + VideoPanel/*Section.qml
-  Components/           reusable controls (AppDialog — shared Dialog base: gutters, height, centering; LabeledComboBox, SwitchRow, FormGroup, ...)
+  Components/           reusable controls (AppDialog — shared Dialog base: gutters, height, centering; SwitchRow, LabeledTextField, IconButton, ...)
   Dialogs/              Transcode, Options, About, Export/Import, warnings, ...
   Utils/                Constants.js, DataUtils.js, FormatUtils.js, Centering.js
 rust/                   Rust core (cdylib)

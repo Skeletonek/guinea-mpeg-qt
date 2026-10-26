@@ -87,6 +87,10 @@ Column {
         return text || null;
     }
 
+    function getCurrentCodecKey() {
+        return Constants.codecKeys[codecCombo.currentIndex];
+    }
+
     function setCodecData(d) {
         DataUtils.setIndex(Constants.codecKeys, codecCombo, d.codec);
         root.rebuildEncoderModel(true);
@@ -110,6 +114,7 @@ Column {
 
         ComboBox {
             id: codecCombo
+            objectName: "codecCombo"
 
             model: root.codecLabels
             width: parent.width - parent.effectiveLabelWidth - parent.spacing

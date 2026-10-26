@@ -59,6 +59,7 @@ Column {
 
         ComboBox {
             id: presetCombo
+            objectName: "presetCombo"
 
             width: parent.width - parent.effectiveLabelWidth - parent.spacing
             editable: true

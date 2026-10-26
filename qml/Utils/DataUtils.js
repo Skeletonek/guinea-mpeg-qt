@@ -262,7 +262,9 @@ function getExtensionForProfile(d, inputPath) {
             // fallback: codec mapping or generic
             if (d.video_enabled !== false)
                 return Constants.profileExtensions[d.codec] || "mkv"
-            return Constants.audioExtensions[d.audio_codec.toUpperCase()] || "mkv"
+            if (!d.audio_codec)
+                return "mkv"
+            return Constants.audioExtensions[d.audio_codec.toLowerCase()] || "mkv"
         }
         return d.container
     }
@@ -273,11 +275,13 @@ function getExtensionForProfile(d, inputPath) {
         }
         return Constants.profileExtensions[d.codec] || "webm"
     }
-    if (d.audio_codec && d.audio_codec.toLowerCase() === "copy") {
+    if (!d.audio_codec)
+        return "ogg"
+    if (d.audio_codec.toLowerCase() === "copy") {
         var ae = extFromPath(inputPath)
         if (ae) return ae
     }
-    return Constants.audioExtensions[d.audio_codec.toUpperCase()] || "ogg"
+    return Constants.audioExtensions[d.audio_codec.toLowerCase()] || "ogg"
 }
 
 /**

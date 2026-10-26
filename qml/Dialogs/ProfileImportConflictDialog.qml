@@ -62,7 +62,7 @@ AppDialog {
                         delegate: Label {
                             text: "\u2022 " + modelData
                             color: theme.text
-                            wrapMode: Text.ElideRight
+                            elide: Text.ElideRight
                             width: parent.width
                         }
                     }

@@ -32,8 +32,11 @@ Row {
 
     Switch {
         id: switchControl
+        objectName: "innerSwitch"
 
+        // checkable: false — an internal toggle would destroy the binding and desync host state (see StreamSelector)
+        checkable: false
         checked: root.checked
-        onCheckedChanged: root.checked = checked
+        onClicked: root.checked = !root.checked
     }
 }

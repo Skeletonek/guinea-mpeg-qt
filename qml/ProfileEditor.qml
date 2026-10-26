@@ -522,6 +522,8 @@ Rectangle {
 
                     width: parent.width / 2 - 8
                     loading: root._loading
+                    // Audio counts as enabled only when allowed for the codec (GIF/WebP have none)
+                    audioEnabled: audioPanel.audioEnabled && !audioPanel.audioForbidden
                     onChanged: updatePreview()
                 }
 

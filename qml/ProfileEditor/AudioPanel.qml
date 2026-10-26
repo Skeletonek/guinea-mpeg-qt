@@ -253,9 +253,10 @@ Column {
 
             Switch {
                 id: audioEnabledSwitch
+                objectName: "audioEnabledSwitch"
 
                 checked: true
-                enabled: !audioForbidden
+                enabled: !audioForbidden && (videoEnabled || !audioEnabledSwitch.checked)
                 onCheckedChanged: {
                     if (!root.loading)
                         root.changed();

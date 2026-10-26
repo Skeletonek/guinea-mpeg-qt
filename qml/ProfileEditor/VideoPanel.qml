@@ -11,6 +11,7 @@ Column {
     property var _availableEncoders: ({})
     property var _codecAvailable: []
     property bool loading: false
+    property bool audioEnabled: true
     readonly property alias videoEnabled: videoEnabledSwitch.checked
     readonly property string codec: codecSection ? codecSection.codec : Constants.codecKeys[0]
     readonly property bool _isAnimated: codec === "gif" || codec === "webp"
@@ -37,6 +38,8 @@ Column {
             if (raw && raw !== "null")
                 caps = JSON.parse(raw);
         }
+        // Sync before the rebuilds below — codecChanged fires only after this handler chain
+        presetTuneSection.currentCodecKey = codecSection.getCurrentCodecKey();
         presetTuneSection._capOverrides = caps;
         pixelFormatSection._capOverrides = caps;
         presetTuneSection.rebuildPresetModel(caps);
@@ -146,9 +149,6 @@ Column {
     }
 
     spacing: 8
-    onCodecChanged: {
-        presetTuneSection.currentCodecKey = root.codec;
-    }
     Component.onCompleted: {
         root.loadAvailableEncoders();
     }
@@ -172,8 +172,10 @@ Column {
 
             Switch {
                 id: videoEnabledSwitch
+                objectName: "videoEnabledSwitch"
 
                 checked: true
+                enabled: root.audioEnabled || !videoEnabledSwitch.checked
                 onCheckedChanged: {
                     if (!root.loading)
                         root.changed();

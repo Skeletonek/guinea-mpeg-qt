@@ -121,9 +121,9 @@ ApplicationWindow {
         _loadPreview(filePath, undefined, null, false);
     }
 
-    // Loads paths into the batch. replace=true starts a fresh batch (Open File),
-    // otherwise appends (Add Files/multi-drop); switchToNew previews the first new file
-    function openFiles(paths, replace, switchToNew) {
+    // Loads paths into the batch. replace=true starts a fresh batch (Open File,
+    // drag-and-drop), otherwise appends (Add Files)
+    function openFiles(paths, replace) {
         var wasEmpty = appWindow.batchFiles.length === 0;
         var list = replace ? [] : appWindow.batchFiles.slice();
         var firstEntry = null;
@@ -156,8 +156,6 @@ ApplicationWindow {
             batchTrimAcknowledged = false;
         if (replace || wasEmpty) {
             _loadPreview(firstEntry.path, undefined, firstEntry.info, true);
-        } else if (switchToNew && firstEntry.path !== appWindow.currentVideoPath) {
-            switchPreview(firstEntry.path);
         }
         var notes = [];
         if (skipped > 0)
@@ -382,8 +380,8 @@ ApplicationWindow {
                         var paths = [];
                         for (var i = 0; i < urls.length; i++)
                             paths.push(DataUtils.toLocalPath(urls[i]));
-                        // Single drop replaces like Open File; multi-drop appends
-                        appWindow.openFiles(paths, urls.length === 1, urls.length > 1);
+                        // Drops replace the current batch, like Open File
+                        appWindow.openFiles(paths, true);
                     }
                 }
 

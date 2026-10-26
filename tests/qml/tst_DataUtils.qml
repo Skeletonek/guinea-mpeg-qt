@@ -277,5 +277,55 @@ TestCase {
         compare(DataUtils.uniquePath("/a/b_transcoded.webm", taken), "/a/b_transcoded_3.webm");
     }
 
+    function test_getExtensionForProfile_video() {
+        compare(DataUtils.getExtensionForProfile({
+            "video_enabled": true,
+            "codec": "h264"
+        }, "/tmp/in.mkv"), "mp4");
+        compare(DataUtils.getExtensionForProfile({
+            "video_enabled": true,
+            "codec": "h264",
+            "container": "mkv"
+        }, "/tmp/in.mkv"), "mkv");
+        // codec "copy" takes the input extension
+        compare(DataUtils.getExtensionForProfile({
+            "video_enabled": true,
+            "codec": "copy"
+        }, "/tmp/in.mkv"), "mkv");
+    }
+
+    function test_getExtensionForProfile_audioOnly() {
+        // labels are matched case-insensitively ("Opus" used to miss the map and fall back to ogg)
+        compare(DataUtils.getExtensionForProfile({
+            "video_enabled": false,
+            "audio_codec": "Opus"
+        }, "/tmp/in.mkv"), "opus");
+        compare(DataUtils.getExtensionForProfile({
+            "video_enabled": false,
+            "audio_codec": "Vorbis"
+        }, "/tmp/in.mkv"), "ogg");
+        compare(DataUtils.getExtensionForProfile({
+            "video_enabled": false,
+            "audio_codec": "FLAC"
+        }, "/tmp/in.mkv"), "flac");
+    }
+
+    function test_getExtensionForProfile_missingAudioCodec() {
+        // both streams disabled (legacy/imported profiles) must fall back, not throw
+        compare(DataUtils.getExtensionForProfile({
+            "video_enabled": false,
+            "audio_enabled": false,
+            "audio_codec": null
+        }, "/tmp/in.mkv"), "ogg");
+        compare(DataUtils.getExtensionForProfile({
+            "video_enabled": false,
+            "audio_codec": null,
+            "container": "copy"
+        }, "/tmp/in"), "mkv");
+        compare(DataUtils.getExtensionForProfile({
+            "video_enabled": false
+        }, "/tmp/in.mkv"), "ogg");
+    }
+
     name: "DataUtils"
 }
