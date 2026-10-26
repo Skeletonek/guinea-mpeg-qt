@@ -4,12 +4,8 @@ import "../../Utils/DataUtils.js" as DataUtils
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 
-Column {
+SectionBase {
     id: root
-
-    property bool loading: false
-
-    signal changed
 
     function _flipModeFromBools(hflip, vflip) {
         if (hflip && vflip)
@@ -65,9 +61,6 @@ Column {
         return isNaN(v) || v <= 0 ? null : v;
     }
 
-    spacing: 8
-    width: parent.width
-
     SectionHeader {
         text: qsTr("Filters")
     }
@@ -83,10 +76,7 @@ Column {
             width: parent.width - parent.effectiveLabelWidth - parent.spacing
             model: Constants.deinterlaceOptions
             currentIndex: 0
-            onCurrentIndexChanged: {
-                if (!root.loading)
-                    root.changed();
-            }
+            onCurrentIndexChanged: root.emitChanged();
         }
     }
 
@@ -99,10 +89,7 @@ Column {
             width: parent.width - parent.effectiveLabelWidth - parent.spacing
             model: Constants.denoiseOptions
             currentIndex: 0
-            onCurrentIndexChanged: {
-                if (!root.loading)
-                    root.changed();
-            }
+            onCurrentIndexChanged: root.emitChanged();
         }
     }
 
@@ -135,10 +122,7 @@ Column {
 
                     width: 96
                     placeholderText: "0"
-                    onTextChanged: {
-                        if (!root.loading)
-                            root.changed();
-                    }
+                    onTextChanged: root.emitChanged();
 
                     validator: IntValidator {
                         bottom: 0
@@ -162,10 +146,7 @@ Column {
 
                     width: 96
                     placeholderText: "0"
-                    onTextChanged: {
-                        if (!root.loading)
-                            root.changed();
-                    }
+                    onTextChanged: root.emitChanged();
 
                     validator: IntValidator {
                         bottom: 0
@@ -198,10 +179,7 @@ Column {
 
                     width: 96
                     placeholderText: "0"
-                    onTextChanged: {
-                        if (!root.loading)
-                            root.changed();
-                    }
+                    onTextChanged: root.emitChanged();
 
                     validator: IntValidator {
                         bottom: 0
@@ -225,10 +203,7 @@ Column {
 
                     width: 96
                     placeholderText: "0"
-                    onTextChanged: {
-                        if (!root.loading)
-                            root.changed();
-                    }
+                    onTextChanged: root.emitChanged();
 
                     validator: IntValidator {
                         bottom: 0
@@ -248,10 +223,7 @@ Column {
             width: parent.width - parent.effectiveLabelWidth - parent.spacing
             model: Constants.rotateOptions
             currentIndex: 0
-            onCurrentIndexChanged: {
-                if (!root.loading)
-                    root.changed();
-            }
+            onCurrentIndexChanged: root.emitChanged();
         }
     }
 
@@ -264,10 +236,7 @@ Column {
             width: parent.width - parent.effectiveLabelWidth - parent.spacing
             model: Constants.flipLabels
             currentIndex: 0
-            onCurrentIndexChanged: {
-                if (!root.loading)
-                    root.changed();
-            }
+            onCurrentIndexChanged: root.emitChanged();
         }
     }
 }

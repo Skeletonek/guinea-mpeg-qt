@@ -4,15 +4,12 @@ import "../../Utils/DataUtils.js" as DataUtils
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 
-Column {
+SectionBase {
     id: root
 
     property string codecKey: "h264"
-    property bool loading: false
     readonly property string container: _container
     property string _container: ""
-
-    signal changed
 
     function getContainer() {
         return DataUtils.comboText(containerCombo, Constants.SENTINEL_DEFAULT);
@@ -33,8 +30,6 @@ Column {
         containerCombo.currentIndex = idx >= 0 ? idx : 0;
     }
 
-    spacing: 8
-    width: parent.width
     visible: codecKey !== "gif" && codecKey !== "webp"
     onCodecKeyChanged: rebuildModel()
 
@@ -48,13 +43,11 @@ Column {
             editable: true
             onCurrentIndexChanged: {
                 root._container = root.getContainer() || "";
-                if (!root.loading)
-                    root.changed();
+                root.emitChanged();
             }
             onEditTextChanged: {
                 root._container = root.getContainer() || "";
-                if (!root.loading)
-                    root.changed();
+                root.emitChanged();
             }
         }
     }

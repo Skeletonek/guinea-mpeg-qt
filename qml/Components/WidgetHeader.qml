@@ -1,10 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 
-/**
- * Standard widget header with background
- * Used as the header for panel sections (Video, Audio, Advanced)
- */
 Rectangle {
     id: root
 

@@ -4,12 +4,8 @@ import "../../Utils/DataUtils.js" as DataUtils
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 
-Column {
+SectionBase {
     id: root
-
-    property bool loading: false
-
-    signal changed
 
     function getScalingData() {
         var fpsText = fpsCombo.editText.trim();
@@ -34,9 +30,6 @@ Column {
         }
     }
 
-    spacing: 8
-    width: parent.width
-
     LabeledRow {
         label: qsTr("Resolution")
 
@@ -45,14 +38,7 @@ Column {
 
             model: Constants.resOptions
             width: parent.width - parent.effectiveLabelWidth - parent.spacing
-            onCurrentIndexChanged: {
-                if (!root.loading)
-                    root.changed();
-            }
-            onActivated: {
-                if (!root.loading)
-                    root.changed();
-            }
+            onCurrentIndexChanged: root.emitChanged();
         }
     }
 
@@ -65,14 +51,8 @@ Column {
             model: Constants.fpsOptions
             width: parent.width - parent.effectiveLabelWidth - parent.spacing
             editable: true
-            onCurrentIndexChanged: {
-                if (!root.loading)
-                    root.changed();
-            }
-            onEditTextChanged: {
-                if (!root.loading)
-                    root.changed();
-            }
+            onCurrentIndexChanged: root.emitChanged();
+            onEditTextChanged: root.emitChanged();
 
             validator: DoubleValidator {
                 bottom: 0

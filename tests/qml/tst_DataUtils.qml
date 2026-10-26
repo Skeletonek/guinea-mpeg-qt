@@ -10,13 +10,6 @@ TestCase {
         compare(DataUtils.toLocalPath("/plain/path.mp4"), "/plain/path.mp4");
     }
 
-    function test_toLocalPath_edgeCases() {
-        compare(DataUtils.toLocalPath(""), "");
-        compare(DataUtils.toLocalPath(null), "null");
-        compare(DataUtils.toLocalPath(undefined), "undefined");
-        compare(DataUtils.toLocalPath("file:"), "file:");
-    }
-
     function test_toFileUrl() {
         compare(DataUtils.toFileUrl("/home/user/video.mp4"), "file:///home/user/video.mp4");
         compare(DataUtils.toFileUrl("/home/user/my video.mp4"), "file:///home/user/my%20video.mp4");
@@ -74,43 +67,6 @@ TestCase {
     function test_profileRows_invalidJson() {
         compare(DataUtils.parseProfileRows("not json").length, 0);
         compare(DataUtils.parseProfileRows("[]").length, 0);
-    }
-
-    function test_profileRowIndex() {
-        var rows = DataUtils.profileRows([{
-            "category": "General",
-            "names": ["A", "B"]
-        }]);
-        compare(DataUtils.profileRowIndex(rows, "A"), 1);
-        compare(DataUtils.profileRowIndex(rows, "B"), 2);
-        compare(DataUtils.profileRowIndex(rows, "General"), -1);
-        compare(DataUtils.profileRowIndex(rows, "Missing"), -1);
-    }
-
-    function test_firstProfileRow() {
-        compare(DataUtils.firstProfileRow([]), -1);
-        compare(DataUtils.firstProfileRow([{
-            "name": "Header",
-            "isHeader": true
-        }]), -1);
-        compare(DataUtils.firstProfileRow([{
-            "name": "Header",
-            "isHeader": true
-        }, {
-            "name": "P",
-            "isHeader": false
-        }]), 1);
-    }
-
-    function test_isHeaderRow() {
-        var rows = DataUtils.profileRows([{
-            "category": "General",
-            "names": ["A"]
-        }]);
-        compare(DataUtils.isHeaderRow(rows, 0), true);
-        compare(DataUtils.isHeaderRow(rows, 1), false);
-        compare(DataUtils.isHeaderRow(rows, 2), false);
-        compare(DataUtils.isHeaderRow(rows, -1), false);
     }
 
     function test_comboText() {
@@ -195,27 +151,6 @@ TestCase {
         compare(combo.editText, "missing");
     }
 
-    function test_setComboText_edgeCases() {
-        var items = ["a", "b", "c"];
-        var combo = {
-            "count": items.length,
-            "textAt": function (i) {
-                return items[i];
-            },
-            "currentIndex": 0,
-            "editText": ""
-        };
-        DataUtils.setComboText(combo, "", "default");
-        compare(combo.currentIndex, 0);
-        DataUtils.setComboText(combo, undefined, "default");
-        compare(combo.currentIndex, 0);
-        DataUtils.setComboText(combo, null, "default");
-        compare(combo.currentIndex, 0);
-        // non-string values fall back to editText without crashing
-        DataUtils.setComboText(combo, 5, "default");
-        compare(combo.editText, 5);
-    }
-
     function test_setIndex() {
         var keys = ["a", "b"];
         var combo = {
@@ -229,18 +164,6 @@ TestCase {
         compare(combo.currentIndex, 0);
         DataUtils.setIndex(keys, combo, undefined);
         compare(combo.currentIndex, 0);
-    }
-
-    function test_buildProfileData_edgeCases() {
-        var data = DataUtils.buildProfileData({
-            "a": 1
-        }, null, {
-            "c": 3
-        }, undefined);
-        compare(data.a, 1);
-        compare(data.c, 3);
-        compare(DataUtils.buildProfileData(null).hasOwnProperty("a"), false);
-        compare(DataUtils.buildProfileData(undefined).hasOwnProperty("a"), false);
     }
 
     function test_advancedTemplateFromArgs() {

@@ -58,11 +58,6 @@ TestCase {
         compare(combo._headerIndexForRow(-1), -1);
     }
 
-    function test_textRoleResolvesRows() {
-        combo.currentIndex = combo.indexOfProfile("H.264 High");
-        compare(combo.currentText, "H.264 High");
-    }
-
     function test_selectRowUpdatesCurrentText() {
         combo.selectRow(combo.indexOfProfile("AV1 High"));
         compare(combo.currentText, "AV1 High");

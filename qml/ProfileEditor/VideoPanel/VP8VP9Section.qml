@@ -4,14 +4,11 @@ import "../../Utils/DataUtils.js" as DataUtils
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 
-Column {
+SectionBase {
     id: root
 
     property string codecKey: ""
     property bool isCopy: false
-    property bool loading: false
-
-    signal changed
 
     function getVP8VP9Data() {
         var cpuUsedTmp = DataUtils.comboText(cpuUsedCombo, Constants.SENTINEL_DEFAULT);
@@ -26,7 +23,6 @@ Column {
 
     width: parent.width
     visible: (codecKey === "vp8" || codecKey === "vp9") && !isCopy
-    spacing: 8
 
     SectionHeader {
         text: "VP8/VP9"
@@ -41,14 +37,8 @@ Column {
             width: parent.width - parent.effectiveLabelWidth - parent.spacing
             editable: true
             model: Constants.vp8Vp9CpuUsedOptions
-            onCurrentIndexChanged: {
-                if (!root.loading)
-                    root.changed();
-            }
-            onEditTextChanged: {
-                if (!root.loading)
-                    root.changed();
-            }
+            onCurrentIndexChanged: root.emitChanged();
+            onEditTextChanged: root.emitChanged();
         }
     }
 }

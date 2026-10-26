@@ -35,10 +35,7 @@ Rectangle {
         });
     }
 
-    // Global trim nudging — active while a trim handle holds focus (the seek
-    // shortcuts yield to the timeline in the same state). Frame = 1 frame,
-    // Ctrl = 1s, Shift = 1min; H/L stay as frame aliases. The focused handle
-    // decides which edge moves.
+    // Trim nudging while a handle holds focus (seek shortcuts yield in the same state): 1 frame / Ctrl=1s / Shift=1min
     readonly property bool trimFocused: startHandle.activeFocus || endHandle.activeFocus
 
     function nudgeFocusedBy(stepMs) {

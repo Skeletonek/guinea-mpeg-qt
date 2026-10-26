@@ -72,6 +72,7 @@ qt_add_resources(guinea-mpeg "app_qml"
         ${CMAKE_SOURCE_DIR}/qml/Components/InfoBanner.qml
         ${CMAKE_SOURCE_DIR}/qml/Components/BaseConfirmDialog.qml
         ${CMAKE_SOURCE_DIR}/qml/Components/WarningDialog.qml
+        ${CMAKE_SOURCE_DIR}/qml/Components/SectionBase.qml
         ${CMAKE_SOURCE_DIR}/media/images/lettuce.png
         ${CMAKE_SOURCE_DIR}/media/audio/guinea.wav
 )

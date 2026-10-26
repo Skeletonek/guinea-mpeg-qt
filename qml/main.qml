@@ -13,7 +13,6 @@ ApplicationWindow {
     property string currentVideoPath: ""
     property var currentVideoInfo: ({})
     property string currentProfile: "H.264 High"
-    property string currentCodec: Constants.codecKeys[0]
     property int videoDuration: 0
     property int startTime: 0
     property int endTime: 0
@@ -169,10 +168,7 @@ ApplicationWindow {
         var d;
         try {
             d = JSON.parse(backend.loadProfile(currentProfile));
-            currentCodec = d.codec || Constants.codecKeys[0];
-        } catch (e) {
-            currentCodec = Constants.codecKeys[0];
-        }
+        } catch (e) {}
         var ext = DataUtils.getExtensionForProfile(d || {}, appWindow.currentVideoPath);
         var dot = appWindow.outputFilePath.lastIndexOf(".");
         appWindow.outputFilePath = appWindow.outputFilePath.substring(0, dot >= 0 ? dot : 0) + "." + ext;
@@ -427,14 +423,6 @@ ApplicationWindow {
                         // focus changes up to the root for shortcut yielding
                         onActiveFocusChanged: appWindow.splitterFocused = activeFocus
 
-                        Rectangle {
-                            anchors.top: parent.top
-                            anchors.bottom: parent.bottom
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            width: 1
-                            color: "transparent"
-                        }
-
                         Label {
                             anchors.centerIn: parent
                             text: "«"
@@ -586,8 +574,7 @@ ApplicationWindow {
         visible: false
     }
 
-    // Transient feedback for open/queue actions (replaces the old persistent
-    // status label); floats above dialogs since queueing opens TranscodeDialog
+    // Transient feedback for open/queue actions; floats above dialogs since queueing opens TranscodeDialog
     InfoBanner {
         id: queueBanner
 

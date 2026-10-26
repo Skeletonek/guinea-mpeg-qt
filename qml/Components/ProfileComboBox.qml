@@ -3,13 +3,7 @@ import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 import QtQuick.Window
 
-/**
- * Profile picker using the default ComboBox popup with nested categories.
- * The delegate root is a plain Item (not an AbstractButton), so ComboBox's
- * internal select-and-close on click does not engage; clicks are handled
- * manually: headers expand/collapse, profile rows select and close. Collapsed
- * category rows are hidden via visible/height so indexes stay stable.
- */
+// Nested categories: delegate roots are plain Items, so ComboBox's select-and-close never engages (clicks are manual; collapsed rows keep stable indexes)
 ComboBox {
     id: control
 
@@ -18,9 +12,7 @@ ComboBox {
 
     property int _expandedCategory: -1
 
-    // Explicit popup pinned to the combo width. The stock select-and-close
-    // machinery never engages (delegate roots are plain Items), so replacing
-    // the popup does not affect the open/close behavior.
+    // Pinned to the combo width; safe to replace because select-and-close never engages here
     popup: Popup {
         id: profilePopup
 

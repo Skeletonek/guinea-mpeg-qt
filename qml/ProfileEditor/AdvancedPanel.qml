@@ -14,7 +14,6 @@ Column {
             "trim": []
         })
 
-    signal changed
     signal extraArgsChanged
 
     onAdvancedCommandChanged: _missingCache = missingParts()
@@ -93,9 +92,6 @@ Column {
         onTextChanged: {
             if (!root.loading)
                 root.extraArgsChanged();
-
-            if (!root.loading)
-                root.changed();
         }
     }
 
@@ -132,11 +128,7 @@ Column {
             selectByMouse: true
             wrapMode: Text.WordWrap
             background: null
-            onTextChanged: {
-                root.advancedCommand = commandField.text;
-                if (!root.loading)
-                    root.changed();
-            }
+            onTextChanged: root.advancedCommand = commandField.text;
         }
     }
 
@@ -171,10 +163,6 @@ Column {
         font.family: "monospace"
         font.pixelSize: 11
         placeholderText: "mkv"
-        onTextChanged: {
-            if (!root.loading)
-                root.changed();
-        }
     }
 
     SectionHeader {

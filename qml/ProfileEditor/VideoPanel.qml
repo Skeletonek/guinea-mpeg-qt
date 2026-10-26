@@ -9,7 +9,6 @@ Column {
     id: root
 
     property var _availableEncoders: ({})
-    property var _codecAvailable: []
     property bool loading: false
     property bool audioEnabled: true
     readonly property alias videoEnabled: videoEnabledSwitch.checked
@@ -25,7 +24,7 @@ Column {
         if (raw && raw !== "null")
             root._availableEncoders = JSON.parse(raw);
 
-        root.rebuildCodecItems();
+        codecSection.rebuildCodecItems();
     }
 
     function refreshAll(encName) {
@@ -34,40 +33,17 @@ Column {
 
         var caps = {};
         if (encName) {
-            var raw = backend.encoderCapabilities(encName);
+            const raw = backend.encoderCapabilities(encName);
             if (raw && raw !== "null")
                 caps = JSON.parse(raw);
         }
         // Sync before the rebuilds below — codecChanged fires only after this handler chain
         presetTuneSection.currentCodecKey = codecSection.getCurrentCodecKey();
         presetTuneSection._capOverrides = caps;
-        pixelFormatSection._capOverrides = caps;
         presetTuneSection.rebuildPresetModel(caps);
         presetTuneSection.rebuildTuneModel(caps);
         pixelFormatSection.rebuildPixfmtModel(caps);
         root.changed();
-    }
-
-    function rebuildCodecItems() {
-        if (codecSection) {
-            var avail = [];
-            for (var i = 0; i < Constants.codecKeys.length; i++) {
-                var key = Constants.codecKeys[i];
-                if (key === "copy")
-                    avail.push(true);
-                else if (key === "gif" || key === "webp")
-                    avail.push(true);
-                else
-                    avail.push(root._encodersForKey(key).length > 0);
-            }
-            root._codecAvailable = avail;
-            codecSection._codecAvailable = root._codecAvailable;
-            codecSection.rebuildCodecItems();
-        }
-    }
-
-    function _encodersForKey(key) {
-        return root._availableEncoders[key] || [];
     }
 
     /**
@@ -80,7 +56,7 @@ Column {
             "container": containerSection ? containerSection.getContainer() : null
         };
         if (videoEnabledSwitch.checked) {
-            var codecData = codecSection.getCodecData();
+            const codecData = codecSection.getCodecData();
             data.codec = codecData.codec;
             data.encoder = codecData.encoder;
             if (root._isCopy) {
@@ -112,8 +88,6 @@ Column {
                     data = DataUtils.buildProfileData(data, av1Section.getAV1Data());
                 if (vp8vp9Section)
                     data = DataUtils.buildProfileData(data, vp8vp9Section.getVP8VP9Data());
-            } else {
-                // preserve scaling/filters as nulls already
             }
         }
         return data;

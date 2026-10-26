@@ -185,10 +185,7 @@ Rectangle {
         }
     }
 
-    // Global seek/volume bindings — work no matter which control holds focus
-    // (seekbar included). They yield to text inputs, popups (dialogs, combo
-    // lists — arrow navigation there), the timeline (trim nudge owns arrows
-    // while a handle is focused) and the splitter handle (panel resize).
+    // Global seek/volume shortcuts; they yield to text inputs, popups, the timeline (trim nudge) and the splitter handle
     function seekKeysAllowed() {
         if (!root.hasVideo)
             return false;
@@ -419,18 +416,12 @@ Rectangle {
         }
     }
 
-    // Popover anchored above the stream button, right-aligned with it. Modal
-    // with a transparent dimmer so a press outside closes it without also
-    // reaching (and immediately re-opening it from) the button underneath —
-    // a non-modal popup's close-on-press races with the button's click.
+    // Modal with a transparent dimmer: a non-modal popup's close-on-press races with the button's click and re-opens it
     Popup {
         id: playbackStreamsPopup
 
         parent: root
-        // Anchored just above the controls bar, right-aligned with the stream
-        // button. Property bindings, so the first open is placed correctly as
-        // soon as the content height is measured (an onAboutToShow reposition
-        // ran before that measurement and put the popup below the window).
+        // Bindings, not onAboutToShow: the popup must be placed after its content height is measured
         x: controlsRow.x + streamButton.x + streamButton.width - width
         y: root.height - root._controlsBarHeight - implicitHeight - 8
         width: Constants.dialogWidthSmall

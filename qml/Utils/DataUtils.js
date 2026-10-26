@@ -2,11 +2,6 @@
 .import "Constants.js" as Constants
 
 /**
- * Data handling utilities for GuineaMPEG
- * Contains functions for data transformation, validation, and manipulation
- */
-
-/**
  * Converts a file:// URL to a local filesystem path.
  * Strips the file:// prefix and percent-encoding; on Windows also removes the
  * leading slash before the drive letter (file:///C:/... -> C:/...), which
@@ -161,43 +156,6 @@ function parseProfileRows(json) {
         groups = JSON.parse(json)
     } catch (e) {}
     return profileRows(groups)
-}
-
-/**
- * Index of a profile name among selectable (non-header) rows.
- * @param {Array} rows - rows from profileRows()
- * @param {string} name - Profile name
- * @returns {number} Row index or -1 when not found
- */
-function profileRowIndex(rows, name) {
-    for (var i = 0; i < rows.length; i++) {
-        if (!rows[i].isHeader && rows[i].name === name)
-            return i
-    }
-    return -1
-}
-
-/**
- * Index of the first selectable row (skips category headers), -1 when empty.
- * @param {Array} rows - rows from profileRows()
- * @returns {number} Row index or -1
- */
-function firstProfileRow(rows) {
-    for (var i = 0; i < rows.length; i++) {
-        if (!rows[i].isHeader)
-            return i
-    }
-    return -1
-}
-
-/**
- * Whether the row at index is a category header (not selectable).
- * @param {Array} rows - rows from profileRows()
- * @param {number} index - Row index
- * @returns {boolean}
- */
-function isHeaderRow(rows, index) {
-    return index >= 0 && index < rows.length && !!rows[index].isHeader
 }
 
 /**

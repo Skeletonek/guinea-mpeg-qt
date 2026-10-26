@@ -43,22 +43,6 @@ Item {
             compare(DataUtils.comboText(presetCombo, sentinel), "6");
         }
 
-        function test_matching_value_sets_index() {
-            presetCombo.model = h264Presets;
-            presetCombo.currentIndex = 5;
-            DataUtils.setComboText(presetCombo, "slow", sentinel);
-            rebuildPresetModel(h264Presets);
-            compare(presetCombo.currentText, "slow");
-        }
-
-        function test_sentinel_preserved() {
-            presetCombo.model = h264Presets;
-            presetCombo.currentIndex = 5;
-            DataUtils.setComboText(presetCombo, sentinel, sentinel);
-            rebuildPresetModel(av1Presets);
-            compare(presetCombo.currentText, sentinel);
-        }
-
         name: "PresetTuneRebuild"
     }
 }

@@ -119,9 +119,6 @@ var containerKeysByCodec = {
 // Color constants
 var colorPrimary = "#4a9eff"
 var colorSecondary = "#ff6b4a"
-var colorWarning = "#ff9800"
-var colorError = "#f44336"
-var colorInfo = "#2196f3"
 
 // Timeline colors
 var timelineSelectionColor = "#4a9eff"

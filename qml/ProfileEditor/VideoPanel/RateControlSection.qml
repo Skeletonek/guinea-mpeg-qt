@@ -4,13 +4,10 @@ import "../../Utils/DataUtils.js" as DataUtils
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 
-Column {
+SectionBase {
     id: root
 
-    property bool loading: false
     property var rateValidator: null
-
-    signal changed
 
     function getRateControlData() {
         var rcKey = Constants.rateControlKeys[rateControlCombo.currentIndex];
@@ -36,9 +33,6 @@ Column {
             rateValueField.text = d.bitrate || "";
     }
 
-    spacing: 8
-    width: parent.width
-
     LabeledRow {
         label: qsTr("Rate control")
 
@@ -53,8 +47,7 @@ Column {
                 width: 100
                 onCurrentIndexChanged: {
                     root.rateValidator = Constants.rateControlKeys[currentIndex] === "crf" ? crfValidatorInst : null;
-                    if (!root.loading)
-                        root.changed();
+                    root.emitChanged();
                 }
             }
 
@@ -64,14 +57,7 @@ Column {
                 width: parent.width - rateControlCombo.width - root.spacing
                 placeholderText: Constants.rateControlKeys[rateControlCombo.currentIndex] === "crf" ? qsTr("CRF value (e.g. 18)") : qsTr("Bitrate (e.g. 2M)")
                 validator: root.rateValidator
-                onTextChanged: {
-                    if (!root.loading)
-                        root.changed();
-                }
-                onEditingFinished: {
-                    if (!root.loading)
-                        root.changed();
-                }
+                onTextChanged: root.emitChanged();
             }
         }
     }

@@ -27,21 +27,20 @@ Rectangle {
         return data;
     }
 
+    function _previewArgs(data) {
+        var raw = backend.generateCommandPreview(JSON.stringify(data));
+        if (!raw)
+            return [];
+        var args = JSON.parse(raw);
+        return args && args.length > 0 ? args : [];
+    }
+
     function updatePreview() {
         if (_loading)
             return;
 
-        var data = buildCurrentData();
-        var json = JSON.stringify(data);
-        var raw = backend.generateCommandPreview(json);
-        if (raw) {
-            var args = JSON.parse(raw);
-            if (args && args.length > 0) {
-                advancedPanel.setPreview("ffmpeg " + args.join(" "));
-                return;
-            }
-        }
-        advancedPanel.setPreview(qsTr("Failed to generate preview"));
+        var args = _previewArgs(buildCurrentData());
+        advancedPanel.setPreview(args.length > 0 ? "ffmpeg " + args.join(" ") : qsTr("Failed to generate preview"));
     }
 
     function enterAdvancedMode() {
@@ -50,12 +49,7 @@ Rectangle {
 
         var snapshot = buildCurrentData();
         _loading = true;
-        var raw = backend.generateCommandPreview(JSON.stringify(snapshot));
-        var args = [];
-        if (raw)
-            args = JSON.parse(raw);
-
-        advancedPanel.setCommand(DataUtils.advancedTemplateFromArgs(args));
+        advancedPanel.setCommand(DataUtils.advancedTemplateFromArgs(_previewArgs(snapshot)));
         advancedPanel.setContainer(snapshot.container);
         root.advancedMode = true;
         _loading = false;
@@ -174,12 +168,9 @@ Rectangle {
         root.advancedMode = !!(d.custom_command && d.custom_command !== "");
         profileSelector.currentIndex = profileSelector.indexOfProfile(name);
         _loading = false;
-        var previewRaw = backend.generateCommandPreview(JSON.stringify(d));
-        if (previewRaw) {
-            var args = JSON.parse(previewRaw);
-            if (args && args.length > 0)
-                advancedPanel.setPreview("ffmpeg " + args.join(" "));
-        }
+        var args = _previewArgs(d);
+        if (args.length > 0)
+            advancedPanel.setPreview("ffmpeg " + args.join(" "));
     }
 
     function restoreDefaults() {

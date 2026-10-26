@@ -4,14 +4,11 @@ import "../../Utils/DataUtils.js" as DataUtils
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 
-Column {
+SectionBase {
     id: root
 
-    property bool loading: false
     property var _capOverrides: ({})
     property string currentCodecKey: "h264"
-
-    signal changed
 
     function rebuildPresetModel(caps) {
         caps = caps || root._capOverrides;
@@ -48,9 +45,6 @@ Column {
             compressionLevelField.text = d.compression_level || "";
     }
 
-    spacing: 8
-    width: parent.width
-
     LabeledRow {
         id: presetRow
 
@@ -63,14 +57,8 @@ Column {
 
             width: parent.width - parent.effectiveLabelWidth - parent.spacing
             editable: true
-            onCurrentIndexChanged: {
-                if (!root.loading)
-                    root.changed();
-            }
-            onEditTextChanged: {
-                if (!root.loading)
-                    root.changed();
-            }
+            onCurrentIndexChanged: root.emitChanged();
+            onEditTextChanged: root.emitChanged();
         }
     }
 
@@ -85,14 +73,8 @@ Column {
 
             width: parent.width - parent.effectiveLabelWidth - parent.spacing
             editable: true
-            onCurrentIndexChanged: {
-                if (!root.loading)
-                    root.changed();
-            }
-            onEditTextChanged: {
-                if (!root.loading)
-                    root.changed();
-            }
+            onCurrentIndexChanged: root.emitChanged();
+            onEditTextChanged: root.emitChanged();
         }
     }
 
@@ -106,10 +88,7 @@ Column {
             id: compressionLevelField
 
             width: parent.width - parent.effectiveLabelWidth - parent.spacing
-            onTextChanged: {
-                if (!root.loading)
-                    root.changed();
-            }
+            onTextChanged: root.emitChanged();
         }
     }
 }

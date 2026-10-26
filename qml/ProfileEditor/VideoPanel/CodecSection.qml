@@ -4,16 +4,14 @@ import "../../Utils/DataUtils.js" as DataUtils
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 
-Column {
+SectionBase {
     id: root
 
     property var _availableEncoders: ({})
     property var _codecAvailable: []
-    property bool loading: false
     readonly property var codec: Constants.codecKeys[codecCombo.currentIndex]
     readonly property var codecLabels: Constants.codecLabels
 
-    signal changed
     signal encoderSelectionChanged(string encName)
 
     function rebuildCodecItems() {
@@ -106,9 +104,6 @@ Column {
         }
     }
 
-    spacing: 8
-    width: parent.width
-
     LabeledRow {
         label: qsTr("Codec")
 
@@ -151,16 +146,9 @@ Column {
             width: parent.width - parent.effectiveLabelWidth - parent.spacing
             editable: true
             enabled: Constants.codecKeys[codecCombo.currentIndex] !== "copy"
-            onCurrentIndexChanged: {
-                root.encoderSelectionChanged(root._currentEncoderText());
-            }
-            onEditTextChanged: {
-                if (!root.loading)
-                    root.changed();
-            }
-            onAccepted: {
-                root.encoderSelectionChanged(root._currentEncoderText());
-            }
+            onCurrentIndexChanged: root.encoderSelectionChanged(root._currentEncoderText());
+            onEditTextChanged: root.emitChanged();
+            onAccepted: root.encoderSelectionChanged(root._currentEncoderText());
         }
     }
 }

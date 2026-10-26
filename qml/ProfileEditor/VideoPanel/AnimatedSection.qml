@@ -2,13 +2,10 @@ import "../../Components"
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 
-Column {
+SectionBase {
     id: root
 
     property string codecKey: ""
-    property bool loading: false
-
-    signal changed
 
     function getAnimatedData() {
         return {
@@ -24,7 +21,6 @@ Column {
 
     width: parent.width
     visible: codecKey === "gif" || codecKey === "webp"
-    spacing: 8
 
     SectionHeader {
         text: "GIF/WebP"
@@ -35,10 +31,7 @@ Column {
 
         label: qsTr("Quality")
         placeholderText: "75"
-        onTextChanged: {
-            if (!root.loading)
-                root.changed();
-        }
+        onTextChanged: root.emitChanged();
 
         validator: IntValidator {
             bottom: 0
@@ -53,10 +46,7 @@ Column {
             id: loopSwitch
 
             checked: true
-            onCheckedChanged: {
-                if (!root.loading)
-                    root.changed();
-            }
+            onCheckedChanged: root.emitChanged();
         }
     }
 }

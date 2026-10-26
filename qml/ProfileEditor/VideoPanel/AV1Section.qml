@@ -2,14 +2,11 @@ import "../../Components"
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 
-Column {
+SectionBase {
     id: root
 
     property string codecKey: ""
     property bool isCopy: false
-    property bool loading: false
-
-    signal changed
 
     function getAV1Data() {
         return {
@@ -27,7 +24,6 @@ Column {
 
     width: parent.width
     visible: codecKey === "av1" && !isCopy
-    spacing: 8
 
     SectionHeader {
         text: "AV1"
@@ -49,10 +45,7 @@ Column {
 
             width: 60
             placeholderText: "2"
-            onTextChanged: {
-                if (!root.loading)
-                    root.changed();
-            }
+            onTextChanged: root.emitChanged();
 
             validator: IntValidator {
                 bottom: 0
@@ -70,10 +63,7 @@ Column {
 
             width: 60
             placeholderText: "3"
-            onTextChanged: {
-                if (!root.loading)
-                    root.changed();
-            }
+            onTextChanged: root.emitChanged();
 
             validator: IntValidator {
                 bottom: 0
@@ -86,9 +76,6 @@ Column {
         id: enableQmCheck
 
         text: qsTr("Enable Quantization Matrix")
-        onCheckedChanged: {
-            if (!root.loading)
-                root.changed();
-        }
+        onCheckedChanged: root.emitChanged();
     }
 }

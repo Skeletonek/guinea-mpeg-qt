@@ -161,8 +161,6 @@ Column {
                 audioBitrateField.text = d.audio_bitrate || "128k";
             }
         } else {
-            // videoEnabled: use auto combo. Rebuild model first to have labels.
-            // defer index logic after model built
             var needsRebuild = audioAutoCombo.count === 0;
             if (needsRebuild)
                 _rebuildAutoModel();
