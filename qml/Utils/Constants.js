@@ -21,8 +21,8 @@ var flipKeys = ["none", "horizontal", "vertical", "both"]
 var flipLabels = ["None", "Horizontal", "Vertical", "Both"]
 
 // Audio combo options
-var audioChannelOptions = ["", "1", "2", "6", "8"]
-var audioSampleRateOptions = ["", "22050", "44100", "48000", "96000", "192000"]
+var audioChannelOptions = ["Auto", "1", "2", "6", "8"]
+var audioSampleRateOptions = ["Auto", "22050", "44100", "48000", "96000", "192000"]
 
 // Loudnorm defaults
 var loudnormDefaultI = -14

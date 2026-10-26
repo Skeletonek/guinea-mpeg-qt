@@ -122,7 +122,7 @@ Rectangle {
     function _rebuildCategoryModel() {
         var cats = [];
         for (var i = 0; i < _profileRows.length; i++) {
-            if (_profileRows[i].isHeader && _profileRows[i].name !== "Custom")
+            if (_profileRows[i].isHeader)
                 cats.push(_profileRows[i].name);
         }
         var prev = DataUtils.comboValue(categoryBox);
