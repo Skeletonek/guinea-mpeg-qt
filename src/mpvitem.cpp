@@ -117,7 +117,18 @@ void MpvItem::setSource(const QUrl& source) {
     if (m_source == source)
         return;
     m_source = source;
-    m_pendingSource = source;
+    loadSource();
+    emit sourceChanged();
+}
+
+void MpvItem::reload() {
+    if (m_source.isEmpty())
+        return;
+    loadSource();
+}
+
+void MpvItem::loadSource() {
+    m_pendingSource = m_source;
 
     m_position = 0;
     m_duration = 0;
@@ -128,8 +139,6 @@ void MpvItem::setSource(const QUrl& source) {
 
     if (m_backend && m_renderReady)
         loadPendingSource();
-
-    emit sourceChanged();
 }
 
 void MpvItem::loadPendingSource() {
@@ -188,11 +197,12 @@ void MpvItem::stop() {
 }
 
 void MpvItem::setVolume(qreal vol) {
-    m_volume = vol;
-    if (m_backend) {
-        const int v = std::clamp(static_cast<int>(vol), kMinVolume, kMaxVolume);
-        guinea_mpeg_mpv_set_volume(m_backend, v);
-    }
+    const qreal clamped = std::clamp(vol, static_cast<qreal>(kMinVolume), static_cast<qreal>(kMaxVolume));
+    if (m_volume == clamped)
+        return;
+    m_volume = clamped;
+    if (m_backend)
+        guinea_mpeg_mpv_set_volume(m_backend, static_cast<int>(clamped));
     emit volumeChanged();
 }
 

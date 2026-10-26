@@ -22,6 +22,9 @@
 - Fixed encoder settings comboboxes in profile editor being set incorrectly after changing profile with different encoder
 - Fixed being able to create a profile with no audio and no video settings
 - Fixed missing mpv or ffmpeg dialogs not always closing the app
+- Fixed not properly disabling video for audio only profiles
+- Improved handling for corrupted or missing ffmpeg binary
+- Preview no longer generates a new file per each regenerate call
 - Removed encoder compatibility dialog in profile editor
 - Bumped build requirement to Qt 6.8+
 

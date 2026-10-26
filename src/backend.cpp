@@ -365,9 +365,11 @@ QString GuineaMpegBackendExt::startTranscode(const QString& rawInput, const QStr
             QString result = computeNormalizeGain(input, startTime, endTime, profileJson);
             QJsonDocument gainDoc = QJsonDocument::fromJson(result.toUtf8());
             QJsonObject gainObj = gainDoc.object();
-            if (gainObj.contains(QStringLiteral("error"))) {
-                const QString msg = tr("Error: normalization analysis failed: %1")
-                                        .arg(gainObj.value(QStringLiteral("error")).toString());
+            if (!gainObj.contains(QStringLiteral("gain"))) {
+                QString detail = gainObj.value(QStringLiteral("error")).toString();
+                if (detail.isEmpty())
+                    detail = tr("no analysis result");
+                const QString msg = tr("Error: normalization analysis failed: %1").arg(detail);
                 appendTranscodeOutput(msg + "\n");
                 setTranscodeError(msg);
                 setTranscoding(false);
@@ -422,9 +424,8 @@ QString GuineaMpegBackendExt::startPreview(const QString& rawInput, const QStrin
                                            double durationMs, const QString& extension) {
     QString input = QDir::cleanPath(rawInput);
     QString ext = extension.isEmpty() ? QStringLiteral("mkv") : extension;
-    static quint64 s_previewCounter = 0;
-    QString output = QDir::cleanPath(QDir::tempPath() + QStringLiteral("/guinea_mpeg_preview_") +
-                                     QString::number(++s_previewCounter) + "." + ext);
+    // One fixed preview file per format; per-run names only pile up in temp.
+    QString output = QDir::cleanPath(QDir::tempPath() + QStringLiteral("/guinea_mpeg_preview.") + ext);
 
     killTranscodeProcess(m_currentPreview);
     setPreviewGenerating(true);
@@ -491,6 +492,15 @@ QString GuineaMpegBackendExt::startPreview(const QString& rawInput, const QStrin
             emit previewFailed();
         }
     });
+    connect(proc, &QProcess::errorOccurred, this, [this, proc](QProcess::ProcessError error) {
+        if (error != QProcess::FailedToStart)
+            return;
+        releaseProcess(m_currentPreview, proc);
+        setPreviewGenerating(false);
+        m_lastPreviewError = tr("Failed to start ffmpeg");
+        emit lastPreviewErrorChanged();
+        emit previewFailed();
+    });
     m_currentPreview->start("ffmpeg", args);
     return "started";
 }
@@ -545,6 +555,13 @@ void GuineaMpegBackendExt::connectOutputCapture(QProcess* proc) {
             [this, proc]() { appendTranscodeOutput(QString::fromUtf8(proc->readAllStandardError())); });
     connect(proc, &QProcess::readyReadStandardOutput, this,
             [this, proc]() { appendTranscodeOutput(QString::fromUtf8(proc->readAllStandardOutput())); });
+    connect(proc, &QProcess::errorOccurred, this, [this, proc](QProcess::ProcessError error) {
+        if (error != QProcess::FailedToStart)
+            return;
+        appendTranscodeOutput(tr("\n--- Transcoding finished: FAILED (could not start ffmpeg) ---\n"));
+        setTranscodeError(tr("Failed to start ffmpeg"));
+        finishTranscode(proc, false);
+    });
     connect(proc, &QProcess::finished, this, [this, proc](int exitCode, QProcess::ExitStatus) {
         if (exitCode == 0) {
             appendTranscodeOutput(tr("\n--- Transcoding finished: SUCCESS ---\n"));
@@ -559,15 +576,19 @@ void GuineaMpegBackendExt::connectOutputCapture(QProcess* proc) {
                 setTranscodeError(tr("Unknown error (exit code %1)").arg(exitCode));
             }
         }
-        // Release the QProcess before notifying QML to avoid reentrancy:
-        // QML's onTranscodingChanged starts the next queued job which calls
-        // startTranscode() -> killTranscodeProcess(m_currentTranscode). If we
-        // still hold the old proc in m_currentTranscode at that point, we would
-        // try to kill/delete the same QProcess that is currently emitting
-        // finished (use-after-free -> SEGV at deleteLater). Releasing first
-        // makes m_currentTranscode null so the next job starts cleanly.
-        releaseProcess(m_currentTranscode, proc);
-        emit transcodeFinished(exitCode == 0);
-        setTranscoding(false);
+        finishTranscode(proc, exitCode == 0);
     });
+}
+
+void GuineaMpegBackendExt::finishTranscode(QProcess* proc, bool success) {
+    // Release the QProcess before notifying QML to avoid reentrancy:
+    // QML's onTranscodingChanged starts the next queued job which calls
+    // startTranscode() -> killTranscodeProcess(m_currentTranscode). If we
+    // still hold the old proc in m_currentTranscode at that point, we would
+    // try to kill/delete the same QProcess that is currently emitting
+    // finished (use-after-free -> SEGV at deleteLater). Releasing first
+    // makes m_currentTranscode null so the next job starts cleanly.
+    releaseProcess(m_currentTranscode, proc);
+    emit transcodeFinished(success);
+    setTranscoding(false);
 }

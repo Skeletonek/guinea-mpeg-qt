@@ -320,7 +320,18 @@ fn audio_disabled_adds_an() {
 fn video_disabled_skips_video_args() {
     let args = args_for(r#"{"codec":"h264","video_enabled":false,"audio_enabled":true}"#);
     assert!(!contains_flag(&args, "-c:v"));
+    assert!(contains_flag(&args, "-vn"));
     assert!(contains_pair(&args, "-c:a", "aac"));
+}
+
+#[test]
+fn video_disabled_never_maps_video() {
+    let args = args_for(
+        r#"{"codec":"h264","video_enabled":false,"video_stream_indices":[0],"audio_stream_indices":[1]}"#,
+    );
+    assert!(contains_pair(&args, "-map", "0:a:1"));
+    assert!(!args.iter().any(|a| a.starts_with("0:v:")));
+    assert!(contains_flag(&args, "-vn"));
 }
 
 #[test]
@@ -565,4 +576,53 @@ fn tokenize_handles_quotes_and_escapes() {
     assert_eq!(crate::ffmpeg::tokenize("a\\ b c"), vec!["a b", "c"]);
     assert_eq!(crate::ffmpeg::tokenize("a \"x\\\"y\""), vec!["a", "x\"y"]);
     assert_eq!(crate::ffmpeg::tokenize("'unbalanced"), vec!["unbalanced"]);
+}
+
+#[test]
+fn parse_gain_from_loudnorm_json() {
+    let stderr = r#"
+        [Parsed_loudnorm_0 @ 0x...]
+        {
+            "input_i" : "-23.5",
+            "input_tp" : "-2.3"
+        }
+    "#;
+    let gain = crate::ffmpeg::parse_normalize_gain(stderr, -14.0, -1.5).unwrap();
+    // gain would be 9.5 dB, but clamped to avoid clipping: -1.5 - (-2.3) = 0.8 dB
+    assert!((gain - 0.8).abs() < 0.01);
+}
+
+#[test]
+fn parse_gain_clamps_to_avoid_clipping() {
+    let stderr = r#"
+        {
+            "input_i" : "-30.0",
+            "input_tp" : "-0.5"
+        }
+    "#;
+    let gain = crate::ffmpeg::parse_normalize_gain(stderr, -14.0, -1.5).unwrap();
+    assert!((gain - (-1.0)).abs() < 0.01);
+}
+
+#[test]
+fn parse_gain_skips_stray_braces_in_stderr() {
+    let stderr = r#"
+        warning: metadata {not json}
+        {
+            "input_i" : "-23.5",
+            "input_tp" : "-2.3"
+        }
+    "#;
+    let gain = crate::ffmpeg::parse_normalize_gain(stderr, -14.0, -1.5).unwrap();
+    assert!((gain - 0.8).abs() < 0.01);
+}
+
+#[test]
+fn normalize_measurement_command_is_audio_only() {
+    let p = profile(r#"{"codec":"h264","video_stream_indices":[0],"audio_stream_indices":[1]}"#);
+    let args =
+        crate::ffmpeg::build_normalize_measurement_command("in.mkv", 0.0, 10.0, &p, -14.0, -1.5);
+    assert!(contains_flag(&args, "-vn"));
+    assert!(contains_pair(&args, "-map", "0:a:1"));
+    assert!(!args.iter().any(|a| a.starts_with("0:v:")));
 }

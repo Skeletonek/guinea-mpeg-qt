@@ -564,10 +564,16 @@ Rectangle {
         }
 
         function onPreviewGenerated(path) {
+            var url = DataUtils.toFileUrl(path);
+            // The preview reuses one fixed file: when the player already shows
+            // this URL the source binding won't re-fire, so reload explicitly.
+            var needsReload = root.previewActive && String(root.previewSource) === String(url);
             root.previewGenerating = false;
-            root.previewSource = DataUtils.toFileUrl(path);
+            root.previewSource = url;
             root.previewAvailable = true;
             root.previewActive = true;
+            if (needsReload)
+                player.reload();
         }
 
         function onPreviewFailed() {

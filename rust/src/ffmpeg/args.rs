@@ -1,7 +1,7 @@
 use crate::config::{VideoFilters, VideoProfile};
 use crate::ffmpeg::{
     audio_codec_for_profile, detect_vaapi_device, encoder_capabilities, encoder_family,
-    normalize_path, video_codec, EncoderFamily,
+    normalize_path, quiet_command, video_codec, EncoderFamily,
 };
 use anyhow::Context;
 
@@ -48,12 +48,26 @@ fn push_amf_cqp(args: &mut Vec<String>, crf: i32, enc: &str) {
     }
 }
 
+fn add_audio_stream_mapping(args: &mut Vec<String>, profile: &VideoProfile) {
+    if profile.video_stream_indices.is_empty() && profile.audio_stream_indices.is_empty() {
+        return;
+    }
+    if profile.audio_stream_indices.is_empty() {
+        args.push("-map".to_string());
+        args.push("0:a:0".to_string());
+    } else {
+        for idx in &profile.audio_stream_indices {
+            args.push("-map".to_string());
+            args.push(format!("0:a:{}", idx));
+        }
+    }
+}
+
 fn add_stream_mapping(args: &mut Vec<String>, profile: &VideoProfile) {
     let video_enabled = profile.video_enabled.unwrap_or(true);
     let audio_enabled = profile.audio_enabled.unwrap_or(true);
     let vs_idxs = &profile.video_stream_indices;
-    let as_idxs = &profile.audio_stream_indices;
-    if vs_idxs.is_empty() && as_idxs.is_empty() {
+    if vs_idxs.is_empty() && profile.audio_stream_indices.is_empty() {
         return;
     }
     if video_enabled {
@@ -68,15 +82,7 @@ fn add_stream_mapping(args: &mut Vec<String>, profile: &VideoProfile) {
         }
     }
     if audio_enabled {
-        if as_idxs.is_empty() {
-            args.push("-map".to_string());
-            args.push("0:a:0".to_string());
-        } else {
-            for idx in as_idxs {
-                args.push("-map".to_string());
-                args.push(format!("0:a:{}", idx));
-            }
-        }
+        add_audio_stream_mapping(args, profile);
     }
 }
 
@@ -577,6 +583,10 @@ pub(crate) fn build_command(
 
     if video_enabled {
         add_video_branch(&mut args, profile, &enc, family);
+    } else {
+        // Mirror -an in add_audio_branch: without any -map, ffmpeg's automatic
+        // stream selection would still pick and re-encode the video stream.
+        args.push("-vn".to_string());
     }
 
     add_audio_branch(&mut args, profile);
@@ -591,7 +601,7 @@ pub(crate) fn build_preview(profile: &VideoProfile) -> Vec<String> {
     build_command("[input]", "[output]", 0.0, 0.0, profile)
 }
 
-fn build_normalize_measurement_command(
+pub(crate) fn build_normalize_measurement_command(
     input: &str,
     start_time: f64,
     end_time: f64,
@@ -600,8 +610,11 @@ fn build_normalize_measurement_command(
     target_tp: f64,
 ) -> Vec<String> {
     let mut args = Vec::new();
+    args.push("-hide_banner".to_string());
     add_input_and_trim(&mut args, input, start_time, end_time);
-    add_stream_mapping(&mut args, profile);
+    // Analysis is audio-only: never decode video for the measurement pass.
+    args.push("-vn".to_string());
+    add_audio_stream_mapping(&mut args, profile);
     args.push("-af".to_string());
     args.push(format!(
         "loudnorm=I={}:TP={}:LRA=11:print_format=json",
@@ -613,16 +626,29 @@ fn build_normalize_measurement_command(
     args
 }
 
-fn parse_normalize_gain(stderr: &str, target_i: f64, target_tp: f64) -> Option<f64> {
-    let start = stderr.find('{')?;
-    let end = stderr.rfind('}').map(|i| i + 1)?;
-    let json = &stderr[start..end];
-    let data: serde_json::Value = serde_json::from_str(json).ok()?;
-    let input_i = data["input_i"].as_str()?.parse::<f64>().ok()?;
-    let input_tp = data["input_tp"].as_str()?.parse::<f64>().ok()?;
-    let gain = target_i - input_i;
-    let max_gain = target_tp - input_tp;
-    Some(gain.min(max_gain))
+pub(crate) fn parse_normalize_gain(stderr: &str, target_i: f64, target_tp: f64) -> Option<f64> {
+    // loudnorm prints a flat JSON object; scan brace-delimited candidates so
+    // banner/warning text cannot break the extraction.
+    for (start, _) in stderr.match_indices('{') {
+        let Some(end) = stderr[start..].find('}') else {
+            continue;
+        };
+        let Ok(data) = serde_json::from_str::<serde_json::Value>(&stderr[start..start + end + 1])
+        else {
+            continue;
+        };
+        let (Some(input_i), Some(input_tp)) = (data["input_i"].as_str(), data["input_tp"].as_str())
+        else {
+            continue;
+        };
+        let (Ok(input_i), Ok(input_tp)) = (input_i.parse::<f64>(), input_tp.parse::<f64>()) else {
+            continue;
+        };
+        let gain = target_i - input_i;
+        let max_gain = target_tp - input_tp;
+        return Some(gain.min(max_gain));
+    }
+    None
 }
 
 pub(crate) fn compute_normalize_gain(
@@ -641,7 +667,7 @@ pub(crate) fn compute_normalize_gain(
     let args = build_normalize_measurement_command(
         input, start_time, end_time, profile, target_i, target_tp,
     );
-    let output = std::process::Command::new("ffmpeg")
+    let output = quiet_command("ffmpeg")
         .args(&args)
         .output()
         .context("failed to run ffmpeg normalization analysis")?;
@@ -651,35 +677,4 @@ pub(crate) fn compute_normalize_gain(
     let stderr = String::from_utf8_lossy(&output.stderr);
     parse_normalize_gain(&stderr, target_i, target_tp)
         .ok_or_else(|| anyhow::anyhow!("could not parse loudnorm analysis output"))
-}
-
-#[cfg(test)]
-mod normalize_tests {
-    use super::*;
-
-    #[test]
-    fn parse_gain_from_loudnorm_json() {
-        let stderr = r#"
-            [Parsed_loudnorm_0 @ 0x...]
-            {
-                "input_i" : "-23.5",
-                "input_tp" : "-2.3"
-            }
-        "#;
-        let gain = parse_normalize_gain(stderr, -14.0, -1.5).unwrap();
-        // gain would be 9.5 dB, but clamped to avoid clipping: -1.5 - (-2.3) = 0.8 dB
-        assert!((gain - 0.8).abs() < 0.01);
-    }
-
-    #[test]
-    fn parse_gain_clamps_to_avoid_clipping() {
-        let stderr = r#"
-            {
-                "input_i" : "-30.0",
-                "input_tp" : "-0.5"
-            }
-        "#;
-        let gain = parse_normalize_gain(stderr, -14.0, -1.5).unwrap();
-        assert!((gain - (-1.0)).abs() < 0.01);
-    }
 }

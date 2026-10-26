@@ -298,7 +298,8 @@ unsafe fn drain_mpv_events(backend: &mut MpvBackend) -> i32 {
             mpv_event_id_MPV_EVENT_END_FILE => {
                 if backend.playing {
                     backend.playing = false;
-                    backend.position = 0;
+                    // Position deliberately stays at EOF: the C++ rewind-on-play
+                    // check (MpvItem::play) relies on it.
                     changed |= CHANGED_DURATION | CHANGED_PLAYING;
                 }
             }
