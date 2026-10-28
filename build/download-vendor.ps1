@@ -56,7 +56,7 @@ $MpvReleaseApiUrl = "https://api.github.com/repos/zhongfly/mpv-winbuild/releases
 $MpvAssetPattern  = "^mpv-dev-$MpvAssetArch-\d{8}"
 $MpvExcludedPattern = '-v3-'
 $FfmpegSharedSuffix = if ($FfmpegArch -eq "arm64") { "winarm64" } else { "win64" }
-$FfmpegReleaseUrl = "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n8.1-latest-$FfmpegSharedSuffix-gpl-shared-8.1.zip"
+$FfmpegReleaseUrl = "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n9.0-latest-$FfmpegSharedSuffix-gpl-shared-9.0.zip"
 $FfmpegChecksumsUrl = "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/checksums.sha256"
 $UserAgent = "guinea-mpeg-vendor/1.0"
 
