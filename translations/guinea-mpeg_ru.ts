@@ -4,17 +4,17 @@
 <context>
     <name>AV1Section</name>
     <message>
-        <location filename="../qml/ProfileEditor/VideoPanel/AV1Section.qml" line="39"/>
+        <location filename="../qml/ProfileEditor/VideoPanel/AV1Section.qml" line="35"/>
         <source>Tile rows</source>
         <translation>Строки тайлов</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/VideoPanel/AV1Section.qml" line="57"/>
+        <location filename="../qml/ProfileEditor/VideoPanel/AV1Section.qml" line="48"/>
         <source>Tile cols</source>
         <translation>Столбцы тайлов</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/VideoPanel/AV1Section.qml" line="78"/>
+        <location filename="../qml/ProfileEditor/VideoPanel/AV1Section.qml" line="59"/>
         <source>Enable Quantization Matrix</source>
         <translation>Включить матрицу квантования</translation>
     </message>
@@ -141,94 +141,94 @@
 <context>
     <name>AudioPanel</name>
     <message>
-        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="278"/>
+        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="314"/>
         <source>Audio</source>
         <translation>Аудио</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="301"/>
+        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="337"/>
         <source>Audio is not supported for GIF/WebP output.</source>
         <translation>Аудио не поддерживается для вывода GIF/WebP.</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="313"/>
+        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="349"/>
         <source>Codec</source>
         <translation>Кодек</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="342"/>
+        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="378"/>
         <source>Audio will be copied without re-encoding (bitrate/channels/rate ignored).</source>
         <translation>Звуковая дорожка будет скопирована без перекодирования (битрейт/каналы/частота дискретизации игнорируются).</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="423"/>
+        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="464"/>
         <source>Rate control</source>
-        <translation type="unfinished">Управление битрейтом</translation>
+        <translation>Управление битрейтом</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="427"/>
+        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="468"/>
         <source>Mode</source>
-        <translation type="unfinished"></translation>
+        <translation>Режим</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="445"/>
+        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="486"/>
         <source>Bitrate</source>
         <translation>Битрейт</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="457"/>
+        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="498"/>
         <source>Quality</source>
-        <translation type="unfinished">Качество</translation>
+        <translation>Качество</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="467"/>
+        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="509"/>
         <source>Volume</source>
-        <translation type="unfinished"></translation>
+        <translation>Громкость</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="473"/>
+        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="515"/>
         <source>Gain (dB)</source>
-        <translation type="unfinished"></translation>
+        <translation>Усиление (дБ)</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="490"/>
+        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="532"/>
         <source>Loudnorm</source>
-        <translation type="unfinished"></translation>
+        <translation>Нормализация громкости</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="514"/>
-        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="589"/>
+        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="556"/>
+        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="632"/>
         <source>Target I (LUFS)</source>
-        <translation type="unfinished"></translation>
+        <translation>Целевой уровень I (LUFS)</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="531"/>
-        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="606"/>
+        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="573"/>
+        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="649"/>
         <source>True peak (dBTP)</source>
-        <translation type="unfinished"></translation>
+        <translation>Истинный пик (дБTP)</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="548"/>
+        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="590"/>
         <source>LRA</source>
-        <translation type="unfinished"></translation>
+        <translation>LRA</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="564"/>
+        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="606"/>
         <source>Normalize</source>
-        <translation type="unfinished"></translation>
+        <translation>Нормализовать</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="565"/>
-        <source>Normalize runs a first-pass loudness analysis on each file, computes a single linear volume gain to reach the Target I level, clamps it so the true peak stays below Target TP, and applies volume=gain during the transcode. This preserves dynamics (no compression) and matches the behavior of the normalize_audio.sh script.</source>
-        <translation type="unfinished"></translation>
+        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="607"/>
+        <source>Normalize runs a first-pass loudness analysis on each file, computes a single linear volume gain to reach the Target I level, clamps it so the true peak stays below Target TP, and applies volume=gain during the transcode. This equalizes loudness across tracks while preserving dynamics (no compression): the same gain is applied to the entire file.</source>
+        <translation>Normalize анализирует громкость каждого файла в первом проходе, вычисляет единое линейное усиление для достижения целевого уровня I, ограничивает его так, чтобы истинный пик не превышал целевое значение TP, и применяет volume=gain при транскодировании. Это выравнивает громкость дорожек, сохраняя динамику (без компрессии): ко всему файлу применяется одинаковое усиление.</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="364"/>
+        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="391"/>
         <source>Channels</source>
         <translation>Каналы</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="390"/>
+        <location filename="../qml/ProfileEditor/AudioPanel.qml" line="417"/>
         <source>Sample rate</source>
         <translation>Частота дискретизации</translation>
     </message>
@@ -285,49 +285,49 @@
     <message>
         <location filename="../qml/ControlsPanel.qml" line="115"/>
         <source>Add Files...</source>
-        <translation type="unfinished"></translation>
+        <translation>Добавить файлы...</translation>
     </message>
     <message>
         <location filename="../qml/ControlsPanel.qml" line="123"/>
         <source>Media Information</source>
-        <translation type="unfinished"></translation>
+        <translation>Информация о медиафайле</translation>
     </message>
     <message>
         <location filename="../qml/ControlsPanel.qml" line="162"/>
         <source>File: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Файл: %1</translation>
     </message>
     <message>
         <location filename="../qml/ControlsPanel.qml" line="163"/>
         <source>Load a video file to see information</source>
-        <translation type="unfinished">Загрузите видеофайл, чтобы увидеть информацию</translation>
+        <translation>Загрузите видеофайл, чтобы увидеть информацию</translation>
     </message>
     <message>
         <location filename="../qml/ControlsPanel.qml" line="171"/>
         <source>Duration: %1s</source>
-        <translation type="unfinished"></translation>
+        <translation>Длительность: %1 с</translation>
     </message>
     <message>
         <location filename="../qml/ControlsPanel.qml" line="195"/>
         <location filename="../qml/ControlsPanel.qml" line="226"/>
         <source>Codec: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Кодек: %1</translation>
     </message>
     <message>
         <location filename="../qml/ControlsPanel.qml" line="200"/>
         <source>Resolution: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Разрешение: %1</translation>
     </message>
     <message>
         <location filename="../qml/ControlsPanel.qml" line="205"/>
         <source>FPS: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Кадров/с: %1</translation>
     </message>
     <message>
         <location filename="../qml/ControlsPanel.qml" line="210"/>
         <location filename="../qml/ControlsPanel.qml" line="241"/>
         <source>Bitrate: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Битрейт: %1</translation>
     </message>
     <message>
         <location filename="../qml/ControlsPanel.qml" line="220"/>
@@ -338,12 +338,12 @@
     <message>
         <location filename="../qml/ControlsPanel.qml" line="231"/>
         <source>Sample rate: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Частота дискретизации: %1</translation>
     </message>
     <message>
         <location filename="../qml/ControlsPanel.qml" line="236"/>
         <source>Channels: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Каналы: %1</translation>
     </message>
     <message>
         <location filename="../qml/ControlsPanel.qml" line="311"/>
@@ -368,7 +368,7 @@
     <message>
         <location filename="../qml/ControlsPanel.qml" line="374"/>
         <source>Output Directory</source>
-        <translation type="unfinished"></translation>
+        <translation>Папка вывода</translation>
     </message>
     <message>
         <location filename="../qml/ControlsPanel.qml" line="390"/>
@@ -378,7 +378,7 @@
     <message>
         <location filename="../qml/ControlsPanel.qml" line="403"/>
         <source>Empty = next to each source file</source>
-        <translation type="unfinished"></translation>
+        <translation>Пусто = рядом с каждым исходным файлом</translation>
     </message>
     <message>
         <location filename="../qml/ControlsPanel.qml" line="427"/>
@@ -393,7 +393,7 @@
     <message>
         <location filename="../qml/ControlsPanel.qml" line="456"/>
         <source>Start Transcoding (%1 files)</source>
-        <translation type="unfinished"></translation>
+        <translation>Начать транскодирование (файлов: %1)</translation>
     </message>
     <message>
         <location filename="../qml/ControlsPanel.qml" line="472"/>
@@ -517,7 +517,7 @@ Install it with your package manager, e.g.:
     <message>
         <location filename="../qml/Dialogs/FileOpenDialog.qml" line="16"/>
         <source>Select Media Files</source>
-        <translation type="unfinished"></translation>
+        <translation>Выберите медиафайлы</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/FileOpenDialog.qml" line="17"/>
@@ -527,17 +527,17 @@ Install it with your package manager, e.g.:
     <message>
         <location filename="../qml/Dialogs/FileOpenDialog.qml" line="17"/>
         <source>Media files (%1 %2)</source>
-        <translation type="unfinished"></translation>
+        <translation>Медиафайлы (%1 %2)</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/FileOpenDialog.qml" line="17"/>
         <source>Video files (%1)</source>
-        <translation type="unfinished"></translation>
+        <translation>Видеофайлы (%1)</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/FileOpenDialog.qml" line="17"/>
         <source>Audio files (%1)</source>
-        <translation type="unfinished"></translation>
+        <translation>Аудиофайлы (%1)</translation>
     </message>
 </context>
 <context>
@@ -558,75 +558,75 @@ Install it with your package manager, e.g.:
     <message>
         <location filename="../qml/ProfileEditor/VideoPanel/FiltersSection.qml" line="65"/>
         <source>Filters</source>
-        <translation type="unfinished"></translation>
+        <translation>Фильтры</translation>
     </message>
     <message>
         <location filename="../qml/ProfileEditor/VideoPanel/FiltersSection.qml" line="71"/>
         <source>Deinterlace</source>
-        <translation type="unfinished"></translation>
+        <translation>Деинтерлейсинг</translation>
     </message>
     <message>
         <location filename="../qml/ProfileEditor/VideoPanel/FiltersSection.qml" line="84"/>
         <source>Denoise</source>
-        <translation type="unfinished"></translation>
+        <translation>Шумоподавление</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/VideoPanel/FiltersSection.qml" line="104"/>
+        <location filename="../qml/ProfileEditor/VideoPanel/FiltersSection.qml" line="105"/>
         <source>Crop</source>
-        <translation type="unfinished"></translation>
+        <translation>Обрезка</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/VideoPanel/FiltersSection.qml" line="114"/>
+        <location filename="../qml/ProfileEditor/VideoPanel/FiltersSection.qml" line="124"/>
         <source>Top</source>
-        <translation type="unfinished"></translation>
+        <translation>Сверху</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/VideoPanel/FiltersSection.qml" line="138"/>
+        <location filename="../qml/ProfileEditor/VideoPanel/FiltersSection.qml" line="144"/>
         <source>Bottom</source>
-        <translation type="unfinished"></translation>
+        <translation>Снизу</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/VideoPanel/FiltersSection.qml" line="171"/>
+        <location filename="../qml/ProfileEditor/VideoPanel/FiltersSection.qml" line="173"/>
         <source>Left</source>
-        <translation type="unfinished"></translation>
+        <translation>Слева</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/VideoPanel/FiltersSection.qml" line="195"/>
+        <location filename="../qml/ProfileEditor/VideoPanel/FiltersSection.qml" line="193"/>
         <source>Right</source>
-        <translation type="unfinished"></translation>
+        <translation>Справа</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/VideoPanel/FiltersSection.qml" line="218"/>
+        <location filename="../qml/ProfileEditor/VideoPanel/FiltersSection.qml" line="216"/>
         <source>Rotate</source>
-        <translation type="unfinished"></translation>
+        <translation>Повернуть</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/VideoPanel/FiltersSection.qml" line="231"/>
+        <location filename="../qml/ProfileEditor/VideoPanel/FiltersSection.qml" line="229"/>
         <source>Flip</source>
-        <translation type="unfinished"></translation>
+        <translation>Отразить</translation>
     </message>
 </context>
 <context>
     <name>FormatUtils</name>
     <message>
-        <location filename="../qml/Utils/FormatUtils.js" line="127"/>
+        <location filename="../qml/Utils/FormatUtils.js" line="128"/>
         <source>mono</source>
-        <translation type="unfinished"></translation>
+        <translation>моно</translation>
     </message>
     <message>
-        <location filename="../qml/Utils/FormatUtils.js" line="127"/>
+        <location filename="../qml/Utils/FormatUtils.js" line="128"/>
         <source>stereo</source>
-        <translation type="unfinished"></translation>
+        <translation>стерео</translation>
     </message>
     <message>
-        <location filename="../qml/Utils/FormatUtils.js" line="127"/>
+        <location filename="../qml/Utils/FormatUtils.js" line="128"/>
         <source>5.1</source>
-        <translation type="unfinished"></translation>
+        <translation>5.1</translation>
     </message>
     <message>
-        <location filename="../qml/Utils/FormatUtils.js" line="127"/>
+        <location filename="../qml/Utils/FormatUtils.js" line="128"/>
         <source>7.1</source>
-        <translation type="unfinished"></translation>
+        <translation>7.1</translation>
     </message>
 </context>
 <context>
@@ -639,12 +639,12 @@ Install it with your package manager, e.g.:
     <message>
         <location filename="../src/backend.cpp" line="371"/>
         <source>no analysis result</source>
-        <translation type="unfinished"></translation>
+        <translation>нет результата анализа</translation>
     </message>
     <message>
         <location filename="../src/backend.cpp" line="372"/>
         <source>Error: normalization analysis failed: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Ошибка: не удалось выполнить анализ нормализации: %1</translation>
     </message>
     <message>
         <location filename="../src/backend.cpp" line="384"/>
@@ -669,12 +669,12 @@ Install it with your package manager, e.g.:
         <location filename="../src/backend.cpp" line="486"/>
         <location filename="../src/backend.cpp" line="547"/>
         <source>Failed to start ffmpeg</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось запустить ffmpeg</translation>
     </message>
     <message>
         <location filename="../src/backend.cpp" line="502"/>
         <source>Select Output Directory</source>
-        <translation type="unfinished"></translation>
+        <translation>Выберите папку вывода</translation>
     </message>
     <message>
         <location filename="../src/backend.cpp" line="532"/>
@@ -686,7 +686,9 @@ Install it with your package manager, e.g.:
         <source>
 --- Transcoding finished: FAILED (could not start ffmpeg) ---
 </source>
-        <translation type="unfinished"></translation>
+        <translation>
+--- Транскодирование завершено: ОШИБКА (не удалось запустить ffmpeg) ---
+</translation>
     </message>
     <message>
         <location filename="../src/backend.cpp" line="552"/>
@@ -794,12 +796,12 @@ Install it with your package manager, e.g.:
     <message>
         <location filename="../qml/Dialogs/OptionsDialog.qml" line="213"/>
         <source>Playback</source>
-        <translation type="unfinished"></translation>
+        <translation>Воспроизведение</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/OptionsDialog.qml" line="223"/>
         <source>Autoplay when loading a file</source>
-        <translation type="unfinished"></translation>
+        <translation>Автоматически воспроизводить при загрузке файла</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/OptionsDialog.qml" line="290"/>
@@ -850,7 +852,10 @@ Install it with your package manager, e.g.:
 
 %2
 Do you want to overwrite them?</source>
-        <translation type="unfinished"></translation>
+        <translation>Следующие выходные файлы (%1) уже существуют:
+
+%2
+Перезаписать их?</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/OverwriteConfirmDialog.qml" line="22"/>
@@ -876,7 +881,7 @@ Do you want to overwrite it?</source>
     <message>
         <location filename="../qml/ProfileEditor/AudioPanel/PCMSection.qml" line="31"/>
         <source>Format</source>
-        <translation type="unfinished"></translation>
+        <translation>Формат</translation>
     </message>
 </context>
 <context>
@@ -961,27 +966,27 @@ Do you want to overwrite it?</source>
     <message>
         <location filename="../qml/ProfileEditor.qml" line="378"/>
         <source>Save profile</source>
-        <translation type="unfinished"></translation>
+        <translation>Сохранить профиль</translation>
     </message>
     <message>
         <location filename="../qml/ProfileEditor.qml" line="388"/>
         <source>Restore profile to defaults</source>
-        <translation type="unfinished"></translation>
+        <translation>Восстановить настройки профиля по умолчанию</translation>
     </message>
     <message>
         <location filename="../qml/ProfileEditor.qml" line="388"/>
         <source>Delete profile</source>
-        <translation type="unfinished"></translation>
+        <translation>Удалить профиль</translation>
     </message>
     <message>
         <location filename="../qml/ProfileEditor.qml" line="446"/>
         <source>Restore all profiles to defaults</source>
-        <translation type="unfinished"></translation>
+        <translation>Восстановить настройки всех профилей по умолчанию</translation>
     </message>
     <message>
         <location filename="../qml/ProfileEditor.qml" line="483"/>
         <source>Category</source>
-        <translation type="unfinished"></translation>
+        <translation>Категория</translation>
     </message>
     <message>
         <location filename="../qml/ProfileEditor.qml" line="579"/>
@@ -1127,19 +1132,24 @@ Do you want to overwrite it?</source>
 <context>
     <name>RateControlSection</name>
     <message>
-        <location filename="../qml/ProfileEditor/VideoPanel/RateControlSection.qml" line="69"/>
+        <location filename="../qml/ProfileEditor/VideoPanel/RateControlSection.qml" line="78"/>
         <source>Rate control</source>
         <translation>Управление битрейтом</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/VideoPanel/RateControlSection.qml" line="90"/>
+        <location filename="../qml/ProfileEditor/VideoPanel/RateControlSection.qml" line="30"/>
         <source>CRF value (e.g. 18)</source>
         <translation>Значение CRF (например, 18)</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/VideoPanel/RateControlSection.qml" line="90"/>
+        <location filename="../qml/ProfileEditor/VideoPanel/RateControlSection.qml" line="27"/>
         <source>Bitrate (e.g. 2M)</source>
         <translation>Битрейт (например, 2M)</translation>
+    </message>
+    <message>
+        <location filename="../qml/ProfileEditor/VideoPanel/RateControlSection.qml" line="30"/>
+        <source>Quality value (e.g. 18)</source>
+        <translation>Значение качества (например, 18)</translation>
     </message>
 </context>
 <context>
@@ -1226,7 +1236,7 @@ Continue?</source>
     <message>
         <location filename="../qml/Dialogs/TranscodeDialog.qml" line="210"/>
         <source>Remove from queue</source>
-        <translation type="unfinished"></translation>
+        <translation>Удалить из очереди</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/TranscodeDialog.qml" line="310"/>
@@ -1251,7 +1261,7 @@ Continue?</source>
     <message>
         <location filename="../qml/Dialogs/TranscodeDialog.qml" line="352"/>
         <source>Close</source>
-        <translation type="unfinished">Закрыть</translation>
+        <translation>Закрыть</translation>
     </message>
 </context>
 <context>
@@ -1259,7 +1269,7 @@ Continue?</source>
     <message>
         <location filename="../qml/Dialogs/TrimWarningDialog.qml" line="10"/>
         <source>Cut All Loaded Files</source>
-        <translation type="unfinished"></translation>
+        <translation>Обрезать все загруженные файлы</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/TrimWarningDialog.qml" line="11"/>
@@ -1268,7 +1278,11 @@ Continue?</source>
 Shorter files will be cut at their maximum length.
 
 Continue?</source>
-        <translation type="unfinished"></translation>
+        <translation>Выбор на временной шкале обрежет все загруженные файлы (%1) до этой длительности.
+
+Более короткие файлы будут обрезаны до их максимальной длительности.
+
+Продолжить?</translation>
     </message>
 </context>
 <context>
@@ -1322,7 +1336,7 @@ Continue?</source>
     <message>
         <location filename="../qml/ProfileEditor/VideoPanel.qml" line="274"/>
         <source>Scaling, filters, rate control and codec options are disabled for Copy (stream copy).</source>
-        <translation type="unfinished"></translation>
+        <translation>Масштабирование, фильтры, управление битрейтом и параметры кодека недоступны при копировании (копировании потока).</translation>
     </message>
 </context>
 <context>
@@ -1350,52 +1364,62 @@ Continue?</source>
     <message>
         <location filename="../qml/VideoPreview.qml" line="302"/>
         <source>Pause</source>
-        <translation type="unfinished"></translation>
+        <translation>Пауза</translation>
     </message>
     <message>
         <location filename="../qml/VideoPreview.qml" line="302"/>
         <source>Play</source>
-        <translation type="unfinished"></translation>
+        <translation>Воспроизвести</translation>
     </message>
     <message>
-        <location filename="../qml/VideoPreview.qml" line="363"/>
+        <location filename="../qml/VideoPreview.qml" line="360"/>
+        <source>Playing a short clip encoded with the current settings. Click to return to the original source video.</source>
+        <translation>Воспроизводится короткий фрагмент, закодированный с текущими настройками. Нажмите, чтобы вернуться к исходному видео.</translation>
+    </message>
+    <message>
+        <location filename="../qml/VideoPreview.qml" line="360"/>
+        <source>Playing the original source video. Click to switch to a short clip encoded with the current settings.</source>
+        <translation>Воспроизводится исходное видео. Нажмите, чтобы переключиться на короткий фрагмент, закодированный с текущими настройками.</translation>
+    </message>
+    <message>
+        <location filename="../qml/VideoPreview.qml" line="367"/>
         <source>Playback Streams</source>
-        <translation type="unfinished"></translation>
+        <translation>Потоки воспроизведения</translation>
     </message>
     <message>
-        <location filename="../qml/VideoPreview.qml" line="376"/>
+        <location filename="../qml/VideoPreview.qml" line="380"/>
         <source>Unmute</source>
-        <translation type="unfinished"></translation>
+        <translation>Включить звук</translation>
     </message>
     <message>
-        <location filename="../qml/VideoPreview.qml" line="376"/>
+        <location filename="../qml/VideoPreview.qml" line="380"/>
         <source>Mute</source>
-        <translation type="unfinished"></translation>
+        <translation>Отключить звук</translation>
     </message>
     <message>
-        <location filename="../qml/VideoPreview.qml" line="446"/>
+        <location filename="../qml/VideoPreview.qml" line="450"/>
         <source>Video</source>
-        <translation type="unfinished">Видео</translation>
+        <translation>Видео</translation>
     </message>
     <message>
-        <location filename="../qml/VideoPreview.qml" line="464"/>
+        <location filename="../qml/VideoPreview.qml" line="468"/>
         <source>Audio</source>
-        <translation type="unfinished">Аудио</translation>
+        <translation>Аудио</translation>
     </message>
     <message>
-        <location filename="../qml/VideoPreview.qml" line="491"/>
+        <location filename="../qml/VideoPreview.qml" line="495"/>
         <source>Preview generation failed</source>
         <translation>Не удалось создать предварительный просмотр</translation>
     </message>
     <message>
-        <location filename="../qml/VideoPreview.qml" line="521"/>
+        <location filename="../qml/VideoPreview.qml" line="525"/>
         <source>Generating preview…</source>
         <translation>Создание предпросмотра…</translation>
     </message>
     <message>
-        <location filename="../qml/VideoPreview.qml" line="554"/>
+        <location filename="../qml/VideoPreview.qml" line="558"/>
         <source>Cancel</source>
-        <translation type="unfinished">Отмена</translation>
+        <translation>Отмена</translation>
     </message>
 </context>
 <context>
@@ -1403,32 +1427,32 @@ Continue?</source>
     <message>
         <location filename="../qml/main.qml" line="150"/>
         <source>Could not open %1 file(s)</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось открыть файлов: %1</translation>
     </message>
     <message>
         <location filename="../qml/main.qml" line="161"/>
         <source>%1 skipped (not readable)</source>
-        <translation type="unfinished"></translation>
+        <translation>Пропущено: %1 (не удаётся прочитать)</translation>
     </message>
     <message>
         <location filename="../qml/main.qml" line="163"/>
         <source>%1 already open</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 уже открыто</translation>
     </message>
     <message>
         <location filename="../qml/main.qml" line="298"/>
         <source>Added %1 file(s) to the queue</source>
-        <translation type="unfinished"></translation>
+        <translation>В очередь добавлено файлов: %1</translation>
     </message>
     <message>
         <location filename="../qml/main.qml" line="300"/>
         <source>%1 skipped (empty trim range)</source>
-        <translation type="unfinished"></translation>
+        <translation>Пропущено: %1 (пустой диапазон обрезки)</translation>
     </message>
     <message>
         <location filename="../qml/main.qml" line="301"/>
         <source>No new files to queue</source>
-        <translation type="unfinished"></translation>
+        <translation>Нет новых файлов для добавления в очередь</translation>
     </message>
     <message>
         <location filename="../qml/main.qml" line="572"/>
@@ -1438,32 +1462,32 @@ Continue?</source>
     <message>
         <location filename="../qml/main.qml" line="662"/>
         <source>Transcoding Failed</source>
-        <translation type="unfinished">Транскодирование не удалось</translation>
+        <translation>Транскодирование не удалось</translation>
     </message>
     <message>
         <location filename="../qml/main.qml" line="662"/>
         <source>Transcoding Complete</source>
-        <translation type="unfinished">Транскодирование завершено</translation>
+        <translation>Транскодирование завершено</translation>
     </message>
     <message>
         <location filename="../qml/main.qml" line="666"/>
         <source>%1 of %2 jobs failed</source>
-        <translation type="unfinished">Не выполнено заданий: %1 из %2</translation>
+        <translation>Не выполнено заданий: %1 из %2</translation>
     </message>
     <message>
         <location filename="../qml/main.qml" line="668"/>
         <source>All %1 jobs completed</source>
-        <translation type="unfinished"></translation>
+        <translation>Все задания (%1) завершены</translation>
     </message>
     <message>
         <location filename="../qml/main.qml" line="670"/>
         <source>Transcoding exited with an error</source>
-        <translation type="unfinished"></translation>
+        <translation>Транскодирование завершилось с ошибкой</translation>
     </message>
     <message>
         <location filename="../qml/main.qml" line="670"/>
         <source>Your video has been transcoded successfully.</source>
-        <translation type="unfinished">Ваше видео было успешно транскодировано.</translation>
+        <translation>Ваше видео было успешно транскодировано.</translation>
     </message>
     <message>
         <location filename="../qml/main.qml" line="266"/>
