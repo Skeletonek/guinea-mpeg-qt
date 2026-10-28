@@ -38,9 +38,29 @@ pub extern "C" fn guinea_mpeg_video_info(path: *const c_char) -> *mut c_char {
             &p,
         ],
     ) {
-        Some(json) => to_c_string(json),
+        Some(json) => to_c_string(drop_attached_pictures(&json)),
         None => to_c_string(r#"{"duration":0.0}"#.to_string()),
     }
+}
+
+/// Embedded cover art is muxed as an attached-picture *video* stream. ffprobe
+/// reports a fake frame rate for it (e.g. the time base 90000/1), which used to
+/// poison fps-derived UI like precise time formatting. Cover art is not playable
+/// video, so it is dropped from the stream lists.
+pub(crate) fn drop_attached_pictures(json: &str) -> String {
+    let mut root: serde_json::Value = match serde_json::from_str(json) {
+        Ok(root) => root,
+        Err(_) => return json.to_string(),
+    };
+    if let Some(streams) = root.get_mut("streams").and_then(|s| s.as_array_mut()) {
+        streams.retain(|s| {
+            s.get("disposition")
+                .and_then(|d| d.get("attached_pic"))
+                .and_then(|v| v.as_i64())
+                != Some(1)
+        });
+    }
+    serde_json::to_string(&root).unwrap_or_else(|_| json.to_string())
 }
 
 #[no_mangle]

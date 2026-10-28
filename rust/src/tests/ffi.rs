@@ -1,4 +1,4 @@
-use crate::ffmpeg::parse_encoders;
+use crate::ffmpeg::{drop_attached_pictures, parse_encoders};
 
 const SAMPLE_ENCODERS: &str = "\
 Encoders:
@@ -76,4 +76,38 @@ fn malformed_lines_are_skipped() {
     assert!(!map.contains_key("broken"));
     assert!(!map.contains_key("no_close"));
     assert!(!map.contains_key("aac"));
+}
+
+#[test]
+fn video_info_drops_attached_picture_streams() {
+    // Real ffprobe output for a FLAC with embedded cover art: the picture is
+    // muxed as a video stream whose fake rate (time base) poisons the preview time
+    let raw = r#"{"streams":[
+        {"index":0,"codec_name":"flac","codec_type":"audio","r_frame_rate":"0/0"},
+        {"index":1,"codec_name":"png","codec_type":"video","r_frame_rate":"90000/1",
+         "disposition":{"default":0,"dub":0,"attached_pic":1}}
+    ],"format":{"duration":"2.000000"}}"#;
+    let cleaned = drop_attached_pictures(raw);
+    let root: serde_json::Value = serde_json::from_str(&cleaned).unwrap();
+    let streams = root["streams"].as_array().unwrap();
+    assert_eq!(streams.len(), 1);
+    assert_eq!(streams[0]["codec_type"], "audio");
+    assert_eq!(root["format"]["duration"], "2.000000");
+}
+
+#[test]
+fn video_info_keeps_regular_streams() {
+    let raw = r#"{"streams":[
+        {"codec_type":"video","codec_name":"h264","r_frame_rate":"30/1"},
+        {"codec_type":"audio","codec_name":"aac"}
+    ],"format":{}}"#;
+    let cleaned = drop_attached_pictures(raw);
+    let root: serde_json::Value = serde_json::from_str(&cleaned).unwrap();
+    assert_eq!(root["streams"].as_array().unwrap().len(), 2);
+    assert_eq!(root["streams"][0]["r_frame_rate"], "30/1");
+}
+
+#[test]
+fn video_info_passthrough_on_invalid_json() {
+    assert_eq!(drop_attached_pictures("not json"), "not json");
 }

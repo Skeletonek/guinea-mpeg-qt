@@ -93,34 +93,44 @@ SectionBase {
         }
     }
 
-    Column {
-        width: parent.width
+    readonly property int cropSideLabelWidth: 64
+
+    Row {
         spacing: 8
+        width: parent.width
 
-        Row {
+        Label {
+            id: cropLabel
+
+            text: qsTr("Crop")
+            color: theme.textSecondary
+            width: deinterlaceRow.effectiveLabelWidth
+            verticalAlignment: Text.AlignVCenter
+        }
+
+        Column {
             spacing: 8
-
-            Label {
-                text: qsTr("Crop")
-                color: theme.textSecondary
-                width: Math.max(64, deinterlaceRow.effectiveLabelWidth)
-                verticalAlignment: Text.AlignVCenter
-            }
+            width: parent.width - cropLabel.width - parent.spacing
 
             Row {
+                id: cropTopBottomRow
+
+                readonly property int fieldWidth: (width - 2 * cropSideLabelWidth - 3 * spacing) / 2
+
                 spacing: 4
+                width: parent.width
 
                 Label {
                     text: qsTr("Top")
                     color: theme.textSecondary
-                    width: 64
+                    width: cropSideLabelWidth
                     verticalAlignment: Text.AlignVCenter
                 }
 
                 TextField {
                     id: cropTopField
 
-                    width: 96
+                    width: cropTopBottomRow.fieldWidth
                     placeholderText: "0"
                     onTextChanged: root.emitChanged();
 
@@ -129,22 +139,18 @@ SectionBase {
                         top: 10000
                     }
                 }
-            }
-
-            Row {
-                spacing: 4
 
                 Label {
                     text: qsTr("Bottom")
                     color: theme.textSecondary
-                    width: 64
+                    width: cropSideLabelWidth
                     verticalAlignment: Text.AlignVCenter
                 }
 
                 TextField {
                     id: cropBottomField
 
-                    width: 96
+                    width: cropTopBottomRow.fieldWidth
                     placeholderText: "0"
                     onTextChanged: root.emitChanged();
 
@@ -154,30 +160,26 @@ SectionBase {
                     }
                 }
             }
-        }
-
-        Row {
-            spacing: 8
-
-            Item {
-                width: Math.max(64, deinterlaceRow.effectiveLabelWidth)
-                height: 1
-            }
 
             Row {
+                id: cropLeftRightRow
+
+                readonly property int fieldWidth: (width - 2 * cropSideLabelWidth - 3 * spacing) / 2
+
                 spacing: 4
+                width: parent.width
 
                 Label {
                     text: qsTr("Left")
                     color: theme.textSecondary
-                    width: 64
+                    width: cropSideLabelWidth
                     verticalAlignment: Text.AlignVCenter
                 }
 
                 TextField {
                     id: cropLeftField
 
-                    width: 96
+                    width: cropLeftRightRow.fieldWidth
                     placeholderText: "0"
                     onTextChanged: root.emitChanged();
 
@@ -186,22 +188,18 @@ SectionBase {
                         top: 10000
                     }
                 }
-            }
-
-            Row {
-                spacing: 4
 
                 Label {
                     text: qsTr("Right")
                     color: theme.textSecondary
-                    width: 64
+                    width: cropSideLabelWidth
                     verticalAlignment: Text.AlignVCenter
                 }
 
                 TextField {
                     id: cropRightField
 
-                    width: 96
+                    width: cropLeftRightRow.fieldWidth
                     placeholderText: "0"
                     onTextChanged: root.emitChanged();
 

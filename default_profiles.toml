@@ -1,9 +1,12 @@
 # The `category` key drives the picker's section groups; profiles without one
 # fall into a trailing "Custom" group.
+# Tier words map to rate control: High/Medium/Low are CRF levels, Fast trades
+# quality for encode speed. Resolution/fps caps are part of the name when a
+# profile limits them.
 
 # Quality: high-fidelity video encodes
 [[profiles]]
-name = "H.264 High"
+name = "H.264 High 1080p"
 codec = "h264"
 encoder = "libx264"
 crf = 18
@@ -52,7 +55,7 @@ audio_sample_rate = 48000
 category = "Quality"
 
 [[profiles]]
-name = "H.265 High"
+name = "H.265 High 1080p"
 codec = "hevc"
 encoder = "libx265"
 crf = 22
@@ -68,7 +71,7 @@ category = "Quality"
 
 # Balanced: good quality at reasonable sizes
 [[profiles]]
-name = "H.265 Medium"
+name = "H.265 Medium 720p"
 codec = "hevc"
 encoder = "libx265"
 crf = 28
@@ -83,7 +86,7 @@ audio_sample_rate = 48000
 category = "Balanced"
 
 [[profiles]]
-name = "AV1 Medium"
+name = "AV1 Medium 720p"
 codec = "av1"
 encoder = "libsvtav1"
 crf = 35
@@ -101,7 +104,7 @@ audio_sample_rate = 48000
 category = "Balanced"
 
 [[profiles]]
-name = "VP9 Medium"
+name = "VP9 Medium 720p"
 codec = "vp9"
 encoder = "libvpx-vp9"
 crf = 32
@@ -117,7 +120,7 @@ audio_sample_rate = 48000
 category = "Balanced"
 
 [[profiles]]
-name = "H.264 Compatible"
+name = "H.264 Medium 1080p30"
 codec = "h264"
 encoder = "libx264"
 crf = 23
@@ -133,7 +136,7 @@ category = "Balanced"
 
 # Compression: smaller files
 [[profiles]]
-name = "VP9 Low"
+name = "VP9 Low 720p30"
 codec = "vp9"
 encoder = "libvpx-vp9"
 crf = 40
@@ -149,7 +152,7 @@ audio_sample_rate = 48000
 category = "Compression"
 
 [[profiles]]
-name = "AV1 Low"
+name = "AV1 Low 720p30"
 codec = "av1"
 encoder = "libsvtav1"
 crf = 42
@@ -167,7 +170,7 @@ audio_sample_rate = 48000
 category = "Compression"
 
 [[profiles]]
-name = "H.265 Low"
+name = "H.265 Low 720p30"
 codec = "hevc"
 encoder = "libx265"
 crf = 34
@@ -182,7 +185,7 @@ audio_sample_rate = 48000
 category = "Compression"
 
 [[profiles]]
-name = "Web VP9 720p"
+name = "VP9 Fast 720p30"
 codec = "vp9"
 encoder = "libvpx-vp9"
 crf = 32
@@ -233,7 +236,7 @@ category = "Animation"
 
 # Audio: audio-only exports
 [[profiles]]
-name = "AAC Export"
+name = "AAC 256k"
 codec = "copy"
 encoder = "copy"
 video_enabled = false
@@ -246,7 +249,7 @@ container = "m4a"
 category = "Audio"
 
 [[profiles]]
-name = "Opus Export"
+name = "Opus 128k"
 codec = "copy"
 encoder = "copy"
 video_enabled = false
@@ -255,11 +258,12 @@ audio_codec = "opus"
 audio_bitrate = "128k"
 audio_channels = 2
 audio_sample_rate = 48000
+audio_filters = { rate_control = "vbr" }
 container = "opus"
 category = "Audio"
 
 [[profiles]]
-name = "FLAC Export"
+name = "FLAC"
 codec = "copy"
 encoder = "copy"
 video_enabled = false

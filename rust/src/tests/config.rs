@@ -448,3 +448,52 @@ fn import_invalid_file_errors() {
         std::fs::remove_file(&empty).ok();
     });
 }
+
+#[test]
+fn shipped_defaults_use_expected_names() {
+    // The picker groups by these names; renames are user-facing, so pin them
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../default_profiles.toml");
+    let cfg = load_config_from_file(&root);
+
+    for name in [
+        "H.264 High 1080p",
+        "H.265 High 1080p",
+        "VP9 High",
+        "AV1 High",
+        "H.265 Medium 720p",
+        "AV1 Medium 720p",
+        "VP9 Medium 720p",
+        "H.264 Medium 1080p30",
+        "VP9 Low 720p30",
+        "AV1 Low 720p30",
+        "H.265 Low 720p30",
+        "VP9 Fast 720p30",
+        "AAC 256k",
+        "Opus 128k",
+        "FLAC",
+        "WAV",
+    ] {
+        assert!(
+            cfg.profiles.iter().any(|p| p.name == name),
+            "missing default profile: {name}"
+        );
+    }
+}
+
+#[test]
+fn shipped_opus_profile_is_vbr() {
+    // VBR with a 128k target is how libopus is meant to run
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../default_profiles.toml");
+    let cfg = load_config_from_file(&root);
+    let opus = cfg
+        .profiles
+        .iter()
+        .find(|p| p.name == "Opus 128k")
+        .expect("Opus 128k default profile");
+    assert_eq!(
+        opus.audio_filters
+            .as_ref()
+            .and_then(|f| f.rate_control.as_deref()),
+        Some("vbr")
+    );
+}

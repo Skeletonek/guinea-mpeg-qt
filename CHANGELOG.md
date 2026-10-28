@@ -11,6 +11,7 @@
 - Added switching audio and video streams for playback
 - Added support for FFV1, MJPEG, MPEG2, MPEG4 and Theora video codecs
 - Added support for PCM audio codec
+- Added tooltip to Source/Preview buttons
 - Changed ControlsPanel width
 - Changed system theme on Windows from Fusion to FluentWinUI3
 - Changed "Video Information" section name to "Media Information"
@@ -18,6 +19,8 @@
 - Changed "Preview Mode" button place with "Regenerate" button in Preview Mode
 - Changed Linux .desktop files to support localized description
 - Changed quality parameter (-qp, -q:v, -cq) to be called Quality instead of CRF in profile editor
+- Changed layout of the AV1 section in profile editor
+- Renamed some of the default profiles
 - Improved keyboard navigation within the player window and timeline control
 - Improved handling for corrupted or missing ffmpeg binary
 - Unified dialogs across the entire app

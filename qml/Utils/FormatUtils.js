@@ -2,7 +2,8 @@
 
 /**
  * Time formatting utility - MM:SS with fraction: frame index within the current
- * second (2 digits) when fps is known, milliseconds (3 digits) otherwise.
+ * second (2 digits, 3 when fps > 100 so the counter width never changes) when
+ * fps is known, milliseconds (3 digits) otherwise.
  * @param {number} ms - Time in milliseconds
  * @param {number} [fps] - Frames per second; 0/null falls back to milliseconds
  * @returns {string} Formatted time string (MM:SS.ff with fps, MM:SS.fff without)
@@ -14,7 +15,7 @@ function formatTimePrecise(ms, fps) {
     if (fps > 0) {
         var perSecond = Math.ceil(fps)
         frac = Math.min(perSecond - 1, Math.floor((t % 1000) * fps / 1000))
-        digits = 2
+        digits = perSecond - 1 > 99 ? 3 : 2
     } else {
         frac = t % 1000
     }

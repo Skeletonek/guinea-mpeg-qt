@@ -21,7 +21,7 @@ Row {
     Label {
         id: labelLabel
 
-        text: root.label
+        text: root.toolTipText !== "" ? root.label + " (?)" : root.label
         color: theme.textSecondary
         width: root.effectiveLabelWidth
         verticalAlignment: Text.AlignVCenter

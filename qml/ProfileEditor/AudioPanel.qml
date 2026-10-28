@@ -607,8 +607,9 @@ Column {
                 toolTipText: qsTr("Normalize runs a first-pass loudness analysis on each file, " +
                                   "computes a single linear volume gain to reach the Target I level, " +
                                   "clamps it so the true peak stays below Target TP, and applies " +
-                                  "volume=gain during the transcode. This preserves dynamics " +
-                                  "(no compression) and matches the behavior of the normalize_audio.sh script.")
+                                  "volume=gain during the transcode. This equalizes loudness across " +
+                                  "tracks while preserving dynamics (no compression): the same gain " +
+                                  "is applied to the entire file.")
 
                 Switch {
                     id: normalizeSwitch

@@ -624,6 +624,16 @@ fn aac_quality_mode_emits_no_quality_flag() {
 }
 
 #[test]
+fn audio_flac_never_emits_bitrate() {
+    // FLAC has no bitrate control; the stored profile's bitrate is fabricated by serde
+    let args = args_for(
+        r#"{"codec":"h264","audio_codec":"flac","audio_bitrate":"128k","audio_channels":2,"audio_sample_rate":48000}"#,
+    );
+    assert!(contains_pair(&args, "-c:a", "flac"));
+    assert!(!contains_flag(&args, "-b:a"));
+}
+
+#[test]
 fn tokenize_handles_quotes_and_escapes() {
     assert_eq!(crate::ffmpeg::tokenize("a b c"), vec!["a", "b", "c"]);
     assert_eq!(crate::ffmpeg::tokenize("'a b' c"), vec!["a b", "c"]);

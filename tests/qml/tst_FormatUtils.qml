@@ -67,7 +67,11 @@ TestCase {
         compare(FormatUtils.formatTimePrecise(61000, 25), "01:01.00");
         // Non-integer fps
         compare(FormatUtils.formatTimePrecise(1500, 23.976), "00:01.11");
+        // Above 100 fps: 3-digit frame index so the counter width never changes
+        compare(FormatUtils.formatTimePrecise(50, 120), "00:00.006");
         compare(FormatUtils.formatTimePrecise(995, 120), "00:00.119");
+        // 100 fps stays at 2 digits (frames 0-99)
+        compare(FormatUtils.formatTimePrecise(50, 100), "00:00.05");
         // Milliseconds when fps is unknown, padded to 3 digits
         compare(FormatUtils.formatTimePrecise(0), "00:00.000");
         compare(FormatUtils.formatTimePrecise(1500, 0), "00:01.500");

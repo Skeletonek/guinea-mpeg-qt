@@ -354,6 +354,10 @@ Rectangle {
                 enabled: root.previewActive || !root.previewGenerating
                 Layout.fillHeight: true
                 onClicked: root.togglePreview()
+
+                ToolTip.visible: hovered
+                ToolTip.delay: 500
+                ToolTip.text: root.previewActive ? qsTr("Playing a short clip encoded with the current settings. Click to return to the original source video.") : qsTr("Playing the original source video. Click to switch to a short clip encoded with the current settings.")
             }
 
             IconButton {

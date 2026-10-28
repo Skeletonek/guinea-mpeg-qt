@@ -29,53 +29,39 @@ SectionBase {
         text: "AV1"
     }
 
-    Grid {
-        columns: 4
-        columnSpacing: 8
-        rowSpacing: 8
-        width: parent.width
+    LabeledTextField {
+        id: tileRowsField
 
-        Label {
-            text: qsTr("Tile rows")
-            color: theme.textSecondary
-        }
+        label: qsTr("Tile rows")
+        placeholderText: "2"
+        onTextChanged: root.emitChanged();
 
-        TextField {
-            id: tileRowsField
-
-            width: 60
-            placeholderText: "2"
-            onTextChanged: root.emitChanged();
-
-            validator: IntValidator {
-                bottom: 0
-                top: 8
-            }
-        }
-
-        Label {
-            text: qsTr("Tile cols")
-            color: theme.textSecondary
-        }
-
-        TextField {
-            id: tileColsField
-
-            width: 60
-            placeholderText: "3"
-            onTextChanged: root.emitChanged();
-
-            validator: IntValidator {
-                bottom: 0
-                top: 8
-            }
+        validator: IntValidator {
+            bottom: 0
+            top: 8
         }
     }
 
-    CheckBox {
-        id: enableQmCheck
+    LabeledTextField {
+        id: tileColsField
 
-        text: qsTr("Enable Quantization Matrix")
-        onCheckedChanged: root.emitChanged();
+        label: qsTr("Tile cols")
+        placeholderText: "3"
+        onTextChanged: root.emitChanged();
+
+        validator: IntValidator {
+            bottom: 0
+            top: 8
+        }
+    }
+
+    LabeledRow {
+        label: qsTr("Enable Quantization Matrix")
+
+        Switch {
+            id: enableQmCheck
+
+            onCheckedChanged: root.emitChanged();
+        }
     }
 }

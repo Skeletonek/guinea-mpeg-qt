@@ -12,7 +12,7 @@ ApplicationWindow {
 
     property string currentVideoPath: ""
     property var currentVideoInfo: ({})
-    property string currentProfile: "H.264 High"
+    property string currentProfile: "H.264 High 1080p"
     property int videoDuration: 0
     property int startTime: 0
     property int endTime: 0

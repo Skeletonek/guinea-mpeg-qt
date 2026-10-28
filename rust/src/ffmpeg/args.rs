@@ -480,13 +480,15 @@ fn add_audio_rate_control(args: &mut Vec<String>, profile: &VideoProfile, audio_
         .and_then(|f| f.quality.as_ref())
         .map(|s| s.as_str())
         .unwrap_or_else(|| default_audio_quality(audio_codec));
+    // FLAC is lossless-compressed by level: no bitrate argument, whatever the mode
+    let emit_bitrate = !profile.audio_bitrate.is_empty() && audio_codec != "flac";
 
     match rate_control {
         Some("vbr") => match audio_codec {
             "libopus" => {
                 args.push("-vbr".to_string());
                 args.push("on".to_string());
-                if !profile.audio_bitrate.is_empty() {
+                if emit_bitrate {
                     args.push("-b:a".to_string());
                     args.push(profile.audio_bitrate.clone());
                 }
@@ -496,7 +498,7 @@ fn add_audio_rate_control(args: &mut Vec<String>, profile: &VideoProfile, audio_
                 args.push(quality.to_string());
             }
             _ => {
-                if !profile.audio_bitrate.is_empty() {
+                if emit_bitrate {
                     args.push("-b:a".to_string());
                     args.push(profile.audio_bitrate.clone());
                 }
@@ -519,7 +521,7 @@ fn add_audio_rate_control(args: &mut Vec<String>, profile: &VideoProfile, audio_
                 args.push("-vbr".to_string());
                 args.push("off".to_string());
             }
-            if !profile.audio_bitrate.is_empty() {
+            if emit_bitrate {
                 args.push("-b:a".to_string());
                 args.push(profile.audio_bitrate.clone());
             }
