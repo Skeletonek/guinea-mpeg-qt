@@ -8,7 +8,7 @@
 #define MyAppCopyrightYear GetDateTimeString('yyyy', '', '')
 
 #ifndef AppVersion
-    #define AppVersion "0.14.0"
+    #define AppVersion "1.0.0"
 #endif
 
 #ifndef SourceDir
