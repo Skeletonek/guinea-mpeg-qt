@@ -156,21 +156,26 @@ It also handles builds and releases for all linux packages (except Appimage) on 
 
 ```
 .
-├── rust/                    # Rust core library (cdylib)
-│   ├── include/guinea_mpeg_core.h    # C FFI header
-│   └── src/                 # backend FFI, TOML config, mpv, ffmpeg
 ├── src/                     # C++ glue (QObjects exposed to QML)
-│   ├── main.cpp
-│   ├── backend.{h,cpp}
-│   └── mpvitem.{h,cpp}
+│   ├── main.cpp             # app setup, theme, context properties
+│   ├── backend.{h,cpp}      # GuineaMpegBackendExt — Rust FFI bridge for QML
+│   └── mpvitem.{h,cpp}      # MpvItem + MpvRenderer (embedded mpv playback)
 ├── qml/                     # Qt Quick UI
 │   ├── main.qml
-│   ├── ProfileEditor/       # components for ProfileEditor.qml
+│   ├── VideoPreview.qml     # mpv preview + playback stream selection
+│   ├── TimelineControl.qml  # trim handles (start/end)
+│   ├── ControlsPanel.qml    # right sidebar
+│   ├── ProfileEditor/       # panels + codec-specific *Section.qml components
 │   ├── Components/          # reusable controls
 │   ├── Dialogs/             # modal dialogs
-│   └── Utils/               # JS helpers
-├── build/                   # build scripts + utils + Dockerfiles
+│   └── Utils/               # JS helpers (constants, formatting)
+├── rust/                    # Rust core library (cdylib)
+│   ├── include/guinea_mpeg_core.h    # C FFI header
+│   └── src/                 # backend FFI, TOML config, mpv, ffmpeg args
+├── tests/                   # QML + C++ FFI tests (./build/run-tests.sh)
+├── build/                   # build/package scripts + Dockerfiles
 ├── translations/            # .ts locale files
+├── media/                   # icons, logo, screenshots
 ├── default_profiles.toml    # default profiles bundled with the app
 ├── CMakeLists.txt
 └── .gitlab-ci.yml
@@ -185,22 +190,7 @@ It also handles builds and releases for all linux packages (except Appimage) on 
 All user settings live in `~/.config/guinea-mpeg/config.toml` or `%APPDATA%/guinea-mpeg/config.toml`. It stores both user profiles and application config
 
 Built-in defaults profiles are bundled at `default_profiles.toml` (next to the binary or at `/usr/share/guinea-mpeg/default_profiles.toml`).
-User profiles merge over defaults (same name = user override).
-
-### Built-in Profiles
-
-| Profile | Codec | Quality |
-|---------|-------|---------|
-| H.264 High | libx264 | CRF 18, slow preset, film tune, 1080p |
-| H.265 High | libx265 | CRF 22, slow preset, film tune, 1080p |
-| H.265 Medium | libx265 | CRF 28, medium preset, film tune, 720p |
-| VP9 Low | libvpx-vp9 | CRF 40, deadline=good, cpu-used=3, ssim tune, 720p |
-| VP9 Medium | libvpx-vp9 | CRF 32, deadline=good, cpu-used=2, ssim tune, 720p |
-| AV1 High | libsvtav1 | CRF 28, preset 6, VMAF tune, native res, tiles 2x3 |
-| AV1 Medium | libsvtav1 | CRF 35, preset 6, VMAF tune, 720p, tiles 1x2 |
-| AV1 Low | libsvtav1 | CRF 42, preset 6, VMAF tune, 720p |
-| Animated GIF | gif | 480p, 10 fps, quality 75, loop |
-| Animated WebP | libwebp_anim | 480p, 10 fps, quality 75, loop |
+User profiles merge over defaults (same name = user override). The defaults can be viewed in-app or in the bundled `default_profiles.toml`.
 
 ## LLM Usage
 

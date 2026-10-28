@@ -17,15 +17,16 @@ qml/
   VideoPreview.qml      wraps MpvItem
   TimelineControl.qml   trim handles (start/end time)
   ControlsPanel.qml     right sidebar
-  ProfileEditor.qml     + VideoPanel/AudioPanel/AdvancedPanel + VideoPanel/*Section.qml
+  ProfileEditor.qml     + VideoPanel/AudioPanel/AdvancedPanel panels; codec *Section.qml live in VideoPanel/, AudioPanel/ has PCMSection.qml
   Components/           reusable controls (AppDialog — shared Dialog base: gutters, height, centering; SwitchRow, LabeledTextField, IconButton, ...)
   Dialogs/              Transcode, Options, About, Export/Import, warnings, ...
   Utils/                Constants.js, DataUtils.js, FormatUtils.js, Centering.js
 rust/                   Rust core (cdylib)
   include/guinea_mpeg_core.h
-  src/                  lib, backend, config, mpv + ffmpeg/{args,encoders,codecs,ffi,types,util}
+  src/                  lib, backend, config, mpv + ffmpeg/{args,command,codecs,encoders,ffi,types,util} + tests/
   Cargo.toml            canonical version source
-build/                  linux-build.sh + Dockerfiles
+build/                  linux-build.sh/windows-build.ps1 + packaging + Dockerfiles + run-tests.sh/run-lint.sh/update-translations.sh
+tests/                  QML (tests/qml/tst_*.qml) + C++ FFI (tests/cpp/) via ctest
 translations/           guinea-mpeg_<locale>.ts
 default_profiles.toml
 .gitlab-ci.yml          lint on push + dind packages + tag release
@@ -34,7 +35,7 @@ default_profiles.toml
 ## Key Components
 - `GuineaMpegBackendExt` (plain QObject): profile CRUD, options, video info, encoder detection — all Rust FFI. Transcode is the exception: `startTranscode()` builds args via `guinea_mpeg_build_ffmpeg_command()` then runs a real `QProcess` (QML needs its signals to stream output live). Kills the previous process first. Exposes `transcodeOutput`/`transcoding` Q_PROPERTYs + `transcodeFinished(bool)`.
 - `MpvItem` owns `void* m_backend` from `guinea_mpeg_mpv_create()`; raw `mpv_handle*` via `guinea_mpeg_mpv_raw_handle()` for render context + wakeup; all mpv commands delegate to Rust. Events: wakeup → `onMpvEvents` → `handleMpvEvents()` → `guinea_mpeg_mpv_process_events()` bitmask → Qt signals (1=position, 2=duration, 4=playing). `MpvRenderer` stays in C++ (Renderer cannot be Rust).
-- Rust: `config.rs` = `[[profiles]]` TOML, legacy HashMap fallback, `"svtav1"`→`"av1"` migration, user overlays defaults by name, export only user profiles, import warns on conflicts. `mpv.rs` options: `vo=libmpv`, `keep-open=yes`, `cache=yes`. `ffmpeg/`: `build_command()` rate control per encoder family, `ffmpeg -hide_banner -encoders` parsing, `EncoderCapabilities`.
+- Rust: `config.rs` = `[[profiles]]` TOML, legacy HashMap fallback, `"svtav1"`→`"av1"` migration, user overlays defaults by name, export only user profiles, import warns on conflicts. `mpv.rs` options: `vo=libmpv`, `keep-open=yes`, `cache=yes`. `ffmpeg/`: `build_command()` rate control per encoder family, `ffmpeg -hide_banner -encoders` parsing, `EncoderCapabilities`; `guinea_mpeg_video_info()` drops `attached_pic` streams (embedded cover art muxed as a video stream with a bogus `r_frame_rate`, e.g. `90000/1`, that would poison fps-derived UI).
 
 ## Gotchas
 - **QML binding rule**: never `property = value` in JS — it silently destroys the binding. Debug with `QT_LOGGING_RULES="qt.qml.binding.removal.info=true"`.
