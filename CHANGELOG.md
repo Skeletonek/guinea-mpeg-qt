@@ -1,4 +1,4 @@
-### 1.0.0 (In progress)
+### 1.0.0
 - Added filters section in Profile Editor
 - Added options for deinterlacing, denoising, cropping, rotating, mirroring for video settings
 - Added options for quality based encoding, gain, loudnorm, audio normalization in audio settings
