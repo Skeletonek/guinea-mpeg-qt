@@ -120,11 +120,19 @@ class GuineaMpegBackendExt : public QObject {
     void finishTranscode(QProcess* proc, bool success);
     QString failTranscode(const QString& msg);
     void appendTranscodeOutput(const QString& chunk);
+    // Loudnorm analysis runs on a worker thread; token changes drop stale completions
+    void beginNormalizeAnalysis(const QString& input, const QString& output, double startTime, double endTime,
+                                const QString& profileJson);
+    void finishNormalizeAnalysis(int token, const QString& resultJson, const QString& input, const QString& output,
+                                 double startTime, double endTime, const QString& profileJson);
+    void launchTranscode(const QString& input, const QString& output, double startTime, double endTime,
+                         const QString& profileJson);
 
     QString m_transcodeOutput;
     QString m_transcodeError;
     bool m_transcoding = false;
     bool m_previewGenerating = false;
+    int m_analysisToken = 0;
     QString m_lastPreviewPath;
     qint64 m_lastPreviewSize = 0;
     qint64 m_lastPreviewDurationMs = 5000;
