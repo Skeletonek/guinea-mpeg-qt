@@ -303,26 +303,41 @@ fn profile_groups_order_and_custom_fallback() {
         [[profiles]]
         name = "Uncategorized"
         codec = "gif"
+
+        [[profiles]]
+        name = "PreCustom"
+        codec = "h264"
+        category = "Custom"
         "#,
         );
         set_config(merge_configs());
         save_profile("Mine", r#"{"codec":"h264","category":"General"}"#).unwrap();
         save_profile("UserOnly", r#"{"codec":"h264","category":"OnlyUser"}"#).unwrap();
+        save_profile("UserCustom", r#"{"codec":"h264","category":"Custom"}"#).unwrap();
         save_profile("Raw", r#"{"codec":"h264"}"#).unwrap();
+        assert_eq!(
+            load_profile("Raw").unwrap().category.as_deref(),
+            Some("Custom")
+        );
 
         let groups = profile_groups();
         let categories: Vec<&str> = groups.iter().map(|g| g.category.as_str()).collect();
-        assert_eq!(categories, vec!["General", "Compact", "OnlyUser", "Custom"]);
+        assert_eq!(categories, vec!["General", "Compact", "Custom", "OnlyUser"]);
         assert_eq!(
             groups[0].names,
             vec!["B".to_string(), "C".to_string(), "Mine".to_string()]
         );
         assert_eq!(groups[1].names, vec!["A".to_string()]);
-        assert_eq!(groups[2].names, vec!["UserOnly".to_string()]);
         assert_eq!(
-            groups[3].names,
-            vec!["Raw".to_string(), "Uncategorized".to_string()]
+            groups[2].names,
+            vec![
+                "PreCustom".to_string(),
+                "Raw".to_string(),
+                "Uncategorized".to_string(),
+                "UserCustom".to_string()
+            ]
         );
+        assert_eq!(groups[3].names, vec!["UserOnly".to_string()]);
     });
 }
 
@@ -369,7 +384,10 @@ fn export_import_preserves_category() {
             load_profile("Cat").unwrap().category.as_deref(),
             Some("Compact")
         );
-        assert_eq!(load_profile("NoCat").unwrap().category, None);
+        assert_eq!(
+            load_profile("NoCat").unwrap().category.as_deref(),
+            Some("Custom")
+        );
         std::fs::remove_file(&export_path).ok();
     });
 }

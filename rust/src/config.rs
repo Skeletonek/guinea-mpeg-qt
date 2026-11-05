@@ -61,7 +61,7 @@ pub struct AudioFilters {
 pub struct VideoProfile {
     #[serde(default)]
     pub name: String,
-    // Picker grouping; uncategorized profiles land in a trailing "Custom" group.
+    // Profiles without it are bucketed under "Custom".
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub category: Option<String>,
     pub codec: String,
@@ -323,30 +323,32 @@ pub struct ProfileGroup {
 
 const CUSTOM_CATEGORY: &str = "Custom";
 
+fn effective_category(profile: &VideoProfile) -> &str {
+    profile
+        .category
+        .as_deref()
+        .filter(|category| !category.is_empty())
+        .unwrap_or(CUSTOM_CATEGORY)
+}
+
 pub fn profile_groups() -> Vec<ProfileGroup> {
     // Order: first appearance in defaults, then user-only categories (user file order).
     let mut order: Vec<String> = Vec::new();
     for source in [load_defaults().profiles, load_user_config().profiles] {
         for p in source {
-            if let Some(category) = &p.category {
-                if !order.contains(category) {
-                    order.push(category.clone());
-                }
+            let category = effective_category(&p);
+            if order.iter().all(|existing| existing != category) {
+                order.push(category.to_string());
             }
         }
     }
 
-    let config = get_config();
     let mut by_category: HashMap<String, Vec<String>> = HashMap::new();
-    let mut uncategorized: Vec<String> = Vec::new();
-    for p in &config.profiles {
-        match &p.category {
-            Some(category) => by_category
-                .entry(category.clone())
-                .or_default()
-                .push(p.name.clone()),
-            None => uncategorized.push(p.name.clone()),
-        }
+    for p in &get_config().profiles {
+        by_category
+            .entry(effective_category(p).to_string())
+            .or_default()
+            .push(p.name.clone());
     }
 
     let mut groups: Vec<ProfileGroup> = Vec::new();
@@ -355,20 +357,6 @@ pub fn profile_groups() -> Vec<ProfileGroup> {
             names.sort();
             groups.push(ProfileGroup { category, names });
         }
-    }
-    // Sorted spot for categories missing from `order`, so nothing vanishes from the picker.
-    let mut leftover: Vec<(String, Vec<String>)> = by_category.into_iter().collect();
-    leftover.sort();
-    for (category, mut names) in leftover {
-        names.sort();
-        groups.push(ProfileGroup { category, names });
-    }
-    uncategorized.sort();
-    if !uncategorized.is_empty() {
-        groups.push(ProfileGroup {
-            category: CUSTOM_CATEGORY.to_string(),
-            names: uncategorized,
-        });
     }
     groups
 }
@@ -380,6 +368,9 @@ pub fn user_profile_names() -> Vec<String> {
 pub fn save_profile(name: &str, json: &str) -> anyhow::Result<()> {
     let mut profile: VideoProfile = serde_json::from_str(json)?;
     profile.name = name.to_string();
+    if profile.category.as_deref().is_none_or(str::is_empty) {
+        profile.category = Some(CUSTOM_CATEGORY.to_string());
+    }
     let mut cfg = load_user_config();
     if let Some(pos) = cfg.profiles.iter().position(|p| p.name == name) {
         cfg.profiles[pos] = profile;

@@ -185,12 +185,12 @@ void TestBackendFfi::availableProfilesGrouped() {
 
     const QJsonArray groups = QJsonDocument::fromJson(takeRust(guinea_mpeg_available_profiles()).toUtf8()).array();
     QCOMPARE(groups.size(), 3);
-    QCOMPARE(groups.at(0).toObject().value("category").toString(), QStringLiteral("Compatibility"));
-    QCOMPARE(groups.at(0).toObject().value("names").toArray().size(), 1);
-    QCOMPARE(groups.at(1).toObject().value("category").toString(), QStringLiteral("Web & streaming"));
-    QCOMPARE(groups.at(1).toObject().value("names").toArray().at(0).toString(), QStringLiteral("My Web"));
-    QCOMPARE(groups.at(2).toObject().value("category").toString(), QStringLiteral("Custom"));
-    QCOMPARE(groups.at(2).toObject().value("names").toArray().at(0).toString(), QStringLiteral("H.264 High"));
+    QCOMPARE(groups.at(0).toObject().value("category").toString(), QStringLiteral("Custom"));
+    QCOMPARE(groups.at(0).toObject().value("names").toArray().at(0).toString(), QStringLiteral("H.264 High"));
+    QCOMPARE(groups.at(1).toObject().value("category").toString(), QStringLiteral("Compatibility"));
+    QCOMPARE(groups.at(1).toObject().value("names").toArray().size(), 1);
+    QCOMPARE(groups.at(2).toObject().value("category").toString(), QStringLiteral("Web & streaming"));
+    QCOMPARE(groups.at(2).toObject().value("names").toArray().at(0).toString(), QStringLiteral("My Web"));
 
     qunsetenv("GUINEA_MPEG_CONFIG_DIR");
 }
