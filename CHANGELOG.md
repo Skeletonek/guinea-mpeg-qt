@@ -1,5 +1,6 @@
 ### 1.0.1 (In progress)
 - Added word wrap to media information section
+- Decreased minimal width of the control panel
 - Fixed queue remove button not receiving clicks
 - Fixed scrollbar overlap in transcoding dialog
 - Fixed Normalize audio hanging UI thread during first pass
