@@ -16,6 +16,8 @@ AppDialog {
     // Combined history (finished jobs) + queue (active/waiting jobs)
     property var entries: []
     property int selectedIndex: -1
+    // Holds between finishing a queued job and launching the next one
+    readonly property bool _queuePending: mainWindow !== null && mainWindow.transcodeQueue.length > 0
 
     function recalcProgress() {
         _progress = 0;
@@ -307,8 +309,9 @@ AppDialog {
             Layout.fillWidth: true
 
             Label {
-                text: backend.transcoding ? qsTr("ffmpeg is running...") : qsTr("Done. You can close this window.")
-                color: backend.transcoding ? theme.textSecondary : theme.accent
+                text: (backend.transcoding || root._queuePending) ? qsTr("ffmpeg is running...")
+                                                                  : qsTr("Done. You can close this window.")
+                color: (backend.transcoding || root._queuePending) ? theme.textSecondary : theme.accent
             }
 
             Item {
@@ -339,8 +342,11 @@ AppDialog {
 
     title: {
         var n = mainWindow ? mainWindow.transcodeQueue.length : 0;
-        if (backend.transcoding)
-            return n > 1 ? qsTr("Transcoding... (1 of %1)").arg(n) : qsTr("Transcoding...");
+        if (backend.transcoding || root._queuePending) {
+            if (backend.transcoding && n > 1)
+                return qsTr("Transcoding... (1 of %1)").arg(n);
+            return qsTr("Transcoding...");
+        }
 
         return qsTr("Transcoding Complete");
     }
