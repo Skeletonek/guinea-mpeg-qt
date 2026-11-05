@@ -167,10 +167,17 @@ AppDialog {
                 model: root.entries
 
                 delegate: Rectangle {
-                    width: jobList.width
+                    width: jobList.width - (jobScrollbar.visible ? jobScrollbar.width : 0)
                     height: rowLayout.implicitHeight + 8
                     radius: 4
                     color: index === root.selectedIndex ? theme.surface : "transparent"
+
+                    // Under the row content so the remove button receives its own clicks
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: root.selectedIndex = index
+                    }
 
                     RowLayout {
                         id: rowLayout
@@ -217,15 +224,11 @@ AppDialog {
                             }
                         }
                     }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: root.selectedIndex = index
-                    }
                 }
 
                 ScrollBar.vertical: ScrollBar {
+                    id: jobScrollbar
+
                     policy: ScrollBar.AsNeeded
                 }
             }
