@@ -1,3 +1,10 @@
+### 1.0.1
+- Fixed queue remove button not receiving clicks
+- Fixed scrollbar overlap in transcoding dialog
+- Fixed Normalize audio hanging UI thread during first pass
+- Fixed "Ready to close the window" appearing even when there are still jobs in the queue
+- Fixed showing two "Custom" categories for users with custom profiles created before 1.0.0
+
 ### 1.0.0
 - Added filters section in Profile Editor
 - Added options for deinterlacing, denoising, cropping, rotating, mirroring for video settings
