@@ -155,7 +155,7 @@ Item {
                 ColumnLayout {
                     id: videoInfoLayout
 
-                    width: videoInfoScroll.width
+                    width: videoInfoScroll.width - (infoVbar.visible ? infoVbar.width : 0)
                     spacing: 4
 
                     Label {
@@ -181,7 +181,7 @@ Item {
                         Layout.maximumWidth: Number.POSITIVE_INFINITY
                         spacing: 16
 
-                        Column {
+                        ColumnLayout {
                             Layout.fillWidth: true
                             spacing: 4
 
@@ -194,25 +194,33 @@ Item {
                             Label {
                                 text: qsTr("Codec: %1").arg(root._videoStream ? root._videoStream.codec : "N/A")
                                 color: theme.text
+                                wrapMode: Text.Wrap
+                                Layout.fillWidth: true
                             }
 
                             Label {
                                 text: qsTr("Resolution: %1").arg(root._videoStream ? root._videoStream.width + "x" + root._videoStream.height : "N/A")
                                 color: theme.text
+                                wrapMode: Text.Wrap
+                                Layout.fillWidth: true
                             }
 
                             Label {
                                 text: qsTr("FPS: %1").arg(root._videoStream ? FormatUtils.formatFps(root._videoStream.fps) : "N/A")
                                 color: theme.text
+                                wrapMode: Text.Wrap
+                                Layout.fillWidth: true
                             }
 
                             Label {
                                 text: qsTr("Bitrate: %1").arg(root._videoStream ? FormatUtils.formatBitrate(root._videoStream.bitrate) : "N/A")
                                 color: theme.text
+                                wrapMode: Text.Wrap
+                                Layout.fillWidth: true
                             }
                         }
 
-                        Column {
+                        ColumnLayout {
                             Layout.fillWidth: true
                             spacing: 4
 
@@ -225,27 +233,37 @@ Item {
                             Label {
                                 text: qsTr("Codec: %1").arg(root._audioStream ? root._audioStream.codec : "N/A")
                                 color: theme.text
+                                wrapMode: Text.Wrap
+                                Layout.fillWidth: true
                             }
 
                             Label {
                                 text: qsTr("Sample rate: %1").arg(root._audioStream ? FormatUtils.formatSampleRate(root._audioStream.sample_rate) : "N/A")
                                 color: theme.text
+                                wrapMode: Text.Wrap
+                                Layout.fillWidth: true
                             }
 
                             Label {
                                 text: qsTr("Channels: %1").arg(root._audioStream ? FormatUtils.formatChannels(root._audioStream.channels) : "N/A")
                                 color: theme.text
+                                wrapMode: Text.Wrap
+                                Layout.fillWidth: true
                             }
 
                             Label {
                                 text: qsTr("Bitrate: %1").arg(root._audioStream ? FormatUtils.formatBitrate(root._audioStream.bitrate) : "N/A")
                                 color: theme.text
+                                wrapMode: Text.Wrap
+                                Layout.fillWidth: true
                             }
                         }
                     }
                 }
 
                 ScrollBar.vertical: ScrollBar {
+                    id: infoVbar
+
                     policy: ScrollBar.AsNeeded
                 }
             }

@@ -46,7 +46,8 @@ AppDialog {
     }
 
     title: qsTr("Options")
-    width: Constants.dialogWidthMedium
+    // Auto-sized to the widest row; stays at the medium floor for compact languages
+    implicitWidth: Math.max(Constants.dialogWidthMedium, mainLayout.implicitWidth + 2 * padding)
     contentImplicitHeight: mainLayout.implicitHeight
     standardButtons: styleDrawsHeaderClose ? Dialog.NoButton : Dialog.Close
     onOpened: {

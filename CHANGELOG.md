@@ -1,9 +1,11 @@
-### 1.0.1
+### 1.0.1 (In progress)
+- Added word wrap to media information section
 - Fixed queue remove button not receiving clicks
 - Fixed scrollbar overlap in transcoding dialog
 - Fixed Normalize audio hanging UI thread during first pass
 - Fixed "Ready to close the window" appearing even when there are still jobs in the queue
 - Fixed showing two "Custom" categories for users with custom profiles created before 1.0.0
+- Fixed occurences where translated strings broke the UI layout
 
 ### 1.0.0
 - Added filters section in Profile Editor
