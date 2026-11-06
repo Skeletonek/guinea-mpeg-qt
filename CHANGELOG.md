@@ -6,7 +6,7 @@
 - Fixed Normalize audio hanging UI thread during first pass
 - Fixed "Ready to close the window" appearing even when there are still jobs in the queue
 - Fixed showing two "Custom" categories for users with custom profiles created before 1.0.0
-- Fixed occurences where translated strings broke the UI layout
+- Fixed some occurences where translated strings broke the UI layout
 
 ### 1.0.0
 - Added filters section in Profile Editor
