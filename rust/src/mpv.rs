@@ -1,5 +1,6 @@
 use std::ffi::{CStr, CString};
 use std::os::raw::{c_char, c_void};
+use std::sync::OnceLock;
 
 use libmpv2_sys::*;
 
@@ -109,39 +110,58 @@ pub extern "C" fn guinea_mpeg_mpv_destroy(ptr: *mut c_void) {
     }
 }
 
+// Cached: creating + initializing an instance just to probe it is expensive.
+struct MpvProbe {
+    available: bool,
+    version: Option<String>,
+}
+
+fn mpv_probe() -> &'static MpvProbe {
+    static PROBE: OnceLock<MpvProbe> = OnceLock::new();
+    PROBE.get_or_init(|| {
+        let handle = unsafe { mpv_create() };
+        if handle.is_null() {
+            return MpvProbe {
+                available: false,
+                version: None,
+            };
+        }
+        if unsafe { mpv_initialize(handle) } != 0 {
+            unsafe { mpv_terminate_destroy(handle) };
+            return MpvProbe {
+                available: false,
+                version: None,
+            };
+        }
+        let version = unsafe {
+            let prop = mpv_get_property_string(handle, c_str("mpv-version").as_ptr());
+            if prop.is_null() {
+                None
+            } else {
+                let s = CStr::from_ptr(prop).to_str().unwrap_or("").to_string();
+                mpv_free(prop as *mut c_void);
+                Some(s)
+            }
+        };
+        unsafe { mpv_terminate_destroy(handle) };
+        MpvProbe {
+            available: true,
+            version,
+        }
+    })
+}
+
 #[no_mangle]
 pub extern "C" fn guinea_mpeg_mpv_available() -> bool {
-    let handle = unsafe { mpv_create() };
-    if handle.is_null() {
-        return false;
-    }
-    let ok = unsafe { mpv_initialize(handle) } == 0;
-    unsafe { mpv_terminate_destroy(handle) };
-    ok
+    mpv_probe().available
 }
 
 #[no_mangle]
 pub extern "C" fn guinea_mpeg_mpv_version() -> *mut c_char {
-    let handle = unsafe { mpv_create() };
-    if handle.is_null() {
-        return std::ptr::null_mut();
+    match &mpv_probe().version {
+        Some(v) => CString::new(v.clone()).unwrap_or_default().into_raw(),
+        None => std::ptr::null_mut(),
     }
-    if unsafe { mpv_initialize(handle) } != 0 {
-        unsafe { mpv_terminate_destroy(handle) };
-        return std::ptr::null_mut();
-    }
-    let result = unsafe {
-        let prop = mpv_get_property_string(handle, c_str("mpv-version").as_ptr());
-        if prop.is_null() {
-            std::ptr::null_mut()
-        } else {
-            let s = CStr::from_ptr(prop).to_str().unwrap_or("").to_string();
-            mpv_free(prop as *mut c_void);
-            CString::new(s).unwrap_or_default().into_raw()
-        }
-    };
-    unsafe { mpv_terminate_destroy(handle) };
-    result
 }
 
 #[no_mangle]

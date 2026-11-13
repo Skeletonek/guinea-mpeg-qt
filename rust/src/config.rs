@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
+use std::time::SystemTime;
 
 const DEFAULT_SYSTEM_PROFILES_PATH: &str = "/usr/share/guinea-mpeg/default_profiles.toml";
 const MAX_VOLUME: f64 = 100.0;
@@ -272,12 +273,40 @@ pub(crate) fn load_config_from_file(path: &Path) -> AppConfig {
     AppConfig::default()
 }
 
+// Cache keyed by (path, mtime): unchanged files skip re-parsing; writes
+// (app saves or external edits) invalidate the entry automatically.
+struct CachedConfig {
+    path: PathBuf,
+    mtime: Option<SystemTime>,
+    config: AppConfig,
+}
+
+static DEFAULTS_CACHE: Mutex<Option<CachedConfig>> = Mutex::new(None);
+static USER_CACHE: Mutex<Option<CachedConfig>> = Mutex::new(None);
+
+fn load_cached(path: PathBuf, cache: &Mutex<Option<CachedConfig>>) -> AppConfig {
+    let mtime = std::fs::metadata(&path).and_then(|m| m.modified()).ok();
+    let mut guard = cache.lock().unwrap();
+    if let Some(cached) = guard.as_ref() {
+        if cached.path == path && cached.mtime == mtime {
+            return cached.config.clone();
+        }
+    }
+    let config = load_config_from_file(&path);
+    *guard = Some(CachedConfig {
+        path,
+        mtime,
+        config: config.clone(),
+    });
+    config
+}
+
 fn load_defaults() -> AppConfig {
-    load_config_from_file(&defaults_path())
+    load_cached(defaults_path(), &DEFAULTS_CACHE)
 }
 
 fn load_user_config() -> AppConfig {
-    load_config_from_file(&user_config_path())
+    load_cached(user_config_path(), &USER_CACHE)
 }
 
 pub(crate) fn merge_configs() -> AppConfig {

@@ -338,7 +338,7 @@ ApplicationWindow {
         else if (!ffmpegAvailable)
             ffmpegWarningDialog.open();
         else if (initialFilePath !== "")
-            appWindow.loadVideo(initialFilePath);
+            backend.probeVideoInfo(initialFilePath);
     }
 
     StackView {
@@ -676,6 +676,12 @@ ApplicationWindow {
 
         function onPreviewGenerated(path) {
             appWindow.previewProfile = appWindow.currentProfile;
+        }
+
+        // Async probe for the startup file; ignore if the user already loaded something
+        function onVideoInfoReady(path, info) {
+            if (path === initialFilePath && currentVideoPath === "")
+                appWindow._loadPreview(path, undefined, info, true);
         }
 
         target: backend

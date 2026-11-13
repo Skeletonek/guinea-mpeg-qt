@@ -81,6 +81,7 @@ class GuineaMpegBackendExt : public QObject {
     Q_INVOKABLE void systemBeep();
 
     Q_INVOKABLE QVariantMap getVideoInfo(const QString& rawPath);
+    Q_INVOKABLE void probeVideoInfo(const QString& rawPath);
     Q_INVOKABLE bool ffmpegAvailable();
     Q_INVOKABLE QString getFfmpegVersion();
     Q_INVOKABLE QString getMpvVersion();
@@ -108,6 +109,7 @@ class GuineaMpegBackendExt : public QObject {
     void transcodeFinished(bool success);
     void previewGeneratingChanged();
     void previewGenerated(const QString& path);
+    void videoInfoReady(const QString& path, const QVariantMap& info);
     void previewFailed();
     void lastPreviewPathChanged();
     void lastPreviewSizeChanged();

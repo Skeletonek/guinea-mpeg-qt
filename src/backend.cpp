@@ -300,7 +300,7 @@ void GuineaMpegBackendExt::systemBeep() {
     QApplication::beep();
 }
 
-QVariantMap GuineaMpegBackendExt::getVideoInfo(const QString& rawPath) {
+static QVariantMap videoInfoFromProbe(const QString& rawPath) {
     const char* json = guinea_mpeg_video_info(rawPath.toUtf8().constData());
     QVariantMap info;
     if (!json) {
@@ -315,6 +315,21 @@ QVariantMap GuineaMpegBackendExt::getVideoInfo(const QString& rawPath) {
     info["video_streams"] = videoStreams;
     info["audio_streams"] = audioStreams;
     return info;
+}
+
+QVariantMap GuineaMpegBackendExt::getVideoInfo(const QString& rawPath) {
+    return videoInfoFromProbe(rawPath);
+}
+
+void GuineaMpegBackendExt::probeVideoInfo(const QString& rawPath) {
+    QPointer<GuineaMpegBackendExt> self(this);
+    QThreadPool::globalInstance()->start([self, rawPath] {
+        const QVariantMap info = videoInfoFromProbe(rawPath);
+        if (self.isNull())
+            return;
+        QMetaObject::invokeMethod(
+            self, [self, rawPath, info] { emit self->videoInfoReady(rawPath, info); }, Qt::QueuedConnection);
+    });
 }
 
 bool GuineaMpegBackendExt::ffmpegAvailable() {

@@ -1,3 +1,6 @@
+### 1.1.0 (In progress)
+- Slightly decreased startup time
+
 ### 1.0.1
 - Added word wrap to media information section
 - Decreased minimal width of the control panel

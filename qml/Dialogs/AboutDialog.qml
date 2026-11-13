@@ -64,7 +64,7 @@ AppDialog {
     SoundEffect {
         id: eatSound
 
-        source: "/media/audio/guinea.wav"
+        source: easterEggActivated ? "/media/audio/guinea.wav" : ""
     }
 
     Item {

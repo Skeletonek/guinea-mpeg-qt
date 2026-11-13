@@ -54,14 +54,12 @@ static QJsonObject readAppOptions() {
     return opts;
 }
 
-static QStringList availableQmlStyles() {
+static QStringList availableQmlStyles(const QStringList& importPaths) {
     static const QStringList candidates = {QStringLiteral("Fusion"),   QStringLiteral("Universal"),
                                            QStringLiteral("Material"), QStringLiteral("Windows"),
                                            QStringLiteral("Imagine"),  QStringLiteral("FluentWinUI3")};
 
     QStringList styles;
-    const QQmlEngine probe;
-    const QStringList importPaths = probe.importPathList();
     for (const QString& style : candidates) {
         for (const QString& p : importPaths) {
             if (QFileInfo::exists(p + QLatin1String("/QtQuick/Controls/") + style + QLatin1String("/qmldir"))) {
@@ -283,7 +281,12 @@ int main(int argc, char* argv[]) {
     SetEnvironmentVariableA("PATH", (appDir + ";" + qgetenv("PATH")).constData());
 #endif
 
-    QStringList availableStyles = availableQmlStyles();
+    // Probe styles with the real engine's import paths. Engine construction
+    // registers no Qt Quick Controls types, so setStyle below is still in time.
+    QQmlApplicationEngine engine;
+    engine.addImportPath("qrc:/qml");
+
+    QStringList availableStyles = availableQmlStyles(engine.importPathList());
 
     if (themeOption != QLatin1String("system") && !availableStyles.contains(themeOption))
         themeOption = QStringLiteral("system");
@@ -339,9 +342,6 @@ int main(int argc, char* argv[]) {
     QQuickWindow::setGraphicsApi(QSGRendererInterface::OpenGL);
 
     QVariantMap buildInfo = buildBuildInfoMap(getHostOsName());
-
-    QQmlApplicationEngine engine;
-    engine.addImportPath("qrc:/qml");
 
     qmlRegisterType<GuineaMpegBackendExt>("GuineaMpeg", 1, 0, "GuineaMpegBackendExt");
     qmlRegisterType<MpvItem>("GuineaMpeg", 1, 0, "MpvItem");

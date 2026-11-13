@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::os::raw::c_char;
+use std::sync::OnceLock;
 
 use crate::config::VideoProfile;
 use crate::ffmpeg::{
@@ -7,14 +8,38 @@ use crate::ffmpeg::{
     normalize_path, quiet_command, run_cmd, to_c_string,
 };
 
+// Cached so the availability and version queries share one spawn.
+struct FfmpegProbe {
+    spawned: bool,
+    version: Option<String>,
+}
+
+fn ffmpeg_probe() -> &'static FfmpegProbe {
+    static PROBE: OnceLock<FfmpegProbe> = OnceLock::new();
+    PROBE.get_or_init(|| match quiet_command("ffmpeg").arg("-version").output() {
+        Ok(out) => FfmpegProbe {
+            spawned: true,
+            version: if out.status.success() {
+                String::from_utf8(out.stdout).ok()
+            } else {
+                None
+            },
+        },
+        Err(_) => FfmpegProbe {
+            spawned: false,
+            version: None,
+        },
+    })
+}
+
 #[no_mangle]
 pub extern "C" fn guinea_mpeg_ffmpeg_available() -> bool {
-    quiet_command("ffmpeg").arg("-version").output().is_ok()
+    ffmpeg_probe().spawned
 }
 
 #[no_mangle]
 pub extern "C" fn guinea_mpeg_ffmpeg_version() -> *mut c_char {
-    match run_cmd("ffmpeg", &["-version"]) {
+    match &ffmpeg_probe().version {
         Some(out) => {
             let lines: Vec<String> = out.lines().take(2).map(|l| l.to_string()).collect();
             to_c_string(lines.join("\n"))
