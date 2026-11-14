@@ -32,6 +32,9 @@ pub struct VideoFilters {
     pub vflip: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub rotate: Option<u32>,
+    /// HDR-to-SDR tone mapping algorithm (e.g. "hable"); None = off.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tonemap: Option<String>,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -102,6 +105,16 @@ pub struct VideoProfile {
     pub video_filters: Option<VideoFilters>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub audio_filters: Option<AudioFilters>,
+    // Color metadata overrides for the output (-color_* flags); None keeps the
+    // input's tags, which is what ffmpeg does on its own.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub color_primaries: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub color_trc: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub colorspace: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub color_range: Option<String>,
 }
 
 fn default_audio_bitrate() -> String {

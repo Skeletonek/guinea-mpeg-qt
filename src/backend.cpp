@@ -77,6 +77,32 @@ void releaseProcess(std::unique_ptr<QProcess>& slot, QProcess* proc) {
         slot.release(); // NOLINT: ownership moves to deleteLater
 }
 
+// Classifies the stream's dynamic range from the transfer characteristic and
+// HDR side data, e.g. "HDR10", "HLG", "Dolby Vision" or "SDR".
+QString hdrFormat(const QJsonObject& stream) {
+    bool hasMastering = false;
+    bool hasDynamic = false;
+    bool hasDovi = false;
+    const QJsonArray sideData = stream["side_data_list"].toArray();
+    for (const auto& v : sideData) {
+        const QString type = v.toObject()["side_data_type"].toString();
+        if (type.contains("Mastering", Qt::CaseInsensitive) || type.contains("Content light", Qt::CaseInsensitive))
+            hasMastering = true;
+        if (type.contains("Dynamic", Qt::CaseInsensitive) || type.contains("2094", Qt::CaseInsensitive))
+            hasDynamic = true;
+        if (type.contains("DOVI", Qt::CaseInsensitive) || type.contains("Dolby Vision", Qt::CaseInsensitive))
+            hasDovi = true;
+    }
+    if (hasDovi)
+        return QStringLiteral("Dolby Vision");
+    const QString trc = stream["color_transfer"].toString();
+    if (trc == "smpte2084")
+        return hasDynamic ? QStringLiteral("HDR10+") : (hasMastering ? QStringLiteral("HDR10") : QStringLiteral("PQ"));
+    if (trc == "arib-std-b67")
+        return QStringLiteral("HLG");
+    return QStringLiteral("SDR");
+}
+
 QVariantMap makeVideoStreamMap(int idx, const QJsonObject& stream) {
     QVariantMap m;
     m["index"] = idx;
@@ -85,6 +111,11 @@ QVariantMap makeVideoStreamMap(int idx, const QJsonObject& stream) {
     m["height"] = stream["height"].toInt();
     m["fps"] = stream["r_frame_rate"].toString();
     m["bitrate"] = jsonInt64(stream["bit_rate"]);
+    m["pix_fmt"] = stream["pix_fmt"].toString();
+    m["color_primaries"] = stream["color_primaries"].toString();
+    m["color_trc"] = stream["color_transfer"].toString();
+    m["colorspace"] = stream["color_space"].toString();
+    m["hdr"] = hdrFormat(stream);
     return m;
 }
 

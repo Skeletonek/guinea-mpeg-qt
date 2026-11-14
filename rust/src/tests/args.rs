@@ -161,6 +161,113 @@ fn vaapi_crf_uses_qp() {
 }
 
 #[test]
+fn vaapi_filter_chain_defaults_to_nv12() {
+    let args = args_for(r#"{"codec":"h264","encoder":"h264_vaapi","crf":22,"framerate":30.0}"#);
+    assert!(contains_pair(
+        &args,
+        "-vf",
+        "hwdownload,format=nv12,fps=30,hwupload"
+    ));
+}
+
+#[test]
+fn vaapi_filter_chain_keeps_selected_pixel_format() {
+    // format=nv12 here used to crush 10-bit/HDR frames to 8-bit
+    let args = args_for(
+        r#"{"codec":"h264","encoder":"h264_vaapi","crf":22,"pixel_format":"p010le","framerate":30.0}"#,
+    );
+    assert!(contains_pair(
+        &args,
+        "-vf",
+        "hwdownload,format=p010le,fps=30,hwupload"
+    ));
+}
+
+#[test]
+fn tonemap_adds_filter_and_forces_sdr_tags() {
+    let args = args_for(
+        r#"{"codec":"hevc","encoder":"libx265","crf":20,"video_filters":{"tonemap":"hable"}}"#,
+    );
+    assert!(contains_pair(
+        &args,
+        "-vf",
+        "tonemap=tonemap=hable:desat=0,setparams=color_primaries=bt709:color_trc=bt709:colorspace=bt709:range=tv"
+    ));
+    assert!(contains_pair(&args, "-color_primaries", "bt709"));
+    assert!(contains_pair(&args, "-color_trc", "bt709"));
+    assert!(contains_pair(&args, "-colorspace", "bt709"));
+    assert!(contains_pair(&args, "-color_range", "tv"));
+}
+
+#[test]
+fn tonemap_runs_before_other_filters() {
+    let args = args_for(
+        r#"{"codec":"hevc","encoder":"libx265","video_filters":{"tonemap":"hable","hflip":true}}"#,
+    );
+    assert!(contains_pair(
+        &args,
+        "-vf",
+        "tonemap=tonemap=hable:desat=0,hflip,setparams=color_primaries=bt709:color_trc=bt709:colorspace=bt709:range=tv"
+    ));
+}
+
+#[test]
+fn tonemap_respects_explicit_color_tags() {
+    let args = args_for(
+        r#"{"codec":"hevc","encoder":"libx265","video_filters":{"tonemap":"hable"},"color_trc":"smpte2084"}"#,
+    );
+    assert!(contains_pair(
+        &args,
+        "-vf",
+        "tonemap=tonemap=hable:desat=0,setparams=color_primaries=bt709:color_trc=smpte2084:colorspace=bt709:range=tv"
+    ));
+    assert!(contains_pair(&args, "-color_trc", "smpte2084"));
+    assert!(contains_pair(&args, "-color_primaries", "bt709"));
+}
+
+#[test]
+fn color_metadata_emitted_when_set() {
+    let args = args_for(
+        r#"{"codec":"hevc","encoder":"libx265","color_primaries":"bt2020","color_trc":"smpte2084","colorspace":"bt2020nc","color_range":"tv"}"#,
+    );
+    // both mechanisms: -color_* flags (older ffmpeg) and setparams (ffmpeg 9+
+    // derives the encoder's color info from frame properties and ignores the
+    // -color_primaries/-color_trc flags)
+    assert!(contains_pair(&args, "-color_primaries", "bt2020"));
+    assert!(contains_pair(&args, "-color_trc", "smpte2084"));
+    assert!(contains_pair(&args, "-colorspace", "bt2020nc"));
+    assert!(contains_pair(&args, "-color_range", "tv"));
+    assert!(contains_pair(
+        &args,
+        "-vf",
+        "setparams=color_primaries=bt2020:color_trc=smpte2084:colorspace=bt2020nc:range=tv"
+    ));
+}
+
+#[test]
+fn color_metadata_omitted_by_default() {
+    // leaving the tags unset keeps ffmpeg's automatic input propagation
+    let args = args_for(r#"{"codec":"hevc","encoder":"libx265","crf":20}"#);
+    assert!(!contains_flag(&args, "-color_primaries"));
+    assert!(!contains_flag(&args, "-color_trc"));
+    assert!(!contains_flag(&args, "-colorspace"));
+    assert!(!contains_flag(&args, "-color_range"));
+    assert!(!contains_flag(&args, "-vf"));
+}
+
+#[test]
+fn color_tags_with_vaapi_run_before_hwupload() {
+    let args = args_for(
+        r#"{"codec":"h264","encoder":"h264_vaapi","crf":22,"color_trc":"smpte2084","framerate":30.0}"#,
+    );
+    assert!(contains_pair(
+        &args,
+        "-vf",
+        "hwdownload,format=nv12,fps=30,setparams=color_trc=smpte2084,hwupload"
+    ));
+}
+
+#[test]
 fn qsv_uses_global_quality() {
     let args = args_for(r#"{"codec":"hevc","encoder":"hevc_qsv","crf":25}"#);
     assert!(contains_pair(&args, "-global_quality", "25"));

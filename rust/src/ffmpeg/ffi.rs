@@ -4,8 +4,8 @@ use std::sync::OnceLock;
 
 use crate::config::VideoProfile;
 use crate::ffmpeg::{
-    build_command, build_preview, compute_normalize_gain, cstr, encoder_capabilities,
-    normalize_path, quiet_command, run_cmd, to_c_string,
+    auto_pixel_format, build_command, build_preview, compute_normalize_gain, cstr,
+    encoder_capabilities, normalize_path, quiet_command, run_cmd, to_c_string, video_codec,
 };
 
 // Cached so the availability and version queries share one spawn.
@@ -174,6 +174,77 @@ pub extern "C" fn guinea_mpeg_available_encoders() -> *mut c_char {
     to_c_string(serde_json::to_string(&parse_encoders(&output)).unwrap_or_default())
 }
 
+/// True for HDR transfer characteristics (PQ, HLG) — the only ones the tonemap
+/// filter can meaningfully convert.
+pub(crate) fn is_hdr_transfer(transfer: &str) -> bool {
+    matches!(transfer, "smpte2084" | "arib-std-b67")
+}
+
+/// Pixel format and transfer characteristic of the first video stream, used to
+/// match the output depth and to detect HDR sources.
+fn probe_video_color(input: &str) -> Option<(String, String)> {
+    let p = normalize_path(input);
+    let output = run_cmd(
+        "ffprobe",
+        &[
+            "-v",
+            "quiet",
+            "-select_streams",
+            "v:0",
+            "-show_entries",
+            "stream=pix_fmt,color_transfer",
+            "-of",
+            "json",
+            &p,
+        ],
+    )?;
+    let root: serde_json::Value = serde_json::from_str(&output).ok()?;
+    let stream = root.get("streams")?.get(0)?;
+    let pix_fmt = stream.get("pix_fmt")?.as_str()?.to_string();
+    let transfer = stream
+        .get("color_transfer")
+        .and_then(|v| v.as_str())
+        .unwrap_or("")
+        .to_string();
+    (!pix_fmt.is_empty()).then_some((pix_fmt, transfer))
+}
+
+/// Source-dependent tweaks applied before building the command: auto-selects a
+/// 10-bit output format for a high-bit-depth source (skipped when the user
+/// picked a format or when tone mapping, which makes the output SDR), and drops
+/// the tone map when the source is already SDR — nothing to convert there.
+/// Skipped when the source can't be probed (e.g. the "[input]" preview
+/// placeholder).
+fn apply_auto_settings(profile: &mut VideoProfile, input: &str) {
+    let wants_tonemap = profile
+        .video_filters
+        .as_ref()
+        .is_some_and(|f| f.tonemap.is_some());
+    let needs_probe = profile.pixel_format.is_none() || wants_tonemap;
+    let source = if needs_probe {
+        probe_video_color(input)
+    } else {
+        None
+    };
+    let Some((pix_fmt, transfer)) = source else {
+        return;
+    };
+    if wants_tonemap && !is_hdr_transfer(&transfer) {
+        if let Some(filters) = profile.video_filters.as_mut() {
+            filters.tonemap = None;
+        }
+    }
+    let tonemap_active = profile
+        .video_filters
+        .as_ref()
+        .is_some_and(|f| f.tonemap.is_some());
+    if profile.pixel_format.is_none() && !tonemap_active {
+        if let Some(fmt) = auto_pixel_format(&video_codec(profile), &pix_fmt) {
+            profile.pixel_format = Some(fmt);
+        }
+    }
+}
+
 #[no_mangle]
 pub extern "C" fn guinea_mpeg_preview_command(profile_json: *const c_char) -> *mut c_char {
     let json = unsafe { cstr(profile_json) };
@@ -204,11 +275,12 @@ pub extern "C" fn guinea_mpeg_build_ffmpeg_command(
         return std::ptr::null_mut();
     }
 
-    let profile: VideoProfile = match serde_json::from_str(json) {
+    let mut profile: VideoProfile = match serde_json::from_str(json) {
         Ok(p) => p,
         Err(_) => return std::ptr::null_mut(),
     };
 
+    apply_auto_settings(&mut profile, inp);
     let args = build_command(inp, out, start_time, end_time, &profile);
     to_c_string(serde_json::to_string(&args).unwrap_or_default())
 }

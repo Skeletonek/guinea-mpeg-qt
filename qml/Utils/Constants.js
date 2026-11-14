@@ -16,6 +16,14 @@ var audioRateControlLabels = ["CBR", "VBR", "Quality"]
 var deinterlaceOptions = ["none", "yadif", "bwdif", "nnedi"]
 var denoiseOptions = ["none", "hqdn3d", "nlmeans", "atadenoise"]
 var rotateOptions = ["0", "90", "180", "270"]
+var tonemapOptions = ["none", "hable", "mobius", "reinhard"]
+var tonemapAlgoOptions = ["hable", "mobius", "reinhard"]
+
+// Color metadata options (ffmpeg -color_* values, "default" keeps the source's)
+var colorPrimariesOptions = ["default", "bt709", "bt2020", "smpte432", "smpte170m"]
+var colorTrcOptions = ["default", "bt709", "smpte2084", "arib-std-b67", "bt2020-10"]
+var colorspaceOptions = ["default", "bt709", "bt2020nc", "smpte170m"]
+var colorRangeOptions = ["default", "tv", "pc"]
 
 var flipKeys = ["none", "horizontal", "vertical", "both"]
 var flipLabels = ["None", "Horizontal", "Vertical", "Both"]

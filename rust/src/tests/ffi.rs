@@ -1,4 +1,4 @@
-use crate::ffmpeg::{drop_attached_pictures, parse_encoders};
+use crate::ffmpeg::{drop_attached_pictures, is_hdr_transfer, parse_encoders};
 
 const SAMPLE_ENCODERS: &str = "\
 Encoders:
@@ -110,4 +110,15 @@ fn video_info_keeps_regular_streams() {
 #[test]
 fn video_info_passthrough_on_invalid_json() {
     assert_eq!(drop_attached_pictures("not json"), "not json");
+}
+
+#[test]
+fn hdr_transfer_detection() {
+    // only PQ and HLG are HDR transfers the tonemap filter can convert
+    assert!(is_hdr_transfer("smpte2084"));
+    assert!(is_hdr_transfer("arib-std-b67"));
+    assert!(!is_hdr_transfer("bt709"));
+    assert!(!is_hdr_transfer("smpte170m"));
+    assert!(!is_hdr_transfer(""));
+    assert!(!is_hdr_transfer("unknown"));
 }

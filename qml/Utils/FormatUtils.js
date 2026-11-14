@@ -49,6 +49,40 @@ function streamText(stream, index, type) {
     return stream.title || stream.language || "Stream " + (index + 1) + ": " + stream.codec
 }
 
+/**
+ * Formats video color information (dynamic range, primaries, transfer) for display
+ * @param {Object} stream - Video stream object with hdr, color_primaries, color_trc properties
+ * @returns {string} Formatted color description (e.g. "HDR10 · BT.2020 · PQ")
+ */
+function formatColor(stream) {
+    var names = {
+        "bt709": "BT.709",
+        "bt2020": "BT.2020",
+        "bt2020nc": "BT.2020",
+        "bt2020-10": "BT.2020",
+        "smpte432": "DCI-P3",
+        "smpte170m": "SMPTE 170M",
+        "bt470bg": "BT.470BG",
+        "smpte2084": "PQ",
+        "arib-std-b67": "HLG"
+    }
+    var candidates = []
+    if (stream.hdr && stream.hdr !== "SDR")
+        candidates.push(stream.hdr)
+    if (stream.color_primaries && stream.color_primaries !== "unknown")
+        candidates.push(names[stream.color_primaries] || stream.color_primaries)
+    if (stream.color_trc && stream.color_trc !== "unknown")
+        candidates.push(names[stream.color_trc] || stream.color_trc)
+    var parts = []
+    for (var i = 0; i < candidates.length; i++) {
+        if (parts.indexOf(candidates[i]) < 0)
+            parts.push(candidates[i])
+    }
+    if (parts.length > 0)
+        return parts.join(" · ")
+    return stream.hdr ? "SDR" : "N/A"
+}
+
 function getFilename(path) {
     var idx = path.lastIndexOf("/")
     return idx >= 0 ? path.substring(idx + 1) : path

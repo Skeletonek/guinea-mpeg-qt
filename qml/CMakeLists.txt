@@ -49,6 +49,8 @@ qt_add_resources(guinea-mpeg "app_qml"
         ${CMAKE_SOURCE_DIR}/qml/ProfileEditor/VideoPanel/RateControlSection.qml
         ${CMAKE_SOURCE_DIR}/qml/ProfileEditor/VideoPanel/PresetTuneSection.qml
         ${CMAKE_SOURCE_DIR}/qml/ProfileEditor/VideoPanel/PixelFormatSection.qml
+        ${CMAKE_SOURCE_DIR}/qml/ProfileEditor/VideoPanel/ColorTagsSection.qml
+        ${CMAKE_SOURCE_DIR}/qml/ProfileEditor/VideoPanel/ColorHdrSection.qml
         ${CMAKE_SOURCE_DIR}/qml/ProfileEditor/VideoPanel/ScalingSection.qml
         ${CMAKE_SOURCE_DIR}/qml/ProfileEditor/VideoPanel/FiltersSection.qml
         ${CMAKE_SOURCE_DIR}/qml/ProfileEditor/VideoPanel/AV1Section.qml

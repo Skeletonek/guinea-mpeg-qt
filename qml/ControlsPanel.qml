@@ -218,6 +218,20 @@ Item {
                                 wrapMode: Text.Wrap
                                 Layout.fillWidth: true
                             }
+
+                            Label {
+                                text: qsTr("Pixel format: %1").arg(root._videoStream ? root._videoStream.pix_fmt || "?" : "N/A")
+                                color: theme.text
+                                wrapMode: Text.Wrap
+                                Layout.fillWidth: true
+                            }
+
+                            Label {
+                                text: qsTr("Color: %1").arg(root._videoStream ? FormatUtils.formatColor(root._videoStream) : "N/A")
+                                color: theme.text
+                                wrapMode: Text.Wrap
+                                Layout.fillWidth: true
+                            }
                         }
 
                         ColumnLayout {

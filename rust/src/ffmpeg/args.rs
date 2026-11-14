@@ -235,6 +235,10 @@ fn base_filter_parts(profile: &VideoProfile) -> Vec<String> {
     let mut parts = Vec::new();
     let filters = profile.video_filters.as_ref();
 
+    // Tone map first: subsequent filters work on the SDR result
+    if let Some(algo) = filters.and_then(|f| f.tonemap.as_deref()) {
+        parts.push(format!("tonemap=tonemap={}:desat=0", algo));
+    }
     if let Some(mode) = filters.and_then(|f| f.deinterlace.as_deref()) {
         match mode {
             "yadif" => parts.push("yadif".to_string()),
@@ -286,11 +290,17 @@ fn base_filter_parts(profile: &VideoProfile) -> Vec<String> {
 
 fn add_filter_graph(args: &mut Vec<String>, profile: &VideoProfile, family: EncoderFamily) {
     let mut filter_parts = base_filter_parts(profile);
+    if let Some(seg) = color_setparams_filter(profile) {
+        filter_parts.push(seg);
+    }
+    // Keep the selected depth across hwdownload/hwupload: hardcoding nv12 here
+    // silently crushed 10-bit/HDR frames to 8-bit whenever a filter was active.
+    let sw_fmt = profile.pixel_format.as_deref().unwrap_or("nv12");
     if family == EncoderFamily::Vulkan {
-        filter_parts.insert(0, "format=nv12".to_string());
+        filter_parts.insert(0, format!("format={}", sw_fmt));
         filter_parts.push("hwupload".to_string());
     } else if !filter_parts.is_empty() && family == EncoderFamily::Vaapi {
-        filter_parts.insert(0, "format=nv12".to_string());
+        filter_parts.insert(0, format!("format={}", sw_fmt));
         filter_parts.insert(0, "hwdownload".to_string());
         filter_parts.push("hwupload".to_string());
     }
@@ -405,6 +415,59 @@ fn add_input_and_trim(args: &mut Vec<String>, input: &str, start_time: f64, end_
     }
 }
 
+/// Resolved output color metadata: explicit profile values win; tone mapping
+/// without explicit tags forces SDR (bt709/tv) so the output doesn't claim HDR
+/// (the tonemap filter leaves the HDR tags on the frames it converts).
+fn color_metadata(profile: &VideoProfile) -> [Option<&str>; 4] {
+    let toned = profile
+        .video_filters
+        .as_ref()
+        .is_some_and(|f| f.tonemap.is_some());
+    let sdr = if toned { Some("bt709") } else { None };
+    let range_default = if toned { Some("tv") } else { None };
+    [
+        profile.color_primaries.as_deref().or(sdr),
+        profile.color_trc.as_deref().or(sdr),
+        profile.colorspace.as_deref().or(sdr),
+        profile.color_range.as_deref().or(range_default),
+    ]
+}
+
+/// -color_* output flags: honored by older ffmpeg versions.
+fn add_color_flags(args: &mut Vec<String>, profile: &VideoProfile) {
+    let [primaries, trc, space, range] = color_metadata(profile);
+    for (flag, value) in [
+        ("-color_primaries", primaries),
+        ("-color_trc", trc),
+        ("-colorspace", space),
+        ("-color_range", range),
+    ] {
+        if let Some(value) = value {
+            args.push(flag.to_string());
+            args.push(value.to_string());
+        }
+    }
+}
+
+/// setparams filter: forces the same metadata onto the frames themselves,
+/// which is what ffmpeg 9+ derives the encoder's color info from (it ignores
+/// -color_primaries/-color_trc).
+fn color_setparams_filter(profile: &VideoProfile) -> Option<String> {
+    let [primaries, trc, space, range] = color_metadata(profile);
+    let mut parts = Vec::new();
+    for (name, value) in [
+        ("color_primaries", primaries),
+        ("color_trc", trc),
+        ("colorspace", space),
+        ("range", range),
+    ] {
+        if let Some(value) = value {
+            parts.push(format!("{}={}", name, value));
+        }
+    }
+    (!parts.is_empty()).then(|| format!("setparams={}", parts.join(":")))
+}
+
 fn add_video_branch(
     args: &mut Vec<String>,
     profile: &VideoProfile,
@@ -422,6 +485,7 @@ fn add_video_branch(
         add_codec_specific(args, profile, enc);
         add_filter_graph(args, profile, family);
         add_av1_params(args, profile, enc);
+        add_color_flags(args, profile);
     }
     for arg in &profile.extra_args {
         args.push(arg.clone());

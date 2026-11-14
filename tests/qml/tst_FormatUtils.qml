@@ -30,6 +30,17 @@ TestCase {
         compare(FormatUtils.streamText(stream, 1, "audio"), "Stream 2: aac");
     }
 
+    function test_formatColor() {
+        compare(FormatUtils.formatColor({"hdr": "HDR10", "color_primaries": "bt2020", "color_trc": "smpte2084"}), "HDR10 · BT.2020 · PQ");
+        compare(FormatUtils.formatColor({"hdr": "HDR10+", "color_primaries": "bt2020", "color_trc": "smpte2084"}), "HDR10+ · BT.2020 · PQ");
+        compare(FormatUtils.formatColor({"hdr": "HLG", "color_primaries": "bt2020", "color_trc": "arib-std-b67"}), "HLG · BT.2020");
+        compare(FormatUtils.formatColor({"hdr": "Dolby Vision"}), "Dolby Vision");
+        compare(FormatUtils.formatColor({"hdr": "SDR", "color_primaries": "bt709", "color_trc": "bt709"}), "BT.709");
+        compare(FormatUtils.formatColor({"hdr": "SDR", "color_primaries": "unknown", "color_trc": "unknown"}), "SDR");
+        compare(FormatUtils.formatColor({"hdr": "SDR"}), "SDR");
+        compare(FormatUtils.formatColor({}), "N/A");
+    }
+
     function test_getFilename() {
         compare(FormatUtils.getFilename("/a/b/c.mp4"), "c.mp4");
         compare(FormatUtils.getFilename("c.mp4"), "c.mp4");

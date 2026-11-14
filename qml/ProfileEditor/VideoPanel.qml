@@ -43,7 +43,7 @@ Column {
         rateControlSection._capOverrides = caps;
         presetTuneSection.rebuildPresetModel(caps);
         presetTuneSection.rebuildTuneModel(caps);
-        pixelFormatSection.rebuildPixfmtModel(caps);
+        colorHdrSection.rebuildPixfmtModel(caps);
         root.changed();
     }
 
@@ -77,12 +77,20 @@ Column {
                 data.rate_control = null;
                 data.encoder = null;
             } else if (!root._isAnimated) {
-                data = DataUtils.buildProfileData(data, rateControlSection.getRateControlData(), presetTuneSection.getPresetTuneData(), pixelFormatSection.getPixelFormatData());
+                data = DataUtils.buildProfileData(data, rateControlSection.getRateControlData(), presetTuneSection.getPresetTuneData(), colorHdrSection.getColorHdrData());
             }
             if (!root._isCopy) {
                 data = DataUtils.buildProfileData(data, scalingSection.getScalingData());
-                if (filtersSection)
-                    data = DataUtils.buildProfileData(data, filtersSection.getFiltersData());
+                if (filtersSection) {
+                    const fd = filtersSection.getFiltersData();
+                    // tonemap is owned by Color & HDR; fold it into video_filters
+                    if (data.tonemap) {
+                        fd.video_filters = fd.video_filters || {};
+                        fd.video_filters.tonemap = data.tonemap;
+                    }
+                    delete data.tonemap;
+                    data = DataUtils.buildProfileData(data, fd);
+                }
                 if (animatedSection && root._isAnimated)
                     data = DataUtils.buildProfileData(data, animatedSection.getAnimatedData());
                 if (av1Section)
@@ -107,7 +115,7 @@ Column {
             containerSection.setContainerData(d);
             rateControlSection.setRateControlData(d);
             presetTuneSection.setPresetTuneData(d);
-            pixelFormatSection.setPixelFormatData(d);
+            colorHdrSection.setColorHdrData(d);
             scalingSection.setScalingData(d);
             if (filtersSection)
                 filtersSection.setFiltersData(d);
@@ -214,8 +222,8 @@ Column {
             onChanged: root.changed()
         }
 
-        PixelFormatSection {
-            id: pixelFormatSection
+        ColorHdrSection {
+            id: colorHdrSection
 
             width: parent.width
             visible: !root._isAnimated && !root._isCopy

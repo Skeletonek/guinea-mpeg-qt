@@ -109,7 +109,7 @@ pub(crate) fn encoder_capabilities(encoder: &str) -> Option<EncoderCapabilities>
             // AMF has no -tune option
             tunes: None,
             pix_fmts: Some(
-                vec!["nv12", "yuv420p"]
+                vec!["nv12", "yuv420p", "p010le"]
                     .into_iter()
                     .map(String::from)
                     .collect(),
@@ -181,6 +181,39 @@ fn software_quality_caps(encoder: &str) -> Option<EncoderCapabilities> {
         crf_min: range.map(|r| r.0),
         crf_max: range.map(|r| r.1),
     })
+}
+
+/// True for pixel formats with more than 8 bits per component ("yuv420p10le",
+/// "p010le", "yuv422p12le", ...). Matched on the depth marker before the
+/// endianness suffix: substring checks on "10"/"12" alone would hit "nv12".
+fn is_high_bit_depth(pix_fmt: &str) -> bool {
+    [
+        "10le", "12le", "14le", "16le", "10be", "12be", "14be", "16be",
+    ]
+    .iter()
+    .any(|d| pix_fmt.ends_with(d))
+}
+
+/// Picks a 10-bit pixel format for a high-bit-depth source when the profile
+/// leaves the pixel format at "default". 8-bit-only encoders (libx264 in most
+/// distro builds, VP8, legacy codecs) are skipped: the intended path there is
+/// tone mapping or an explicit user choice, not a silent depth reduction.
+pub(crate) fn auto_pixel_format(encoder: &str, source_pix_fmt: &str) -> Option<String> {
+    if !is_high_bit_depth(source_pix_fmt) {
+        return None;
+    }
+    match encoder_family(encoder) {
+        EncoderFamily::Nvenc | EncoderFamily::Qsv | EncoderFamily::Vaapi | EncoderFamily::Amf => {
+            Some("p010le".to_string())
+        }
+        EncoderFamily::Vulkan => Some("gbrp10le".to_string()),
+        EncoderFamily::Software => match encoder {
+            "libx265" | "libsvtav1" | "libaom-av1" | "librav1e" | "libvpx-vp9" | "ffv1" => {
+                Some("yuv420p10le".to_string())
+            }
+            _ => None,
+        },
+    }
 }
 
 pub(crate) fn software_video_codec(codec: &str) -> &str {

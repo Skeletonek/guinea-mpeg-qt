@@ -1,4 +1,6 @@
-use crate::ffmpeg::{encoder_capabilities, encoder_family, software_video_codec, EncoderFamily};
+use crate::ffmpeg::{
+    auto_pixel_format, encoder_capabilities, encoder_family, software_video_codec, EncoderFamily,
+};
 
 #[test]
 fn encoder_family_classification() {
@@ -41,4 +43,58 @@ fn software_video_codec_mapping() {
     assert_eq!(software_video_codec("theora"), "libtheora");
     assert_eq!(software_video_codec("gif"), "gif");
     assert_eq!(software_video_codec("webp"), "libwebp_anim");
+}
+
+#[test]
+fn auto_pixel_format_for_high_depth_sources() {
+    // hardware families get the P010 surface format
+    assert_eq!(
+        auto_pixel_format("h264_nvenc", "yuv420p10le").as_deref(),
+        Some("p010le")
+    );
+    assert_eq!(
+        auto_pixel_format("hevc_qsv", "p010le").as_deref(),
+        Some("p010le")
+    );
+    assert_eq!(
+        auto_pixel_format("hevc_vaapi", "yuv420p10le").as_deref(),
+        Some("p010le")
+    );
+    assert_eq!(
+        auto_pixel_format("av1_amf", "yuv420p10le").as_deref(),
+        Some("p010le")
+    );
+    assert_eq!(
+        auto_pixel_format("av1_vulkan", "yuv420p10le").as_deref(),
+        Some("gbrp10le")
+    );
+    // software encoders with real 10-bit support
+    assert_eq!(
+        auto_pixel_format("libx265", "yuv420p10le").as_deref(),
+        Some("yuv420p10le")
+    );
+    assert_eq!(
+        auto_pixel_format("libsvtav1", "yuv422p10le").as_deref(),
+        Some("yuv420p10le")
+    );
+    assert_eq!(
+        auto_pixel_format("libvpx-vp9", "p010le").as_deref(),
+        Some("yuv420p10le")
+    );
+    assert_eq!(
+        auto_pixel_format("ffv1", "yuv444p12le").as_deref(),
+        Some("yuv420p10le")
+    );
+}
+
+#[test]
+fn auto_pixel_format_skips_8bit_sources_and_encoders() {
+    // 8-bit source: nothing to preserve
+    assert_eq!(auto_pixel_format("libx265", "yuv420p"), None);
+    assert_eq!(auto_pixel_format("h264_nvenc", "nv12"), None);
+    // 8-bit-only encoders: leave the choice to the user
+    assert_eq!(auto_pixel_format("libx264", "yuv420p10le"), None);
+    assert_eq!(auto_pixel_format("libvpx", "yuv420p10le"), None);
+    assert_eq!(auto_pixel_format("mjpeg", "yuv420p10le"), None);
+    assert_eq!(auto_pixel_format("copy", "yuv420p10le"), None);
 }

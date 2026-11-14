@@ -1,5 +1,9 @@
 ### 1.1.0 (In progress)
 - Slightly decreased startup time
+- Added HDR format (HDR10, HDR10+, HLG, Dolby Vision) and pixel format info to the media information section
+- Added a Color & HDR setting in Profile Editor
+- Fixed transcoding of HDR and 10-bit videos to preserve original settings by default
+- Fixed hardware transcoding losing HDR quality when using video filters
 
 ### 1.0.1
 - Added word wrap to media information section
