@@ -9,6 +9,7 @@
 - Fixed transcoding of HDR and 10-bit videos to preserve original settings by default
 - Fixed hardware transcoding losing HDR quality when using video filters
 - Fixed the playhead jumping to the end of the preview clip when trimming the timeline in preview mode
+- Updated translations
 
 ### 1.0.1
 - Added word wrap to media information section

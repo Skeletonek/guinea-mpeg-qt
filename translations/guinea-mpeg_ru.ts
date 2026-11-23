@@ -252,6 +252,67 @@
     </message>
 </context>
 <context>
+    <name>ColorHdrSection</name>
+    <message>
+        <location filename="../qml/ProfileEditor/VideoPanel/ColorHdrSection.qml" line="79"/>
+        <source>Color &amp; HDR</source>
+        <translation>Цвет и HDR</translation>
+    </message>
+    <message>
+        <location filename="../qml/ProfileEditor/VideoPanel/ColorHdrSection.qml" line="83"/>
+        <source>Handling</source>
+        <translation>Обработка</translation>
+    </message>
+    <message>
+        <location filename="../qml/ProfileEditor/VideoPanel/ColorHdrSection.qml" line="90"/>
+        <source>Auto (keep source)</source>
+        <translation>Автоматически (сохранить источник)</translation>
+    </message>
+    <message>
+        <location filename="../qml/ProfileEditor/VideoPanel/ColorHdrSection.qml" line="90"/>
+        <source>Convert to SDR</source>
+        <translation>Преобразовать в SDR</translation>
+    </message>
+    <message>
+        <location filename="../qml/ProfileEditor/VideoPanel/ColorHdrSection.qml" line="90"/>
+        <source>Custom</source>
+        <translation>Пользовательский</translation>
+    </message>
+    <message>
+        <location filename="../qml/ProfileEditor/VideoPanel/ColorHdrSection.qml" line="100"/>
+        <source>Tone mapping</source>
+        <translation>Тонмаппинг</translation>
+    </message>
+</context>
+<context>
+    <name>ColorTagsSection</name>
+    <message>
+        <location filename="../qml/ProfileEditor/VideoPanel/ColorTagsSection.qml" line="27"/>
+        <source>Color tags</source>
+        <translation>Цветовые теги</translation>
+    </message>
+    <message>
+        <location filename="../qml/ProfileEditor/VideoPanel/ColorTagsSection.qml" line="31"/>
+        <source>Primaries</source>
+        <translation>Основные цвета</translation>
+    </message>
+    <message>
+        <location filename="../qml/ProfileEditor/VideoPanel/ColorTagsSection.qml" line="45"/>
+        <source>Transfer</source>
+        <translation>Передаточная характеристика</translation>
+    </message>
+    <message>
+        <location filename="../qml/ProfileEditor/VideoPanel/ColorTagsSection.qml" line="59"/>
+        <source>Colorspace</source>
+        <translation>Цветовое пространство</translation>
+    </message>
+    <message>
+        <location filename="../qml/ProfileEditor/VideoPanel/ColorTagsSection.qml" line="73"/>
+        <source>Range</source>
+        <translation>Диапазон</translation>
+    </message>
+</context>
+<context>
     <name>ContainerSection</name>
     <message>
         <location filename="../qml/ProfileEditor/VideoPanel/ContainerSection.qml" line="37"/>
@@ -272,13 +333,13 @@
         <translation>Открыть файл...</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="272"/>
+        <location filename="../qml/ControlsPanel.qml" line="271"/>
         <source>Stream Selection</source>
         <translation>Выбор потока</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="189"/>
-        <location filename="../qml/ControlsPanel.qml" line="281"/>
+        <location filename="../qml/ControlsPanel.qml" line="181"/>
+        <location filename="../qml/ControlsPanel.qml" line="280"/>
         <source>Video</source>
         <translation>Видео</translation>
     </message>
@@ -293,70 +354,80 @@
         <translation>Информация о медиафайле</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="162"/>
+        <location filename="../qml/ControlsPanel.qml" line="154"/>
         <source>File: %1</source>
         <translation>Файл: %1</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="163"/>
+        <location filename="../qml/ControlsPanel.qml" line="155"/>
         <source>Load a video file to see information</source>
         <translation>Загрузите видеофайл, чтобы увидеть информацию</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="171"/>
+        <location filename="../qml/ControlsPanel.qml" line="163"/>
         <source>Duration: %1s</source>
         <translation>Длительность: %1 с</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="195"/>
-        <location filename="../qml/ControlsPanel.qml" line="234"/>
+        <location filename="../qml/ControlsPanel.qml" line="187"/>
+        <location filename="../qml/ControlsPanel.qml" line="240"/>
         <source>Codec: %1</source>
         <translation>Кодек: %1</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="202"/>
+        <location filename="../qml/ControlsPanel.qml" line="194"/>
         <source>Resolution: %1</source>
         <translation>Разрешение: %1</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="209"/>
+        <location filename="../qml/ControlsPanel.qml" line="201"/>
         <source>FPS: %1</source>
         <translation>Кадров/с: %1</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="216"/>
-        <location filename="../qml/ControlsPanel.qml" line="255"/>
+        <location filename="../qml/ControlsPanel.qml" line="208"/>
+        <location filename="../qml/ControlsPanel.qml" line="261"/>
         <source>Bitrate: %1</source>
         <translation>Битрейт: %1</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="228"/>
-        <location filename="../qml/ControlsPanel.qml" line="305"/>
+        <location filename="../qml/ControlsPanel.qml" line="215"/>
+        <source>Pixel format: %1</source>
+        <translation>Формат пикселей: %1</translation>
+    </message>
+    <message>
+        <location filename="../qml/ControlsPanel.qml" line="222"/>
+        <source>Color: %1</source>
+        <translation>Цвет: %1</translation>
+    </message>
+    <message>
+        <location filename="../qml/ControlsPanel.qml" line="234"/>
+        <location filename="../qml/ControlsPanel.qml" line="304"/>
         <source>Audio</source>
         <translation>Аудио</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="241"/>
+        <location filename="../qml/ControlsPanel.qml" line="247"/>
         <source>Sample rate: %1</source>
         <translation>Частота дискретизации: %1</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="248"/>
+        <location filename="../qml/ControlsPanel.qml" line="254"/>
         <source>Channels: %1</source>
         <translation>Каналы: %1</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="329"/>
+        <location filename="../qml/ControlsPanel.qml" line="328"/>
         <source>Transcoding Profile</source>
         <translation>Профиль транскодирования</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="352"/>
+        <location filename="../qml/ControlsPanel.qml" line="351"/>
         <source>Profile Editor</source>
         <translation>Редактор профилей</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="358"/>
+        <location filename="../qml/ControlsPanel.qml" line="357"/>
         <source>Timeline Selection</source>
         <translation>Выбор таймлайна</translation>
     </message>
@@ -381,67 +452,67 @@
         <translation>Пусто = рядом с каждым исходным файлом</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="445"/>
-        <source>Estimated size: %1 (based on %2s preview)</source>
-        <translation>Предполагаемый размер: %1 (по предварительному просмотру длительностью %2 с)</translation>
-    </message>
-    <message>
-        <location filename="../qml/ControlsPanel.qml" line="473"/>
+        <location filename="../qml/ControlsPanel.qml" line="472"/>
         <source>Add to Transcoding Queue</source>
         <translation>Добавить в очередь перекодирования</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="474"/>
+        <location filename="../qml/ControlsPanel.qml" line="473"/>
         <source>Start Transcoding (%1 files)</source>
         <translation>Начать транскодирование (файлов: %1)</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="490"/>
+        <location filename="../qml/ControlsPanel.qml" line="489"/>
         <source>Transcoding log</source>
         <translation>Журнал перекодирования</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="504"/>
+        <location filename="../qml/ControlsPanel.qml" line="503"/>
         <source>%1 of %2 jobs failed</source>
         <translation>Не выполнено заданий: %1 из %2</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="504"/>
+        <location filename="../qml/ControlsPanel.qml" line="503"/>
         <source>Transcoding failed</source>
         <translation>Не удалось перекодировать</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="504"/>
+        <location filename="../qml/ControlsPanel.qml" line="503"/>
         <source>Transcoding complete</source>
         <translation>Перекодирование завершено</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="505"/>
+        <location filename="../qml/ControlsPanel.qml" line="504"/>
         <source>Transcoding in progress... (%1 queued)</source>
         <translation>Идёт перекодирование... (в очереди: %1)</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="505"/>
+        <location filename="../qml/ControlsPanel.qml" line="504"/>
         <source>Transcoding in progress...</source>
         <translation>Идёт перекодирование...</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="455"/>
+        <location filename="../qml/ControlsPanel.qml" line="454"/>
         <source>Preview outdated — regenerate preview to refresh estimate</source>
         <translation>Предпросмотр устарел — пересоздайте предпросмотр, чтобы обновить оценку</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="474"/>
+        <location filename="../qml/ControlsPanel.qml" line="444"/>
+        <source>Estimated size: %1 (based on the preview)</source>
+        <translation>Предполагаемый размер: %1 (по предпросмотру)</translation>
+    </message>
+    <message>
+        <location filename="../qml/ControlsPanel.qml" line="473"/>
         <source>Start Transcoding</source>
         <translation>Начать транскодирование</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="544"/>
+        <location filename="../qml/ControlsPanel.qml" line="543"/>
         <source>Settings</source>
         <translation>Настройки</translation>
     </message>
     <message>
-        <location filename="../qml/ControlsPanel.qml" line="561"/>
+        <location filename="../qml/ControlsPanel.qml" line="560"/>
         <source>About</source>
         <translation>О программе</translation>
     </message>
@@ -609,22 +680,22 @@ Install it with your package manager, e.g.:
 <context>
     <name>FormatUtils</name>
     <message>
-        <location filename="../qml/Utils/FormatUtils.js" line="128"/>
+        <location filename="../qml/Utils/FormatUtils.js" line="162"/>
         <source>mono</source>
         <translation>моно</translation>
     </message>
     <message>
-        <location filename="../qml/Utils/FormatUtils.js" line="128"/>
+        <location filename="../qml/Utils/FormatUtils.js" line="162"/>
         <source>stereo</source>
         <translation>стерео</translation>
     </message>
     <message>
-        <location filename="../qml/Utils/FormatUtils.js" line="128"/>
+        <location filename="../qml/Utils/FormatUtils.js" line="162"/>
         <source>5.1</source>
         <translation>5.1</translation>
     </message>
     <message>
-        <location filename="../qml/Utils/FormatUtils.js" line="128"/>
+        <location filename="../qml/Utils/FormatUtils.js" line="162"/>
         <source>7.1</source>
         <translation>7.1</translation>
     </message>
@@ -632,33 +703,33 @@ Install it with your package manager, e.g.:
 <context>
     <name>GuineaMpegBackendExt</name>
     <message>
-        <location filename="../src/backend.cpp" line="363"/>
+        <location filename="../src/backend.cpp" line="409"/>
         <source>===== Job: %1 → %2 =====</source>
         <translation>===== Задача: %1 → %2 =====</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="422"/>
+        <location filename="../src/backend.cpp" line="468"/>
         <source>no analysis result</source>
         <translation>нет результата анализа</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="423"/>
+        <location filename="../src/backend.cpp" line="469"/>
         <source>Error: normalization analysis failed: %1</source>
         <translation>Ошибка: не удалось выполнить анализ нормализации: %1</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="443"/>
+        <location filename="../src/backend.cpp" line="489"/>
         <source>Error: failed to build ffmpeg command from profile</source>
         <translation>Ошибка: не удалось построить команду ffmpeg из профиля</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="447"/>
+        <location filename="../src/backend.cpp" line="493"/>
         <source>Error: profile produced no ffmpeg arguments</source>
         <translation>Ошибка: профиль не создал аргументов ffmpeg</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="381"/>
-        <location filename="../src/backend.cpp" line="387"/>
+        <location filename="../src/backend.cpp" line="427"/>
+        <location filename="../src/backend.cpp" line="433"/>
         <source>
 --- Transcoding cancelled ---
 </source>
@@ -667,30 +738,30 @@ Install it with your package manager, e.g.:
 </translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="394"/>
+        <location filename="../src/backend.cpp" line="440"/>
         <source>Analyzing audio for normalization (first pass)...
 </source>
         <translation>Анализ аудио для нормализации (первый проход)...
 </translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="540"/>
-        <location filename="../src/backend.cpp" line="601"/>
+        <location filename="../src/backend.cpp" line="586"/>
+        <location filename="../src/backend.cpp" line="647"/>
         <source>Failed to start ffmpeg</source>
         <translation>Не удалось запустить ffmpeg</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="556"/>
+        <location filename="../src/backend.cpp" line="602"/>
         <source>Select Output Directory</source>
         <translation>Выберите папку вывода</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="586"/>
+        <location filename="../src/backend.cpp" line="632"/>
         <source>[log truncated - showing last %1 lines]</source>
         <translation>[журнал усечён — показаны последние %1 строк]</translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="600"/>
+        <location filename="../src/backend.cpp" line="646"/>
         <source>
 --- Transcoding finished: FAILED (could not start ffmpeg) ---
 </source>
@@ -699,7 +770,7 @@ Install it with your package manager, e.g.:
 </translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="606"/>
+        <location filename="../src/backend.cpp" line="652"/>
         <source>
 --- Transcoding finished: SUCCESS ---
 </source>
@@ -708,7 +779,7 @@ Install it with your package manager, e.g.:
 </translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="609"/>
+        <location filename="../src/backend.cpp" line="655"/>
         <source>
 --- Transcoding finished: FAILED (exit code %1) ---
 </source>
@@ -717,15 +788,15 @@ Install it with your package manager, e.g.:
 </translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="612"/>
+        <location filename="../src/backend.cpp" line="658"/>
         <source>Detected error details:
 </source>
         <translation>Обнаруженные сведения об ошибке:
 </translation>
     </message>
     <message>
-        <location filename="../src/backend.cpp" line="528"/>
-        <location filename="../src/backend.cpp" line="615"/>
+        <location filename="../src/backend.cpp" line="574"/>
+        <location filename="../src/backend.cpp" line="661"/>
         <source>Unknown error (exit code %1)</source>
         <translation>Неизвестная ошибка (код выхода %1)</translation>
     </message>
@@ -1195,6 +1266,29 @@ Continue?</source>
     </message>
 </context>
 <context>
+    <name>TimelineControl</name>
+    <message>
+        <location filename="../qml/TimelineControl.qml" line="230"/>
+        <source>Set Start</source>
+        <translation>Установить начало</translation>
+    </message>
+    <message>
+        <location filename="../qml/TimelineControl.qml" line="237"/>
+        <source>Set the timeline start to the current preview position</source>
+        <translation>Установить начало таймлайна на текущую позицию предпросмотра</translation>
+    </message>
+    <message>
+        <location filename="../qml/TimelineControl.qml" line="241"/>
+        <source>Set End</source>
+        <translation>Установить конец</translation>
+    </message>
+    <message>
+        <location filename="../qml/TimelineControl.qml" line="248"/>
+        <source>Set the timeline end to the current preview position</source>
+        <translation>Установить конец таймлайна на текущую позицию предпросмотра</translation>
+    </message>
+</context>
+<context>
     <name>TranscodeDialog</name>
     <message>
         <location filename="../qml/Dialogs/TranscodeDialog.qml" line="350"/>
@@ -1322,27 +1416,27 @@ Continue?</source>
 <context>
     <name>VideoPanel</name>
     <message>
-        <location filename="../qml/ProfileEditor/VideoPanel.qml" line="141"/>
+        <location filename="../qml/ProfileEditor/VideoPanel.qml" line="149"/>
         <source>Video</source>
         <translation>Видео</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/VideoPanel.qml" line="170"/>
+        <location filename="../qml/ProfileEditor/VideoPanel.qml" line="178"/>
         <source>Codec</source>
         <translation>Кодек</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/VideoPanel.qml" line="195"/>
+        <location filename="../qml/ProfileEditor/VideoPanel.qml" line="203"/>
         <source>Rate control</source>
         <translation>Управление битрейтом</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/VideoPanel.qml" line="247"/>
+        <location filename="../qml/ProfileEditor/VideoPanel.qml" line="255"/>
         <source>Scaling</source>
         <translation>Масштабирование</translation>
     </message>
     <message>
-        <location filename="../qml/ProfileEditor/VideoPanel.qml" line="274"/>
+        <location filename="../qml/ProfileEditor/VideoPanel.qml" line="282"/>
         <source>Scaling, filters, rate control and codec options are disabled for Copy (stream copy).</source>
         <translation>Масштабирование, фильтры, управление битрейтом и параметры кодека недоступны при копировании (копировании потока).</translation>
     </message>
@@ -1433,72 +1527,72 @@ Continue?</source>
 <context>
     <name>main</name>
     <message>
-        <location filename="../qml/main.qml" line="150"/>
+        <location filename="../qml/main.qml" line="159"/>
         <source>Could not open %1 file(s)</source>
         <translation>Не удалось открыть файлов: %1</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="161"/>
+        <location filename="../qml/main.qml" line="170"/>
         <source>%1 skipped (not readable)</source>
         <translation>Пропущено: %1 (не удаётся прочитать)</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="163"/>
+        <location filename="../qml/main.qml" line="172"/>
         <source>%1 already open</source>
         <translation>%1 уже открыто</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="298"/>
+        <location filename="../qml/main.qml" line="307"/>
         <source>Added %1 file(s) to the queue</source>
         <translation>В очередь добавлено файлов: %1</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="300"/>
+        <location filename="../qml/main.qml" line="309"/>
         <source>%1 skipped (empty trim range)</source>
         <translation>Пропущено: %1 (пустой диапазон обрезки)</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="301"/>
+        <location filename="../qml/main.qml" line="310"/>
         <source>No new files to queue</source>
         <translation>Нет новых файлов для добавления в очередь</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="572"/>
+        <location filename="../qml/main.qml" line="581"/>
         <source>Copied to clipboard</source>
         <translation>Скопировано в буфер обмена</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="662"/>
+        <location filename="../qml/main.qml" line="671"/>
         <source>Transcoding Failed</source>
         <translation>Транскодирование не удалось</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="662"/>
+        <location filename="../qml/main.qml" line="671"/>
         <source>Transcoding Complete</source>
         <translation>Транскодирование завершено</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="666"/>
+        <location filename="../qml/main.qml" line="675"/>
         <source>%1 of %2 jobs failed</source>
         <translation>Не выполнено заданий: %1 из %2</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="668"/>
+        <location filename="../qml/main.qml" line="677"/>
         <source>All %1 jobs completed</source>
         <translation>Все задания (%1) завершены</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="670"/>
+        <location filename="../qml/main.qml" line="679"/>
         <source>Transcoding exited with an error</source>
         <translation>Транскодирование завершилось с ошибкой</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="670"/>
+        <location filename="../qml/main.qml" line="679"/>
         <source>Your video has been transcoded successfully.</source>
         <translation>Ваше видео было успешно транскодировано.</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="266"/>
+        <location filename="../qml/main.qml" line="275"/>
         <source>Please set an output file path first</source>
         <translation>Сначала укажите путь выходного файла</translation>
     </message>
