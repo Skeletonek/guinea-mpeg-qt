@@ -10,6 +10,8 @@ Rectangle {
     property int startTime: 0
     property int endTime: 0
     property var mainWindow: null
+    // Playhead position on the movie timeline (ms), provided by the host
+    property real previewPosition: 0
     // Source FPS as a decimal, derived from currentVideoInfo
     readonly property real fps: {
         var info = mainWindow && mainWindow.currentVideoInfo ? mainWindow.currentVideoInfo : null;
@@ -33,6 +35,16 @@ Rectangle {
         endTime = Qt.binding(function () {
             return mainWindow ? mainWindow.endTime : 0;
         });
+    }
+
+    // Mark the trim boundary at the current playhead position (routed through
+    // trimRequested so the batch trim warning guard applies like on drag)
+    function setStartFromPreview() {
+        root.trimRequested("start", Math.max(0, Math.min(root.previewPosition, endTime - 1)));
+    }
+
+    function setEndFromPreview() {
+        root.trimRequested("end", Math.max(startTime + 1, Math.min(root.previewPosition, videoDuration)));
     }
 
     // Trim nudging while a handle holds focus (seek shortcuts yield in the same state): 1 frame / Ctrl=1s / Shift=1min
@@ -81,11 +93,16 @@ Rectangle {
         onActivated: root.nudgeFocusedBy(60000)
     }
 
+    // Sized by content: button heights vary per style
+    implicitHeight: timelineContent.implicitHeight
+
     color: theme.widget
     border.color: theme.widgetBorder
     border.width: 1
 
     Column {
+        id: timelineContent
+
         spacing: 8
         anchors.fill: parent
         padding: 8
@@ -202,6 +219,33 @@ Rectangle {
                         });
                     }
                 }
+            }
+        }
+
+        Row {
+            spacing: 8
+            width: parent.width - parent.leftPadding - parent.rightPadding
+
+            Button {
+                text: qsTr("Set Start")
+                enabled: root.videoDuration > 0
+                onClicked: root.setStartFromPreview()
+                width: (parent.width - parent.spacing) / 2
+
+                ToolTip.visible: hovered
+                ToolTip.delay: 500
+                ToolTip.text: qsTr("Set the timeline start to the current preview position")
+            }
+
+            Button {
+                text: qsTr("Set End")
+                enabled: root.videoDuration > 0
+                onClicked: root.setEndFromPreview()
+                width: (parent.width - parent.spacing) / 2
+
+                ToolTip.visible: hovered
+                ToolTip.delay: 500
+                ToolTip.text: qsTr("Set the timeline end to the current preview position")
             }
         }
     }

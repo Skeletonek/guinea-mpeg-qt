@@ -139,6 +139,8 @@ pub struct AppOptions {
     pub check_for_updates: bool,
     #[serde(default = "default_autoplay_on_load")]
     pub autoplay_on_load: bool,
+    #[serde(default)]
+    pub last_profile: String,
 }
 
 fn default_language() -> String {
@@ -184,6 +186,7 @@ impl Default for AppOptions {
             preview_duration: default_preview_duration(),
             check_for_updates: default_check_for_updates(),
             autoplay_on_load: default_autoplay_on_load(),
+            last_profile: String::new(),
         }
     }
 }
@@ -593,6 +596,7 @@ pub fn set_option(key: &str, value: &str) -> anyhow::Result<()> {
         "autoplayOnLoad" => {
             cfg.options.autoplay_on_load = parse_bool(value)?;
         }
+        "lastProfile" => cfg.options.last_profile = value.to_string(),
         _ => return Err(anyhow::anyhow!("unknown option key")),
     }
     save_user_config(&cfg)?;

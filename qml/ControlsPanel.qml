@@ -69,12 +69,12 @@ Item {
         }
         if (kind === "start") {
             hostWindow.startTime = value;
-            if (playerItem)
-                playerItem.position = value;
         } else {
             hostWindow.endTime = value;
-            if (playerItem)
-                playerItem.position = value;
+        }
+        if (playerItem) {
+            // Preview clips start at the trim start: map the movie position into the clip
+            playerItem.position = playerItem.previewActive ? Math.max(0, value - playerItem.startTimeMs) : value;
         }
     }
 
@@ -144,141 +144,126 @@ Item {
                 }
             }
 
-            Flickable {
-                id: videoInfoScroll
+            ColumnLayout {
+                id: videoInfoLayout
 
                 width: parent.width
-                height: Math.max(Math.min(videoInfoLayout.implicitHeight, 160), 120)
-                contentHeight: videoInfoLayout.implicitHeight
-                clip: true
+                spacing: 4
 
-                ColumnLayout {
-                    id: videoInfoLayout
-
-                    width: videoInfoScroll.width - (infoVbar.visible ? infoVbar.width : 0)
-                    spacing: 4
-
-                    Label {
-                        text: root._hasVideo ? qsTr("File: %1").arg(FormatUtils.getFilename(hostWindow.currentVideoPath))
-                                             : qsTr("Load a video file to see information")
-                        color: theme.text
-                        wrapMode: Text.Wrap
-                        Layout.fillWidth: true
-                    }
-
-                    Label {
-                        visible: root._hasVideo
-                        text: qsTr("Duration: %1s").arg(root._durationText)
-                        color: theme.text
-                        Layout.fillWidth: true
-                    }
-
-                    RowLayout {
-                        visible: root._hasVideo
-                        Layout.fillWidth: true
-                        // Qt 6.12: a nested layout's implicit maximum width caps it at
-                        // its content width, so fillWidth alone never stretches it.
-                        Layout.maximumWidth: Number.POSITIVE_INFINITY
-                        spacing: 16
-
-                        ColumnLayout {
-                            Layout.fillWidth: true
-                            spacing: 4
-
-                            Label {
-                                text: qsTr("Video")
-                                font.bold: true
-                                color: theme.text
-                            }
-
-                            Label {
-                                text: qsTr("Codec: %1").arg(root._videoStream ? root._videoStream.codec : "N/A")
-                                color: theme.text
-                                wrapMode: Text.Wrap
-                                Layout.fillWidth: true
-                            }
-
-                            Label {
-                                text: qsTr("Resolution: %1").arg(root._videoStream ? root._videoStream.width + "x" + root._videoStream.height : "N/A")
-                                color: theme.text
-                                wrapMode: Text.Wrap
-                                Layout.fillWidth: true
-                            }
-
-                            Label {
-                                text: qsTr("FPS: %1").arg(root._videoStream ? FormatUtils.formatFps(root._videoStream.fps) : "N/A")
-                                color: theme.text
-                                wrapMode: Text.Wrap
-                                Layout.fillWidth: true
-                            }
-
-                            Label {
-                                text: qsTr("Bitrate: %1").arg(root._videoStream ? FormatUtils.formatBitrate(root._videoStream.bitrate) : "N/A")
-                                color: theme.text
-                                wrapMode: Text.Wrap
-                                Layout.fillWidth: true
-                            }
-
-                            Label {
-                                text: qsTr("Pixel format: %1").arg(root._videoStream ? root._videoStream.pix_fmt || "?" : "N/A")
-                                color: theme.text
-                                wrapMode: Text.Wrap
-                                Layout.fillWidth: true
-                            }
-
-                            Label {
-                                text: qsTr("Color: %1").arg(root._videoStream ? FormatUtils.formatColor(root._videoStream) : "N/A")
-                                color: theme.text
-                                wrapMode: Text.Wrap
-                                Layout.fillWidth: true
-                            }
-                        }
-
-                        ColumnLayout {
-                            Layout.fillWidth: true
-                            spacing: 4
-
-                            Label {
-                                text: qsTr("Audio")
-                                font.bold: true
-                                color: theme.text
-                            }
-
-                            Label {
-                                text: qsTr("Codec: %1").arg(root._audioStream ? root._audioStream.codec : "N/A")
-                                color: theme.text
-                                wrapMode: Text.Wrap
-                                Layout.fillWidth: true
-                            }
-
-                            Label {
-                                text: qsTr("Sample rate: %1").arg(root._audioStream ? FormatUtils.formatSampleRate(root._audioStream.sample_rate) : "N/A")
-                                color: theme.text
-                                wrapMode: Text.Wrap
-                                Layout.fillWidth: true
-                            }
-
-                            Label {
-                                text: qsTr("Channels: %1").arg(root._audioStream ? FormatUtils.formatChannels(root._audioStream.channels) : "N/A")
-                                color: theme.text
-                                wrapMode: Text.Wrap
-                                Layout.fillWidth: true
-                            }
-
-                            Label {
-                                text: qsTr("Bitrate: %1").arg(root._audioStream ? FormatUtils.formatBitrate(root._audioStream.bitrate) : "N/A")
-                                color: theme.text
-                                wrapMode: Text.Wrap
-                                Layout.fillWidth: true
-                            }
-                        }
-                    }
+                Label {
+                    text: root._hasVideo ? qsTr("File: %1").arg(FormatUtils.getFilename(hostWindow.currentVideoPath))
+                                         : qsTr("Load a video file to see information")
+                    color: theme.text
+                    wrapMode: Text.Wrap
+                    Layout.fillWidth: true
                 }
 
-                ScrollBar.vertical: ScrollBar {
-                    id: infoVbar
+                Label {
+                    visible: root._hasVideo
+                    text: qsTr("Duration: %1s").arg(root._durationText)
+                    color: theme.text
+                    Layout.fillWidth: true
+                }
 
-                    policy: ScrollBar.AsNeeded
+                RowLayout {
+                    visible: root._hasVideo
+                    Layout.fillWidth: true
+                    // Qt 6.12: a nested layout's implicit maximum width caps it at
+                    // its content width, so fillWidth alone never stretches it.
+                    Layout.maximumWidth: Number.POSITIVE_INFINITY
+                    spacing: 16
+
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 4
+
+                        Label {
+                            text: qsTr("Video")
+                            font.bold: true
+                            color: theme.text
+                        }
+
+                        Label {
+                            text: qsTr("Codec: %1").arg(root._videoStream ? root._videoStream.codec : "N/A")
+                            color: theme.text
+                            wrapMode: Text.Wrap
+                            Layout.fillWidth: true
+                        }
+
+                        Label {
+                            text: qsTr("Resolution: %1").arg(root._videoStream ? root._videoStream.width + "x" + root._videoStream.height : "N/A")
+                            color: theme.text
+                            wrapMode: Text.Wrap
+                            Layout.fillWidth: true
+                        }
+
+                        Label {
+                            text: qsTr("FPS: %1").arg(root._videoStream ? FormatUtils.formatFps(root._videoStream.fps) : "N/A")
+                            color: theme.text
+                            wrapMode: Text.Wrap
+                            Layout.fillWidth: true
+                        }
+
+                        Label {
+                            text: qsTr("Bitrate: %1").arg(root._videoStream ? FormatUtils.formatBitrate(root._videoStream.bitrate) : "N/A")
+                            color: theme.text
+                            wrapMode: Text.Wrap
+                            Layout.fillWidth: true
+                        }
+
+                        Label {
+                            text: qsTr("Pixel format: %1").arg(root._videoStream ? root._videoStream.pix_fmt || "?" : "N/A")
+                            color: theme.text
+                            wrapMode: Text.Wrap
+                            Layout.fillWidth: true
+                        }
+
+                        Label {
+                            text: qsTr("Color: %1").arg(root._videoStream ? FormatUtils.formatColor(root._videoStream) : "N/A")
+                            color: theme.text
+                            wrapMode: Text.Wrap
+                            Layout.fillWidth: true
+                        }
+                    }
+
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 4
+
+                        Label {
+                            text: qsTr("Audio")
+                            font.bold: true
+                            color: theme.text
+                        }
+
+                        Label {
+                            text: qsTr("Codec: %1").arg(root._audioStream ? root._audioStream.codec : "N/A")
+                            color: theme.text
+                            wrapMode: Text.Wrap
+                            Layout.fillWidth: true
+                        }
+
+                        Label {
+                            text: qsTr("Sample rate: %1").arg(root._audioStream ? FormatUtils.formatSampleRate(root._audioStream.sample_rate) : "N/A")
+                            color: theme.text
+                            wrapMode: Text.Wrap
+                            Layout.fillWidth: true
+                        }
+
+                        Label {
+                            text: qsTr("Channels: %1").arg(root._audioStream ? FormatUtils.formatChannels(root._audioStream.channels) : "N/A")
+                            color: theme.text
+                            wrapMode: Text.Wrap
+                            Layout.fillWidth: true
+                        }
+
+                        Label {
+                            text: qsTr("Bitrate: %1").arg(root._audioStream ? FormatUtils.formatBitrate(root._audioStream.bitrate) : "N/A")
+                            color: theme.text
+                            wrapMode: Text.Wrap
+                            Layout.fillWidth: true
+                        }
+                    }
                 }
             }
 
@@ -380,11 +365,12 @@ Item {
                 id: timeline
 
                 width: parent.width
-                height: 80
                 mainWindow: hostWindow
                 videoDuration: hostWindow ? hostWindow.videoDuration : 0
                 startTime: hostWindow ? hostWindow.startTime : 0
                 endTime: hostWindow ? hostWindow.endTime : 0
+                // In preview mode the playhead is clip-relative; the clip starts at the trim start
+                previewPosition: playerItem ? (playerItem.previewActive ? playerItem.startTimeMs + playerItem.position : playerItem.position) : 0
                 onStartTimeChanged: {
                     if (!hostWindow || hostWindow.settingTimeline)
                         return;
@@ -455,8 +441,7 @@ Item {
                 property bool hasPreview: backend.lastPreviewSize > 0
                 property bool stale: hasPreview && (hostWindow.previewProfile !== hostWindow.currentProfile)
                 property bool hasTrim: hostWindow && (hostWindow.endTime - hostWindow.startTime) > 0
-                readonly property real previewSeconds: backend.lastPreviewDurationMs / 1000
-                text: hasPreview && hasTrim ? qsTr("Estimated size: %1 (based on %2s preview)").arg(FormatUtils.formatSize(backend.lastPreviewSize * (hostWindow.endTime - hostWindow.startTime) / backend.lastPreviewDurationMs)).arg(previewSeconds) : ""
+                text: hasPreview && hasTrim ? qsTr("Estimated size: %1 (based on the preview)").arg(FormatUtils.formatSize(backend.lastPreviewSize * (hostWindow.endTime - hostWindow.startTime) / backend.lastPreviewDurationMs)) : ""
                 color: theme.text
                 font.pixelSize: 12
                 opacity: stale ? 0.5 : 1.0

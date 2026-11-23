@@ -12,7 +12,16 @@ ApplicationWindow {
 
     property string currentVideoPath: ""
     property var currentVideoInfo: ({})
-    property string currentProfile: "H.264 High 1080p"
+    // Startup binding only: user selection reassigns this and drops the binding
+    property string currentProfile: {
+        try {
+            var saved = JSON.parse(backend.getOptions()).last_profile;
+            if (saved && saved !== "")
+                return saved;
+        } catch (e) {}
+        return "H.264 High 1080p";
+    }
+    onCurrentProfileChanged: backend.setOption("lastProfile", currentProfile)
     property int videoDuration: 0
     property int startTime: 0
     property int endTime: 0

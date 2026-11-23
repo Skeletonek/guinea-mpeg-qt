@@ -2,8 +2,13 @@
 - Slightly decreased startup time
 - Added HDR format (HDR10, HDR10+, HLG, Dolby Vision) and pixel format info to the media information section
 - Added a Color & HDR setting in Profile Editor
+- Added "Set Start" and "Set End" timeline buttons to mark the current preview position
+- Added remembering the last chosen profile between sessions
+- Changed the media information section to auto-size its height instead of showing a scrollbar
+- Shortened the estimated size label text
 - Fixed transcoding of HDR and 10-bit videos to preserve original settings by default
 - Fixed hardware transcoding losing HDR quality when using video filters
+- Fixed the playhead jumping to the end of the preview clip when trimming the timeline in preview mode
 
 ### 1.0.1
 - Added word wrap to media information section

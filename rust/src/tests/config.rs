@@ -86,6 +86,7 @@ fn options_defaults_when_absent() {
     assert_eq!(cfg.options.preview_volume, 100.0);
     assert_eq!(cfg.options.preview_duration, 5.0);
     assert!(cfg.options.check_for_updates);
+    assert_eq!(cfg.options.last_profile, "");
 }
 
 #[test]
@@ -132,6 +133,7 @@ fn set_option_roundtrip() {
         set_option("hwdec", "vaapi").unwrap();
         set_option("checkForUpdates", "false").unwrap();
         set_option("autoplayOnLoad", "false").unwrap();
+        set_option("lastProfile", "H.264 High").unwrap();
         let opts = get_options();
         assert_eq!(opts.language, "pl");
         assert_eq!(opts.theme, "dark");
@@ -139,6 +141,7 @@ fn set_option_roundtrip() {
         assert_eq!(opts.hwdec, "vaapi");
         assert!(!opts.check_for_updates);
         assert!(!opts.autoplay_on_load);
+        assert_eq!(opts.last_profile, "H.264 High");
         set_option("autoplayOnLoad", "true").unwrap();
         assert!(get_options().autoplay_on_load);
     });
