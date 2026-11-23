@@ -1,4 +1,4 @@
-### 1.1.0 (In progress)
+### 1.1.0
 - Slightly decreased startup time
 - Added HDR format (HDR10, HDR10+, HLG, Dolby Vision) and pixel format info to the media information section
 - Added a Color & HDR setting in Profile Editor
